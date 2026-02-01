@@ -1,8 +1,27 @@
 services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: SoftLearn_development
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
   softlearn:
     image: softlearn
     build:
-      context: .
-      dockerfile: ./Dockerfile
+      context: ./backend
     ports:
       - 3000:3000
+    environment:
+      - RAILS_ENV=development
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/SoftLearn_development
+    depends_on:
+      - postgres
+    command: ./bin/rails s -b 0.0.0.0
+
+volumes:
+  postgres_data:
