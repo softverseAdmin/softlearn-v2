@@ -3,13 +3,13 @@
 - **Project status:** inception
 - **Baseline version:** v1
 - **Technology decision:** pending
-- **Current active unit:** U0-4-technology-selection-and-architecture
+- **Current active unit:** U0-3-core-features-breakdown
 
 ## Active units
 
 | Unit | Stage | Status |
 | --- | --- | --- |
-| U0-4-technology-selection-and-architecture | Functional Design | active |
+| U0-3-core-features-breakdown | Functional Design | active |
 
 ## Completed units
 
@@ -17,7 +17,6 @@
 | --- | --- |
 | U0-1-platform-requirements-definition | Baseline platform requirements completed for inception v1 without selecting a stack. |
 | U0-2-user-personas-definition | Persona baseline completed for learners, company roles, and admins without selecting a stack. |
-| U0-3-core-features-breakdown | Domain-based feature roadmap completed through production readiness without selecting a stack. |
 
 ## Open CHG
 
@@ -29,8 +28,8 @@
 
 | Stage | Overall status |
 | --- | --- |
-| Functional Design | U0-1 through U0-3 completed; next inception units pending |
-| NFR Requirements | U0-1 through U0-3 completed; next inception units pending |
-| NFR Design | U0-1 through U0-3 completed; next inception units pending |
-| Infrastructure Design | U0-1 through U0-3 completed; next inception units pending |
+| Functional Design | U0-1 and U0-2 completed; next inception units pending |
+| NFR Requirements | U0-1 and U0-2 completed; next inception units pending |
+| NFR Design | U0-1 and U0-2 completed; next inception units pending |
+| Infrastructure Design | U0-1 and U0-2 completed; next inception units pending |
 | Code Generation | Blocked until stack selection for application code |
