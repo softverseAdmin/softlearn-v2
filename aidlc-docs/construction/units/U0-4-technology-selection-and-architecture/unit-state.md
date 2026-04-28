@@ -44,8 +44,3 @@ Formal acceptance still depends on ADR review, and cost or team constraints coul
 ## Last Updated
 
 2026-04-28
-2026-04-28
-2026-04-28
-2026-04-28
-2026-04-28
-2026-04-28

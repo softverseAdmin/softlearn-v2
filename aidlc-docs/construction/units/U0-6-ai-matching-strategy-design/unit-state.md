@@ -44,8 +44,3 @@ Exact threshold tuning and recalculation frequency may be refined later through 
 ## Last Updated
 
 2026-04-28
-2026-04-28
-2026-04-28
-2026-04-28
-2026-04-28
-2026-04-28

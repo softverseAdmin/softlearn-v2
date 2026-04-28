@@ -9,7 +9,7 @@
 
 | Unit | Stage | Status |
 | --- | --- | --- |
-| U1-2-authentication-core | Functional Design | pending |
+| U1-2-authentication-core | Functional Design | active |
 
 ## Completed units
 
@@ -23,21 +23,21 @@
 | U0-6-ai-matching-strategy-design | Rule-based matching strategy completed with deterministic scoring, explanations, ranking, and stored match-result requirements. |
 | U0-7-security-and-compliance-design | Security and compliance baseline completed for privacy, consent, authorization, audit logging, exam integrity, meeting-link validation, and admin protection. |
 | U0-8-deployment-and-infra-strategy | Deployment strategy baseline completed for local-first delivery now and AWS-compatible deployment later. |
-| U1-1-project-initialization | Repository bootstrap and AI-DLC operating scaffold completed. |
-| U1-4-base-api-structure | Base REST API contract completed for auth, profiles, learning, exams, jobs, matching, applications, interviews, and notifications. |
+| U1-1-project-initialization | Repository bootstrap and AI-DLC operating scaffold completed. Sequencing exception recorded in CHG-001. |
+| U1-4-base-api-structure | Base REST API contract completed for auth, profiles, learning, exams, jobs, matching, applications, interviews, and notifications. Sequencing exception recorded in CHG-001. |
 
 ## Open CHG
 
 | CHG | Summary | Status |
 | --- | --- | --- |
-| None | No open change requests. | N/A |
+| None | No open change requests. CHG-001 is accepted and closed. | N/A |
 
 ## Stage status summary
 
 | Stage | Overall status |
 | --- | --- |
-| Functional Design | U0-1 through U0-8 and U1-1/U1-4 completed; next units pending |
-| NFR Requirements | U0-1 through U0-8 and U1-1/U1-4 completed; next units pending |
-| NFR Design | U0-1 through U0-8 and U1-1/U1-4 completed; next units pending |
-| Infrastructure Design | U0-1 through U0-8 and U1-1/U1-4 completed; next units pending |
+| Functional Design | U0-1 through U0-8 and U1-1/U1-4 completed; U1-2 is active and U1-3 is pending |
+| NFR Requirements | U0-1 through U0-8 and U1-1/U1-4 completed; U1-2 is active and U1-3 is pending |
+| NFR Design | U0-1 through U0-8 and U1-1/U1-4 completed; U1-2 is active and U1-3 is pending |
+| Infrastructure Design | U0-1 through U0-8 and U1-1/U1-4 completed; U1-2 is active and U1-3 is pending |
 | Code Generation | Documentation/code-generation planning completed for U0-1 through U0-8 and U1-1/U1-4; application code remains blocked until ADR-001 is accepted |

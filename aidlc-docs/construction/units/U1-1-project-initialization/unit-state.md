@@ -1,6 +1,6 @@
 # Unit: U1-1-project-initialization
 
-Status: not_started
+Status: completed
 
 Baseline inception version: v1
 
@@ -39,9 +39,4 @@ Stack-specific initialization remains deferred until ADR-001 is accepted.
 
 ## Last Updated
 
-2026-04-28
-2026-04-28
-2026-04-28
-2026-04-28
-2026-04-28
 2026-04-28

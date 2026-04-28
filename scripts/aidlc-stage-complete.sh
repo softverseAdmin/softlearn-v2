@@ -43,33 +43,46 @@ awk -v stage="$stage_name" '
   { print }
 ' "$unit_state" > "$tmp_file"
 
+checked_count="$(awk '/^- \[x\] / { count++ } END { print count + 0 }' "$tmp_file")"
+
+if [ "$checked_count" -eq 0 ]; then
+  new_status="not_started"
+elif [ "$checked_count" -eq 5 ]; then
+  new_status="completed"
+else
+  new_status="in_progress"
+fi
+
+awk -v status="$new_status" '
+  /^Status:/ {
+    print "Status: " status
+    next
+  }
+  { print }
+' "$tmp_file" > "${tmp_file}.status"
+
 awk -v today="$today" '
-  BEGIN { last_section=0; replaced=0 }
+  BEGIN { last_section=0 }
   {
     if ($0 == "## Last Updated") {
       print
-      last_section=1
-      next
-    }
-
-    if (last_section == 1) {
       print ""
       print today
-      replaced=1
       last_section=2
       next
     }
 
-    if (last_section == 2 && !replaced) {
+    if (last_section == 2) {
       next
     }
 
     print
   }
-' "$tmp_file" > "${tmp_file}.updated"
+ ' "${tmp_file}.status" > "${tmp_file}.updated"
 
 mv "${tmp_file}.updated" "$unit_state"
-rm -f "$tmp_file"
+rm -f "$tmp_file" "${tmp_file}.status"
 
 echo "Marked stage complete: ${stage_name}"
+echo "Set status to: ${new_status}"
 echo "Updated ${unit_state}"

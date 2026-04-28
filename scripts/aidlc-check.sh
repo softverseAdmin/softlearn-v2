@@ -67,6 +67,72 @@ else
   report_ng "aidlc-docs/construction/units"
 fi
 
+if [ -f "aidlc-docs/aidlc-state.md" ]; then
+  current_active_unit="$(
+    awk -F'\\*\\*Current active unit:\\*\\* ' '/\*\*Current active unit:\*\*/ { print $2 }' aidlc-docs/aidlc-state.md
+  )"
+
+  if [ -n "$current_active_unit" ] && [ "$current_active_unit" != "None" ]; then
+    if [ -d "aidlc-docs/construction/units/${current_active_unit}" ]; then
+      report_ok "aidlc-docs/aidlc-state.md current active unit"
+    else
+      report_ng "aidlc-docs/aidlc-state.md current active unit"
+    fi
+  fi
+
+  while IFS= read -r completed_unit; do
+    [ -n "$completed_unit" ] || continue
+    if [ -f "aidlc-docs/construction/units/${completed_unit}/unit-state.md" ] &&
+      grep -Fqx "Status: completed" "aidlc-docs/construction/units/${completed_unit}/unit-state.md"; then
+      report_ok "aidlc-docs/aidlc-state.md completed unit ${completed_unit}"
+    else
+      report_ng "aidlc-docs/aidlc-state.md completed unit ${completed_unit}"
+    fi
+  done <<EOF
+$(awk '
+  /^## Completed units$/ { in_completed=1; next }
+  /^## Open CHG$/ { in_completed=0 }
+  in_completed && /^\| U[0-9]+-[0-9]+-/ { print $2 }
+' aidlc-docs/aidlc-state.md)
+EOF
+fi
+
+for unit_state in aidlc-docs/construction/units/*/unit-state.md; do
+  [ -f "$unit_state" ] || continue
+
+  checked_count="$(grep -c '^- \[x\] ' "$unit_state" || true)"
+  status_value="$(awk -F': ' '/^Status:/ { print $2 }' "$unit_state")"
+
+  if [ "$checked_count" -eq 0 ]; then
+    expected_status="not_started"
+  elif [ "$checked_count" -eq 5 ]; then
+    expected_status="completed"
+  else
+    expected_status="in_progress"
+  fi
+
+  if [ "$status_value" = "$expected_status" ]; then
+    report_ok "${unit_state} status"
+  else
+    report_ng "${unit_state} status"
+  fi
+
+  last_updated_entries="$(
+    awk '
+      /^## Last Updated$/ { in_last_updated=1; next }
+      /^## / && in_last_updated { exit }
+      in_last_updated && $0 !~ /^[[:space:]]*$/ { count++ }
+      END { print count + 0 }
+    ' "$unit_state"
+  )"
+
+  if [ "$last_updated_entries" -eq 1 ]; then
+    report_ok "${unit_state} last-updated"
+  else
+    report_ng "${unit_state} last-updated"
+  fi
+done
+
 echo "---"
 echo "AI-DLC check summary: OK=${checks_ok} NG=${checks_ng}"
 
