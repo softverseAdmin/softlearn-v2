@@ -2,7 +2,7 @@
 
 ## How NFRs are addressed
 
-- Security is addressed through JWT bearer auth, explicit role boundaries, and a standard error format that avoids internal leakage.
+- Security is addressed through session-based browser auth, explicit role boundaries, CSRF-aware protected writes, and a standard error format that avoids internal leakage.
 - Privacy is addressed by clearly separating student-only and company-only access and by keeping matching outputs rule-based and permission-aware.
 - Performance is addressed by keeping endpoints resource-oriented and response bodies focused on practical client needs.
 - Reliability is addressed through a consistent `/api/v1/` prefix, common success/error envelopes, and predictable endpoint semantics.
@@ -11,14 +11,14 @@
 
 ## Tradeoffs
 
-- JWT is defined here because the user requested a token-based API contract, even though final auth implementation details may still be refined during backend implementation.
+- Session-based browser auth is defined here to align the API contract with ADR-001 and the recommended Django architecture.
 - The contract avoids overdesigning admin APIs in this unit so the main student and company flows stay clear.
-- The endpoint set is practical and implementation-ready, but some details such as pagination conventions and refresh-token policy are intentionally deferred.
+- The endpoint set is practical and implementation-ready, but some details such as pagination conventions and session timeout policy are intentionally deferred.
 
 ## Monitoring
 
 - Later backend units should validate that implemented routes still match these endpoint names and response shapes.
-- Later auth and RBAC units should confirm that JWT handling and authorization rules remain aligned with the security design.
+- Later auth and RBAC units should confirm that session handling, CSRF behavior, and authorization rules remain aligned with the security design.
 - API changes after this baseline should be tracked explicitly to avoid frontend/backend drift.
 
 ## Testing approach

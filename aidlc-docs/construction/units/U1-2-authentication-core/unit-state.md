@@ -1,41 +1,44 @@
 # Unit: U1-2-authentication-core
 
-Status: not_started
+Status: completed
 
 Baseline inception version: v1
 
 ## Stages
 
-- [ ] Functional Design
-- [ ] NFR Requirements
-- [ ] NFR Design
-- [ ] Infrastructure Design
-- [ ] Code Generation
+- [x] Functional Design
+- [x] NFR Requirements
+- [x] NFR Design
+- [x] Infrastructure Design
+- [x] Code Generation
 
 ## Scope
 
-TBD
+Define the shared browser authentication foundation for students, company users, and admins using Django-native session-based auth.
 
 ## Out of Scope
 
-TBD
+Detailed RBAC policy, domain authorization rules, SSO, social login, mobile token auth, and framework implementation code.
 
 ## Dependencies
 
-TBD
+Depends on ADR-001, the recommended architecture, the security baseline, and alignment with the base API contract.
 
 ## Acceptance Criteria
 
-TBD
+- Session-based auth is defined as the default browser auth model.
+- Signup, login, logout, session restore, password change, and password reset are covered.
+- Auth is clearly separated from RBAC and privacy authorization.
+- No application code is produced.
 
 ## Risks
 
-TBD
+If the auth baseline is inconsistent, later protected flows will drift across frontend, backend, privacy, and admin features.
 
 ## Open Questions
 
-TBD
+Exact password reset delivery mechanics, account lockout thresholds, and remember-me policy can be refined during implementation.
 
 ## Last Updated
 
-TBD
+2026-04-28

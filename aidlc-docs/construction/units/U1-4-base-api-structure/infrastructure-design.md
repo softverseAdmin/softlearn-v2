@@ -8,8 +8,9 @@ This unit does not provision infrastructure, but it defines the API contract tha
 
 Likely later configuration areas include:
 
-- JWT secret or signing key settings
-- token expiration settings
+- Django secret key
+- Session cookie security settings
+- CSRF trusted origin settings
 - API base URL
 - frontend origin settings
 
