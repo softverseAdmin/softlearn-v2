@@ -1,6 +1,6 @@
 # Unit: U0-5-data-model-high-level-design
 
-Status: not_started
+Status: completed
 
 Baseline inception version: v1
 
@@ -16,28 +16,30 @@ Code Generation note: N/A for this inception unit. No application code is expect
 
 ## Scope
 
-Define the conceptual entities and relationships that support learning and job matching.
+Define the conceptual entities and relationships that support identity, learning, exams, vacancies, matching, applications, interviews, privacy, and auditability.
 
 ## Out of Scope
 
-Physical schema design, migrations, and chosen database features.
+Physical schema design, migrations, ORM definitions, and chosen database features.
 
 ## Dependencies
 
-Requires baseline requirements and architecture direction.
+Requires baseline requirements, personas, feature breakdown, and architecture direction.
 
 ## Acceptance Criteria
 
 - Core entities are identified.
 - Privacy and audit entities are included.
+- Matching, notification, and interview entities are included.
+- No application code is produced.
 
 ## Risks
 
-Missing entities can force later redesign.
+Missing or poorly bounded entities can force later redesign across schema, matching, permissions, and reporting.
 
 ## Open Questions
 
-Normalization and storage-specific choices wait for stack selection.
+Normalization, field detail, and storage-specific choices are intentionally deferred to later schema units.
 
 ## Last Updated
 

@@ -1,6 +1,6 @@
 # Unit: U0-4-technology-selection-and-architecture
 
-Status: not_started
+Status: completed
 
 Baseline inception version: v1
 
@@ -16,28 +16,30 @@ Code Generation note: N/A for this inception unit. No application code is expect
 
 ## Scope
 
-Define stack comparison criteria, candidate options, and conceptual architecture direction.
+Define stack comparison criteria, evaluate the required technology options, recommend a best-fit stack, and describe the target architecture direction.
 
 ## Out of Scope
 
-Application implementation before ADR-001 approval.
+Application implementation before ADR-001 approval, detailed framework bootstrapping, and production application code.
 
 ## Dependencies
 
-Requires U0-1 through U0-3 baseline context.
+Requires U0-1 through U0-3 baseline context for requirements, personas, and domain decomposition.
 
 ## Acceptance Criteria
 
-- Comparison framework exists for all required categories.
-- ADR-001 is prepared in pending state.
+- Comparison exists for all required categories.
+- A clear recommendation is documented.
+- ADR-001 is updated to a proposed decision.
+- No application code is produced.
 
 ## Risks
 
-Premature stack bias can leak into later units.
+A weak or poorly justified recommendation could bias later units in the wrong direction or create avoidable rework.
 
 ## Open Questions
 
-Final selection depends on agreed evaluation results.
+Formal acceptance still depends on ADR review, and cost or team constraints could justify a documented fallback later.
 
 ## Last Updated
 
