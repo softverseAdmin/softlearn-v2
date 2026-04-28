@@ -1,0 +1,14 @@
+node_modules/
+.env
+.env.*
+coverage/
+dist/
+build/
+tmp/
+log/
+vendor/bundle/
+__pycache__/
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/settings.json

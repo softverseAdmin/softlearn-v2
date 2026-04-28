@@ -1,0 +1,39 @@
+name: AI-DLC PR Review
+
+on:
+  pull_request:
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Make scripts executable
+        run: chmod +x scripts/*.sh
+
+      - name: Run AI-DLC check
+        run: ./scripts/aidlc-check.sh
+
+      - name: Run Node checks if package.json exists
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -f package.json ]; then
+            npm install
+            npm run test --if-present
+            npm run build --if-present
+          else
+            echo "No package.json present yet. Skipping Node-specific checks."
+          fi
+
+      - name: Placeholder for backend checks before stack selection
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -f Gemfile ] || [ -f requirements.txt ] || [ -f pyproject.toml ] || [ -f pom.xml ]; then
+            echo "Framework-specific CI remains a placeholder until the stack is selected through ADR-001."
+          else
+            echo "No backend framework files detected."
+          fi
