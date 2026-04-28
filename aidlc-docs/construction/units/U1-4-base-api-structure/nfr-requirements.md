@@ -2,7 +2,7 @@
 
 ## Security
 
-- Protected endpoints must require JWT-based bearer authentication.
+- Protected endpoints must require authenticated session-based browser access.
 - API contracts must make authorization boundaries explicit between student and company roles.
 - Error responses must avoid leaking sensitive internal implementation details.
 - Interview and matching APIs must only expose data the caller is allowed to see.

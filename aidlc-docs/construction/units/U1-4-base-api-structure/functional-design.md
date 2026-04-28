@@ -18,14 +18,14 @@ As a delivery team, we need a stable API design so the backend and frontend can 
   - `GET` for fetch
   - `POST` for create or action
   - `PUT` for full update
-- Use JWT bearer authentication for protected API access
+- Use server-managed session authentication for protected browser API access
 - Use a standard error response format
 - Keep request and response shapes consistent across domains
 
 ### 2. Authentication model
 
-- Protected endpoints require:
-  - `Authorization: Bearer <jwt>`
+- Protected endpoints require an authenticated browser session.
+- State-changing protected endpoints require CSRF protection.
 - Public endpoints:
   - signup
   - login
@@ -54,7 +54,7 @@ All errors should follow this shape:
 
 **Purpose**
 
-Create a new student or company user account.
+Create a new student or company user account and establish an authenticated browser session when allowed by the final implementation flow.
 
 **Sample request**
 
@@ -75,7 +75,7 @@ Create a new student or company user account.
     "user_id": 101,
     "role": "student",
     "email": "student@example.com",
-    "token": "jwt-token-here"
+    "authenticated": true
   }
 }
 ```
@@ -84,7 +84,7 @@ Create a new student or company user account.
 
 **Purpose**
 
-Authenticate a user and return a JWT.
+Authenticate a user and establish an authenticated browser session.
 
 **Sample request**
 
@@ -102,7 +102,7 @@ Authenticate a user and return a JWT.
   "data": {
     "user_id": 101,
     "role": "student",
-    "token": "jwt-token-here"
+    "authenticated": true
   }
 }
 ```
@@ -761,7 +761,7 @@ Prefer a consistent success response shape:
 ## Acceptance criteria
 
 - Required endpoint groups are documented.
-- Versioning, JWT auth, JSON format, and error handling are documented.
+- Versioning, session auth, JSON format, and error handling are documented.
 - Student and company authorization rules are explicit.
 - Matching APIs are explicitly rule-based.
 - The contract is practical and consistent for later backend implementation.
@@ -771,5 +771,5 @@ Prefer a consistent success response shape:
 - Controller code
 - Database queries
 - Admin API detail
-- Refresh-token lifecycle implementation detail
+- Session timeout and remember-me implementation detail
 - Final pagination and filtering conventions beyond this baseline

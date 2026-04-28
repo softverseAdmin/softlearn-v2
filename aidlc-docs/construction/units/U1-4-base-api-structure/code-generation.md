@@ -31,7 +31,7 @@ Revert the documentation-only change if the API contract is rejected or replaced
 
 - RESTful structure documented
 - `/api/v1/` versioning documented
-- JWT auth documented
+- Session auth documented
 - Standard error format documented
 - Student/company authorization rules documented
 - Rule-based matching endpoints documented

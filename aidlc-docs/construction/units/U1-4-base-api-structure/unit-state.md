@@ -37,7 +37,7 @@ Weak or inconsistent API contracts can create rework across backend, frontend, a
 
 ## Open Questions
 
-Exact pagination shape, refresh-token lifecycle, and final validation rule details may be refined during implementation.
+Exact pagination shape, session timeout/remember-me behavior, and final validation rule details may be refined during implementation.
 
 ## Last Updated
 
