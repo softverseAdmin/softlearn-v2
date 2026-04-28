@@ -32,6 +32,13 @@
 | U1-7-global-state-management | Global state management baseline completed for auth/session context, user context, and shared app-shell state without over-centralizing feature state. |
 | U1-8-base-ui-layout | Base UI layout baseline completed for shared public/authenticated shells, role-aware navigation framing, and reusable page structure conventions. |
 | U2-1-student-registration | Student registration baseline completed for minimum account creation, validation outcomes, session establishment, and entry into the student experience. |
+| U2-2-student-login | Student login baseline completed for credential entry, validation outcomes, session establishment, and entry into the authenticated student experience. |
+| U2-3-student-profile-basic | Student basic profile baseline completed for authenticated self-service viewing and updating of core student profile information. |
+| U2-4-student-profile-skills | Student skill-management baseline completed for authenticated self-service maintenance of structured student skill records aligned to the shared taxonomy. |
+| U2-5-student-profile-education | Student education-management baseline completed for authenticated self-service maintenance of structured education history records. |
+| U2-6-student-profile-experience | Student experience-management baseline completed for authenticated self-service maintenance of structured work and project experience records. |
+| U2-7-student-profile-language-level | Student language-level baseline completed for authenticated self-service maintenance of structured language records aligned to the shared taxonomy and basic profile summary. |
+| U2-8-student-resume-management | Student resume-management baseline completed for authenticated self-service maintenance of resume metadata and optional protected resume files. |
 
 ## Open CHG
 
@@ -43,8 +50,8 @@
 
 | Stage | Overall status |
 | --- | --- |
-| Functional Design | U0-1 through U0-8, U1-1 through U1-8, and U2-1 completed; U2-2 is the next unstarted unit |
-| NFR Requirements | U0-1 through U0-8, U1-1 through U1-8, and U2-1 completed; U2-2 is the next unstarted unit |
-| NFR Design | U0-1 through U0-8, U1-1 through U1-8, and U2-1 completed; U2-2 is the next unstarted unit |
-| Infrastructure Design | U0-1 through U0-8, U1-1 through U1-8, and U2-1 completed; U2-2 is the next unstarted unit |
-| Code Generation | Documentation/code-generation planning completed for U0-1 through U0-8, U1-1 through U1-8, and U2-1; application code remains blocked until ADR-001 is accepted |
+| Functional Design | U0-1 through U0-8, U1-1 through U1-8, and U2-1 through U2-8 completed; U2-9 is the next unstarted unit |
+| NFR Requirements | U0-1 through U0-8, U1-1 through U1-8, and U2-1 through U2-8 completed; U2-9 is the next unstarted unit |
+| NFR Design | U0-1 through U0-8, U1-1 through U1-8, and U2-1 through U2-8 completed; U2-9 is the next unstarted unit |
+| Infrastructure Design | U0-1 through U0-8, U1-1 through U1-8, and U2-1 through U2-8 completed; U2-9 is the next unstarted unit |
+| Code Generation | Documentation/code-generation planning completed for U0-1 through U0-8, U1-1 through U1-8, and U2-1 through U2-8; application code remains blocked until ADR-001 is accepted |
