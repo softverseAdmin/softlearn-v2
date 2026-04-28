@@ -6,11 +6,11 @@ Baseline inception version: v1
 
 ## Stages
 
-- [ ] Functional Design
-- [ ] NFR Requirements
-- [ ] NFR Design
-- [ ] Infrastructure Design
-- [ ] Code Generation
+- [x] Functional Design
+- [x] NFR Requirements
+- [x] NFR Design
+- [x] Infrastructure Design
+- [x] Code Generation
 
 Code Generation note: N/A for this inception unit. No application code is expected.
 
@@ -41,4 +41,9 @@ Final provider and topology depend on ADR-001.
 
 ## Last Updated
 
+2026-04-28
+2026-04-28
+2026-04-28
+2026-04-28
+2026-04-28
 2026-04-28

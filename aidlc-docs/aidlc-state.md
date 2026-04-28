@@ -1,8 +1,8 @@
 # AI-DLC state
 
-- **Project status:** inception
+- **Project status:** construction
 - **Baseline version:** v1
-- **Technology decision:** pending
+- **Technology decision:** completed
 - **Current active unit:** U0-1-platform-requirements-definition
 
 ## Active units
@@ -15,7 +15,14 @@
 
 | Unit | Notes |
 | --- | --- |
-| None | No units completed yet. |
+- U0-1| --- |
+- U0-2| --- |
+- U0-3| --- |
+- U0-4| --- |
+- U0-5| --- |
+- U0-6| --- |
+- U0-7| --- |
+- U0-8| --- |
 
 ## Open CHG
 
@@ -27,7 +34,7 @@
 
 | Stage | Overall status |
 | --- | --- |
-| Functional Design | In progress for inception baseline |
+| Functional Design | In progress for inception baseline  U1-1-project-initialization |
 | NFR Requirements | Pending |
 | NFR Design | Pending |
 | Infrastructure Design | Pending |
