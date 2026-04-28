@@ -41,6 +41,13 @@
 | U2-8-student-resume-management | Student resume-management baseline completed for authenticated self-service maintenance of resume metadata and optional protected resume files. |
 | U2-9-student-availability-management | Student availability-management baseline completed for authenticated self-service maintenance of structured readiness and availability records. |
 | U2-10-student-profile-privacy-settings | Student privacy-settings baseline completed for authenticated self-service control of company visibility over profile and result data, with consent and auditability expectations. |
+| U3-1-company-registration | Company-registration baseline completed for minimum company account creation, validation outcomes, session establishment, and entry into the company experience. |
+| U3-2-company-login | Company-login baseline completed for credential entry, validation outcomes, session establishment, and entry into the authenticated company experience. |
+| U3-3-company-profile-basic | Company basic-profile baseline completed for authenticated self-service viewing and updating of core organization identity fields. |
+| U3-4-company-profile-description | Company profile-description baseline completed for authenticated self-service management of narrative organization description content. |
+| U3-5-company-hiring-preferences | Company hiring-preferences baseline completed for authenticated self-service management of structured organization-level hiring defaults. |
+| U3-6-company-user-management | Company user-management baseline completed for authenticated management of company-member accounts within a single company context. |
+| U4-2-course-listing | Course-listing baseline completed early while correcting a unit-mapping mistake; dedicated course-detail, enrollment, and lesson units remain separate. |
 
 ## Open CHG
 
@@ -52,8 +59,8 @@
 
 | Stage | Overall status |
 | --- | --- |
-| Functional Design | U0-1 through U0-8, U1-1 through U1-8, and U2-1 through U2-10 completed; U3-1 is the next unstarted unit |
-| NFR Requirements | U0-1 through U0-8, U1-1 through U1-8, and U2-1 through U2-10 completed; U3-1 is the next unstarted unit |
-| NFR Design | U0-1 through U0-8, U1-1 through U1-8, and U2-1 through U2-10 completed; U3-1 is the next unstarted unit |
-| Infrastructure Design | U0-1 through U0-8, U1-1 through U1-8, and U2-1 through U2-10 completed; U3-1 is the next unstarted unit |
-| Code Generation | Documentation/code-generation planning completed for U0-1 through U0-8, U1-1 through U1-8, and U2-1 through U2-10; application code remains blocked until ADR-001 is accepted |
+| Functional Design | U0-1 through U0-8, U1-1 through U1-8, U2-1 through U2-10, and U3-1 through U3-6 completed; U4-1 is the next unstarted unit. U4-2 was documented early while correcting a unit-mapping mistake. |
+| NFR Requirements | U0-1 through U0-8, U1-1 through U1-8, U2-1 through U2-10, and U3-1 through U3-6 completed; U4-1 is the next unstarted unit. U4-2 was documented early while correcting a unit-mapping mistake. |
+| NFR Design | U0-1 through U0-8, U1-1 through U1-8, U2-1 through U2-10, and U3-1 through U3-6 completed; U4-1 is the next unstarted unit. U4-2 was documented early while correcting a unit-mapping mistake. |
+| Infrastructure Design | U0-1 through U0-8, U1-1 through U1-8, U2-1 through U2-10, and U3-1 through U3-6 completed; U4-1 is the next unstarted unit. U4-2 was documented early while correcting a unit-mapping mistake. |
+| Code Generation | Documentation/code-generation planning completed for U0-1 through U0-8, U1-1 through U1-8, U2-1 through U2-10, and U3-1 through U3-6; application code remains blocked until ADR-001 is accepted. U4-2 was documented early while correcting a unit-mapping mistake. |
