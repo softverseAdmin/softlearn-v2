@@ -2,20 +2,20 @@
 
 ## Infrastructure impact
 
-No direct runtime impact; informs later database and storage choices.
+No runtime infrastructure is provisioned in this unit. The conceptual model informs later local development data setup and later AWS-compatible persistence choices.
 
 ## Environment variables
 
-None.
+None at this stage.
 
 ## External services
 
-None.
+None are required in this unit. The model only establishes future need for storage and integration categories such as relational data storage, notifications, meeting-link handling, file storage, and audit logging.
 
 ## Deployment impact
 
-None directly.
+None directly. This unit only defines the conceptual model that future environments must support.
 
 ## Database impact
 
-Provides the conceptual basis for future schema and persistence design.
+Provides the conceptual basis for future schema, persistence, reporting, and audit design.
