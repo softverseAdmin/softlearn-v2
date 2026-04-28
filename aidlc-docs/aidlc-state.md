@@ -39,6 +39,8 @@
 | U2-6-student-profile-experience | Student experience-management baseline completed for authenticated self-service maintenance of structured work and project experience records. |
 | U2-7-student-profile-language-level | Student language-level baseline completed for authenticated self-service maintenance of structured language records aligned to the shared taxonomy and basic profile summary. |
 | U2-8-student-resume-management | Student resume-management baseline completed for authenticated self-service maintenance of resume metadata and optional protected resume files. |
+| U2-9-student-availability-management | Student availability-management baseline completed for authenticated self-service maintenance of structured readiness and availability records. |
+| U2-10-student-profile-privacy-settings | Student privacy-settings baseline completed for authenticated self-service control of company visibility over profile and result data, with consent and auditability expectations. |
 
 ## Open CHG
 
@@ -50,8 +52,8 @@
 
 | Stage | Overall status |
 | --- | --- |
-| Functional Design | U0-1 through U0-8, U1-1 through U1-8, and U2-1 through U2-8 completed; U2-9 is the next unstarted unit |
-| NFR Requirements | U0-1 through U0-8, U1-1 through U1-8, and U2-1 through U2-8 completed; U2-9 is the next unstarted unit |
-| NFR Design | U0-1 through U0-8, U1-1 through U1-8, and U2-1 through U2-8 completed; U2-9 is the next unstarted unit |
-| Infrastructure Design | U0-1 through U0-8, U1-1 through U1-8, and U2-1 through U2-8 completed; U2-9 is the next unstarted unit |
-| Code Generation | Documentation/code-generation planning completed for U0-1 through U0-8, U1-1 through U1-8, and U2-1 through U2-8; application code remains blocked until ADR-001 is accepted |
+| Functional Design | U0-1 through U0-8, U1-1 through U1-8, and U2-1 through U2-10 completed; U3-1 is the next unstarted unit |
+| NFR Requirements | U0-1 through U0-8, U1-1 through U1-8, and U2-1 through U2-10 completed; U3-1 is the next unstarted unit |
+| NFR Design | U0-1 through U0-8, U1-1 through U1-8, and U2-1 through U2-10 completed; U3-1 is the next unstarted unit |
+| Infrastructure Design | U0-1 through U0-8, U1-1 through U1-8, and U2-1 through U2-10 completed; U3-1 is the next unstarted unit |
+| Code Generation | Documentation/code-generation planning completed for U0-1 through U0-8, U1-1 through U1-8, and U2-1 through U2-10; application code remains blocked until ADR-001 is accepted |
