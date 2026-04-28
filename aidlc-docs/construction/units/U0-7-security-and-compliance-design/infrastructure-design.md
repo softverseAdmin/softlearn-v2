@@ -2,7 +2,7 @@
 
 ## Infrastructure impact
 
-No final security tooling is chosen yet, but later infrastructure must support secure auth, logging, and backup practices.
+No final security tooling is chosen yet, but later infrastructure must support secure auth, audit logging, secret handling, and backup practices.
 
 ## Environment variables
 
@@ -10,12 +10,12 @@ None at inception.
 
 ## External services
 
-None selected.
+None selected. This unit defines baseline rules only, not vendor tooling.
 
 ## Deployment impact
 
-Security baseline informs future CI/CD, secret handling, and runtime controls.
+Security baseline informs future CI/CD, secret handling, runtime controls, audit logging, and protected interview/exam flows.
 
 ## Database impact
 
-Later designs must support audit and consent records.
+Later designs must support audit records, consent records, privacy settings, and secure meeting-link storage.

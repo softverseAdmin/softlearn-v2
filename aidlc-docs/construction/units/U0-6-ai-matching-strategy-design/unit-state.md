@@ -1,6 +1,6 @@
 # Unit: U0-6-ai-matching-strategy-design
 
-Status: not_started
+Status: completed
 
 Baseline inception version: v1
 
@@ -16,28 +16,30 @@ Code Generation note: N/A for this inception unit. No application code is expect
 
 ## Scope
 
-Define the initial explainable matching strategy and the later AI enhancement path.
+Define the initial explainable rule-based matching strategy for students and jobs, including scoring, explanations, ranking, and stored match results.
 
 ## Out of Scope
 
-Model training, embeddings implementation, and production ranking services.
+Model training, embeddings implementation, external AI services, and production scoring-engine implementation.
 
 ## Dependencies
 
-Requires baseline requirements, personas, and data model direction.
+Requires baseline requirements, personas, feature breakdown, data-model direction, and technology direction.
 
 ## Acceptance Criteria
 
-- Explainable scoring dimensions are documented.
-- Later AI enhancements are framed as future phases.
+- Explainable rule-based scoring is documented.
+- Match inputs, score bands, explanations, ranking, and storage are documented.
+- The design clearly states that v1 is not real AI.
+- No application code is produced.
 
 ## Risks
 
-Opaque matching decisions would undermine trust.
+Opaque or overcomplicated matching decisions would undermine trust and make review difficult.
 
 ## Open Questions
 
-Weight tuning and data freshness rules will be handled later.
+Exact threshold tuning and recalculation frequency may be refined later through implementation and review.
 
 ## Last Updated
 
