@@ -1,6 +1,6 @@
 # Unit: U0-8-deployment-and-infra-strategy
 
-Status: not_started
+Status: completed
 
 Baseline inception version: v1
 
@@ -41,9 +41,4 @@ Final provider and topology depend on ADR-001.
 
 ## Last Updated
 
-2026-04-28
-2026-04-28
-2026-04-28
-2026-04-28
-2026-04-28
 2026-04-28

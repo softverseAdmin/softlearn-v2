@@ -44,8 +44,3 @@ Compliance specifics and region-specific obligations may expand later, but the b
 ## Last Updated
 
 2026-04-28
-2026-04-28
-2026-04-28
-2026-04-28
-2026-04-28
-2026-04-28

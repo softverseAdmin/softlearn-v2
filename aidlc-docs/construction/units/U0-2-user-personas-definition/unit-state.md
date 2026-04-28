@@ -44,8 +44,3 @@ Regional, accessibility, and hiring-market nuance may expand later through expli
 ## Last Updated
 
 2026-04-28
-2026-04-28
-2026-04-28
-2026-04-28
-2026-04-28
-2026-04-28

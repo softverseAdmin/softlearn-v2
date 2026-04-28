@@ -44,8 +44,3 @@ Normalization, field detail, and storage-specific choices are intentionally defe
 ## Last Updated
 
 2026-04-28
-2026-04-28
-2026-04-28
-2026-04-28
-2026-04-28
-2026-04-28

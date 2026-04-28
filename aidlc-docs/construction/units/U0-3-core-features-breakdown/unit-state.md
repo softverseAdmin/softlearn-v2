@@ -45,8 +45,3 @@ Exact unit ordering or granularity may change later after technology, dependency
 ## Last Updated
 
 2026-04-28
-2026-04-28
-2026-04-28
-2026-04-28
-2026-04-28
-2026-04-28
