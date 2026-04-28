@@ -2,20 +2,20 @@
 
 ## Infrastructure impact
 
-None directly. This unit informs later infrastructure and deployment planning.
+No runtime infrastructure is selected or changed in this unit. U0-3 defines the feature roadmap that later architecture, infrastructure, security, and operational units must support.
 
 ## Environment variables
 
-None.
+None. This unit must remain stack-neutral and configuration-free.
 
 ## External services
 
-None.
+None are selected in this unit. Any future integrations implied by the roadmap, such as meeting platforms, notifications, or authentication providers, remain conceptual only.
 
 ## Deployment impact
 
-None.
+No deployment changes are made in this unit. The main downstream effect is that future deployment and operations work must support the full set of domains in the roadmap, including notifications, dashboards, admin workflows, and production readiness concerns.
 
 ## Database impact
 
-None directly.
+No direct database design is created here. The feature breakdown informs future need for domain data across identity, profiles, learning, exams, vacancies, applications, interviews, permissions, dashboards, and audit-oriented operational data.
