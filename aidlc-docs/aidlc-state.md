@@ -28,6 +28,7 @@
 | U1-3-role-based-access-control | RBAC baseline completed for student, company, and admin roles with ownership, company-boundary, and policy-gated access rules. |
 | U1-4-base-api-structure | Base REST API contract completed for auth, profiles, learning, exams, jobs, matching, applications, interviews, and notifications. Sequencing exception recorded in CHG-001. |
 | U1-5-frontend-app-initialization | React + Vite frontend foundation completed for a session-aware, role-aware web app integrated with the Django backend. |
+| U1-6-routing-and-navigation | Routing and navigation baseline completed for public, protected, and role-specific frontend flows with session-aware guards and fallback states. |
 
 ## Open CHG
 
@@ -39,8 +40,8 @@
 
 | Stage | Overall status |
 | --- | --- |
-| Functional Design | U0-1 through U0-8 and U1-1 through U1-5 completed; U1-6 is the next unstarted unit |
-| NFR Requirements | U0-1 through U0-8 and U1-1 through U1-5 completed; U1-6 is the next unstarted unit |
-| NFR Design | U0-1 through U0-8 and U1-1 through U1-5 completed; U1-6 is the next unstarted unit |
-| Infrastructure Design | U0-1 through U0-8 and U1-1 through U1-5 completed; U1-6 is the next unstarted unit |
-| Code Generation | Documentation/code-generation planning completed for U0-1 through U0-8 and U1-1 through U1-5; application code remains blocked until ADR-001 is accepted |
+| Functional Design | U0-1 through U0-8 and U1-1 through U1-6 completed; U1-7 is the next unstarted unit |
+| NFR Requirements | U0-1 through U0-8 and U1-1 through U1-6 completed; U1-7 is the next unstarted unit |
+| NFR Design | U0-1 through U0-8 and U1-1 through U1-6 completed; U1-7 is the next unstarted unit |
+| Infrastructure Design | U0-1 through U0-8 and U1-1 through U1-6 completed; U1-7 is the next unstarted unit |
+| Code Generation | Documentation/code-generation planning completed for U0-1 through U0-8 and U1-1 through U1-6; application code remains blocked until ADR-001 is accepted |
