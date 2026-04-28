@@ -47,7 +47,14 @@
 | U3-4-company-profile-description | Company profile-description baseline completed for authenticated self-service management of narrative organization description content. |
 | U3-5-company-hiring-preferences | Company hiring-preferences baseline completed for authenticated self-service management of structured organization-level hiring defaults. |
 | U3-6-company-user-management | Company user-management baseline completed for authenticated management of company-member accounts within a single company context. |
+| U4-1-course-creation | Protected course-creation baseline completed for authorized platform operators to create structured course records before student-facing discovery and participation. |
 | U4-2-course-listing | Course-listing baseline completed early while correcting a unit-mapping mistake; dedicated course-detail, enrollment, and lesson units remain separate. |
+| U4-3-course-detail-page | Course-detail baseline completed for student-facing inspection of a single course before enrollment or lesson participation. |
+| U4-4-lesson-creation | Protected lesson-creation baseline completed for authorized platform operators to add structured, ordered lessons to an existing course. |
+| U4-5-lesson-viewing | Lesson-viewing baseline completed for authorized student access to structured lesson content within the learning experience. |
+| U4-6-course-enrollment | Course-enrollment baseline completed for authenticated students to create protected, student-owned enrollment records. |
+| U4-7-lesson-progress-tracking | Lesson-progress baseline completed for protected, enrollment-linked tracking of a student’s lesson-level learning state. |
+| U4-8-course-completion-tracking | Course-completion baseline completed for deterministic, protected learning evidence derived from enrollment-linked lesson progress. |
 
 ## Open CHG
 
@@ -59,8 +66,8 @@
 
 | Stage | Overall status |
 | --- | --- |
-| Functional Design | U0-1 through U0-8, U1-1 through U1-8, U2-1 through U2-10, and U3-1 through U3-6 completed; U4-1 is the next unstarted unit. U4-2 was documented early while correcting a unit-mapping mistake. |
-| NFR Requirements | U0-1 through U0-8, U1-1 through U1-8, U2-1 through U2-10, and U3-1 through U3-6 completed; U4-1 is the next unstarted unit. U4-2 was documented early while correcting a unit-mapping mistake. |
-| NFR Design | U0-1 through U0-8, U1-1 through U1-8, U2-1 through U2-10, and U3-1 through U3-6 completed; U4-1 is the next unstarted unit. U4-2 was documented early while correcting a unit-mapping mistake. |
-| Infrastructure Design | U0-1 through U0-8, U1-1 through U1-8, U2-1 through U2-10, and U3-1 through U3-6 completed; U4-1 is the next unstarted unit. U4-2 was documented early while correcting a unit-mapping mistake. |
-| Code Generation | Documentation/code-generation planning completed for U0-1 through U0-8, U1-1 through U1-8, U2-1 through U2-10, and U3-1 through U3-6; application code remains blocked until ADR-001 is accepted. U4-2 was documented early while correcting a unit-mapping mistake. |
+| Functional Design | U0-1 through U0-8, U1-1 through U1-8, U2-1 through U2-10, U3-1 through U3-6, and U4-1 through U4-8 completed; U5-1 is the next unstarted unit. U4-2 remained intentionally documented early while the rest of Phase 4 was completed in sequence around it. |
+| NFR Requirements | U0-1 through U0-8, U1-1 through U1-8, U2-1 through U2-10, U3-1 through U3-6, and U4-1 through U4-8 completed; U5-1 is the next unstarted unit. U4-2 remained intentionally documented early while the rest of Phase 4 was completed in sequence around it. |
+| NFR Design | U0-1 through U0-8, U1-1 through U1-8, U2-1 through U2-10, U3-1 through U3-6, and U4-1 through U4-8 completed; U5-1 is the next unstarted unit. U4-2 remained intentionally documented early while the rest of Phase 4 was completed in sequence around it. |
+| Infrastructure Design | U0-1 through U0-8, U1-1 through U1-8, U2-1 through U2-10, U3-1 through U3-6, and U4-1 through U4-8 completed; U5-1 is the next unstarted unit. U4-2 remained intentionally documented early while the rest of Phase 4 was completed in sequence around it. |
+| Code Generation | Documentation/code-generation planning completed for U0-1 through U0-8, U1-1 through U1-8, U2-1 through U2-10, U3-1 through U3-6, and U4-1 through U4-8; application code remains blocked until ADR-001 is accepted. U4-2 remained intentionally documented early while the rest of Phase 4 was completed in sequence around it. |
