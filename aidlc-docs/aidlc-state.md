@@ -30,6 +30,7 @@
 | U1-5-frontend-app-initialization | React + Vite frontend foundation completed for a session-aware, role-aware web app integrated with the Django backend. |
 | U1-6-routing-and-navigation | Routing and navigation baseline completed for public, protected, and role-specific frontend flows with session-aware guards and fallback states. |
 | U1-7-global-state-management | Global state management baseline completed for auth/session context, user context, and shared app-shell state without over-centralizing feature state. |
+| U1-8-base-ui-layout | Base UI layout baseline completed for shared public/authenticated shells, role-aware navigation framing, and reusable page structure conventions. |
 
 ## Open CHG
 
@@ -41,8 +42,8 @@
 
 | Stage | Overall status |
 | --- | --- |
-| Functional Design | U0-1 through U0-8 and U1-1 through U1-7 completed; U1-8 is the next unstarted unit |
-| NFR Requirements | U0-1 through U0-8 and U1-1 through U1-7 completed; U1-8 is the next unstarted unit |
-| NFR Design | U0-1 through U0-8 and U1-1 through U1-7 completed; U1-8 is the next unstarted unit |
-| Infrastructure Design | U0-1 through U0-8 and U1-1 through U1-7 completed; U1-8 is the next unstarted unit |
-| Code Generation | Documentation/code-generation planning completed for U0-1 through U0-8 and U1-1 through U1-7; application code remains blocked until ADR-001 is accepted |
+| Functional Design | U0-1 through U0-8 and U1-1 through U1-8 completed; Phase 1 foundational units are complete |
+| NFR Requirements | U0-1 through U0-8 and U1-1 through U1-8 completed; Phase 1 foundational units are complete |
+| NFR Design | U0-1 through U0-8 and U1-1 through U1-8 completed; Phase 1 foundational units are complete |
+| Infrastructure Design | U0-1 through U0-8 and U1-1 through U1-8 completed; Phase 1 foundational units are complete |
+| Code Generation | Documentation/code-generation planning completed for U0-1 through U0-8 and U1-1 through U1-8; application code remains blocked until ADR-001 is accepted |
