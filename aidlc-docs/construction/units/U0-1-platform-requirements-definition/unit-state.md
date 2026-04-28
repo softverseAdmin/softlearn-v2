@@ -1,43 +1,45 @@
 # Unit: U0-1-platform-requirements-definition
 
-Status: not_started
+Status: completed
 
 Baseline inception version: v1
 
 ## Stages
 
-- [ ] Functional Design
-- [ ] NFR Requirements
-- [ ] NFR Design
-- [ ] Infrastructure Design
-- [ ] Code Generation
+- [x] Functional Design
+- [x] NFR Requirements
+- [x] NFR Design
+- [x] Infrastructure Design
+- [x] Code Generation
 
 Code Generation note: N/A for this inception unit. No application code is expected.
 
 ## Scope
 
-Define the baseline platform requirements for students, company users, and admins.
+Define the baseline platform requirements for students, company users, and admins, including learning, exams, exam preparation, vacancies, matching, interviews, meeting URLs, privacy, and permissions.
 
 ## Out of Scope
 
-Technology selection, detailed architecture, and production code.
+Technology selection, detailed architecture, detailed data modeling, and production code.
 
 ## Dependencies
 
-Inception baseline kickoff only.
+Inception baseline kickoff only. This unit provides input to personas, feature breakdown, security, architecture, and data-model units.
 
 ## Acceptance Criteria
 
 - Baseline actors and capabilities are documented.
 - Privacy and matching constraints are called out.
+- No final stack decision is made.
+- No application code is produced.
 
 ## Risks
 
-Missed requirements could misdirect later units.
+Missed or ambiguous requirements could misdirect later inception and construction units, especially around privacy and permissions.
 
 ## Open Questions
 
-Stakeholder validation may still refine priority and sequencing.
+Stakeholder validation may still refine priority, sequencing, and policy detail after the baseline is reviewed.
 
 ## Last Updated
 
