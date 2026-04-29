@@ -2,6 +2,7 @@ from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.utils import timezone
 from django.utils.text import slugify
 
 from users.managers import UserManager
@@ -383,6 +384,7 @@ class Interview(models.Model):
     scheduled_end = models.DateTimeField(null=True, blank=True)
     confirmed_at = models.DateTimeField(null=True, blank=True)
     cancelled_at = models.DateTimeField(null=True, blank=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
     meeting_provider = models.CharField(max_length=30, choices=MeetingProvider.choices, blank=True, default="")
     meeting_url = models.URLField(blank=True, default="")
     created_at = models.DateTimeField(auto_now_add=True)
@@ -405,8 +407,16 @@ class Interview(models.Model):
             raise ValidationError({"requested_by": ["Interview requester must belong to the same company."]})
         if self.status == self.Status.CONFIRMED and (self.scheduled_start is None or self.scheduled_end is None):
             raise ValidationError({"scheduled_start": ["Confirmed interviews require a final scheduled window."]})
+        if self.status == self.Status.COMPLETED and (
+            self.scheduled_start is None or self.scheduled_end is None or self.completed_at is None
+        ):
+            raise ValidationError({"completed_at": ["Completed interviews require a confirmed schedule and completion timestamp."]})
         if self.scheduled_start and self.scheduled_end and self.scheduled_start >= self.scheduled_end:
             raise ValidationError({"scheduled_end": ["Interview end time must be after the start time."]})
+        if self.cancelled_at is not None and self.status != self.Status.CANCELLED:
+            raise ValidationError({"cancelled_at": ["Only cancelled interviews can have a cancellation timestamp."]})
+        if self.completed_at is not None and self.status != self.Status.COMPLETED:
+            raise ValidationError({"completed_at": ["Only completed interviews can have a completion timestamp."]})
         if self.meeting_provider and not self.meeting_url:
             raise ValidationError({"meeting_url": ["Meeting URL is required when a meeting provider is set."]})
         if self.meeting_url and not self.meeting_provider:
@@ -463,6 +473,90 @@ class InterviewEvent(models.Model):
 
     def __str__(self) -> str:
         return f"InterviewEvent<{self.interview_id}:{self.event_type}>"
+
+
+class Notification(models.Model):
+    class Type(models.TextChoices):
+        INTERVIEW_REQUESTED = "interview_requested", "Interview requested"
+        INTERVIEW_CONFIRMED = "interview_confirmed", "Interview confirmed"
+        INTERVIEW_RESCHEDULED = "interview_rescheduled", "Interview rescheduled"
+        INTERVIEW_CANCELLED = "interview_cancelled", "Interview cancelled"
+        EXAM_RESULT_AVAILABLE = "exam_result_available", "Exam result available"
+        EXAM_RESULT_UPDATED = "exam_result_updated", "Exam result updated"
+
+    recipient = models.ForeignKey(
+        "User",
+        on_delete=models.CASCADE,
+        related_name="notifications",
+    )
+    actor = models.ForeignKey(
+        "User",
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name="triggered_notifications",
+    )
+    notification_type = models.CharField(max_length=50, choices=Type.choices)
+    title = models.CharField(max_length=255)
+    message = models.CharField(max_length=255)
+    link = models.CharField(max_length=255, blank=True, default="")
+    entity_type = models.CharField(max_length=50)
+    entity_id = models.PositiveIntegerField()
+    event_key = models.CharField(max_length=100)
+    read_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at", "-id"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["recipient", "notification_type", "entity_type", "entity_id", "event_key"],
+                name="unique_notification_event",
+            ),
+        ]
+
+    @property
+    def is_read(self) -> bool:
+        return self.read_at is not None
+
+    def mark_read(self) -> None:
+        if self.read_at is None:
+            self.read_at = timezone.now()
+            self.save(update_fields=["read_at", "updated_at"])
+
+    def __str__(self) -> str:
+        return f"Notification<{self.recipient.email}:{self.notification_type}>"
+
+
+class NotificationDelivery(models.Model):
+    class Channel(models.TextChoices):
+        IN_APP = "in_app", "In-app"
+        EMAIL = "email", "Email"
+
+    class Status(models.TextChoices):
+        DELIVERED = "delivered", "Delivered"
+        LOGGED = "logged", "Logged"
+        SUPPRESSED = "suppressed", "Suppressed"
+
+    notification = models.ForeignKey(
+        Notification,
+        on_delete=models.CASCADE,
+        related_name="deliveries",
+    )
+    channel = models.CharField(max_length=20, choices=Channel.choices)
+    status = models.CharField(max_length=20, choices=Status.choices)
+    payload_summary = models.CharField(max_length=255, blank=True, default="")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["created_at", "id"]
+        constraints = [
+            models.UniqueConstraint(fields=["notification", "channel"], name="unique_notification_delivery_channel"),
+        ]
+
+    def __str__(self) -> str:
+        return f"NotificationDelivery<{self.notification_id}:{self.channel}:{self.status}>"
 
 
 class StudentSkill(models.Model):

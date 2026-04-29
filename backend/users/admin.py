@@ -11,6 +11,8 @@ from users.models import (
     InterviewAvailability,
     InterviewEvent,
     LearningRecord,
+    Notification,
+    NotificationDelivery,
     Skill,
     StudentProfile,
     StudentSkill,
@@ -143,3 +145,17 @@ class InterviewEventAdmin(admin.ModelAdmin):
     list_display = ("id", "interview", "event_type", "actor", "created_at")
     list_filter = ("event_type",)
     search_fields = ("interview__student__email", "interview__company__name", "description", "actor__email")
+
+
+@admin.register(Notification)
+class NotificationAdmin(admin.ModelAdmin):
+    list_display = ("id", "recipient", "notification_type", "title", "read_at", "created_at")
+    list_filter = ("notification_type", "read_at")
+    search_fields = ("recipient__email", "recipient__full_name", "title", "message")
+
+
+@admin.register(NotificationDelivery)
+class NotificationDeliveryAdmin(admin.ModelAdmin):
+    list_display = ("id", "notification", "channel", "status", "created_at")
+    list_filter = ("channel", "status")
+    search_fields = ("notification__recipient__email", "payload_summary")

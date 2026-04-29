@@ -70,6 +70,8 @@ export function StudentInterviewsPage() {
                 ? `${new Date(interview.scheduled_start).toLocaleString()} - ${new Date(interview.scheduled_end).toLocaleString()}`
                 : 'Awaiting schedule confirmation'}
             </p>
+            {interview.completed_at ? <p className="muted">Completed at {new Date(interview.completed_at).toLocaleString()}</p> : null}
+            {interview.cancelled_at ? <p className="muted">Cancelled at {new Date(interview.cancelled_at).toLocaleString()}</p> : null}
             <Link className="secondary-button inline-button" to={`/student/interviews/${interview.id}`}>
               Open interview
             </Link>

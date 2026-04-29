@@ -66,6 +66,8 @@ export function CompanyInterviewsPage() {
             <h2>{interview.student_name}</h2>
             <p className="muted">{interview.purpose}</p>
             <p className="muted">{interview.role_context || 'General interview context'}</p>
+            {interview.completed_at ? <p className="muted">Completed at {new Date(interview.completed_at).toLocaleString()}</p> : null}
+            {interview.cancelled_at ? <p className="muted">Cancelled at {new Date(interview.cancelled_at).toLocaleString()}</p> : null}
             <Link className="secondary-button inline-button" to={`/company/interviews/${interview.id}`}>
               Open interview
             </Link>

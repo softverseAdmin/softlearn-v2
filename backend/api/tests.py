@@ -15,6 +15,8 @@ from users.models import (
     InterviewAvailability,
     InterviewEvent,
     LearningRecord,
+    Notification,
+    NotificationDelivery,
     Skill,
     StudentProfile,
     StudentSkill,
@@ -216,6 +218,81 @@ class ApiFoundationTests(TestCase):
         admin_client = Client()
         admin_client.force_login(admin)
         self.assertEqual(admin_client.get("/api/v1/access/admin").status_code, 200)
+
+    def test_notifications_list_and_mark_read_flow(self):
+        student = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        Notification.objects.create(
+            recipient=student,
+            notification_type=Notification.Type.EXAM_RESULT_AVAILABLE,
+            title="Exam result available",
+            message="A result is ready.",
+            link="/student/exams",
+            entity_type="exam_result",
+            entity_id=1,
+            event_key="seed",
+        )
+        client, csrf_token = self.csrf_client()
+        client.force_login(student)
+
+        list_response = client.get("/api/v1/notifications")
+        self.assertEqual(list_response.status_code, 200)
+        self.assertEqual(list_response.json()["data"]["unread_count"], 1)
+        notification_id = list_response.json()["data"]["notifications"][0]["id"]
+        self.assertFalse(list_response.json()["data"]["notifications"][0]["is_read"])
+
+        read_response = client.post(
+            f"/api/v1/notifications/{notification_id}/read",
+            data=json.dumps({}),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+        self.assertEqual(read_response.status_code, 200)
+        self.assertTrue(read_response.json()["data"]["is_read"])
+
+    def test_mark_all_notifications_as_read(self):
+        student = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        Notification.objects.create(
+            recipient=student,
+            notification_type=Notification.Type.EXAM_RESULT_AVAILABLE,
+            title="Exam result available",
+            message="A result is ready.",
+            link="/student/exams",
+            entity_type="exam_result",
+            entity_id=1,
+            event_key="first",
+        )
+        Notification.objects.create(
+            recipient=student,
+            notification_type=Notification.Type.EXAM_RESULT_UPDATED,
+            title="Exam result updated",
+            message="A result changed.",
+            link="/student/exams",
+            entity_type="exam_result",
+            entity_id=1,
+            event_key="second",
+        )
+        client, csrf_token = self.csrf_client()
+        client.force_login(student)
+
+        response = client.post(
+            "/api/v1/notifications/read-all",
+            data=json.dumps({}),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["data"]["unread_count"], 0)
+        self.assertTrue(all(item["is_read"] for item in response.json()["data"]["notifications"]))
 
     def test_company_user_requires_company(self):
         with self.assertRaises(ValidationError):
@@ -1004,6 +1081,15 @@ class ApiFoundationTests(TestCase):
         interview = Interview.objects.get(candidate_access=candidate_access)
         self.assertEqual(interview.status, Interview.Status.REQUESTED)
         self.assertEqual(InterviewEvent.objects.filter(interview=interview, event_type="requested").count(), 1)
+        self.assertEqual(Notification.objects.filter(entity_type="interview", entity_id=interview.id).count(), 2)
+        self.assertEqual(
+            NotificationDelivery.objects.filter(
+                notification__entity_type="interview",
+                notification__entity_id=interview.id,
+                channel=NotificationDelivery.Channel.EMAIL,
+            ).count(),
+            2,
+        )
 
     def test_match_only_candidate_context_cannot_request_interview_without_shortlist(self):
         company = Company.objects.create(name="Softverse")
@@ -1151,6 +1237,14 @@ class ApiFoundationTests(TestCase):
         self.assertEqual(interview.status, Interview.Status.CONFIRMED)
         self.assertEqual(interview.scheduled_start, availability.start_at)
         self.assertEqual(InterviewEvent.objects.filter(interview=interview, event_type="confirmed").count(), 1)
+        self.assertEqual(
+            Notification.objects.filter(
+                entity_type="interview",
+                entity_id=interview.id,
+                notification_type=Notification.Type.INTERVIEW_CONFIRMED,
+            ).count(),
+            2,
+        )
 
     def test_student_can_list_own_interviews_and_detail(self):
         company = Company.objects.create(name="Softverse")
@@ -1245,6 +1339,14 @@ class ApiFoundationTests(TestCase):
         self.assertEqual(interview.status, Interview.Status.RESCHEDULED)
         self.assertIsNone(interview.scheduled_start)
         self.assertEqual(InterviewEvent.objects.filter(interview=interview, event_type="rescheduled").count(), 1)
+        self.assertEqual(
+            Notification.objects.filter(
+                entity_type="interview",
+                entity_id=interview.id,
+                notification_type=Notification.Type.INTERVIEW_RESCHEDULED,
+            ).count(),
+            2,
+        )
 
     def test_interview_can_be_cancelled_by_company(self):
         company = Company.objects.create(name="Softverse")
@@ -1289,6 +1391,136 @@ class ApiFoundationTests(TestCase):
         self.assertEqual(interview.status, Interview.Status.CANCELLED)
         self.assertIsNotNone(interview.cancelled_at)
         self.assertEqual(InterviewEvent.objects.filter(interview=interview, event_type="cancelled").count(), 1)
+        self.assertEqual(
+            Notification.objects.filter(
+                entity_type="interview",
+                entity_id=interview.id,
+                notification_type=Notification.Type.INTERVIEW_CANCELLED,
+            ).count(),
+            2,
+        )
+
+    def test_confirmed_interview_can_be_completed_by_participant(self):
+        company = Company.objects.create(name="Softverse")
+        student = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        candidate_access = CandidateReviewAccess.objects.create(
+            company=company,
+            student=student,
+            source=CandidateReviewAccess.Source.APPLICATION,
+        )
+        company_user = User.objects.create_user(
+            email="company@example.com",
+            password="SecurePass123!",
+            full_name="Company User",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+        interview = Interview.objects.create(
+            candidate_access=candidate_access,
+            company=company,
+            student=student,
+            requested_by=company_user,
+            purpose="Technical interview",
+            role_context="Backend trainee",
+            status=Interview.Status.CONFIRMED,
+            scheduled_start=timezone.now() - timedelta(hours=2),
+            scheduled_end=timezone.now() - timedelta(hours=1),
+            confirmed_at=timezone.now() - timedelta(days=1),
+        )
+        client, csrf_token = self.csrf_client()
+        client.force_login(student)
+
+        response = client.post(
+            f"/api/v1/interviews/{interview.id}/complete",
+            data=json.dumps({"summary": "Interview finished successfully."}),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        interview.refresh_from_db()
+        self.assertEqual(interview.status, Interview.Status.COMPLETED)
+        self.assertIsNotNone(interview.completed_at)
+        self.assertEqual(InterviewEvent.objects.filter(interview=interview, event_type="completed").count(), 1)
+
+    def test_only_confirmed_interviews_can_be_completed(self):
+        company = Company.objects.create(name="Softverse")
+        student = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        candidate_access = CandidateReviewAccess.objects.create(
+            company=company,
+            student=student,
+            source=CandidateReviewAccess.Source.APPLICATION,
+        )
+        company_user = User.objects.create_user(
+            email="company@example.com",
+            password="SecurePass123!",
+            full_name="Company User",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+        interview = Interview.objects.create(
+            candidate_access=candidate_access,
+            company=company,
+            student=student,
+            requested_by=company_user,
+            purpose="Technical interview",
+            role_context="Backend trainee",
+        )
+        client, csrf_token = self.csrf_client()
+        client.force_login(company_user)
+
+        response = client.post(
+            f"/api/v1/interviews/{interview.id}/complete",
+            data=json.dumps({"summary": "Interview finished successfully."}),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("status", response.json()["error"]["details"])
+
+    def test_exam_result_creation_generates_student_notification(self):
+        student = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+
+        ExamResult.objects.create(
+            student=student,
+            exam_title="JLPT Mock",
+            category="language",
+            score_percent=82,
+            passed=True,
+            attempt_number=1,
+            taken_at=timezone.now(),
+        )
+
+        self.assertEqual(
+            Notification.objects.filter(
+                recipient=student,
+                notification_type=Notification.Type.EXAM_RESULT_AVAILABLE,
+            ).count(),
+            1,
+        )
+        self.assertEqual(
+            NotificationDelivery.objects.filter(
+                notification__recipient=student,
+                channel=NotificationDelivery.Channel.EMAIL,
+            ).count(),
+            1,
+        )
 
     def test_meeting_link_validation_accepts_zoom_and_rejects_mismatch(self):
         company = Company.objects.create(name="Softverse")

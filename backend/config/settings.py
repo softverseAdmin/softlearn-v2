@@ -32,7 +32,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "common",
-    "users",
+    "users.apps.UsersConfig",
     "api",
 ]
 

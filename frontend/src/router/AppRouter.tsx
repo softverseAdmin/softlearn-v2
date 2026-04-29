@@ -1,5 +1,6 @@
 import { Route, Routes } from 'react-router-dom'
 
+import { NotificationsPage } from '../features/notifications/NotificationsPage'
 import { AppLayout } from '../layouts/AppLayout'
 import { CompanyCandidateDetailPage } from '../features/profile/CompanyCandidateDetailPage'
 import { CompanyCandidatesPage } from '../features/profile/CompanyCandidatesPage'
@@ -40,6 +41,7 @@ export function AppRouter() {
         <Route element={<AppLayout />}>
           <Route element={<RoleGuard role="student" />}>
             <Route path="/student" element={<DashboardPage role="student" />} />
+            <Route path="/student/notifications" element={<NotificationsPage />} />
             <Route path="/student/profile" element={<StudentProfilePage />} />
             <Route path="/student/skills" element={<StudentSkillsPage />} />
             <Route path="/student/learning" element={<StudentLearningPage />} />
@@ -51,6 +53,7 @@ export function AppRouter() {
 
           <Route element={<RoleGuard role="company" />}>
             <Route path="/company" element={<DashboardPage role="company" />} />
+            <Route path="/company/notifications" element={<NotificationsPage />} />
             <Route path="/company/profile" element={<CompanyProfilePage />} />
             <Route path="/company/candidates" element={<CompanyCandidatesPage />} />
             <Route path="/company/candidates/:candidateAccessId" element={<CompanyCandidateDetailPage />} />
@@ -62,6 +65,7 @@ export function AppRouter() {
 
           <Route element={<RoleGuard role="admin" />}>
             <Route path="/admin" element={<DashboardPage role="admin" />} />
+            <Route path="/admin/notifications" element={<NotificationsPage />} />
             <Route path="/admin/users" element={<DashboardPage role="admin" />} />
             <Route path="/admin/operations" element={<DashboardPage role="admin" />} />
           </Route>

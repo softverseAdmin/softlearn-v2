@@ -21,6 +21,7 @@ from users.models import (
     InterviewAvailability,
     InterviewEvent,
     LearningRecord,
+    Notification,
     Skill,
     StudentProfile,
     StudentSkill,
@@ -28,6 +29,7 @@ from users.models import (
     StudentVisibilitySettings,
     User,
 )
+from users.notifications import emit_interview_event_notifications
 
 
 def serialize_user(user: User) -> dict:
@@ -312,6 +314,7 @@ def serialize_interview(interview: Interview, *, include_detail: bool = False) -
         "scheduled_end": interview.scheduled_end.isoformat() if interview.scheduled_end else None,
         "confirmed_at": interview.confirmed_at.isoformat() if interview.confirmed_at else None,
         "cancelled_at": interview.cancelled_at.isoformat() if interview.cancelled_at else None,
+        "completed_at": interview.completed_at.isoformat() if interview.completed_at else None,
         "meeting_provider": interview.meeting_provider or None,
         "meeting_url": interview.meeting_url or None,
         "created_at": interview.created_at.isoformat(),
@@ -324,12 +327,29 @@ def serialize_interview(interview: Interview, *, include_detail: bool = False) -
 
 
 def create_interview_event(interview: Interview, actor: User | None, event_type: str, description: str) -> InterviewEvent:
-    return InterviewEvent.objects.create(
+    event = InterviewEvent.objects.create(
         interview=interview,
         actor=actor,
         event_type=event_type,
         description=description,
     )
+    emit_interview_event_notifications(event)
+    return event
+
+
+def serialize_notification(notification: Notification) -> dict:
+    return {
+        "id": notification.id,
+        "notification_type": notification.notification_type,
+        "title": notification.title,
+        "message": notification.message,
+        "link": notification.link,
+        "actor_name": notification.actor.full_name if notification.actor else None,
+        "actor_role": notification.actor.role if notification.actor else None,
+        "read_at": notification.read_at.isoformat() if notification.read_at else None,
+        "is_read": notification.is_read,
+        "created_at": notification.created_at.isoformat(),
+    }
 
 
 def serialize_company_candidate(access: CandidateReviewAccess) -> dict:
@@ -577,6 +597,13 @@ def validate_interview_cancel_payload(payload: dict) -> dict:
     if not reason:
         raise ValidationError({"reason": ["This field is required."]})
     return {"reason": reason}
+
+
+def validate_interview_complete_payload(payload: dict) -> dict:
+    summary = str(payload.get("summary", "")).strip()
+    if not summary:
+        raise ValidationError({"summary": ["This field is required."]})
+    return {"summary": summary}
 
 
 def validate_meeting_link_payload(payload: dict) -> dict:
@@ -1280,8 +1307,9 @@ def interview_reschedule_view(request, interview_id: int):
     interview.scheduled_start = None
     interview.scheduled_end = None
     interview.confirmed_at = None
+    interview.completed_at = None
     interview.full_clean()
-    interview.save(update_fields=["status", "scheduled_start", "scheduled_end", "confirmed_at", "updated_at"])
+    interview.save(update_fields=["status", "scheduled_start", "scheduled_end", "confirmed_at", "completed_at", "updated_at"])
     create_interview_event(
         interview,
         request.user,
@@ -1300,13 +1328,34 @@ def interview_cancel_view(request, interview_id: int):
     payload = validate_interview_cancel_payload(parse_json_body(request))
     interview.status = Interview.Status.CANCELLED
     interview.cancelled_at = timezone.now()
+    interview.completed_at = None
     interview.full_clean()
-    interview.save(update_fields=["status", "cancelled_at", "updated_at"])
+    interview.save(update_fields=["status", "cancelled_at", "completed_at", "updated_at"])
     create_interview_event(
         interview,
         request.user,
         "cancelled",
         f"Interview cancelled. Reason: {payload['reason']}",
+    )
+    return success_response(serialize_interview(get_interview_for_participant(request.user, interview.id), include_detail=True))
+
+
+@api_endpoint(["POST"], authentication_required=True, roles=[User.Role.STUDENT, User.Role.COMPANY])
+def interview_complete_view(request, interview_id: int):
+    interview = get_interview_for_participant(request.user, interview_id)
+    if interview.status != Interview.Status.CONFIRMED:
+        raise ValidationError({"status": ["Only confirmed interviews can be marked as completed."]})
+
+    payload = validate_interview_complete_payload(parse_json_body(request))
+    interview.status = Interview.Status.COMPLETED
+    interview.completed_at = timezone.now()
+    interview.full_clean()
+    interview.save(update_fields=["status", "completed_at", "updated_at"])
+    create_interview_event(
+        interview,
+        request.user,
+        "completed",
+        f"Interview completed. Summary: {payload['summary']}",
     )
     return success_response(serialize_interview(get_interview_for_participant(request.user, interview.id), include_detail=True))
 
@@ -1329,6 +1378,55 @@ def interview_meeting_link_view(request, interview_id: int):
         f"Meeting link updated for provider {interview.meeting_provider}.",
     )
     return success_response(serialize_interview(get_interview_for_participant(request.user, interview.id), include_detail=True))
+
+
+@api_endpoint(["GET"], authentication_required=True)
+def notifications_view(request):
+    notifications = list(
+        Notification.objects.filter(recipient=request.user)
+        .select_related("actor")
+        .order_by("-created_at", "-id")[:50]
+    )
+    unread_count = Notification.objects.filter(recipient=request.user, read_at__isnull=True).count()
+    return success_response(
+        {
+            "unread_count": unread_count,
+            "notifications": [serialize_notification(notification) for notification in notifications],
+        }
+    )
+
+
+@api_endpoint(["POST"], authentication_required=True)
+def notification_read_all_view(request):
+    now = timezone.now()
+    Notification.objects.filter(recipient=request.user, read_at__isnull=True).update(read_at=now, updated_at=now)
+    notifications = list(
+        Notification.objects.filter(recipient=request.user)
+        .select_related("actor")
+        .order_by("-created_at", "-id")[:50]
+    )
+    return success_response(
+        {
+            "unread_count": 0,
+            "notifications": [serialize_notification(notification) for notification in notifications],
+        }
+    )
+
+
+@api_endpoint(["POST"], authentication_required=True)
+def notification_read_view(request, notification_id: int):
+    notification = Notification.objects.filter(recipient=request.user, pk=notification_id).select_related("actor").first()
+    if notification is None:
+        return error_response(
+            request,
+            "NOT_FOUND",
+            "The requested notification was not found.",
+            details={"notification_id": [str(notification_id)]},
+            status=404,
+        )
+
+    notification.mark_read()
+    return success_response(serialize_notification(notification))
 
 
 @api_endpoint(["GET"], authentication_required=True)
