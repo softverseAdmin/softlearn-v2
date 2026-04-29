@@ -1,8 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useParams } from 'react-router-dom'
 
+import { useAuth } from '../../auth/useAuth'
 import { ApiError, apiRequest } from '../../lib/api'
 import type {
+  CandidateNotesResponse,
+  CandidateShortlistResponse,
   CompanyCandidatePreviewResponse,
   CompanyCandidateRecordResponse,
   ExamResultsSummary,
@@ -13,6 +16,8 @@ const emptyPreview: CompanyCandidatePreviewResponse = {
   candidate_access_id: 0,
   source: '',
   visibility: 'hidden',
+  shortlist: null,
+  notes: [],
   student: null,
   restrictions: [],
 }
@@ -44,12 +49,16 @@ const emptyExams: CompanyCandidateRecordResponse<ExamResultsSummary> = {
 }
 
 export function CompanyCandidateDetailPage() {
+  const { csrfToken } = useAuth()
   const params = useParams<{ candidateAccessId: string }>()
   const [preview, setPreview] = useState<CompanyCandidatePreviewResponse>(emptyPreview)
   const [learning, setLearning] = useState<CompanyCandidateRecordResponse<LearningSummary>>(emptyLearning)
   const [exams, setExams] = useState<CompanyCandidateRecordResponse<ExamResultsSummary>>(emptyExams)
   const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [noteBody, setNoteBody] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
 
   useEffect(() => {
     let active = true
@@ -94,6 +103,62 @@ export function CompanyCandidateDetailPage() {
     }
   }, [params.candidateAccessId])
 
+  async function handleShortlistToggle() {
+    if (!params.candidateAccessId) {
+      return
+    }
+
+    setSaving(true)
+    setError(null)
+    setSuccess(null)
+
+    try {
+      const response = preview.shortlist
+        ? await apiRequest<CandidateShortlistResponse>(`/company/candidates/${params.candidateAccessId}/shortlist`, {
+            method: 'DELETE',
+            csrfToken,
+          })
+        : await apiRequest<CandidateShortlistResponse>(`/company/candidates/${params.candidateAccessId}/shortlist`, {
+            method: 'POST',
+            body: {},
+            csrfToken,
+          })
+
+      setPreview((current) => ({ ...current, shortlist: response.shortlist }))
+      setSuccess(response.is_shortlisted ? 'Candidate added to shortlist.' : 'Candidate removed from shortlist.')
+    } catch (saveError) {
+      setError(saveError instanceof ApiError ? saveError.message : 'Unable to update shortlist state.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function handleAddNote(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (!params.candidateAccessId) {
+      return
+    }
+
+    setSaving(true)
+    setError(null)
+    setSuccess(null)
+
+    try {
+      const response = await apiRequest<CandidateNotesResponse>(`/company/candidates/${params.candidateAccessId}/notes`, {
+        method: 'POST',
+        body: { body: noteBody },
+        csrfToken,
+      })
+      setPreview((current) => ({ ...current, notes: response.notes }))
+      setNoteBody('')
+      setSuccess('Candidate note added.')
+    } catch (saveError) {
+      setError(saveError instanceof ApiError ? saveError.message : 'Unable to save candidate note.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
   if (loading) {
     return (
       <section className="page">
@@ -108,9 +173,17 @@ export function CompanyCandidateDetailPage() {
         <div>
           <p className="eyebrow">Company candidates</p>
           <h1>{preview.student?.name ?? 'Candidate review detail'}</h1>
-          <p className="lead">This page preserves the privacy-safe split between profile preview, learning evidence, and exam evidence.</p>
+          <p className="lead">This page preserves the privacy-safe split between profile preview, learning evidence, exam evidence, and company-internal notes.</p>
         </div>
         <div className="actions">
+          <button
+            className={preview.shortlist ? 'danger-button' : 'primary-button'}
+            type="button"
+            onClick={() => void handleShortlistToggle()}
+            disabled={saving}
+          >
+            {preview.shortlist ? 'Remove from shortlist' : 'Add to shortlist'}
+          </button>
           <Link className="secondary-button" to="/company/candidates">
             Back to candidates
           </Link>
@@ -118,9 +191,17 @@ export function CompanyCandidateDetailPage() {
       </div>
 
       {error ? <div className="card form-error">{error}</div> : null}
+      {success ? <div className="card form-success">{success}</div> : null}
 
       <div className="card stack-card">
         <h2>Profile preview</h2>
+        {preview.shortlist ? (
+          <p className="muted">
+            Shortlisted by {preview.shortlist.created_by_name} on {new Date(preview.shortlist.created_at).toLocaleString()}
+          </p>
+        ) : (
+          <p className="muted">This candidate is not shortlisted yet.</p>
+        )}
         {preview.visibility === 'hidden' ? (
           <p className="muted">{preview.restrictions[0] ?? 'Profile preview is not available.'}</p>
         ) : (
@@ -154,6 +235,40 @@ export function CompanyCandidateDetailPage() {
             </div>
           </>
         )}
+      </div>
+
+      <div className="card stack-card">
+        <h2>Company notes</h2>
+        <form className="form" onSubmit={handleAddNote}>
+          <label>
+            <span>Add a company-internal note</span>
+            <textarea
+              value={noteBody}
+              onChange={(event) => setNoteBody(event.target.value)}
+              rows={4}
+              placeholder="Capture recruiting context, next steps, or internal observations."
+              required
+            />
+          </label>
+          <button className="primary-button inline-button" type="submit" disabled={saving}>
+            {saving ? 'Saving…' : 'Add note'}
+          </button>
+        </form>
+        <div className="stack-list">
+          {preview.notes.map((note) => (
+            <article key={note.id} className="skill-card">
+              <div className="skill-card-header">
+                <div>
+                  <h3>{note.author_name}</h3>
+                  <p className="muted">{note.author_email}</p>
+                </div>
+                <p className="muted">{new Date(note.created_at).toLocaleString()}</p>
+              </div>
+              <p>{note.body}</p>
+            </article>
+          ))}
+          {preview.notes.length === 0 ? <p className="muted">No company notes yet.</p> : null}
+        </div>
       </div>
 
       <div className="page-split">

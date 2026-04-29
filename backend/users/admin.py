@@ -2,13 +2,16 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 
 from users.models import (
+    CandidateNote,
     CandidateReviewAccess,
+    CandidateShortlist,
     Company,
     ExamResult,
     LearningRecord,
     Skill,
     StudentProfile,
     StudentSkill,
+    StudentVisibilityEvent,
     StudentVisibilitySettings,
     User,
 )
@@ -98,3 +101,22 @@ class CandidateReviewAccessAdmin(admin.ModelAdmin):
     list_display = ("id", "company", "student", "source", "is_active", "updated_at")
     list_filter = ("source", "is_active")
     search_fields = ("company__name", "student__email", "student__full_name")
+
+
+@admin.register(StudentVisibilityEvent)
+class StudentVisibilityEventAdmin(admin.ModelAdmin):
+    list_display = ("id", "student", "share_profile_preview", "share_learning_record", "share_exam_results", "created_at")
+    list_filter = ("share_profile_preview", "share_learning_record", "share_exam_results")
+    search_fields = ("student__email", "student__full_name")
+
+
+@admin.register(CandidateShortlist)
+class CandidateShortlistAdmin(admin.ModelAdmin):
+    list_display = ("id", "company", "student", "created_by", "updated_at")
+    search_fields = ("company__name", "student__email", "student__full_name", "created_by__email")
+
+
+@admin.register(CandidateNote)
+class CandidateNoteAdmin(admin.ModelAdmin):
+    list_display = ("id", "company", "student", "author", "created_at")
+    search_fields = ("company__name", "student__email", "student__full_name", "author__email", "body")

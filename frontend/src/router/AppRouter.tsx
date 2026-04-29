@@ -4,8 +4,10 @@ import { AppLayout } from '../layouts/AppLayout'
 import { CompanyCandidateDetailPage } from '../features/profile/CompanyCandidateDetailPage'
 import { CompanyCandidatesPage } from '../features/profile/CompanyCandidatesPage'
 import { CompanyProfilePage } from '../features/profile/CompanyProfilePage'
+import { CompanyShortlistPage } from '../features/profile/CompanyShortlistPage'
 import { StudentExamResultsPage } from '../features/profile/StudentExamResultsPage'
 import { StudentLearningPage } from '../features/profile/StudentLearningPage'
+import { StudentPrivacySettingsPage } from '../features/profile/StudentPrivacySettingsPage'
 import { StudentProfilePage } from '../features/profile/StudentProfilePage'
 import { StudentSkillsPage } from '../features/profile/StudentSkillsPage'
 import { PublicLayout } from '../layouts/PublicLayout'
@@ -38,6 +40,7 @@ export function AppRouter() {
             <Route path="/student/skills" element={<StudentSkillsPage />} />
             <Route path="/student/learning" element={<StudentLearningPage />} />
             <Route path="/student/exams" element={<StudentExamResultsPage />} />
+            <Route path="/student/privacy" element={<StudentPrivacySettingsPage />} />
           </Route>
 
           <Route element={<RoleGuard role="company" />}>
@@ -45,6 +48,7 @@ export function AppRouter() {
             <Route path="/company/profile" element={<CompanyProfilePage />} />
             <Route path="/company/candidates" element={<CompanyCandidatesPage />} />
             <Route path="/company/candidates/:candidateAccessId" element={<CompanyCandidateDetailPage />} />
+            <Route path="/company/shortlist" element={<CompanyShortlistPage />} />
             <Route path="/company/vacancies" element={<DashboardPage role="company" />} />
           </Route>
 

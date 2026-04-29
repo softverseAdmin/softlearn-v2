@@ -6,13 +6,16 @@ from django.test import Client, TestCase
 from django.utils import timezone
 
 from users.models import (
+    CandidateNote,
     CandidateReviewAccess,
+    CandidateShortlist,
     Company,
     ExamResult,
     LearningRecord,
     Skill,
     StudentProfile,
     StudentSkill,
+    StudentVisibilityEvent,
     StudentVisibilitySettings,
     User,
 )
@@ -781,3 +784,185 @@ class ApiFoundationTests(TestCase):
 
         self.assertEqual(response.status_code, 400)
         self.assertIn("candidate_access_id", response.json()["error"]["details"])
+
+    def test_student_privacy_settings_get_returns_current_state_and_history(self):
+        user = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+
+        client = Client()
+        client.force_login(user)
+        response = client.get("/api/v1/student/privacy-settings")
+
+        self.assertEqual(response.status_code, 200)
+        body = response.json()["data"]
+        self.assertTrue(body["share_profile_preview"])
+        self.assertTrue(body["share_learning_record"])
+        self.assertFalse(body["share_exam_results"])
+        self.assertEqual(len(body["history"]), 1)
+
+    def test_student_privacy_settings_put_updates_state_and_records_event(self):
+        user = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        client, csrf_token = self.csrf_client()
+        client.force_login(user)
+
+        response = client.put(
+            "/api/v1/student/privacy-settings",
+            data=json.dumps(
+                {
+                    "share_profile_preview": True,
+                    "share_learning_record": False,
+                    "share_exam_results": True,
+                }
+            ),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        settings = StudentVisibilitySettings.objects.get(student=user)
+        self.assertFalse(settings.share_learning_record)
+        self.assertTrue(settings.share_exam_results)
+        self.assertEqual(StudentVisibilityEvent.objects.filter(student=user).count(), 2)
+
+    def test_company_candidate_shortlist_can_be_created_and_removed(self):
+        company = Company.objects.create(name="Softverse")
+        student = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        candidate_access = CandidateReviewAccess.objects.create(
+            company=company,
+            student=student,
+            source=CandidateReviewAccess.Source.APPLICATION,
+        )
+        company_user = User.objects.create_user(
+            email="company@example.com",
+            password="SecurePass123!",
+            full_name="Company User",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+        client, csrf_token = self.csrf_client()
+        client.force_login(company_user)
+
+        create_response = client.post(
+            f"/api/v1/company/candidates/{candidate_access.id}/shortlist",
+            data=json.dumps({}),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+        self.assertEqual(create_response.status_code, 201)
+        self.assertTrue(CandidateShortlist.objects.filter(candidate_access=candidate_access).exists())
+
+        shortlist_response = client.get("/api/v1/company/shortlist")
+        self.assertEqual(shortlist_response.status_code, 200)
+        self.assertEqual(shortlist_response.json()["data"]["shortlist_count"], 1)
+
+        delete_response = client.delete(
+            f"/api/v1/company/candidates/{candidate_access.id}/shortlist",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+        self.assertEqual(delete_response.status_code, 200)
+        self.assertFalse(CandidateShortlist.objects.filter(candidate_access=candidate_access).exists())
+
+    def test_company_candidate_notes_are_company_internal(self):
+        company = Company.objects.create(name="Softverse")
+        student = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        candidate_access = CandidateReviewAccess.objects.create(
+            company=company,
+            student=student,
+            source=CandidateReviewAccess.Source.MATCH,
+        )
+        company_user = User.objects.create_user(
+            email="company@example.com",
+            password="SecurePass123!",
+            full_name="Company User",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+        student_client = Client()
+        student_client.force_login(student)
+        self.assertEqual(
+            student_client.get(f"/api/v1/company/candidates/{candidate_access.id}/notes").status_code,
+            403,
+        )
+
+        client, csrf_token = self.csrf_client()
+        client.force_login(company_user)
+        post_response = client.post(
+            f"/api/v1/company/candidates/{candidate_access.id}/notes",
+            data=json.dumps({"body": "Strong backend fundamentals and clear communication."}),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+        self.assertEqual(post_response.status_code, 201)
+        self.assertTrue(CandidateNote.objects.filter(candidate_access=candidate_access).exists())
+
+        get_response = client.get(f"/api/v1/company/candidates/{candidate_access.id}/notes")
+        self.assertEqual(get_response.status_code, 200)
+        self.assertEqual(len(get_response.json()["data"]["notes"]), 1)
+
+    def test_company_candidate_preview_includes_shortlist_and_notes(self):
+        company = Company.objects.create(name="Softverse")
+        student = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        StudentVisibilitySettings.objects.create(
+            student=student,
+            share_profile_preview=True,
+            share_learning_record=True,
+            share_exam_results=False,
+        )
+        candidate_access = CandidateReviewAccess.objects.create(
+            company=company,
+            student=student,
+            source=CandidateReviewAccess.Source.SHORTLIST,
+        )
+        company_user = User.objects.create_user(
+            email="company@example.com",
+            password="SecurePass123!",
+            full_name="Company User",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+        CandidateShortlist.objects.create(
+            candidate_access=candidate_access,
+            company=company,
+            student=student,
+            created_by=company_user,
+        )
+        CandidateNote.objects.create(
+            candidate_access=candidate_access,
+            company=company,
+            student=student,
+            author=company_user,
+            body="Add to shortlist for follow-up.",
+        )
+
+        client = Client()
+        client.force_login(company_user)
+        response = client.get(f"/api/v1/company/candidates/{candidate_access.id}/preview")
+
+        self.assertEqual(response.status_code, 200)
+        body = response.json()["data"]
+        self.assertIsNotNone(body["shortlist"])
+        self.assertEqual(len(body["notes"]), 1)
