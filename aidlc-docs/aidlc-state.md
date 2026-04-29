@@ -98,19 +98,18 @@
 | U10-4-company-view-applications | Company-view-applications baseline completed for authorized privacy-safe review of applications submitted to company-owned vacancies. |
 | U10-5-shortlist-candidates | Company-side shortlist-candidates baseline completed for deterministic shortlist actions with traceable shortlist and lifecycle evidence. |
 | U10-6-reject-candidates | Company-side reject-candidates baseline completed for deterministic rejection actions with auditable terminal-state handling. |
-
+| U11-1-student-profile-preview-for-company | Company-side student-profile-preview baseline completed for authorized review of a permission-controlled student summary in approved candidate-review contexts. |
 ## Open CHG
 
 | CHG | Summary | Status |
 | --- | --- | --- |
 | None | No open change requests. CHG-001 is accepted and closed. | N/A |
-
 ## Stage status summary
 
 | Stage | Overall status |
 | --- | --- |
-| Functional Design | U0-1 through U0-8, U1-1 through U1-8, U2-1 through U2-10, U3-1 through U3-6, U4-1 through U4-8, U5-1 through U5-9, U6-1 through U6-5, U7-1 through U7-8, U8-1 through U8-7, U9-1 through U9-8, and U10-1 through U10-6 completed; U11-1 is the next unstarted unit. U4-2 remained intentionally documented early while the rest of Phase 4 was completed in sequence around it. |
-| NFR Requirements | U0-1 through U0-8, U1-1 through U1-8, U2-1 through U2-10, U3-1 through U3-6, U4-1 through U4-8, U5-1 through U5-9, U6-1 through U6-5, U7-1 through U7-8, U8-1 through U8-7, U9-1 through U9-8, and U10-1 through U10-6 completed; U11-1 is the next unstarted unit. U4-2 remained intentionally documented early while the rest of Phase 4 was completed in sequence around it. |
-| NFR Design | U0-1 through U0-8, U1-1 through U1-8, U2-1 through U2-10, U3-1 through U3-6, U4-1 through U4-8, U5-1 through U5-9, U6-1 through U6-5, U7-1 through U7-8, U8-1 through U8-7, U9-1 through U9-8, and U10-1 through U10-6 completed; U11-1 is the next unstarted unit. U4-2 remained intentionally documented early while the rest of Phase 4 was completed in sequence around it. |
-| Infrastructure Design | U0-1 through U0-8, U1-1 through U1-8, U2-1 through U2-10, U3-1 through U3-6, U4-1 through U4-8, U5-1 through U5-9, U6-1 through U6-5, U7-1 through U7-8, U8-1 through U8-7, U9-1 through U9-8, and U10-1 through U10-6 completed; U11-1 is the next unstarted unit. U4-2 remained intentionally documented early while the rest of Phase 4 was completed in sequence around it. |
-| Code Generation | Documentation/code-generation planning completed for U0-1 through U0-8, U1-1 through U1-8, U2-1 through U2-10, U3-1 through U3-6, U4-1 through U4-8, U5-1 through U5-9, U6-1 through U6-5, U7-1 through U7-8, U8-1 through U8-7, U9-1 through U9-8, and U10-1 through U10-6; application code remains blocked until ADR-001 is accepted. U4-2 remained intentionally documented early while the rest of Phase 4 was completed in sequence around it. |
+| Functional Design | U0-1 through U0-8, U1-1 through U1-8, U2-1 through U2-10, U3-1 through U3-6, U4-1 through U4-8, U5-1 through U5-9, U6-1 through U6-5, U7-1 through U7-8, U8-1 through U8-7, U9-1 through U9-8, U10-1 through U10-6, and U11-1 completed; U11-2-view-student-learning-record is the next unstarted unit. U4-2 remained intentionally documented early while the rest of Phase 4 was completed in sequence around it. |
+| NFR Requirements | U0-1 through U0-8, U1-1 through U1-8, U2-1 through U2-10, U3-1 through U3-6, U4-1 through U4-8, U5-1 through U5-9, U6-1 through U6-5, U7-1 through U7-8, U8-1 through U8-7, U9-1 through U9-8, U10-1 through U10-6, and U11-1 completed; U11-2-view-student-learning-record is the next unstarted unit. U4-2 remained intentionally documented early while the rest of Phase 4 was completed in sequence around it. |
+| NFR Design | U0-1 through U0-8, U1-1 through U1-8, U2-1 through U2-10, U3-1 through U3-6, U4-1 through U4-8, U5-1 through U5-9, U6-1 through U6-5, U7-1 through U7-8, U8-1 through U8-7, U9-1 through U9-8, U10-1 through U10-6, and U11-1 completed; U11-2-view-student-learning-record is the next unstarted unit. U4-2 remained intentionally documented early while the rest of Phase 4 was completed in sequence around it. |
+| Infrastructure Design | U0-1 through U0-8, U1-1 through U1-8, U2-1 through U2-10, U3-1 through U3-6, U4-1 through U4-8, U5-1 through U5-9, U6-1 through U6-5, U7-1 through U7-8, U8-1 through U8-7, U9-1 through U9-8, U10-1 through U10-6, and U11-1 completed; U11-2-view-student-learning-record is the next unstarted unit. U4-2 remained intentionally documented early while the rest of Phase 4 was completed in sequence around it. |
+| Code Generation | Documentation/code-generation planning completed for U0-1 through U0-8, U1-1 through U1-8, U2-1 through U2-10, U3-1 through U3-6, U4-1 through U4-8, U5-1 through U5-9, U6-1 through U6-5, U7-1 through U7-8, U8-1 through U8-7, U9-1 through U9-8, U10-1 through U10-6, and U11-1; application code remains blocked until ADR-001 is accepted. U4-2 remained intentionally documented early while the rest of Phase 4 was completed in sequence around it. |
