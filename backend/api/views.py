@@ -7,7 +7,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 
 from common.decorators import api_endpoint
 from common.http import csrf_response_payload, error_response, parse_json_body, success_response
-from users.models import Company, StudentProfile, User
+from users.models import Company, Skill, StudentProfile, StudentSkill, User
 
 
 def serialize_user(user: User) -> dict:
@@ -56,6 +56,37 @@ def serialize_student_profile(user: User) -> dict:
     }
 
 
+def serialize_skill(skill: Skill) -> dict:
+    return {
+        "id": skill.id,
+        "name": skill.name,
+        "slug": skill.slug,
+    }
+
+
+def serialize_student_skill(student_skill: StudentSkill) -> dict:
+    return {
+        "id": student_skill.id,
+        "skill_id": student_skill.skill_id,
+        "skill_name": student_skill.skill.name,
+        "proficiency_level": student_skill.proficiency_level,
+    }
+
+
+def serialize_student_skills(user: User) -> dict:
+    selected_skills = list(
+        StudentSkill.objects.filter(student=user)
+        .select_related("skill")
+        .order_by("skill__name")
+    )
+    available_skills = list(Skill.objects.order_by("name"))
+    return {
+        "skills": [serialize_student_skill(student_skill) for student_skill in selected_skills],
+        "available_skills": [serialize_skill(skill) for skill in available_skills],
+        "skill_count": len(selected_skills),
+    }
+
+
 def serialize_company_profile(user: User) -> dict:
     company = user.company
     if company is None:
@@ -64,7 +95,8 @@ def serialize_company_profile(user: User) -> dict:
     return {
         "company_id": company.id,
         "name": company.name,
-        "profile_complete": bool(company.name.strip()),
+        "description": company.description,
+        "profile_complete": bool(company.name.strip() and company.description.strip()),
     }
 
 
@@ -88,10 +120,45 @@ def validate_student_profile_payload(payload: dict) -> dict:
 
 
 def validate_company_profile_payload(payload: dict) -> dict:
-    cleaned = {"name": str(payload.get("name", "")).strip()}
+    cleaned = {
+        "name": str(payload.get("name", "")).strip(),
+        "description": str(payload.get("description", "")).strip(),
+    }
     if not cleaned["name"]:
         raise ValidationError({"name": ["This field is required."]})
     return cleaned
+
+
+def validate_student_skill_payload(payload: dict) -> dict:
+    cleaned_proficiency = str(payload.get("proficiency_level", "")).strip().lower()
+    raw_skill_id = payload.get("skill_id")
+    errors = {}
+    skill = None
+
+    if raw_skill_id in (None, ""):
+        errors["skill_id"] = ["This field is required."]
+    else:
+        try:
+            skill = Skill.objects.get(pk=int(raw_skill_id))
+        except (TypeError, ValueError):
+            errors["skill_id"] = ["A valid skill_id is required."]
+        except Skill.DoesNotExist:
+            errors["skill_id"] = ["Selected skill does not exist."]
+
+    if not cleaned_proficiency:
+        errors["proficiency_level"] = ["This field is required."]
+    elif cleaned_proficiency not in StudentSkill.Proficiency.values:
+        errors["proficiency_level"] = [
+            f"Proficiency level must be one of: {', '.join(StudentSkill.Proficiency.values)}."
+        ]
+
+    if errors:
+        raise ValidationError(errors)
+
+    return {
+        "skill": skill,
+        "proficiency_level": cleaned_proficiency,
+    }
 
 
 @api_endpoint(["GET"])
@@ -271,10 +338,66 @@ def company_profile_view(request):
 
     payload = validate_company_profile_payload(parse_json_body(request))
     company.name = payload["name"]
+    company.description = payload["description"]
     company.full_clean()
-    company.save(update_fields=["name", "updated_at"])
+    company.save(update_fields=["name", "description", "updated_at"])
 
     return success_response(serialize_company_profile(request.user))
+
+
+@api_endpoint(["GET", "POST"], authentication_required=True, roles=[User.Role.STUDENT])
+def student_skills_view(request):
+    if request.method == "GET":
+        return success_response(serialize_student_skills(request.user))
+
+    payload = validate_student_skill_payload(parse_json_body(request))
+    if StudentSkill.objects.filter(student=request.user, skill=payload["skill"]).exists():
+        raise ValidationError({"skill_id": ["This skill is already added to your profile."]})
+
+    student_skill = StudentSkill(
+        student=request.user,
+        skill=payload["skill"],
+        proficiency_level=payload["proficiency_level"],
+    )
+    student_skill.full_clean()
+    student_skill.save()
+
+    return success_response(serialize_student_skills(request.user), status=201)
+
+
+@api_endpoint(["PUT", "DELETE"], authentication_required=True, roles=[User.Role.STUDENT])
+def student_skill_detail_view(request, student_skill_id: int):
+    student_skill = (
+        StudentSkill.objects.filter(student=request.user, pk=student_skill_id)
+        .select_related("skill")
+        .first()
+    )
+    if student_skill is None:
+        return error_response(
+            request,
+            "NOT_FOUND",
+            "The requested student skill was not found.",
+            details={"student_skill_id": [str(student_skill_id)]},
+            status=404,
+        )
+
+    if request.method == "DELETE":
+        student_skill.delete()
+        return success_response(serialize_student_skills(request.user))
+
+    payload = validate_student_skill_payload(parse_json_body(request))
+    duplicate_skill = StudentSkill.objects.filter(student=request.user, skill=payload["skill"]).exclude(
+        pk=student_skill.pk
+    )
+    if duplicate_skill.exists():
+        raise ValidationError({"skill_id": ["This skill is already added to your profile."]})
+
+    student_skill.skill = payload["skill"]
+    student_skill.proficiency_level = payload["proficiency_level"]
+    student_skill.full_clean()
+    student_skill.save(update_fields=["skill", "proficiency_level", "updated_at"])
+
+    return success_response(serialize_student_skills(request.user))
 
 
 @api_endpoint(["GET"], authentication_required=True)

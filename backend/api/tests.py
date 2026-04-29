@@ -3,7 +3,7 @@ import json
 from django.core.exceptions import ValidationError
 from django.test import Client, TestCase
 
-from users.models import Company, StudentProfile, User
+from users.models import Company, Skill, StudentProfile, StudentSkill, User
 
 
 class ApiFoundationTests(TestCase):
@@ -300,9 +300,10 @@ class ApiFoundationTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["data"]["name"], "Softverse")
-        self.assertTrue(response.json()["data"]["profile_complete"])
+        self.assertEqual(response.json()["data"]["description"], "")
+        self.assertFalse(response.json()["data"]["profile_complete"])
 
-    def test_company_profile_put_updates_name(self):
+    def test_company_profile_put_updates_name_and_description(self):
         company = Company.objects.create(name="Softverse")
         company_user = User.objects.create_user(
             email="company@example.com",
@@ -316,7 +317,12 @@ class ApiFoundationTests(TestCase):
 
         response = client.put(
             "/api/v1/company/profile",
-            data=json.dumps({"name": "Softverse Japan"}),
+            data=json.dumps(
+                {
+                    "name": "Softverse Japan",
+                    "description": "We hire students for entry-level software roles in Japan.",
+                }
+            ),
             content_type="application/json",
             HTTP_X_CSRFTOKEN=csrf_token,
         )
@@ -324,6 +330,8 @@ class ApiFoundationTests(TestCase):
         self.assertEqual(response.status_code, 200)
         company.refresh_from_db()
         self.assertEqual(company.name, "Softverse Japan")
+        self.assertEqual(company.description, "We hire students for entry-level software roles in Japan.")
+        self.assertTrue(response.json()["data"]["profile_complete"])
 
     def test_student_cannot_access_company_profile_endpoint(self):
         user = User.objects.create_user(
@@ -336,4 +344,152 @@ class ApiFoundationTests(TestCase):
         client = Client()
         client.force_login(user)
         response = client.get("/api/v1/company/profile")
+        self.assertEqual(response.status_code, 403)
+
+    def test_student_skills_get_returns_catalog_and_assignments(self):
+        skill_a = Skill.objects.create(name="Django Testing")
+        skill_b = Skill.objects.create(name="React Testing")
+        user = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        StudentSkill.objects.create(
+            student=user,
+            skill=skill_a,
+            proficiency_level=StudentSkill.Proficiency.INTERMEDIATE,
+        )
+
+        client = Client()
+        client.force_login(user)
+        response = client.get("/api/v1/student/skills")
+
+        self.assertEqual(response.status_code, 200)
+        body = response.json()["data"]
+        self.assertEqual(body["skill_count"], 1)
+        self.assertEqual(body["skills"][0]["skill_name"], "Django Testing")
+        available_skill_names = {skill["name"] for skill in body["available_skills"]}
+        self.assertIn("Django Testing", available_skill_names)
+        self.assertIn("React Testing", available_skill_names)
+
+    def test_student_skills_post_adds_skill(self):
+        skill = Skill.objects.create(name="TypeScript Testing")
+        user = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        client, csrf_token = self.csrf_client()
+        client.force_login(user)
+
+        response = client.post(
+            "/api/v1/student/skills",
+            data=json.dumps(
+                {
+                    "skill_id": skill.id,
+                    "proficiency_level": StudentSkill.Proficiency.ADVANCED,
+                }
+            ),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+
+        self.assertEqual(response.status_code, 201)
+        student_skill = StudentSkill.objects.get(student=user, skill=skill)
+        self.assertEqual(student_skill.proficiency_level, StudentSkill.Proficiency.ADVANCED)
+        self.assertEqual(response.json()["data"]["skill_count"], 1)
+
+    def test_student_skills_reject_duplicate_skill(self):
+        skill = Skill.objects.create(name="Python Testing")
+        user = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        StudentSkill.objects.create(student=user, skill=skill)
+        client, csrf_token = self.csrf_client()
+        client.force_login(user)
+
+        response = client.post(
+            "/api/v1/student/skills",
+            data=json.dumps(
+                {
+                    "skill_id": skill.id,
+                    "proficiency_level": StudentSkill.Proficiency.BEGINNER,
+                }
+            ),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("skill_id", response.json()["error"]["details"])
+
+    def test_student_skills_put_updates_skill_and_proficiency(self):
+        skill_a = Skill.objects.create(name="Django Editing")
+        skill_b = Skill.objects.create(name="React Editing")
+        user = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        student_skill = StudentSkill.objects.create(student=user, skill=skill_a)
+        client, csrf_token = self.csrf_client()
+        client.force_login(user)
+
+        response = client.put(
+            f"/api/v1/student/skills/{student_skill.id}",
+            data=json.dumps(
+                {
+                    "skill_id": skill_b.id,
+                    "proficiency_level": StudentSkill.Proficiency.INTERMEDIATE,
+                }
+            ),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        student_skill.refresh_from_db()
+        self.assertEqual(student_skill.skill, skill_b)
+        self.assertEqual(student_skill.proficiency_level, StudentSkill.Proficiency.INTERMEDIATE)
+
+    def test_student_skills_delete_removes_assignment(self):
+        skill = Skill.objects.create(name="Docker Testing")
+        user = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        student_skill = StudentSkill.objects.create(student=user, skill=skill)
+        client, csrf_token = self.csrf_client()
+        client.force_login(user)
+
+        response = client.delete(
+            f"/api/v1/student/skills/{student_skill.id}",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(StudentSkill.objects.filter(pk=student_skill.id).exists())
+        self.assertEqual(response.json()["data"]["skill_count"], 0)
+
+    def test_company_user_cannot_access_student_skills_endpoint(self):
+        company = Company.objects.create(name="Softverse")
+        company_user = User.objects.create_user(
+            email="company@example.com",
+            password="SecurePass123!",
+            full_name="Company User",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+
+        client = Client()
+        client.force_login(company_user)
+        response = client.get("/api/v1/student/skills")
         self.assertEqual(response.status_code, 403)

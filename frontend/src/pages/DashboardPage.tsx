@@ -8,6 +8,7 @@ const contentByRole = {
     description: 'This area will host profile, learning, exams, jobs, applications, interviews, and privacy workflows.',
     cards: [
       { title: 'Profile and resume', href: '/student/profile' },
+      { title: 'Skills profile', href: '/student/skills' },
       { title: 'Learning progress', href: '/student/learning' },
       { title: 'Exam history', href: '/student' },
       { title: 'Job matches', href: '/student' },

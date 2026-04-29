@@ -1,12 +1,14 @@
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.utils.text import slugify
 
 from users.managers import UserManager
 
 
 class Company(models.Model):
     name = models.CharField(max_length=255)
+    description = models.TextField(blank=True, default="")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -42,6 +44,23 @@ class StudentProfile(models.Model):
 
     def __str__(self) -> str:
         return f"StudentProfile<{self.user.email}>"
+
+
+class Skill(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    slug = models.SlugField(max_length=120, unique=True, editable=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["name"]
+
+    def save(self, *args, **kwargs):
+        self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
+
+    def __str__(self) -> str:
+        return self.name
 
 
 class User(AbstractBaseUser, PermissionsMixin):
@@ -85,3 +104,39 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self) -> str:
         return self.email
+
+
+class StudentSkill(models.Model):
+    class Proficiency(models.TextChoices):
+        BEGINNER = "beginner", "Beginner"
+        INTERMEDIATE = "intermediate", "Intermediate"
+        ADVANCED = "advanced", "Advanced"
+
+    student = models.ForeignKey(
+        "User",
+        on_delete=models.CASCADE,
+        related_name="student_skills",
+        limit_choices_to={"role": User.Role.STUDENT},
+    )
+    skill = models.ForeignKey(Skill, on_delete=models.CASCADE, related_name="student_skills")
+    proficiency_level = models.CharField(
+        max_length=20,
+        choices=Proficiency.choices,
+        default=Proficiency.BEGINNER,
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["student_id", "skill__name"]
+        constraints = [
+            models.UniqueConstraint(fields=["student", "skill"], name="unique_student_skill"),
+        ]
+
+    def clean(self) -> None:
+        super().clean()
+        if self.student.role != User.Role.STUDENT:
+            raise ValidationError({"student": ["Only student users can have student skills."]})
+
+    def __str__(self) -> str:
+        return f"{self.student.email} - {self.skill.name}"
