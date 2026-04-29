@@ -10,7 +10,7 @@ const contentByRole = {
       { title: 'Profile and resume', href: '/student/profile' },
       { title: 'Skills profile', href: '/student/skills' },
       { title: 'Learning progress', href: '/student/learning' },
-      { title: 'Exam history', href: '/student' },
+      { title: 'Exam history', href: '/student/exams' },
       { title: 'Job matches', href: '/student' },
     ],
   },

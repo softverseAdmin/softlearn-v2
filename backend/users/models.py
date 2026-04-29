@@ -1,4 +1,5 @@
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.text import slugify
@@ -104,6 +105,135 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self) -> str:
         return self.email
+
+
+class StudentVisibilitySettings(models.Model):
+    student = models.OneToOneField(
+        "User",
+        on_delete=models.CASCADE,
+        related_name="visibility_settings",
+        limit_choices_to={"role": User.Role.STUDENT},
+    )
+    share_profile_preview = models.BooleanField(default=True)
+    share_learning_record = models.BooleanField(default=True)
+    share_exam_results = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["student_id"]
+
+    def clean(self) -> None:
+        super().clean()
+        if self.student.role != User.Role.STUDENT:
+            raise ValidationError({"student": ["Visibility settings may only belong to student users."]})
+
+    def __str__(self) -> str:
+        return f"Visibility<{self.student.email}>"
+
+
+class LearningRecord(models.Model):
+    class Status(models.TextChoices):
+        NOT_STARTED = "not_started", "Not started"
+        IN_PROGRESS = "in_progress", "In progress"
+        COMPLETED = "completed", "Completed"
+
+    student = models.ForeignKey(
+        "User",
+        on_delete=models.CASCADE,
+        related_name="learning_records",
+        limit_choices_to={"role": User.Role.STUDENT},
+    )
+    course_title = models.CharField(max_length=255)
+    category = models.CharField(max_length=100)
+    progress_percent = models.PositiveSmallIntegerField(
+        default=0,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+    )
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.NOT_STARTED)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["course_title", "id"]
+
+    def clean(self) -> None:
+        super().clean()
+        if self.student.role != User.Role.STUDENT:
+            raise ValidationError({"student": ["Learning records may only belong to student users."]})
+
+        if self.status == self.Status.COMPLETED and self.progress_percent != 100:
+            raise ValidationError({"progress_percent": ["Completed learning records must have 100 percent progress."]})
+
+        if self.status != self.Status.COMPLETED and self.completed_at is not None:
+            raise ValidationError({"completed_at": ["Only completed learning records can have a completion timestamp."]})
+
+    def __str__(self) -> str:
+        return f"{self.student.email} - {self.course_title}"
+
+
+class ExamResult(models.Model):
+    student = models.ForeignKey(
+        "User",
+        on_delete=models.CASCADE,
+        related_name="exam_results",
+        limit_choices_to={"role": User.Role.STUDENT},
+    )
+    exam_title = models.CharField(max_length=255)
+    category = models.CharField(max_length=100)
+    score_percent = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+    )
+    passed = models.BooleanField(default=False)
+    attempt_number = models.PositiveSmallIntegerField(default=1, validators=[MinValueValidator(1)])
+    taken_at = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-taken_at", "exam_title", "id"]
+
+    def clean(self) -> None:
+        super().clean()
+        if self.student.role != User.Role.STUDENT:
+            raise ValidationError({"student": ["Exam results may only belong to student users."]})
+
+    def __str__(self) -> str:
+        return f"{self.student.email} - {self.exam_title}"
+
+
+class CandidateReviewAccess(models.Model):
+    class Source(models.TextChoices):
+        MATCH = "match", "Match"
+        APPLICATION = "application", "Application"
+        SHORTLIST = "shortlist", "Shortlist"
+
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name="candidate_review_accesses")
+    student = models.ForeignKey(
+        "User",
+        on_delete=models.CASCADE,
+        related_name="candidate_review_accesses",
+        limit_choices_to={"role": User.Role.STUDENT},
+    )
+    source = models.CharField(max_length=20, choices=Source.choices)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-updated_at", "-id"]
+        constraints = [
+            models.UniqueConstraint(fields=["company", "student", "source"], name="unique_candidate_review_source"),
+        ]
+
+    def clean(self) -> None:
+        super().clean()
+        if self.student.role != User.Role.STUDENT:
+            raise ValidationError({"student": ["Candidate review access may only reference student users."]})
+
+    def __str__(self) -> str:
+        return f"{self.company.name} -> {self.student.email} ({self.source})"
 
 
 class StudentSkill(models.Model):

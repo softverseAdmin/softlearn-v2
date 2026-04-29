@@ -1,9 +1,21 @@
 import json
+from datetime import timedelta
 
 from django.core.exceptions import ValidationError
 from django.test import Client, TestCase
+from django.utils import timezone
 
-from users.models import Company, Skill, StudentProfile, StudentSkill, User
+from users.models import (
+    CandidateReviewAccess,
+    Company,
+    ExamResult,
+    LearningRecord,
+    Skill,
+    StudentProfile,
+    StudentSkill,
+    StudentVisibilitySettings,
+    User,
+)
 
 
 class ApiFoundationTests(TestCase):
@@ -493,3 +505,279 @@ class ApiFoundationTests(TestCase):
         client.force_login(company_user)
         response = client.get("/api/v1/student/skills")
         self.assertEqual(response.status_code, 403)
+
+    def test_student_learning_summary_returns_course_records(self):
+        user = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        LearningRecord.objects.create(
+            student=user,
+            course_title="Backend Foundations",
+            category="backend",
+            progress_percent=100,
+            status=LearningRecord.Status.COMPLETED,
+            completed_at=timezone.now(),
+        )
+        LearningRecord.objects.create(
+            student=user,
+            course_title="Frontend Foundations",
+            category="frontend",
+            progress_percent=45,
+            status=LearningRecord.Status.IN_PROGRESS,
+        )
+
+        client = Client()
+        client.force_login(user)
+        response = client.get("/api/v1/student/learning-summary")
+
+        self.assertEqual(response.status_code, 200)
+        body = response.json()["data"]
+        self.assertEqual(body["total_courses"], 2)
+        self.assertEqual(body["completed_courses"], 1)
+        self.assertEqual(body["in_progress_courses"], 1)
+
+    def test_student_exam_results_returns_summary(self):
+        user = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        ExamResult.objects.create(
+            student=user,
+            exam_title="Python Basics Exam",
+            category="programming",
+            score_percent=82,
+            passed=True,
+            attempt_number=1,
+            taken_at=timezone.now() - timedelta(days=1),
+        )
+        ExamResult.objects.create(
+            student=user,
+            exam_title="Networking Exam",
+            category="infrastructure",
+            score_percent=68,
+            passed=False,
+            attempt_number=2,
+            taken_at=timezone.now(),
+        )
+
+        client = Client()
+        client.force_login(user)
+        response = client.get("/api/v1/student/exam-results")
+
+        self.assertEqual(response.status_code, 200)
+        body = response.json()["data"]
+        self.assertEqual(body["total_results"], 2)
+        self.assertEqual(body["passed_results"], 1)
+        self.assertEqual(body["average_score"], 75.0)
+
+    def test_company_candidates_list_returns_company_safe_preview_cards(self):
+        company = Company.objects.create(name="Softverse")
+        student = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        get_profile = StudentProfile.objects.create(
+            user=student,
+            desired_job_type="backend",
+            desired_work_location="Tokyo",
+            japanese_level="N3",
+            english_level="B2",
+        )
+        del get_profile
+        skill = Skill.objects.create(name="Candidate Python")
+        StudentSkill.objects.create(student=student, skill=skill, proficiency_level=StudentSkill.Proficiency.ADVANCED)
+        CandidateReviewAccess.objects.create(
+            company=company,
+            student=student,
+            source=CandidateReviewAccess.Source.APPLICATION,
+        )
+        StudentVisibilitySettings.objects.create(
+            student=student,
+            share_profile_preview=True,
+            share_learning_record=True,
+            share_exam_results=False,
+        )
+        company_user = User.objects.create_user(
+            email="company@example.com",
+            password="SecurePass123!",
+            full_name="Company User",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+
+        client = Client()
+        client.force_login(company_user)
+        response = client.get("/api/v1/company/candidates")
+
+        self.assertEqual(response.status_code, 200)
+        candidate = response.json()["data"]["candidates"][0]
+        self.assertEqual(candidate["display_name"], "Student User")
+        self.assertEqual(candidate["visibility"]["exam_results"], "hidden")
+        self.assertEqual(candidate["top_skills"], ["Candidate Python"])
+
+    def test_company_candidate_preview_returns_hidden_state_when_profile_not_shared(self):
+        company = Company.objects.create(name="Softverse")
+        student = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        StudentVisibilitySettings.objects.create(
+            student=student,
+            share_profile_preview=False,
+            share_learning_record=True,
+            share_exam_results=False,
+        )
+        candidate_access = CandidateReviewAccess.objects.create(
+            company=company,
+            student=student,
+            source=CandidateReviewAccess.Source.MATCH,
+        )
+        company_user = User.objects.create_user(
+            email="company@example.com",
+            password="SecurePass123!",
+            full_name="Company User",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+
+        client = Client()
+        client.force_login(company_user)
+        response = client.get(f"/api/v1/company/candidates/{candidate_access.id}/preview")
+
+        self.assertEqual(response.status_code, 200)
+        body = response.json()["data"]
+        self.assertEqual(body["visibility"], "hidden")
+        self.assertIsNone(body["student"])
+
+    def test_company_candidate_learning_record_returns_visible_summary(self):
+        company = Company.objects.create(name="Softverse")
+        student = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        LearningRecord.objects.create(
+            student=student,
+            course_title="Backend Foundations",
+            category="backend",
+            progress_percent=100,
+            status=LearningRecord.Status.COMPLETED,
+            completed_at=timezone.now(),
+        )
+        StudentVisibilitySettings.objects.create(
+            student=student,
+            share_profile_preview=True,
+            share_learning_record=True,
+            share_exam_results=False,
+        )
+        candidate_access = CandidateReviewAccess.objects.create(
+            company=company,
+            student=student,
+            source=CandidateReviewAccess.Source.SHORTLIST,
+        )
+        company_user = User.objects.create_user(
+            email="company@example.com",
+            password="SecurePass123!",
+            full_name="Company User",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+
+        client = Client()
+        client.force_login(company_user)
+        response = client.get(f"/api/v1/company/candidates/{candidate_access.id}/learning-record")
+
+        self.assertEqual(response.status_code, 200)
+        body = response.json()["data"]
+        self.assertEqual(body["visibility"], "visible")
+        self.assertEqual(body["summary"]["completed_courses"], 1)
+
+    def test_company_candidate_exam_results_require_explicit_sharing(self):
+        company = Company.objects.create(name="Softverse")
+        student = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        ExamResult.objects.create(
+            student=student,
+            exam_title="Python Basics Exam",
+            category="programming",
+            score_percent=92,
+            passed=True,
+            attempt_number=1,
+            taken_at=timezone.now(),
+        )
+        visibility = StudentVisibilitySettings.objects.create(
+            student=student,
+            share_profile_preview=True,
+            share_learning_record=True,
+            share_exam_results=False,
+        )
+        candidate_access = CandidateReviewAccess.objects.create(
+            company=company,
+            student=student,
+            source=CandidateReviewAccess.Source.APPLICATION,
+        )
+        company_user = User.objects.create_user(
+            email="company@example.com",
+            password="SecurePass123!",
+            full_name="Company User",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+
+        client = Client()
+        client.force_login(company_user)
+
+        hidden_response = client.get(f"/api/v1/company/candidates/{candidate_access.id}/exam-results")
+        self.assertEqual(hidden_response.status_code, 200)
+        self.assertEqual(hidden_response.json()["data"]["visibility"], "hidden")
+
+        visibility.share_exam_results = True
+        visibility.save(update_fields=["share_exam_results", "updated_at"])
+
+        visible_response = client.get(f"/api/v1/company/candidates/{candidate_access.id}/exam-results")
+        self.assertEqual(visible_response.status_code, 200)
+        self.assertEqual(visible_response.json()["data"]["visibility"], "visible")
+        self.assertEqual(visible_response.json()["data"]["summary"]["passed_results"], 1)
+
+    def test_company_cannot_access_another_company_candidate_context(self):
+        owner_company = Company.objects.create(name="Owner Company")
+        other_company = Company.objects.create(name="Other Company")
+        student = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        candidate_access = CandidateReviewAccess.objects.create(
+            company=owner_company,
+            student=student,
+            source=CandidateReviewAccess.Source.MATCH,
+        )
+        other_company_user = User.objects.create_user(
+            email="company@example.com",
+            password="SecurePass123!",
+            full_name="Company User",
+            role=User.Role.COMPANY,
+            company=other_company,
+        )
+
+        client = Client()
+        client.force_login(other_company_user)
+        response = client.get(f"/api/v1/company/candidates/{candidate_access.id}/preview")
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("candidate_access_id", response.json()["error"]["details"])

@@ -1,7 +1,11 @@
 import { Route, Routes } from 'react-router-dom'
 
 import { AppLayout } from '../layouts/AppLayout'
+import { CompanyCandidateDetailPage } from '../features/profile/CompanyCandidateDetailPage'
+import { CompanyCandidatesPage } from '../features/profile/CompanyCandidatesPage'
 import { CompanyProfilePage } from '../features/profile/CompanyProfilePage'
+import { StudentExamResultsPage } from '../features/profile/StudentExamResultsPage'
+import { StudentLearningPage } from '../features/profile/StudentLearningPage'
 import { StudentProfilePage } from '../features/profile/StudentProfilePage'
 import { StudentSkillsPage } from '../features/profile/StudentSkillsPage'
 import { PublicLayout } from '../layouts/PublicLayout'
@@ -32,13 +36,15 @@ export function AppRouter() {
             <Route path="/student" element={<DashboardPage role="student" />} />
             <Route path="/student/profile" element={<StudentProfilePage />} />
             <Route path="/student/skills" element={<StudentSkillsPage />} />
-            <Route path="/student/learning" element={<DashboardPage role="student" />} />
+            <Route path="/student/learning" element={<StudentLearningPage />} />
+            <Route path="/student/exams" element={<StudentExamResultsPage />} />
           </Route>
 
           <Route element={<RoleGuard role="company" />}>
             <Route path="/company" element={<DashboardPage role="company" />} />
             <Route path="/company/profile" element={<CompanyProfilePage />} />
-            <Route path="/company/candidates" element={<DashboardPage role="company" />} />
+            <Route path="/company/candidates" element={<CompanyCandidatesPage />} />
+            <Route path="/company/candidates/:candidateAccessId" element={<CompanyCandidateDetailPage />} />
             <Route path="/company/vacancies" element={<DashboardPage role="company" />} />
           </Route>
 
