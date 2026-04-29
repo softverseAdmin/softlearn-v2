@@ -1,8 +1,8 @@
 # AI-DLC state
 
-- **Project status:** inception and early construction planning
+- **Project status:** construction documentation complete and implementation started
 - **Baseline version:** v1
-- **Technology decision:** recommended local-first stack defined, ADR-001 proposed for acceptance
+- **Technology decision:** accepted local-first Django + React + PostgreSQL stack with Django-native session auth
 - **Current active unit:** None
 
 ## Active units

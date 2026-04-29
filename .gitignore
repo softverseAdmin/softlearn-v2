@@ -1,4 +1,5 @@
 node_modules/
+.venv/
 .env
 .env.*
 coverage/
@@ -8,6 +9,7 @@ tmp/
 log/
 vendor/bundle/
 __pycache__/
+backend/db.sqlite3
 .DS_Store
 .idea/
 .vscode/*

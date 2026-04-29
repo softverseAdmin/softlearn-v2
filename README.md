@@ -1,6 +1,6 @@
 # AI-DLC Learning & Career Matching Platform
 
-This repository is an **AI-DLC-first** workspace for a learning and job-matching platform aimed at foreign IT engineers, Japanese learners, companies, and platform administrators. The product will be built **unit by unit**, and the final technology stack is **intentionally undecided** until the inception decision documents and ADR-001 are completed.
+This repository is an **AI-DLC-first** workspace for a learning and job-matching platform aimed at foreign IT engineers, Japanese learners, companies, and platform administrators. The product is built **unit by unit**, and the current implementation baseline uses the accepted v1 stack: **Django + React + PostgreSQL** with **session-based auth** and **local-first development**.
 
 ## What this repository contains
 
@@ -34,6 +34,15 @@ This repository is an **AI-DLC-first** workspace for a learning and job-matching
 3. Implement construction units in small, reviewable branches and pull requests.
 4. Track requirement changes through CHG records instead of silent edits.
 
+## Selected stack
+
+- **Backend:** Django
+- **Frontend:** React + Vite
+- **Database:** PostgreSQL
+- **Auth:** Django-native session-based browser auth
+- **Deployment direction:** local-first now, AWS-compatible later
+- **Matching approach:** deterministic rule-based and weighted scoring
+
 ## Quick start
 
 1. Run:
@@ -61,6 +70,42 @@ This repository is an **AI-DLC-first** workspace for a learning and job-matching
    ./scripts/creating-pr.sh U1-2-authentication-core
    ```
 
+## Backend quick start
+
+1. Create and activate a virtual environment:
+   ```bash
+   python3 -m venv .venv
+   . .venv/bin/activate
+   ```
+2. Install backend dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+3. Copy environment defaults:
+   ```bash
+   cp .env.example .env
+   ```
+4. Set a non-default secret key in `.env` before sharing the backend beyond local development.
+5. Run migrations:
+   ```bash
+   cd backend
+   python manage.py migrate
+   ```
+6. Start the backend:
+   ```bash
+   python manage.py runserver
+   ```
+7. Run backend tests:
+   ```bash
+   python manage.py test
+   ```
+
+### Backend foundation notes
+
+- Signup uses Django password validation rules, so weak passwords are rejected at account creation time.
+- User-role invariants are enforced at the model level: company users must belong to a company, while student and admin users must not.
+- CI sets an explicit Django secret key for backend validation instead of relying on development defaults.
+
 ## Important guardrail
 
-Do **not** implement production application code until **U0-4 technology-selection-and-architecture** is completed and **`aidlc-docs/inception/v1/adr-001-technology-stack.md`** is accepted.
+Keep implementation aligned with the accepted ADR-001 stack, the completed AI-DLC unit docs, session-based auth, `/api/v1/`, privacy-aware authorization, and deterministic matching rules.
