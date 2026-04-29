@@ -55,6 +55,20 @@
 | U4-6-course-enrollment | Course-enrollment baseline completed for authenticated students to create protected, student-owned enrollment records. |
 | U4-7-lesson-progress-tracking | Lesson-progress baseline completed for protected, enrollment-linked tracking of a student’s lesson-level learning state. |
 | U4-8-course-completion-tracking | Course-completion baseline completed for deterministic, protected learning evidence derived from enrollment-linked lesson progress. |
+| U5-1-exam-creation | Protected exam-creation baseline completed for authorized platform operators to create structured exam records before question authoring, student attempts, and scoring behavior. |
+| U5-2-question-creation | Protected question-creation baseline completed for authorized platform operators to attach structured question records to an existing exam before answer-option authoring and student delivery. |
+| U5-3-answer-options-management | Protected answer-options baseline completed for authorized platform operators to manage structured candidate answers for an existing question before student submission and scoring. |
+| U5-4-exam-taking-ui | Protected exam-taking UI baseline completed for authenticated students to view and navigate available exams without mixing in submission or scoring behavior. |
+| U5-5-answer-submission | Protected answer-submission baseline completed for authenticated students to record traceable exam-attempt responses before scoring and result presentation. |
+| U5-6-score-calculation | Deterministic score-calculation baseline completed for protected evaluation of submitted exam attempts before pass/fail and result-summary behavior. |
+| U5-7-pass-fail-logic | Deterministic pass/fail baseline completed for classifying scored exam attempts with explicit rule-based outcome states. |
+| U5-8-exam-history | Protected exam-history baseline completed for authenticated students to review structured records of their own exam attempts and outcomes. |
+| U5-9-exam-retake-policy | Deterministic retake-policy baseline completed for evaluating repeat-attempt eligibility from exam history and explicit exam rules. |
+| U6-1-student-learning-summary | Protected student learning-summary baseline completed for authenticated students to review structured course participation, progress, and completion evidence. |
+| U6-2-student-exam-results-summary | Protected student exam-results-summary baseline completed for authenticated students to review structured exam outcome evidence. |
+| U6-3-company-view-student-results | Protected company-side student-results baseline completed for authorized company users to review only allowed student learning and exam result evidence. |
+| U6-4-privacy-filter-for-results | Privacy-filter baseline completed for consent-aware filtering of company-visible learning and exam result evidence. |
+| U6-5-readiness-score-calculation | Deterministic readiness-score baseline completed for explainable, privacy-aware calculation from learning and exam evidence. |
 
 ## Open CHG
 
@@ -66,8 +80,8 @@
 
 | Stage | Overall status |
 | --- | --- |
-| Functional Design | U0-1 through U0-8, U1-1 through U1-8, U2-1 through U2-10, U3-1 through U3-6, and U4-1 through U4-8 completed; U5-1 is the next unstarted unit. U4-2 remained intentionally documented early while the rest of Phase 4 was completed in sequence around it. |
-| NFR Requirements | U0-1 through U0-8, U1-1 through U1-8, U2-1 through U2-10, U3-1 through U3-6, and U4-1 through U4-8 completed; U5-1 is the next unstarted unit. U4-2 remained intentionally documented early while the rest of Phase 4 was completed in sequence around it. |
-| NFR Design | U0-1 through U0-8, U1-1 through U1-8, U2-1 through U2-10, U3-1 through U3-6, and U4-1 through U4-8 completed; U5-1 is the next unstarted unit. U4-2 remained intentionally documented early while the rest of Phase 4 was completed in sequence around it. |
-| Infrastructure Design | U0-1 through U0-8, U1-1 through U1-8, U2-1 through U2-10, U3-1 through U3-6, and U4-1 through U4-8 completed; U5-1 is the next unstarted unit. U4-2 remained intentionally documented early while the rest of Phase 4 was completed in sequence around it. |
-| Code Generation | Documentation/code-generation planning completed for U0-1 through U0-8, U1-1 through U1-8, U2-1 through U2-10, U3-1 through U3-6, and U4-1 through U4-8; application code remains blocked until ADR-001 is accepted. U4-2 remained intentionally documented early while the rest of Phase 4 was completed in sequence around it. |
+| Functional Design | U0-1 through U0-8, U1-1 through U1-8, U2-1 through U2-10, U3-1 through U3-6, U4-1 through U4-8, U5-1 through U5-9, and U6-1 through U6-5 completed; U7-1 is the next unstarted unit. U4-2 remained intentionally documented early while the rest of Phase 4 was completed in sequence around it. |
+| NFR Requirements | U0-1 through U0-8, U1-1 through U1-8, U2-1 through U2-10, U3-1 through U3-6, U4-1 through U4-8, U5-1 through U5-9, and U6-1 through U6-5 completed; U7-1 is the next unstarted unit. U4-2 remained intentionally documented early while the rest of Phase 4 was completed in sequence around it. |
+| NFR Design | U0-1 through U0-8, U1-1 through U1-8, U2-1 through U2-10, U3-1 through U3-6, U4-1 through U4-8, U5-1 through U5-9, and U6-1 through U6-5 completed; U7-1 is the next unstarted unit. U4-2 remained intentionally documented early while the rest of Phase 4 was completed in sequence around it. |
+| Infrastructure Design | U0-1 through U0-8, U1-1 through U1-8, U2-1 through U2-10, U3-1 through U3-6, U4-1 through U4-8, U5-1 through U5-9, and U6-1 through U6-5 completed; U7-1 is the next unstarted unit. U4-2 remained intentionally documented early while the rest of Phase 4 was completed in sequence around it. |
+| Code Generation | Documentation/code-generation planning completed for U0-1 through U0-8, U1-1 through U1-8, U2-1 through U2-10, U3-1 through U3-6, U4-1 through U4-8, U5-1 through U5-9, and U6-1 through U6-5; application code remains blocked until ADR-001 is accepted. U4-2 remained intentionally documented early while the rest of Phase 4 was completed in sequence around it. |
