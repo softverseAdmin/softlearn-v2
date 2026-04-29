@@ -77,6 +77,27 @@
 | U7-6-vacancy-skill-tags | Structured vacancy-skill-tags baseline completed for company-managed skill requirements linked to shared skill taxonomy. |
 | U7-7-vacancy-language-requirements | Structured vacancy-language-requirements baseline completed for company-managed language expectations linked to the shared language-level model. |
 | U7-8-vacancy-location-settings | Structured vacancy-location-settings baseline completed for company-managed location and work-style expectations linked to vacancy records. |
+| U8-1-job-list-page | Student job-list-page baseline completed for browsing the visible active subset of vacancies in list form. |
+| U8-2-job-search-bar | Job-search-bar baseline completed for refining the visible student job list with a general search query. |
+| U8-3-skill-filter | Structured skill-filter baseline completed for narrowing visible jobs using vacancy skill requirements. |
+| U8-4-language-filter | Structured language-filter baseline completed for narrowing visible jobs using vacancy language requirements. |
+| U8-5-location-filter | Structured location-filter baseline completed for narrowing visible jobs using vacancy location and work-style settings. |
+| U8-6-salary-filter | Salary-filter baseline completed for narrowing visible jobs using approved salary-ready vacancy data. |
+| U8-7-bookmark-jobs | Bookmark-jobs baseline completed for student-owned saving and unsaving of visible jobs for later review. |
+| U9-1-skill-matching | Deterministic skill-matching baseline completed for comparing structured student skills with vacancy skill requirements using explainable rule-based scoring inputs. |
+| U9-2-course-completion-matching | Deterministic course-completion-matching baseline completed for deriving learning-progress evidence used in later aggregate matching without exposing hidden logic. |
+| U9-3-exam-score-matching | Deterministic exam-score-matching baseline completed for converting protected exam evidence into explainable readiness inputs for matching. |
+| U9-4-language-level-matching | Deterministic language-level-matching baseline completed for comparing structured student language records with vacancy language requirements using explainable rule-based outcomes. |
+| U9-5-location-preference-matching | Deterministic location-preference-matching baseline completed for comparing structured student work-location preferences with vacancy location and work-style settings. |
+| U9-6-match-score-calculation | Deterministic aggregate match-score baseline completed for combining approved factor outputs and profile-completeness signals into explainable recommendation scores. |
+| U9-7-matched-student-list-for-company | Company-facing matched-student-list baseline completed for privacy-safe ranked candidate recommendations derived from approved aggregate match results. |
+| U9-8-matched-jobs-for-student | Student-facing matched-jobs baseline completed for visible ranked job recommendations derived from approved aggregate match results. |
+| U10-1-apply-to-job | Student-owned apply-to-job baseline completed for protected application creation against visible vacancies with deterministic duplicate-prevention and initial status-history behavior. |
+| U10-2-application-status-tracking | Shared application-status-tracking baseline completed for authoritative current status and auditable lifecycle history across student and company workflows. |
+| U10-3-withdraw-application | Student-owned withdraw-application baseline completed for deterministic cancellation of allowed applications with traceable lifecycle updates. |
+| U10-4-company-view-applications | Company-view-applications baseline completed for authorized privacy-safe review of applications submitted to company-owned vacancies. |
+| U10-5-shortlist-candidates | Company-side shortlist-candidates baseline completed for deterministic shortlist actions with traceable shortlist and lifecycle evidence. |
+| U10-6-reject-candidates | Company-side reject-candidates baseline completed for deterministic rejection actions with auditable terminal-state handling. |
 
 ## Open CHG
 
@@ -88,8 +109,8 @@
 
 | Stage | Overall status |
 | --- | --- |
-| Functional Design | U0-1 through U0-8, U1-1 through U1-8, U2-1 through U2-10, U3-1 through U3-6, U4-1 through U4-8, U5-1 through U5-9, U6-1 through U6-5, and U7-1 through U7-8 completed; U8-1 is the next unstarted unit. U4-2 remained intentionally documented early while the rest of Phase 4 was completed in sequence around it. |
-| NFR Requirements | U0-1 through U0-8, U1-1 through U1-8, U2-1 through U2-10, U3-1 through U3-6, U4-1 through U4-8, U5-1 through U5-9, U6-1 through U6-5, and U7-1 through U7-8 completed; U8-1 is the next unstarted unit. U4-2 remained intentionally documented early while the rest of Phase 4 was completed in sequence around it. |
-| NFR Design | U0-1 through U0-8, U1-1 through U1-8, U2-1 through U2-10, U3-1 through U3-6, U4-1 through U4-8, U5-1 through U5-9, U6-1 through U6-5, and U7-1 through U7-8 completed; U8-1 is the next unstarted unit. U4-2 remained intentionally documented early while the rest of Phase 4 was completed in sequence around it. |
-| Infrastructure Design | U0-1 through U0-8, U1-1 through U1-8, U2-1 through U2-10, U3-1 through U3-6, U4-1 through U4-8, U5-1 through U5-9, U6-1 through U6-5, and U7-1 through U7-8 completed; U8-1 is the next unstarted unit. U4-2 remained intentionally documented early while the rest of Phase 4 was completed in sequence around it. |
-| Code Generation | Documentation/code-generation planning completed for U0-1 through U0-8, U1-1 through U1-8, U2-1 through U2-10, U3-1 through U3-6, U4-1 through U4-8, U5-1 through U5-9, U6-1 through U6-5, and U7-1 through U7-8; application code remains blocked until ADR-001 is accepted. U4-2 remained intentionally documented early while the rest of Phase 4 was completed in sequence around it. |
+| Functional Design | U0-1 through U0-8, U1-1 through U1-8, U2-1 through U2-10, U3-1 through U3-6, U4-1 through U4-8, U5-1 through U5-9, U6-1 through U6-5, U7-1 through U7-8, U8-1 through U8-7, U9-1 through U9-8, and U10-1 through U10-6 completed; U11-1 is the next unstarted unit. U4-2 remained intentionally documented early while the rest of Phase 4 was completed in sequence around it. |
+| NFR Requirements | U0-1 through U0-8, U1-1 through U1-8, U2-1 through U2-10, U3-1 through U3-6, U4-1 through U4-8, U5-1 through U5-9, U6-1 through U6-5, U7-1 through U7-8, U8-1 through U8-7, U9-1 through U9-8, and U10-1 through U10-6 completed; U11-1 is the next unstarted unit. U4-2 remained intentionally documented early while the rest of Phase 4 was completed in sequence around it. |
+| NFR Design | U0-1 through U0-8, U1-1 through U1-8, U2-1 through U2-10, U3-1 through U3-6, U4-1 through U4-8, U5-1 through U5-9, U6-1 through U6-5, U7-1 through U7-8, U8-1 through U8-7, U9-1 through U9-8, and U10-1 through U10-6 completed; U11-1 is the next unstarted unit. U4-2 remained intentionally documented early while the rest of Phase 4 was completed in sequence around it. |
+| Infrastructure Design | U0-1 through U0-8, U1-1 through U1-8, U2-1 through U2-10, U3-1 through U3-6, U4-1 through U4-8, U5-1 through U5-9, U6-1 through U6-5, U7-1 through U7-8, U8-1 through U8-7, U9-1 through U9-8, and U10-1 through U10-6 completed; U11-1 is the next unstarted unit. U4-2 remained intentionally documented early while the rest of Phase 4 was completed in sequence around it. |
+| Code Generation | Documentation/code-generation planning completed for U0-1 through U0-8, U1-1 through U1-8, U2-1 through U2-10, U3-1 through U3-6, U4-1 through U4-8, U5-1 through U5-9, U6-1 through U6-5, U7-1 through U7-8, U8-1 through U8-7, U9-1 through U9-8, and U10-1 through U10-6; application code remains blocked until ADR-001 is accepted. U4-2 remained intentionally documented early while the rest of Phase 4 was completed in sequence around it. |
