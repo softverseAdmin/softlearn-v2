@@ -1006,8 +1006,9 @@ def login_view(request):
     payload = parse_json_body(request)
     email = payload.get("email", "").strip().lower()
     password = payload.get("password", "")
+    role = payload.get("role", "")
 
-    if not email or not password:
+    if not email or not password or not role:
         return error_response(
             request,
             "VALIDATION_ERROR",
@@ -1015,7 +1016,17 @@ def login_view(request):
             details={
                 "email": ["This field is required."] if not email else [],
                 "password": ["This field is required."] if not password else [],
+                "role": ["This field is required."] if not role else [],
             },
+            status=400,
+        )
+
+    if role not in {User.Role.STUDENT, User.Role.COMPANY, User.Role.ADMIN}:
+        return error_response(
+            request,
+            "VALIDATION_ERROR",
+            "The request data is invalid.",
+            details={"role": ["Role must be one of: student, company, admin."]},
             status=400,
         )
 
@@ -1026,6 +1037,15 @@ def login_view(request):
             "INVALID_CREDENTIALS",
             "Email or password is incorrect.",
             status=401,
+        )
+
+    if user.role != role:
+        return error_response(
+            request,
+            "ROLE_MISMATCH",
+            f"This account belongs to the {user.role} workspace. Select the correct account type and try again.",
+            details={"role": [f"This account belongs to the {user.role} workspace."]},
+            status=403,
         )
 
     login(request, user)
