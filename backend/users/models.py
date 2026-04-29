@@ -17,6 +17,33 @@ class Company(models.Model):
         return self.name
 
 
+class StudentProfile(models.Model):
+    user = models.OneToOneField("User", on_delete=models.CASCADE, related_name="student_profile")
+    desired_job_type = models.CharField(max_length=100, blank=True, default="")
+    desired_work_location = models.CharField(max_length=100, blank=True, default="")
+    japanese_level = models.CharField(max_length=50, blank=True, default="")
+    english_level = models.CharField(max_length=50, blank=True, default="")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["user_id"]
+
+    @property
+    def profile_complete(self) -> bool:
+        required_fields = (
+            self.user.full_name.strip(),
+            self.desired_job_type.strip(),
+            self.desired_work_location.strip(),
+            self.japanese_level.strip(),
+            self.english_level.strip(),
+        )
+        return all(required_fields)
+
+    def __str__(self) -> str:
+        return f"StudentProfile<{self.user.email}>"
+
+
 class User(AbstractBaseUser, PermissionsMixin):
     class Role(models.TextChoices):
         STUDENT = "student", "Student"
