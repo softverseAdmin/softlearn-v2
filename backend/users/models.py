@@ -345,6 +345,113 @@ class CandidateNote(models.Model):
         return f"CandidateNote<{self.company.name}:{self.student.email}>"
 
 
+class Interview(models.Model):
+    class Status(models.TextChoices):
+        REQUESTED = "requested", "Requested"
+        CONFIRMED = "confirmed", "Confirmed"
+        RESCHEDULED = "rescheduled", "Rescheduled"
+        COMPLETED = "completed", "Completed"
+        CANCELLED = "cancelled", "Cancelled"
+
+    candidate_access = models.ForeignKey(
+        CandidateReviewAccess,
+        on_delete=models.CASCADE,
+        related_name="interviews",
+    )
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name="interviews")
+    student = models.ForeignKey(
+        "User",
+        on_delete=models.CASCADE,
+        related_name="interviews",
+        limit_choices_to={"role": User.Role.STUDENT},
+    )
+    requested_by = models.ForeignKey(
+        "User",
+        on_delete=models.PROTECT,
+        related_name="requested_interviews",
+    )
+    purpose = models.CharField(max_length=255)
+    role_context = models.CharField(max_length=255, blank=True, default="")
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.REQUESTED)
+    scheduled_start = models.DateTimeField(null=True, blank=True)
+    scheduled_end = models.DateTimeField(null=True, blank=True)
+    confirmed_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-updated_at", "-id"]
+
+    def clean(self) -> None:
+        super().clean()
+        if self.student.role != User.Role.STUDENT:
+            raise ValidationError({"student": ["Interviews may only reference student users."]})
+        if self.requested_by.role != User.Role.COMPANY:
+            raise ValidationError({"requested_by": ["Interviews must be requested by company users."]})
+        if self.candidate_access.company_id != self.company_id:
+            raise ValidationError({"company": ["Interview company must match the candidate access company."]})
+        if self.candidate_access.student_id != self.student_id:
+            raise ValidationError({"student": ["Interview student must match the candidate access student."]})
+        if self.requested_by.company_id != self.company_id:
+            raise ValidationError({"requested_by": ["Interview requester must belong to the same company."]})
+        if self.status == self.Status.CONFIRMED and (self.scheduled_start is None or self.scheduled_end is None):
+            raise ValidationError({"scheduled_start": ["Confirmed interviews require a final scheduled window."]})
+        if self.scheduled_start and self.scheduled_end and self.scheduled_start >= self.scheduled_end:
+            raise ValidationError({"scheduled_end": ["Interview end time must be after the start time."]})
+
+    def __str__(self) -> str:
+        return f"Interview<{self.company.name}:{self.student.email}:{self.status}>"
+
+
+class InterviewAvailability(models.Model):
+    interview = models.ForeignKey(Interview, on_delete=models.CASCADE, related_name="availabilities")
+    submitted_by = models.ForeignKey(
+        "User",
+        on_delete=models.PROTECT,
+        related_name="interview_availabilities",
+    )
+    start_at = models.DateTimeField()
+    end_at = models.DateTimeField()
+    note = models.CharField(max_length=255, blank=True, default="")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["start_at", "id"]
+
+    def clean(self) -> None:
+        super().clean()
+        is_company_participant = self.submitted_by.role == User.Role.COMPANY and self.submitted_by.company_id == self.interview.company_id
+        is_student_participant = self.submitted_by_id == self.interview.student_id
+        if not (is_company_participant or is_student_participant):
+            raise ValidationError({"submitted_by": ["Availability can only be submitted by interview participants."]})
+        if self.start_at >= self.end_at:
+            raise ValidationError({"end_at": ["Availability end time must be after the start time."]})
+
+    def __str__(self) -> str:
+        return f"Availability<{self.interview_id}:{self.submitted_by.email}>"
+
+
+class InterviewEvent(models.Model):
+    interview = models.ForeignKey(Interview, on_delete=models.CASCADE, related_name="events")
+    actor = models.ForeignKey(
+        "User",
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name="interview_events",
+    )
+    event_type = models.CharField(max_length=50)
+    description = models.CharField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["created_at", "id"]
+
+    def __str__(self) -> str:
+        return f"InterviewEvent<{self.interview_id}:{self.event_type}>"
+
+
 class StudentSkill(models.Model):
     class Proficiency(models.TextChoices):
         BEGINNER = "beginner", "Beginner"

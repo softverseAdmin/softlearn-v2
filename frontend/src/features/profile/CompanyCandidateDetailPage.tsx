@@ -4,11 +4,13 @@ import { Link, useParams } from 'react-router-dom'
 import { useAuth } from '../../auth/useAuth'
 import { ApiError, apiRequest } from '../../lib/api'
 import type {
+  CandidateInterviewsResponse,
   CandidateNotesResponse,
   CandidateShortlistResponse,
   CompanyCandidatePreviewResponse,
   CompanyCandidateRecordResponse,
   ExamResultsSummary,
+  InterviewSummary,
   LearningSummary,
 } from './types'
 
@@ -56,6 +58,9 @@ export function CompanyCandidateDetailPage() {
   const [exams, setExams] = useState<CompanyCandidateRecordResponse<ExamResultsSummary>>(emptyExams)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [interviews, setInterviews] = useState<InterviewSummary[]>([])
+  const [interviewPurpose, setInterviewPurpose] = useState('')
+  const [interviewRoleContext, setInterviewRoleContext] = useState('')
   const [noteBody, setNoteBody] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
@@ -71,7 +76,7 @@ export function CompanyCandidateDetailPage() {
       }
 
       try {
-        const [previewResponse, learningResponse, examResponse] = await Promise.all([
+        const [previewResponse, learningResponse, examResponse, interviewResponse] = await Promise.all([
           apiRequest<CompanyCandidatePreviewResponse>(`/company/candidates/${params.candidateAccessId}/preview`),
           apiRequest<CompanyCandidateRecordResponse<LearningSummary>>(
             `/company/candidates/${params.candidateAccessId}/learning-record`,
@@ -79,12 +84,14 @@ export function CompanyCandidateDetailPage() {
           apiRequest<CompanyCandidateRecordResponse<ExamResultsSummary>>(
             `/company/candidates/${params.candidateAccessId}/exam-results`,
           ),
+          apiRequest<CandidateInterviewsResponse>(`/company/candidates/${params.candidateAccessId}/interviews`),
         ])
 
         if (active) {
           setPreview(previewResponse)
           setLearning(learningResponse)
           setExams(examResponse)
+          setInterviews(interviewResponse.interviews)
         }
       } catch (loadError) {
         if (active) {
@@ -154,6 +161,39 @@ export function CompanyCandidateDetailPage() {
       setSuccess('Candidate note added.')
     } catch (saveError) {
       setError(saveError instanceof ApiError ? saveError.message : 'Unable to save candidate note.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function handleRequestInterview(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (!params.candidateAccessId) {
+      return
+    }
+
+    setSaving(true)
+    setError(null)
+    setSuccess(null)
+
+    try {
+      const response = await apiRequest<InterviewSummary & { availabilities?: unknown }>(
+        `/company/candidates/${params.candidateAccessId}/interviews`,
+        {
+          method: 'POST',
+          body: {
+            purpose: interviewPurpose,
+            role_context: interviewRoleContext,
+          },
+          csrfToken,
+        },
+      )
+      setInterviews((current) => [response, ...current])
+      setInterviewPurpose('')
+      setInterviewRoleContext('')
+      setSuccess('Interview requested successfully.')
+    } catch (saveError) {
+      setError(saveError instanceof ApiError ? saveError.message : 'Unable to request interview.')
     } finally {
       setSaving(false)
     }
@@ -268,6 +308,56 @@ export function CompanyCandidateDetailPage() {
             </article>
           ))}
           {preview.notes.length === 0 ? <p className="muted">No company notes yet.</p> : null}
+        </div>
+      </div>
+
+      <div className="card stack-card">
+        <h2>Interview workflow</h2>
+        <form className="form" onSubmit={handleRequestInterview}>
+          <label>
+            <span>Interview purpose</span>
+            <input
+              value={interviewPurpose}
+              onChange={(event) => setInterviewPurpose(event.target.value)}
+              placeholder="Technical interview, culture interview, ..."
+              required
+            />
+          </label>
+          <label>
+            <span>Role context</span>
+            <input
+              value={interviewRoleContext}
+              onChange={(event) => setInterviewRoleContext(event.target.value)}
+              placeholder="Backend trainee, frontend intern, ..."
+            />
+          </label>
+          <button className="primary-button inline-button" type="submit" disabled={saving}>
+            {saving ? 'Saving…' : 'Request interview'}
+          </button>
+        </form>
+        <div className="stack-list">
+          {interviews.map((interview) => (
+            <article key={interview.id} className="skill-card">
+              <div className="skill-card-header">
+                <div>
+                  <h3>{interview.purpose}</h3>
+                  <p className="muted">{interview.role_context || 'General interview context'}</p>
+                </div>
+                <span className={`status-pill ${interview.status === 'confirmed' ? 'status-success' : 'status-muted'}`}>
+                  {interview.status}
+                </span>
+              </div>
+              <p className="muted">
+                {interview.scheduled_start && interview.scheduled_end
+                  ? `${new Date(interview.scheduled_start).toLocaleString()} - ${new Date(interview.scheduled_end).toLocaleString()}`
+                  : 'Awaiting schedule confirmation'}
+              </p>
+              <Link className="secondary-button inline-button" to={`/company/interviews/${interview.id}`}>
+                Open interview
+              </Link>
+            </article>
+          ))}
+          {interviews.length === 0 ? <p className="muted">No interview workflow started yet.</p> : null}
         </div>
       </div>
 

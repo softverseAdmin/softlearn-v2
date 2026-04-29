@@ -3,9 +3,13 @@ import { Route, Routes } from 'react-router-dom'
 import { AppLayout } from '../layouts/AppLayout'
 import { CompanyCandidateDetailPage } from '../features/profile/CompanyCandidateDetailPage'
 import { CompanyCandidatesPage } from '../features/profile/CompanyCandidatesPage'
+import { CompanyInterviewDetailPage } from '../features/profile/CompanyInterviewDetailPage'
+import { CompanyInterviewsPage } from '../features/profile/CompanyInterviewsPage'
 import { CompanyProfilePage } from '../features/profile/CompanyProfilePage'
 import { CompanyShortlistPage } from '../features/profile/CompanyShortlistPage'
 import { StudentExamResultsPage } from '../features/profile/StudentExamResultsPage'
+import { StudentInterviewDetailPage } from '../features/profile/StudentInterviewDetailPage'
+import { StudentInterviewsPage } from '../features/profile/StudentInterviewsPage'
 import { StudentLearningPage } from '../features/profile/StudentLearningPage'
 import { StudentPrivacySettingsPage } from '../features/profile/StudentPrivacySettingsPage'
 import { StudentProfilePage } from '../features/profile/StudentProfilePage'
@@ -40,6 +44,8 @@ export function AppRouter() {
             <Route path="/student/skills" element={<StudentSkillsPage />} />
             <Route path="/student/learning" element={<StudentLearningPage />} />
             <Route path="/student/exams" element={<StudentExamResultsPage />} />
+            <Route path="/student/interviews" element={<StudentInterviewsPage />} />
+            <Route path="/student/interviews/:interviewId" element={<StudentInterviewDetailPage />} />
             <Route path="/student/privacy" element={<StudentPrivacySettingsPage />} />
           </Route>
 
@@ -48,6 +54,8 @@ export function AppRouter() {
             <Route path="/company/profile" element={<CompanyProfilePage />} />
             <Route path="/company/candidates" element={<CompanyCandidatesPage />} />
             <Route path="/company/candidates/:candidateAccessId" element={<CompanyCandidateDetailPage />} />
+            <Route path="/company/interviews" element={<CompanyInterviewsPage />} />
+            <Route path="/company/interviews/:interviewId" element={<CompanyInterviewDetailPage />} />
             <Route path="/company/shortlist" element={<CompanyShortlistPage />} />
             <Route path="/company/vacancies" element={<DashboardPage role="company" />} />
           </Route>

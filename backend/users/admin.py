@@ -7,6 +7,9 @@ from users.models import (
     CandidateShortlist,
     Company,
     ExamResult,
+    Interview,
+    InterviewAvailability,
+    InterviewEvent,
     LearningRecord,
     Skill,
     StudentProfile,
@@ -120,3 +123,23 @@ class CandidateShortlistAdmin(admin.ModelAdmin):
 class CandidateNoteAdmin(admin.ModelAdmin):
     list_display = ("id", "company", "student", "author", "created_at")
     search_fields = ("company__name", "student__email", "student__full_name", "author__email", "body")
+
+
+@admin.register(Interview)
+class InterviewAdmin(admin.ModelAdmin):
+    list_display = ("id", "company", "student", "status", "purpose", "scheduled_start", "updated_at")
+    list_filter = ("status",)
+    search_fields = ("company__name", "student__email", "student__full_name", "purpose", "role_context")
+
+
+@admin.register(InterviewAvailability)
+class InterviewAvailabilityAdmin(admin.ModelAdmin):
+    list_display = ("id", "interview", "submitted_by", "start_at", "end_at", "updated_at")
+    search_fields = ("interview__student__email", "interview__company__name", "submitted_by__email", "note")
+
+
+@admin.register(InterviewEvent)
+class InterviewEventAdmin(admin.ModelAdmin):
+    list_display = ("id", "interview", "event_type", "actor", "created_at")
+    list_filter = ("event_type",)
+    search_fields = ("interview__student__email", "interview__company__name", "description", "actor__email")
