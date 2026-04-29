@@ -14,6 +14,7 @@ export const roleHomePaths: Record<UserRole, string> = {
 export const navigationItemsByRole: Record<UserRole, NavigationItem[]> = {
   student: [
     { label: 'Dashboard', to: '/student' },
+    { label: 'Notifications', to: '/student/notifications' },
     { label: 'Profile', to: '/student/profile' },
     { label: 'Skills', to: '/student/skills' },
     { label: 'Learning', to: '/student/learning' },
@@ -23,6 +24,7 @@ export const navigationItemsByRole: Record<UserRole, NavigationItem[]> = {
   ],
   company: [
     { label: 'Dashboard', to: '/company' },
+    { label: 'Notifications', to: '/company/notifications' },
     { label: 'Profile', to: '/company/profile' },
     { label: 'Candidates', to: '/company/candidates' },
     { label: 'Interviews', to: '/company/interviews' },
@@ -31,6 +33,7 @@ export const navigationItemsByRole: Record<UserRole, NavigationItem[]> = {
   ],
   admin: [
     { label: 'Dashboard', to: '/admin' },
+    { label: 'Notifications', to: '/admin/notifications' },
     { label: 'Users', to: '/admin/users' },
     { label: 'Operations', to: '/admin/operations' },
   ],

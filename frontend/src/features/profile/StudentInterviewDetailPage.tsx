@@ -18,6 +18,7 @@ const emptyInterview: InterviewDetail = {
   scheduled_end: null,
   confirmed_at: null,
   cancelled_at: null,
+  completed_at: null,
   meeting_provider: null,
   meeting_url: null,
   created_at: '',
@@ -48,6 +49,7 @@ export function StudentInterviewDetailPage() {
   const [meetingUrl, setMeetingUrl] = useState('')
   const [rescheduleReason, setRescheduleReason] = useState('')
   const [cancelReason, setCancelReason] = useState('')
+  const [completionSummary, setCompletionSummary] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
 
@@ -195,6 +197,32 @@ export function StudentInterviewDetailPage() {
     }
   }
 
+  async function handleComplete(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (!params.interviewId) {
+      return
+    }
+
+    setSaving(true)
+    setError(null)
+    setSuccess(null)
+
+    try {
+      const response = await apiRequest<InterviewDetail>(`/interviews/${params.interviewId}/complete`, {
+        method: 'POST',
+        body: { summary: completionSummary },
+        csrfToken,
+      })
+      setInterview(response)
+      setCompletionSummary('')
+      setSuccess('Interview marked as completed.')
+    } catch (saveError) {
+      setError(saveError instanceof ApiError ? saveError.message : 'Unable to complete interview.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
   if (loading) {
     return <section className="page"><div className="card">Loading interview…</div></section>
   }
@@ -227,6 +255,8 @@ export function StudentInterviewDetailPage() {
               ? `${new Date(interview.scheduled_start).toLocaleString()} - ${new Date(interview.scheduled_end).toLocaleString()}`
               : 'No confirmed schedule yet.'}
           </p>
+          {interview.completed_at ? <p className="muted">Completed at: {new Date(interview.completed_at).toLocaleString()}</p> : null}
+          {interview.cancelled_at ? <p className="muted">Cancelled at: {new Date(interview.cancelled_at).toLocaleString()}</p> : null}
           {interview.meeting_url ? (
             <p className="muted">
               Meeting link: <a href={interview.meeting_url} target="_blank" rel="noreferrer">{interview.meeting_provider}</a>
@@ -245,7 +275,11 @@ export function StudentInterviewDetailPage() {
               <span>Note</span>
               <textarea value={note} onChange={(event) => setNote(event.target.value)} rows={3} placeholder="Optional scheduling context." />
             </label>
-            <button className="primary-button inline-button" type="submit" disabled={saving || interview.status === 'confirmed'}>
+            <button
+              className="primary-button inline-button"
+              type="submit"
+              disabled={saving || !['requested', 'rescheduled'].includes(interview.status)}
+            >
               {saving ? 'Saving…' : 'Submit availability'}
             </button>
           </form>
@@ -267,7 +301,11 @@ export function StudentInterviewDetailPage() {
               <span>Meeting URL</span>
               <input value={meetingUrl} onChange={(event) => setMeetingUrl(event.target.value)} placeholder="https://..." />
             </label>
-            <button className="secondary-button inline-button" type="submit" disabled={saving || interview.status === 'cancelled'}>
+            <button
+              className="secondary-button inline-button"
+              type="submit"
+              disabled={saving || !['confirmed', 'rescheduled'].includes(interview.status)}
+            >
               {saving ? 'Saving…' : 'Save meeting link'}
             </button>
           </form>
@@ -276,7 +314,11 @@ export function StudentInterviewDetailPage() {
               <span>Reschedule reason</span>
               <textarea value={rescheduleReason} onChange={(event) => setRescheduleReason(event.target.value)} rows={3} required />
             </label>
-            <button className="secondary-button inline-button" type="submit" disabled={saving || interview.status === 'cancelled'}>
+            <button
+              className="secondary-button inline-button"
+              type="submit"
+              disabled={saving || ['cancelled', 'completed'].includes(interview.status)}
+            >
               {saving ? 'Saving…' : 'Request reschedule'}
             </button>
           </form>
@@ -285,8 +327,21 @@ export function StudentInterviewDetailPage() {
               <span>Cancellation reason</span>
               <textarea value={cancelReason} onChange={(event) => setCancelReason(event.target.value)} rows={3} required />
             </label>
-            <button className="danger-button inline-button" type="submit" disabled={saving || interview.status === 'cancelled'}>
+            <button
+              className="danger-button inline-button"
+              type="submit"
+              disabled={saving || ['cancelled', 'completed'].includes(interview.status)}
+            >
               {saving ? 'Saving…' : 'Cancel interview'}
+            </button>
+          </form>
+          <form className="form" onSubmit={handleComplete}>
+            <label>
+              <span>Completion summary</span>
+              <textarea value={completionSummary} onChange={(event) => setCompletionSummary(event.target.value)} rows={3} required />
+            </label>
+            <button className="primary-button inline-button" type="submit" disabled={saving || interview.status !== 'confirmed'}>
+              {saving ? 'Saving…' : 'Mark interview complete'}
             </button>
           </form>
         </div>
