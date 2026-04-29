@@ -3,6 +3,8 @@ from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Count
+from django.utils import timezone
+from django.utils.dateparse import parse_datetime
 from django.middleware.csrf import get_token
 from django.views.decorators.csrf import ensure_csrf_cookie
 
@@ -14,6 +16,9 @@ from users.models import (
     CandidateShortlist,
     Company,
     ExamResult,
+    Interview,
+    InterviewAvailability,
+    InterviewEvent,
     LearningRecord,
     Skill,
     StudentProfile,
@@ -269,6 +274,60 @@ def serialize_candidate_shortlist(shortlist: CandidateShortlist | None) -> dict 
     }
 
 
+def serialize_interview_event(event: InterviewEvent) -> dict:
+    return {
+        "id": event.id,
+        "event_type": event.event_type,
+        "description": event.description,
+        "actor_name": event.actor.full_name if event.actor else None,
+        "actor_role": event.actor.role if event.actor else None,
+        "created_at": event.created_at.isoformat(),
+    }
+
+
+def serialize_interview_availability(availability: InterviewAvailability) -> dict:
+    return {
+        "id": availability.id,
+        "submitted_by_name": availability.submitted_by.full_name,
+        "submitted_by_role": availability.submitted_by.role,
+        "start_at": availability.start_at.isoformat(),
+        "end_at": availability.end_at.isoformat(),
+        "note": availability.note,
+        "created_at": availability.created_at.isoformat(),
+    }
+
+
+def serialize_interview(interview: Interview, *, include_detail: bool = False) -> dict:
+    data = {
+        "id": interview.id,
+        "candidate_access_id": interview.candidate_access_id,
+        "student_id": interview.student_id,
+        "student_name": interview.student.full_name,
+        "company_id": interview.company_id,
+        "purpose": interview.purpose,
+        "role_context": interview.role_context,
+        "status": interview.status,
+        "scheduled_start": interview.scheduled_start.isoformat() if interview.scheduled_start else None,
+        "scheduled_end": interview.scheduled_end.isoformat() if interview.scheduled_end else None,
+        "confirmed_at": interview.confirmed_at.isoformat() if interview.confirmed_at else None,
+        "created_at": interview.created_at.isoformat(),
+        "updated_at": interview.updated_at.isoformat(),
+    }
+    if include_detail:
+        data["availabilities"] = [serialize_interview_availability(item) for item in interview.availabilities.all()]
+        data["history"] = [serialize_interview_event(item) for item in interview.events.all()]
+    return data
+
+
+def create_interview_event(interview: Interview, actor: User | None, event_type: str, description: str) -> InterviewEvent:
+    return InterviewEvent.objects.create(
+        interview=interview,
+        actor=actor,
+        event_type=event_type,
+        description=description,
+    )
+
+
 def serialize_company_candidate(access: CandidateReviewAccess) -> dict:
     settings = get_visibility_settings(access.student)
     profile_visible = settings.share_profile_preview
@@ -318,6 +377,48 @@ def get_candidate_review_access(user: User, candidate_access_id: int) -> Candida
         raise ValidationError({"candidate_access_id": ["Approved candidate context was not found."]})
 
     return candidate_access
+
+
+def candidate_context_allows_interview(candidate_access: CandidateReviewAccess) -> bool:
+    return candidate_access.source in {CandidateReviewAccess.Source.APPLICATION, CandidateReviewAccess.Source.SHORTLIST} or hasattr(
+        candidate_access, "shortlist_entry"
+    )
+
+
+def get_interview_for_company(user: User, interview_id: int) -> Interview:
+    company = user.company
+    if company is None:
+        raise ValidationError({"company": ["Company context is required for company users."]})
+
+    interview = (
+        Interview.objects.filter(company=company, pk=interview_id)
+        .select_related("student", "company", "candidate_access", "requested_by")
+        .prefetch_related("availabilities__submitted_by", "events__actor")
+        .first()
+    )
+    if interview is None:
+        raise ValidationError({"interview_id": ["Interview was not found for this company context."]})
+    return interview
+
+
+def get_interview_for_student(user: User, interview_id: int) -> Interview:
+    interview = (
+        Interview.objects.filter(student=user, pk=interview_id)
+        .select_related("student", "company", "candidate_access", "requested_by")
+        .prefetch_related("availabilities__submitted_by", "events__actor")
+        .first()
+    )
+    if interview is None:
+        raise ValidationError({"interview_id": ["Interview was not found for this student context."]})
+    return interview
+
+
+def get_interview_for_participant(user: User, interview_id: int) -> Interview:
+    if user.role == User.Role.COMPANY:
+        return get_interview_for_company(user, interview_id)
+    if user.role == User.Role.STUDENT:
+        return get_interview_for_student(user, interview_id)
+    raise ValidationError({"role": ["Only company and student users can access interview workflows."]})
 
 
 def validate_student_profile_payload(payload: dict) -> dict:
@@ -403,6 +504,61 @@ def validate_candidate_note_payload(payload: dict) -> dict:
     if not body:
         raise ValidationError({"body": ["This field is required."]})
     return {"body": body}
+
+
+def validate_interview_request_payload(payload: dict) -> dict:
+    purpose = str(payload.get("purpose", "")).strip()
+    role_context = str(payload.get("role_context", "")).strip()
+    if not purpose:
+        raise ValidationError({"purpose": ["This field is required."]})
+    return {
+        "purpose": purpose,
+        "role_context": role_context,
+    }
+
+
+def validate_interview_availability_payload(payload: dict) -> dict:
+    start_at = parse_datetime(str(payload.get("start_at", "")).strip())
+    end_at = parse_datetime(str(payload.get("end_at", "")).strip())
+    note = str(payload.get("note", "")).strip()
+    errors = {}
+    if start_at is None:
+        errors["start_at"] = ["A valid ISO datetime is required."]
+    if end_at is None:
+        errors["end_at"] = ["A valid ISO datetime is required."]
+    if errors:
+        raise ValidationError(errors)
+    if timezone.is_naive(start_at):
+        start_at = timezone.make_aware(start_at, timezone.get_current_timezone())
+    if timezone.is_naive(end_at):
+        end_at = timezone.make_aware(end_at, timezone.get_current_timezone())
+    if start_at >= end_at:
+        raise ValidationError({"end_at": ["Availability end time must be after the start time."]})
+    return {
+        "start_at": start_at,
+        "end_at": end_at,
+        "note": note,
+    }
+
+
+def validate_interview_confirmation_payload(payload: dict, interview: Interview) -> InterviewAvailability:
+    raw_availability_id = payload.get("availability_id")
+    if raw_availability_id in (None, ""):
+        raise ValidationError({"availability_id": ["This field is required."]})
+
+    try:
+        availability_id = int(raw_availability_id)
+    except (TypeError, ValueError) as exc:
+        raise ValidationError({"availability_id": ["A valid availability_id is required."]}) from exc
+
+    availability = (
+        InterviewAvailability.objects.filter(interview=interview, pk=availability_id)
+        .select_related("submitted_by")
+        .first()
+    )
+    if availability is None:
+        raise ValidationError({"availability_id": ["Selected availability does not belong to this interview."]})
+    return availability
 
 
 @api_endpoint(["GET"])
@@ -926,6 +1082,127 @@ def company_candidate_exam_results_view(request, candidate_access_id: int):
             "restrictions": [],
         }
     )
+
+
+@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.STUDENT])
+def student_interviews_view(request):
+    interviews = list(
+        Interview.objects.filter(student=request.user)
+        .select_related("student", "company", "candidate_access", "requested_by")
+        .order_by("-updated_at", "-id")
+    )
+    return success_response({"interviews": [serialize_interview(interview) for interview in interviews]})
+
+
+@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.COMPANY])
+def company_interviews_view(request):
+    company = request.user.company
+    if company is None:
+        raise ValidationError({"company": ["Company context is required for company users."]})
+
+    interviews = list(
+        Interview.objects.filter(company=company)
+        .select_related("student", "company", "candidate_access", "requested_by")
+        .order_by("-updated_at", "-id")
+    )
+    return success_response({"interviews": [serialize_interview(interview) for interview in interviews]})
+
+
+@api_endpoint(["GET", "POST"], authentication_required=True, roles=[User.Role.COMPANY])
+def company_candidate_interviews_view(request, candidate_access_id: int):
+    candidate_access = get_candidate_review_access(request.user, candidate_access_id)
+    interviews = list(
+        Interview.objects.filter(candidate_access=candidate_access)
+        .select_related("student", "company", "candidate_access", "requested_by")
+        .order_by("-updated_at", "-id")
+    )
+
+    if request.method == "GET":
+        return success_response({"candidate_access_id": candidate_access.id, "interviews": [serialize_interview(item) for item in interviews]})
+
+    if not candidate_context_allows_interview(candidate_access):
+        raise ValidationError({"candidate_access_id": ["This candidate context is not eligible for interview requests yet."]})
+
+    if Interview.objects.filter(
+        candidate_access=candidate_access,
+        status__in=[Interview.Status.REQUESTED, Interview.Status.CONFIRMED, Interview.Status.RESCHEDULED],
+    ).exists():
+        raise ValidationError({"candidate_access_id": ["An active interview already exists for this candidate context."]})
+
+    payload = validate_interview_request_payload(parse_json_body(request))
+    interview = Interview(
+        candidate_access=candidate_access,
+        company=candidate_access.company,
+        student=candidate_access.student,
+        requested_by=request.user,
+        purpose=payload["purpose"],
+        role_context=payload["role_context"],
+        status=Interview.Status.REQUESTED,
+    )
+    interview.full_clean()
+    interview.save()
+    create_interview_event(
+        interview,
+        request.user,
+        "requested",
+        "Interview requested from an approved company candidate context.",
+    )
+
+    return success_response(serialize_interview(get_interview_for_company(request.user, interview.id), include_detail=True), status=201)
+
+
+@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.STUDENT, User.Role.COMPANY])
+def interview_detail_view(request, interview_id: int):
+    interview = get_interview_for_participant(request.user, interview_id)
+    return success_response(serialize_interview(interview, include_detail=True))
+
+
+@api_endpoint(["POST"], authentication_required=True, roles=[User.Role.STUDENT, User.Role.COMPANY])
+def interview_availability_view(request, interview_id: int):
+    interview = get_interview_for_participant(request.user, interview_id)
+    if interview.status not in {Interview.Status.REQUESTED, Interview.Status.RESCHEDULED}:
+        raise ValidationError({"status": ["Availability can only be submitted while the interview is awaiting scheduling."]})
+
+    payload = validate_interview_availability_payload(parse_json_body(request))
+    availability = InterviewAvailability(
+        interview=interview,
+        submitted_by=request.user,
+        start_at=payload["start_at"],
+        end_at=payload["end_at"],
+        note=payload["note"],
+    )
+    availability.full_clean()
+    availability.save()
+    create_interview_event(
+        interview,
+        request.user,
+        "availability_submitted",
+        f"Availability submitted for {availability.start_at.isoformat()} to {availability.end_at.isoformat()}.",
+    )
+    interview.refresh_from_db()
+    return success_response(serialize_interview(get_interview_for_participant(request.user, interview.id), include_detail=True), status=201)
+
+
+@api_endpoint(["POST"], authentication_required=True, roles=[User.Role.COMPANY])
+def company_interview_confirm_view(request, interview_id: int):
+    interview = get_interview_for_company(request.user, interview_id)
+    if interview.status not in {Interview.Status.REQUESTED, Interview.Status.RESCHEDULED}:
+        raise ValidationError({"status": ["Only requested or rescheduled interviews can be confirmed."]})
+
+    availability = validate_interview_confirmation_payload(parse_json_body(request), interview)
+    interview.status = Interview.Status.CONFIRMED
+    interview.scheduled_start = availability.start_at
+    interview.scheduled_end = availability.end_at
+    interview.confirmed_at = timezone.now()
+    interview.full_clean()
+    interview.save(update_fields=["status", "scheduled_start", "scheduled_end", "confirmed_at", "updated_at"])
+    create_interview_event(
+        interview,
+        request.user,
+        "confirmed",
+        f"Interview confirmed for {availability.start_at.isoformat()} to {availability.end_at.isoformat()}.",
+    )
+    return success_response(serialize_interview(get_interview_for_company(request.user, interview.id), include_detail=True))
 
 
 @api_endpoint(["GET"], authentication_required=True)

@@ -176,3 +176,52 @@ export interface StudentPrivacySettings {
   share_exam_results: boolean
   history: StudentVisibilityEvent[]
 }
+
+export interface InterviewAvailability {
+  id: number
+  submitted_by_name: string
+  submitted_by_role: string
+  start_at: string
+  end_at: string
+  note: string
+  created_at: string
+}
+
+export interface InterviewHistoryEvent {
+  id: number
+  event_type: string
+  description: string
+  actor_name: string | null
+  actor_role: string | null
+  created_at: string
+}
+
+export interface InterviewSummary {
+  id: number
+  candidate_access_id: number
+  student_id: number
+  student_name: string
+  company_id: number
+  purpose: string
+  role_context: string
+  status: string
+  scheduled_start: string | null
+  scheduled_end: string | null
+  confirmed_at: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface InterviewDetail extends InterviewSummary {
+  availabilities: InterviewAvailability[]
+  history: InterviewHistoryEvent[]
+}
+
+export interface InterviewListResponse {
+  interviews: InterviewSummary[]
+}
+
+export interface CandidateInterviewsResponse {
+  candidate_access_id: number
+  interviews: InterviewSummary[]
+}

@@ -11,6 +11,9 @@ from users.models import (
     CandidateShortlist,
     Company,
     ExamResult,
+    Interview,
+    InterviewAvailability,
+    InterviewEvent,
     LearningRecord,
     Skill,
     StudentProfile,
@@ -966,3 +969,231 @@ class ApiFoundationTests(TestCase):
         body = response.json()["data"]
         self.assertIsNotNone(body["shortlist"])
         self.assertEqual(len(body["notes"]), 1)
+
+    def test_company_can_request_interview_from_shortlisted_candidate_context(self):
+        company = Company.objects.create(name="Softverse")
+        student = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        candidate_access = CandidateReviewAccess.objects.create(
+            company=company,
+            student=student,
+            source=CandidateReviewAccess.Source.SHORTLIST,
+        )
+        company_user = User.objects.create_user(
+            email="company@example.com",
+            password="SecurePass123!",
+            full_name="Company User",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+        client, csrf_token = self.csrf_client()
+        client.force_login(company_user)
+
+        response = client.post(
+            f"/api/v1/company/candidates/{candidate_access.id}/interviews",
+            data=json.dumps({"purpose": "Technical interview", "role_context": "Backend trainee"}),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+
+        self.assertEqual(response.status_code, 201)
+        interview = Interview.objects.get(candidate_access=candidate_access)
+        self.assertEqual(interview.status, Interview.Status.REQUESTED)
+        self.assertEqual(InterviewEvent.objects.filter(interview=interview, event_type="requested").count(), 1)
+
+    def test_match_only_candidate_context_cannot_request_interview_without_shortlist(self):
+        company = Company.objects.create(name="Softverse")
+        student = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        candidate_access = CandidateReviewAccess.objects.create(
+            company=company,
+            student=student,
+            source=CandidateReviewAccess.Source.MATCH,
+        )
+        company_user = User.objects.create_user(
+            email="company@example.com",
+            password="SecurePass123!",
+            full_name="Company User",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+        client, csrf_token = self.csrf_client()
+        client.force_login(company_user)
+
+        response = client.post(
+            f"/api/v1/company/candidates/{candidate_access.id}/interviews",
+            data=json.dumps({"purpose": "Screening interview", "role_context": ""}),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("candidate_access_id", response.json()["error"]["details"])
+
+    def test_student_and_company_can_submit_interview_availability(self):
+        company = Company.objects.create(name="Softverse")
+        student = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        candidate_access = CandidateReviewAccess.objects.create(
+            company=company,
+            student=student,
+            source=CandidateReviewAccess.Source.APPLICATION,
+        )
+        company_user = User.objects.create_user(
+            email="company@example.com",
+            password="SecurePass123!",
+            full_name="Company User",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+        interview = Interview.objects.create(
+            candidate_access=candidate_access,
+            company=company,
+            student=student,
+            requested_by=company_user,
+            purpose="Technical interview",
+            role_context="Backend trainee",
+        )
+
+        student_client, student_csrf = self.csrf_client()
+        student_client.force_login(student)
+        student_response = student_client.post(
+            f"/api/v1/interviews/{interview.id}/availability",
+            data=json.dumps(
+                {
+                    "start_at": (timezone.now() + timedelta(days=1)).isoformat(),
+                    "end_at": (timezone.now() + timedelta(days=1, hours=1)).isoformat(),
+                    "note": "Available after class.",
+                }
+            ),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=student_csrf,
+        )
+        self.assertEqual(student_response.status_code, 201)
+
+        company_client, company_csrf = self.csrf_client()
+        company_client.force_login(company_user)
+        company_response = company_client.post(
+            f"/api/v1/interviews/{interview.id}/availability",
+            data=json.dumps(
+                {
+                    "start_at": (timezone.now() + timedelta(days=2)).isoformat(),
+                    "end_at": (timezone.now() + timedelta(days=2, hours=1)).isoformat(),
+                    "note": "Preferred company slot.",
+                }
+            ),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=company_csrf,
+        )
+        self.assertEqual(company_response.status_code, 201)
+        self.assertEqual(InterviewAvailability.objects.filter(interview=interview).count(), 2)
+        self.assertEqual(InterviewEvent.objects.filter(interview=interview, event_type="availability_submitted").count(), 2)
+
+    def test_company_can_confirm_interview_from_availability(self):
+        company = Company.objects.create(name="Softverse")
+        student = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        candidate_access = CandidateReviewAccess.objects.create(
+            company=company,
+            student=student,
+            source=CandidateReviewAccess.Source.APPLICATION,
+        )
+        company_user = User.objects.create_user(
+            email="company@example.com",
+            password="SecurePass123!",
+            full_name="Company User",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+        interview = Interview.objects.create(
+            candidate_access=candidate_access,
+            company=company,
+            student=student,
+            requested_by=company_user,
+            purpose="Technical interview",
+            role_context="Backend trainee",
+        )
+        availability = InterviewAvailability.objects.create(
+            interview=interview,
+            submitted_by=student,
+            start_at=timezone.now() + timedelta(days=1),
+            end_at=timezone.now() + timedelta(days=1, hours=1),
+            note="Morning works best.",
+        )
+        client, csrf_token = self.csrf_client()
+        client.force_login(company_user)
+
+        response = client.post(
+            f"/api/v1/company/interviews/{interview.id}/confirm",
+            data=json.dumps({"availability_id": availability.id}),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        interview.refresh_from_db()
+        self.assertEqual(interview.status, Interview.Status.CONFIRMED)
+        self.assertEqual(interview.scheduled_start, availability.start_at)
+        self.assertEqual(InterviewEvent.objects.filter(interview=interview, event_type="confirmed").count(), 1)
+
+    def test_student_can_list_own_interviews_and_detail(self):
+        company = Company.objects.create(name="Softverse")
+        student = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        candidate_access = CandidateReviewAccess.objects.create(
+            company=company,
+            student=student,
+            source=CandidateReviewAccess.Source.APPLICATION,
+        )
+        company_user = User.objects.create_user(
+            email="company@example.com",
+            password="SecurePass123!",
+            full_name="Company User",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+        interview = Interview.objects.create(
+            candidate_access=candidate_access,
+            company=company,
+            student=student,
+            requested_by=company_user,
+            purpose="Technical interview",
+            role_context="Backend trainee",
+        )
+        create = InterviewEvent.objects.create(
+            interview=interview,
+            actor=company_user,
+            event_type="requested",
+            description="Interview requested from an approved company candidate context.",
+        )
+        del create
+
+        client = Client()
+        client.force_login(student)
+        list_response = client.get("/api/v1/student/interviews")
+        detail_response = client.get(f"/api/v1/interviews/{interview.id}")
+
+        self.assertEqual(list_response.status_code, 200)
+        self.assertEqual(len(list_response.json()["data"]["interviews"]), 1)
+        self.assertEqual(detail_response.status_code, 200)
+        self.assertEqual(detail_response.json()["data"]["history"][0]["event_type"], "requested")
