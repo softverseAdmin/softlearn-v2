@@ -1,5 +1,7 @@
 import { Route, Routes } from 'react-router-dom'
 
+import { AdminCompaniesPage } from '../features/admin/AdminCompaniesPage'
+import { AdminUsersPage } from '../features/admin/AdminUsersPage'
 import { NotificationsPage } from '../features/notifications/NotificationsPage'
 import { AppLayout } from '../layouts/AppLayout'
 import { CompanyCandidateDetailPage } from '../features/profile/CompanyCandidateDetailPage'
@@ -8,6 +10,7 @@ import { CompanyInterviewDetailPage } from '../features/profile/CompanyInterview
 import { CompanyInterviewsPage } from '../features/profile/CompanyInterviewsPage'
 import { CompanyProfilePage } from '../features/profile/CompanyProfilePage'
 import { CompanyShortlistPage } from '../features/profile/CompanyShortlistPage'
+import { CompanyVacanciesPage } from '../features/profile/CompanyVacanciesPage'
 import { StudentExamResultsPage } from '../features/profile/StudentExamResultsPage'
 import { StudentInterviewDetailPage } from '../features/profile/StudentInterviewDetailPage'
 import { StudentInterviewsPage } from '../features/profile/StudentInterviewsPage'
@@ -20,6 +23,7 @@ import { DashboardPage } from '../pages/DashboardPage'
 import { LandingPage } from '../pages/LandingPage'
 import { LoginPage } from '../pages/LoginPage'
 import { NotFoundPage } from '../pages/NotFoundPage'
+import { PlaceholderPage } from '../pages/PlaceholderPage'
 import { SignupPage } from '../pages/SignupPage'
 import { UnauthorizedPage } from '../pages/UnauthorizedPage'
 import { ProtectedGuard, PublicOnlyGuard, RoleGuard } from './guards'
@@ -60,14 +64,14 @@ export function AppRouter() {
             <Route path="/company/interviews" element={<CompanyInterviewsPage />} />
             <Route path="/company/interviews/:interviewId" element={<CompanyInterviewDetailPage />} />
             <Route path="/company/shortlist" element={<CompanyShortlistPage />} />
-            <Route path="/company/vacancies" element={<DashboardPage role="company" />} />
+            <Route path="/company/vacancies" element={<CompanyVacanciesPage />} />
           </Route>
 
           <Route element={<RoleGuard role="admin" />}>
             <Route path="/admin" element={<DashboardPage role="admin" />} />
             <Route path="/admin/notifications" element={<NotificationsPage />} />
-            <Route path="/admin/users" element={<DashboardPage role="admin" />} />
-            <Route path="/admin/operations" element={<DashboardPage role="admin" />} />
+            <Route path="/admin/users" element={<AdminUsersPage />} />
+            <Route path="/admin/operations" element={<AdminCompaniesPage />} />
           </Route>
         </Route>
       </Route>

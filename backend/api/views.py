@@ -28,6 +28,7 @@ from users.models import (
     StudentVisibilityEvent,
     StudentVisibilitySettings,
     User,
+    Vacancy,
 )
 from users.notifications import emit_interview_event_notifications
 
@@ -352,6 +353,80 @@ def serialize_notification(notification: Notification) -> dict:
     }
 
 
+def recent_notifications_for_user(user: User, *, limit: int = 5) -> list[dict]:
+    notifications = list(
+        Notification.objects.filter(recipient=user)
+        .select_related("actor")
+        .order_by("-created_at", "-id")[:limit]
+    )
+    return [serialize_notification(notification) for notification in notifications]
+
+
+def serialize_admin_user_summary(user: User) -> dict:
+    return {
+        "user_id": user.id,
+        "name": user.full_name,
+        "email": user.email,
+        "role": user.role,
+        "company_name": user.company.name if user.company else None,
+        "date_joined": user.date_joined.isoformat(),
+    }
+
+
+def serialize_admin_interview_summary(interview: Interview) -> dict:
+    return {
+        "id": interview.id,
+        "company_name": interview.company.name,
+        "student_name": interview.student.full_name,
+        "status": interview.status,
+        "updated_at": interview.updated_at.isoformat(),
+        "scheduled_start": interview.scheduled_start.isoformat() if interview.scheduled_start else None,
+        "scheduled_end": interview.scheduled_end.isoformat() if interview.scheduled_end else None,
+    }
+
+
+def serialize_admin_user(user: User) -> dict:
+    return {
+        "user_id": user.id,
+        "email": user.email,
+        "name": user.full_name,
+        "role": user.role,
+        "company_id": user.company_id,
+        "company_name": user.company.name if user.company else None,
+        "is_active": user.is_active,
+        "date_joined": user.date_joined.isoformat(),
+    }
+
+
+def serialize_admin_company(company: Company) -> dict:
+    return {
+        "company_id": company.id,
+        "name": company.name,
+        "description": company.description,
+        "is_active": company.is_active,
+        "user_count": company.users.count(),
+        "created_at": company.created_at.isoformat(),
+        "updated_at": company.updated_at.isoformat(),
+    }
+
+
+def serialize_vacancy(vacancy: Vacancy) -> dict:
+    return {
+        "vacancy_id": vacancy.id,
+        "company_id": vacancy.company_id,
+        "company_name": vacancy.company.name,
+        "title": vacancy.title,
+        "description": vacancy.description,
+        "employment_type": vacancy.employment_type,
+        "experience_level": vacancy.experience_level,
+        "location": vacancy.location,
+        "status": vacancy.status,
+        "created_by_name": vacancy.created_by.full_name,
+        "created_at": vacancy.created_at.isoformat(),
+        "updated_at": vacancy.updated_at.isoformat(),
+    }
+
+
 def serialize_company_candidate(access: CandidateReviewAccess) -> dict:
     settings = get_visibility_settings(access.student)
     profile_visible = settings.share_profile_preview
@@ -648,6 +723,124 @@ def validate_meeting_link_payload(payload: dict) -> dict:
     }
 
 
+def validate_admin_company_payload(payload: dict) -> dict:
+    name = str(payload.get("name", "")).strip()
+    description = str(payload.get("description", "")).strip()
+    raw_is_active = payload.get("is_active", True)
+
+    errors = {}
+    if not name:
+        errors["name"] = ["This field is required."]
+    if not isinstance(raw_is_active, bool):
+        errors["is_active"] = ["This field must be a boolean."]
+
+    if errors:
+        raise ValidationError(errors)
+
+    return {
+        "name": name,
+        "description": description,
+        "is_active": raw_is_active,
+    }
+
+
+def validate_vacancy_payload(payload: dict) -> dict:
+    cleaned = {
+        "title": str(payload.get("title", "")).strip(),
+        "description": str(payload.get("description", "")).strip(),
+        "employment_type": str(payload.get("employment_type", "")).strip(),
+        "experience_level": str(payload.get("experience_level", "")).strip(),
+        "location": str(payload.get("location", "")).strip(),
+        "status": str(payload.get("status", Vacancy.Status.DRAFT)).strip(),
+    }
+    errors = {}
+    for field in ("title", "description", "employment_type", "experience_level", "location"):
+        if not cleaned[field]:
+            errors[field] = ["This field is required."]
+
+    if cleaned["status"] not in Vacancy.Status.values:
+        errors["status"] = [f"Status must be one of: {', '.join(Vacancy.Status.values)}."]
+
+    if errors:
+        raise ValidationError(errors)
+
+    return cleaned
+
+
+def validate_admin_user_payload(payload: dict, *, creating: bool) -> dict:
+    cleaned = {
+        "email": str(payload.get("email", "")).strip().lower(),
+        "name": str(payload.get("name", "")).strip(),
+        "role": str(payload.get("role", "")).strip(),
+        "password": str(payload.get("password", "")),
+    }
+    raw_company_id = payload.get("company_id")
+    raw_is_active = payload.get("is_active", True)
+    errors = {}
+
+    if not cleaned["email"]:
+        errors["email"] = ["This field is required."]
+    if not cleaned["name"]:
+        errors["name"] = ["This field is required."]
+    if cleaned["role"] not in User.Role.values:
+        errors["role"] = [f"Role must be one of: {', '.join(User.Role.values)}."]
+    if creating and not cleaned["password"]:
+        errors["password"] = ["This field is required."]
+    if not isinstance(raw_is_active, bool):
+        errors["is_active"] = ["This field must be a boolean."]
+
+    company = None
+    if cleaned["role"] == User.Role.COMPANY:
+        if raw_company_id in (None, ""):
+            errors["company_id"] = ["Company users must have an associated company."]
+        else:
+            try:
+                company = Company.objects.get(pk=int(raw_company_id))
+            except (TypeError, ValueError):
+                errors["company_id"] = ["A valid company_id is required."]
+            except Company.DoesNotExist:
+                errors["company_id"] = ["Selected company does not exist."]
+    elif raw_company_id not in (None, ""):
+        errors["company_id"] = ["Only company users can have an associated company."]
+
+    if errors:
+        raise ValidationError(errors)
+
+    return {
+        "email": cleaned["email"],
+        "name": cleaned["name"],
+        "role": cleaned["role"],
+        "password": cleaned["password"],
+        "company": company,
+        "is_active": raw_is_active,
+    }
+
+
+def ensure_admin_user_update_allowed(actor: User, target: User, payload: dict) -> None:
+    if actor.pk != target.pk:
+        return
+
+    if payload["role"] != User.Role.ADMIN:
+        raise ValidationError({"role": ["Admins cannot remove their own admin role."]})
+    if payload["is_active"] is False:
+        raise ValidationError({"is_active": ["Admins cannot deactivate their own account."]})
+
+
+def get_company_vacancy(user: User, vacancy_id: int) -> Vacancy:
+    company = user.company
+    if company is None:
+        raise ValidationError({"company": ["Company context is required for company users."]})
+
+    vacancy = (
+        Vacancy.objects.filter(company=company, pk=vacancy_id)
+        .select_related("company", "created_by")
+        .first()
+    )
+    if vacancy is None:
+        raise ValidationError({"vacancy_id": ["Vacancy was not found for this company context."]})
+    return vacancy
+
+
 @api_endpoint(["GET"])
 def health_view(request):
     return success_response({"status": "ok", "request_id": request.request_id})
@@ -830,6 +1023,60 @@ def company_profile_view(request):
     company.save(update_fields=["name", "description", "updated_at"])
 
     return success_response(serialize_company_profile(request.user))
+
+
+@api_endpoint(["GET", "POST"], authentication_required=True, roles=[User.Role.COMPANY])
+def company_vacancies_view(request):
+    company = request.user.company
+    if company is None:
+        raise ValidationError({"company": ["Company context is required for company users."]})
+
+    if request.method == "GET":
+        vacancies = list(
+            Vacancy.objects.filter(company=company)
+            .select_related("company", "created_by")
+            .order_by("-updated_at", "-id")
+        )
+        return success_response({"vacancies": [serialize_vacancy(vacancy) for vacancy in vacancies]})
+
+    payload = validate_vacancy_payload(parse_json_body(request))
+    vacancy = Vacancy(
+        company=company,
+        created_by=request.user,
+        title=payload["title"],
+        description=payload["description"],
+        employment_type=payload["employment_type"],
+        experience_level=payload["experience_level"],
+        location=payload["location"],
+        status=payload["status"],
+    )
+    vacancy.full_clean()
+    vacancy.save()
+    return success_response(serialize_vacancy(vacancy), status=201)
+
+
+@api_endpoint(["PUT", "DELETE"], authentication_required=True, roles=[User.Role.COMPANY])
+def company_vacancy_detail_view(request, vacancy_id: int):
+    vacancy = get_company_vacancy(request.user, vacancy_id)
+
+    if request.method == "DELETE":
+        vacancy.status = Vacancy.Status.INACTIVE
+        vacancy.full_clean()
+        vacancy.save(update_fields=["status", "updated_at"])
+        return success_response(serialize_vacancy(vacancy))
+
+    payload = validate_vacancy_payload(parse_json_body(request))
+    vacancy.title = payload["title"]
+    vacancy.description = payload["description"]
+    vacancy.employment_type = payload["employment_type"]
+    vacancy.experience_level = payload["experience_level"]
+    vacancy.location = payload["location"]
+    vacancy.status = payload["status"]
+    vacancy.full_clean()
+    vacancy.save(
+        update_fields=["title", "description", "employment_type", "experience_level", "location", "status", "updated_at"]
+    )
+    return success_response(serialize_vacancy(vacancy))
 
 
 @api_endpoint(["GET", "POST"], authentication_required=True, roles=[User.Role.STUDENT])
@@ -1378,6 +1625,247 @@ def interview_meeting_link_view(request, interview_id: int):
         f"Meeting link updated for provider {interview.meeting_provider}.",
     )
     return success_response(serialize_interview(get_interview_for_participant(request.user, interview.id), include_detail=True))
+
+
+@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.STUDENT])
+def student_dashboard_view(request):
+    profile = serialize_student_profile(request.user)
+    skills = serialize_student_skills(request.user)
+    learning = serialize_learning_summary(request.user)
+    exams = serialize_exam_results_summary(request.user)
+    privacy = serialize_student_privacy_settings(request.user)
+    interviews = list(
+        Interview.objects.filter(student=request.user)
+        .select_related("student", "company", "candidate_access", "requested_by")
+        .order_by("-updated_at", "-id")
+    )
+    unread_notifications = Notification.objects.filter(recipient=request.user, read_at__isnull=True).count()
+    next_interview = (
+        Interview.objects.filter(
+            student=request.user,
+            status=Interview.Status.CONFIRMED,
+            scheduled_start__gte=timezone.now(),
+        )
+        .order_by("scheduled_start", "id")
+        .first()
+    )
+
+    return success_response(
+        {
+            "student_id": request.user.id,
+            "metrics": {
+                "profile_complete": profile["profile_complete"],
+                "skill_count": skills["skill_count"],
+                "total_courses": learning["total_courses"],
+                "completed_courses": learning["completed_courses"],
+                "total_results": exams["total_results"],
+                "passed_results": exams["passed_results"],
+                "interview_count": len(interviews),
+                "active_interviews": sum(
+                    1
+                    for interview in interviews
+                    if interview.status in {Interview.Status.REQUESTED, Interview.Status.CONFIRMED, Interview.Status.RESCHEDULED}
+                ),
+                "unread_notifications": unread_notifications,
+            },
+            "highlights": {
+                "average_score": exams["average_score"],
+                "next_interview_at": next_interview.scheduled_start.isoformat() if next_interview and next_interview.scheduled_start else None,
+                "share_exam_results": privacy["share_exam_results"],
+            },
+            "recent_interviews": [serialize_interview(interview) for interview in interviews[:3]],
+            "recent_notifications": recent_notifications_for_user(request.user),
+        }
+    )
+
+
+@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.COMPANY])
+def company_dashboard_view(request):
+    company = request.user.company
+    if company is None:
+        raise ValidationError({"company": ["Company context is required for company users."]})
+
+    interviews = list(
+        Interview.objects.filter(company=company)
+        .select_related("student", "company", "candidate_access", "requested_by")
+        .order_by("-updated_at", "-id")
+    )
+    candidates = list(
+        CandidateReviewAccess.objects.filter(company=company, is_active=True)
+        .select_related("student", "company", "shortlist_entry", "shortlist_entry__created_by")
+        .annotate(notes_count=Count("notes"))
+        .order_by("-updated_at", "-id")
+    )
+    shortlist_count = CandidateShortlist.objects.filter(company=company).count()
+    vacancy_count = Vacancy.objects.filter(company=company, status__in=[Vacancy.Status.DRAFT, Vacancy.Status.ACTIVE]).count()
+    unread_notifications = Notification.objects.filter(recipient=request.user, read_at__isnull=True).count()
+
+    return success_response(
+        {
+            "company_id": company.id,
+            "company_name": company.name,
+            "metrics": {
+                "vacancy_count": vacancy_count,
+                "candidate_count": len(candidates),
+                "shortlist_count": shortlist_count,
+                "interview_count": len(interviews),
+                "active_interviews": sum(
+                    1
+                    for interview in interviews
+                    if interview.status in {Interview.Status.REQUESTED, Interview.Status.CONFIRMED, Interview.Status.RESCHEDULED}
+                ),
+                "completed_interviews": sum(1 for interview in interviews if interview.status == Interview.Status.COMPLETED),
+                "unread_notifications": unread_notifications,
+                "profile_complete": bool(company.name.strip() and company.description.strip()),
+            },
+            "recent_interviews": [serialize_interview(interview) for interview in interviews[:3]],
+            "recent_candidates": [serialize_company_candidate(candidate) for candidate in candidates[:3]],
+            "recent_notifications": recent_notifications_for_user(request.user),
+        }
+    )
+
+
+@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.ADMIN])
+def admin_dashboard_view(request):
+    users = list(User.objects.select_related("company").order_by("-date_joined", "-id")[:5])
+    interviews = list(
+        Interview.objects.select_related("student", "company", "candidate_access", "requested_by")
+        .order_by("-updated_at", "-id")[:5]
+    )
+    total_interviews = Interview.objects.count()
+    unread_notifications = Notification.objects.filter(recipient=request.user, read_at__isnull=True).count()
+
+    return success_response(
+        {
+            "metrics": {
+                "total_users": User.objects.count(),
+                "students": User.objects.filter(role=User.Role.STUDENT).count(),
+                "company_users": User.objects.filter(role=User.Role.COMPANY).count(),
+                "admins": User.objects.filter(role=User.Role.ADMIN).count(),
+                "companies": Company.objects.count(),
+                "active_vacancies": Vacancy.objects.filter(status=Vacancy.Status.ACTIVE).count(),
+                "total_interviews": total_interviews,
+                "active_interviews": Interview.objects.filter(
+                    status__in=[Interview.Status.REQUESTED, Interview.Status.CONFIRMED, Interview.Status.RESCHEDULED]
+                ).count(),
+                "completed_interviews": Interview.objects.filter(status=Interview.Status.COMPLETED).count(),
+                "cancelled_interviews": Interview.objects.filter(status=Interview.Status.CANCELLED).count(),
+                "unread_notifications": unread_notifications,
+            },
+            "recent_users": [serialize_admin_user_summary(user) for user in users],
+            "recent_interviews": [serialize_admin_interview_summary(interview) for interview in interviews],
+            "recent_notifications": recent_notifications_for_user(request.user),
+        }
+    )
+
+
+@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.ADMIN])
+def admin_vacancies_view(request):
+    vacancies = list(
+        Vacancy.objects.select_related("company", "created_by")
+        .order_by("-updated_at", "-id")
+    )
+    return success_response({"vacancies": [serialize_vacancy(vacancy) for vacancy in vacancies]})
+
+
+@api_endpoint(["GET", "POST"], authentication_required=True, roles=[User.Role.ADMIN])
+def admin_users_view(request):
+    if request.method == "GET":
+        users = list(User.objects.select_related("company").order_by("email"))
+        companies = list(Company.objects.order_by("name"))
+        return success_response(
+            {
+                "users": [serialize_admin_user(user) for user in users],
+                "companies": [serialize_admin_company(company) for company in companies],
+            }
+        )
+
+    payload = validate_admin_user_payload(parse_json_body(request), creating=True)
+    if User.objects.filter(email__iexact=payload["email"]).exists():
+        raise ValidationError({"email": ["A user with this email already exists."]})
+
+    validate_password(payload["password"])
+    user = User.objects.create_user(
+        email=payload["email"],
+        password=payload["password"],
+        full_name=payload["name"],
+        role=payload["role"],
+        company=payload["company"],
+    )
+    user.is_active = payload["is_active"]
+    user.is_staff = payload["role"] == User.Role.ADMIN
+    user.full_clean()
+    user.save(update_fields=["is_active", "is_staff", "updated_at"])
+    if payload["role"] == User.Role.STUDENT:
+        StudentProfile.objects.get_or_create(user=user)
+
+    return success_response(serialize_admin_user(user), status=201)
+
+
+@api_endpoint(["PUT"], authentication_required=True, roles=[User.Role.ADMIN])
+def admin_user_detail_view(request, user_id: int):
+    user = User.objects.select_related("company").filter(pk=user_id).first()
+    if user is None:
+        return error_response(
+            request,
+            "NOT_FOUND",
+            "The requested user was not found.",
+            details={"user_id": [str(user_id)]},
+            status=404,
+        )
+
+    payload = validate_admin_user_payload(parse_json_body(request), creating=False)
+    ensure_admin_user_update_allowed(request.user, user, payload)
+
+    if User.objects.filter(email__iexact=payload["email"]).exclude(pk=user.pk).exists():
+        raise ValidationError({"email": ["A user with this email already exists."]})
+
+    user.email = payload["email"]
+    user.full_name = payload["name"]
+    user.company = payload["company"]
+    user.is_active = payload["is_active"]
+    user.is_staff = payload["role"] == User.Role.ADMIN
+    user.full_clean()
+    user.save(update_fields=["email", "full_name", "company", "is_active", "is_staff", "updated_at"])
+    return success_response(serialize_admin_user(user))
+
+
+@api_endpoint(["GET", "POST"], authentication_required=True, roles=[User.Role.ADMIN])
+def admin_companies_view(request):
+    if request.method == "GET":
+        companies = list(Company.objects.order_by("name"))
+        return success_response({"companies": [serialize_admin_company(company) for company in companies]})
+
+    payload = validate_admin_company_payload(parse_json_body(request))
+    company = Company(
+        name=payload["name"],
+        description=payload["description"],
+        is_active=payload["is_active"],
+    )
+    company.full_clean()
+    company.save()
+    return success_response(serialize_admin_company(company), status=201)
+
+
+@api_endpoint(["PUT"], authentication_required=True, roles=[User.Role.ADMIN])
+def admin_company_detail_view(request, company_id: int):
+    company = Company.objects.filter(pk=company_id).first()
+    if company is None:
+        return error_response(
+            request,
+            "NOT_FOUND",
+            "The requested company was not found.",
+            details={"company_id": [str(company_id)]},
+            status=404,
+        )
+
+    payload = validate_admin_company_payload(parse_json_body(request))
+    company.name = payload["name"]
+    company.description = payload["description"]
+    company.is_active = payload["is_active"]
+    company.full_clean()
+    company.save(update_fields=["name", "description", "is_active", "updated_at"])
+    return success_response(serialize_admin_company(company))
 
 
 @api_endpoint(["GET"], authentication_required=True)

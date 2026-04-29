@@ -23,6 +23,7 @@ from users.models import (
     StudentVisibilityEvent,
     StudentVisibilitySettings,
     User,
+    Vacancy,
 )
 
 
@@ -293,6 +294,453 @@ class ApiFoundationTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["data"]["unread_count"], 0)
         self.assertTrue(all(item["is_read"] for item in response.json()["data"]["notifications"]))
+
+    def test_student_dashboard_returns_summary_metrics(self):
+        student = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        StudentProfile.objects.create(
+            user=student,
+            desired_job_type="Backend",
+            desired_work_location="Tokyo",
+            japanese_level="N2",
+            english_level="Business",
+        )
+        skill = Skill.objects.create(name="Dashboard Skill")
+        StudentSkill.objects.create(student=student, skill=skill, proficiency_level=StudentSkill.Proficiency.INTERMEDIATE)
+        LearningRecord.objects.create(
+            student=student,
+            course_title="Python Basics",
+            category="engineering",
+            progress_percent=100,
+            status=LearningRecord.Status.COMPLETED,
+            completed_at=timezone.now(),
+        )
+        ExamResult.objects.create(
+            student=student,
+            exam_title="Backend Exam",
+            category="engineering",
+            score_percent=88,
+            passed=True,
+            attempt_number=1,
+            taken_at=timezone.now(),
+        )
+        Notification.objects.create(
+            recipient=student,
+            notification_type=Notification.Type.EXAM_RESULT_AVAILABLE,
+            title="Exam result available",
+            message="A result is ready.",
+            link="/student/exams",
+            entity_type="exam_result",
+            entity_id=1,
+            event_key="dashboard",
+        )
+        client = Client()
+        client.force_login(student)
+
+        response = client.get("/api/v1/student/dashboard")
+
+        self.assertEqual(response.status_code, 200)
+        body = response.json()["data"]
+        self.assertEqual(body["metrics"]["skill_count"], 1)
+        self.assertEqual(body["metrics"]["completed_courses"], 1)
+        self.assertEqual(body["metrics"]["passed_results"], 1)
+        self.assertEqual(body["metrics"]["unread_notifications"], 2)
+        self.assertEqual(body["highlights"]["average_score"], 88.0)
+
+    def test_company_dashboard_is_company_scoped(self):
+        company = Company.objects.create(name="Softverse", description="Hiring platform team")
+        student = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        candidate_access = CandidateReviewAccess.objects.create(
+            company=company,
+            student=student,
+            source=CandidateReviewAccess.Source.APPLICATION,
+        )
+        CandidateShortlist.objects.create(
+            candidate_access=candidate_access,
+            company=company,
+            student=student,
+            created_by=User.objects.create_user(
+                email="company@example.com",
+                password="SecurePass123!",
+                full_name="Company User",
+                role=User.Role.COMPANY,
+                company=company,
+            ),
+        )
+        company_user = User.objects.get(email="company@example.com")
+        Interview.objects.create(
+            candidate_access=candidate_access,
+            company=company,
+            student=student,
+            requested_by=company_user,
+            purpose="Technical interview",
+            role_context="Backend trainee",
+        )
+        Notification.objects.create(
+            recipient=company_user,
+            notification_type=Notification.Type.INTERVIEW_REQUESTED,
+            title="Interview requested",
+            message="Interview request recorded.",
+            link="/company/interviews/1",
+            entity_type="interview",
+            entity_id=1,
+            event_key="company-dashboard",
+        )
+        client = Client()
+        client.force_login(company_user)
+
+        response = client.get("/api/v1/company/dashboard")
+
+        self.assertEqual(response.status_code, 200)
+        body = response.json()["data"]
+        self.assertEqual(body["metrics"]["vacancy_count"], 0)
+        self.assertEqual(body["metrics"]["candidate_count"], 1)
+        self.assertEqual(body["metrics"]["shortlist_count"], 1)
+        self.assertEqual(body["metrics"]["interview_count"], 1)
+        self.assertEqual(body["metrics"]["unread_notifications"], 1)
+        self.assertEqual(len(body["recent_candidates"]), 1)
+
+    def test_admin_dashboard_returns_platform_counts(self):
+        company = Company.objects.create(name="Softverse")
+        student = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        company_user = User.objects.create_user(
+            email="company@example.com",
+            password="SecurePass123!",
+            full_name="Company User",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+        admin = User.objects.create_superuser(
+            email="admin@example.com",
+            password="SecurePass123!",
+            full_name="Admin User",
+        )
+        candidate_access = CandidateReviewAccess.objects.create(
+            company=company,
+            student=student,
+            source=CandidateReviewAccess.Source.APPLICATION,
+        )
+        Interview.objects.create(
+            candidate_access=candidate_access,
+            company=company,
+            student=student,
+            requested_by=company_user,
+            purpose="Technical interview",
+            role_context="Backend trainee",
+            status=Interview.Status.COMPLETED,
+            scheduled_start=timezone.now() - timedelta(hours=2),
+            scheduled_end=timezone.now() - timedelta(hours=1),
+            confirmed_at=timezone.now() - timedelta(days=1),
+            completed_at=timezone.now(),
+        )
+        Notification.objects.create(
+            recipient=admin,
+            notification_type=Notification.Type.INTERVIEW_CONFIRMED,
+            title="Platform activity",
+            message="A platform update is ready.",
+            link="/admin",
+            entity_type="interview",
+            entity_id=1,
+            event_key="admin-dashboard",
+        )
+        client = Client()
+        client.force_login(admin)
+
+        response = client.get("/api/v1/admin/dashboard")
+
+        self.assertEqual(response.status_code, 200)
+        body = response.json()["data"]
+        self.assertEqual(body["metrics"]["students"], 1)
+        self.assertEqual(body["metrics"]["company_users"], 1)
+        self.assertEqual(body["metrics"]["admins"], 1)
+        self.assertEqual(body["metrics"]["companies"], 1)
+        self.assertEqual(body["metrics"]["active_vacancies"], 0)
+        self.assertEqual(body["metrics"]["completed_interviews"], 1)
+        self.assertEqual(body["metrics"]["unread_notifications"], 1)
+
+    def test_admin_can_create_and_list_users(self):
+        company = Company.objects.create(name="Softverse")
+        admin = User.objects.create_superuser(
+            email="admin@example.com",
+            password="SecurePass123!",
+            full_name="Admin User",
+        )
+        client, csrf_token = self.csrf_client()
+        client.force_login(admin)
+
+        create_response = client.post(
+            "/api/v1/admin/users",
+            data=json.dumps(
+                {
+                    "email": "manager@example.com",
+                    "name": "Manager User",
+                    "role": "company",
+                    "company_id": company.id,
+                    "password": "SecurePass123!",
+                    "is_active": True,
+                }
+            ),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+        list_response = client.get("/api/v1/admin/users")
+
+        self.assertEqual(create_response.status_code, 201)
+        self.assertEqual(list_response.status_code, 200)
+        self.assertEqual(User.objects.get(email="manager@example.com").company, company)
+        self.assertTrue(any(item["email"] == "manager@example.com" for item in list_response.json()["data"]["users"]))
+
+    def test_admin_can_update_user_activation(self):
+        admin = User.objects.create_superuser(
+            email="admin@example.com",
+            password="SecurePass123!",
+            full_name="Admin User",
+        )
+        target = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        client, csrf_token = self.csrf_client()
+        client.force_login(admin)
+
+        response = client.put(
+            f"/api/v1/admin/users/{target.id}",
+            data=json.dumps(
+                {
+                    "email": target.email,
+                    "name": "Student User Updated",
+                    "role": target.role,
+                    "company_id": None,
+                    "is_active": False,
+                }
+            ),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        target.refresh_from_db()
+        self.assertFalse(target.is_active)
+        self.assertEqual(target.full_name, "Student User Updated")
+
+    def test_admin_cannot_deactivate_self(self):
+        admin = User.objects.create_superuser(
+            email="admin@example.com",
+            password="SecurePass123!",
+            full_name="Admin User",
+        )
+        client, csrf_token = self.csrf_client()
+        client.force_login(admin)
+
+        response = client.put(
+            f"/api/v1/admin/users/{admin.id}",
+            data=json.dumps(
+                {
+                    "email": admin.email,
+                    "name": admin.full_name,
+                    "role": admin.role,
+                    "company_id": None,
+                    "is_active": False,
+                }
+            ),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("is_active", response.json()["error"]["details"])
+
+    def test_admin_can_create_and_update_company(self):
+        admin = User.objects.create_superuser(
+            email="admin@example.com",
+            password="SecurePass123!",
+            full_name="Admin User",
+        )
+        client, csrf_token = self.csrf_client()
+        client.force_login(admin)
+
+        create_response = client.post(
+            "/api/v1/admin/companies",
+            data=json.dumps(
+                {
+                    "name": "Softverse",
+                    "description": "Platform company",
+                    "is_active": True,
+                }
+            ),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+        company_id = create_response.json()["data"]["company_id"]
+        update_response = client.put(
+            f"/api/v1/admin/companies/{company_id}",
+            data=json.dumps(
+                {
+                    "name": "Softverse Updated",
+                    "description": "Updated description",
+                    "is_active": False,
+                }
+            ),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+
+        self.assertEqual(create_response.status_code, 201)
+        self.assertEqual(update_response.status_code, 200)
+        company = Company.objects.get(pk=company_id)
+        self.assertFalse(company.is_active)
+        self.assertEqual(company.name, "Softverse Updated")
+
+    def test_company_can_create_update_and_retire_vacancy(self):
+        company = Company.objects.create(name="Softverse")
+        company_user = User.objects.create_user(
+            email="company@example.com",
+            password="SecurePass123!",
+            full_name="Company User",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+        client, csrf_token = self.csrf_client()
+        client.force_login(company_user)
+
+        create_response = client.post(
+            "/api/v1/company/vacancies",
+            data=json.dumps(
+                {
+                    "title": "Backend Engineer",
+                    "description": "Build platform APIs.",
+                    "employment_type": "full_time",
+                    "experience_level": "junior",
+                    "location": "Tokyo",
+                    "status": "draft",
+                }
+            ),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+        vacancy_id = create_response.json()["data"]["vacancy_id"]
+        update_response = client.put(
+            f"/api/v1/company/vacancies/{vacancy_id}",
+            data=json.dumps(
+                {
+                    "title": "Backend Engineer Updated",
+                    "description": "Build protected platform APIs.",
+                    "employment_type": "full_time",
+                    "experience_level": "mid",
+                    "location": "Osaka",
+                    "status": "active",
+                }
+            ),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+        delete_response = client.delete(
+            f"/api/v1/company/vacancies/{vacancy_id}",
+            data=json.dumps({}),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+
+        self.assertEqual(create_response.status_code, 201)
+        self.assertEqual(update_response.status_code, 200)
+        self.assertEqual(delete_response.status_code, 200)
+        vacancy = Vacancy.objects.get(pk=vacancy_id)
+        self.assertEqual(vacancy.status, Vacancy.Status.INACTIVE)
+        self.assertEqual(vacancy.title, "Backend Engineer Updated")
+
+    def test_company_vacancy_list_is_scoped(self):
+        company = Company.objects.create(name="Softverse")
+        other_company = Company.objects.create(name="Otherverse")
+        company_user = User.objects.create_user(
+            email="company@example.com",
+            password="SecurePass123!",
+            full_name="Company User",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+        other_user = User.objects.create_user(
+            email="other@example.com",
+            password="SecurePass123!",
+            full_name="Other User",
+            role=User.Role.COMPANY,
+            company=other_company,
+        )
+        Vacancy.objects.create(
+            company=company,
+            created_by=company_user,
+            title="Backend Engineer",
+            description="Build APIs.",
+            employment_type="full_time",
+            experience_level="junior",
+            location="Tokyo",
+            status=Vacancy.Status.ACTIVE,
+        )
+        Vacancy.objects.create(
+            company=other_company,
+            created_by=other_user,
+            title="Frontend Engineer",
+            description="Build UI.",
+            employment_type="full_time",
+            experience_level="mid",
+            location="Osaka",
+            status=Vacancy.Status.ACTIVE,
+        )
+        client = Client()
+        client.force_login(company_user)
+
+        response = client.get("/api/v1/company/vacancies")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.json()["data"]["vacancies"]), 1)
+        self.assertEqual(response.json()["data"]["vacancies"][0]["company_name"], "Softverse")
+
+    def test_admin_can_view_vacancies(self):
+        company = Company.objects.create(name="Softverse")
+        company_user = User.objects.create_user(
+            email="company@example.com",
+            password="SecurePass123!",
+            full_name="Company User",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+        admin = User.objects.create_superuser(
+            email="admin@example.com",
+            password="SecurePass123!",
+            full_name="Admin User",
+        )
+        Vacancy.objects.create(
+            company=company,
+            created_by=company_user,
+            title="Backend Engineer",
+            description="Build APIs.",
+            employment_type="full_time",
+            experience_level="junior",
+            location="Tokyo",
+            status=Vacancy.Status.ACTIVE,
+        )
+        client = Client()
+        client.force_login(admin)
+
+        response = client.get("/api/v1/admin/vacancies")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.json()["data"]["vacancies"]), 1)
 
     def test_company_user_requires_company(self):
         with self.assertRaises(ValidationError):
