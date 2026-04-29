@@ -92,7 +92,11 @@ export function CompanyCandidatesPage() {
               <span className={`status-pill ${candidate.visibility.profile_preview === 'visible' ? 'status-success' : 'status-muted'}`}>Profile {candidate.visibility.profile_preview}</span>
               <span className={`status-pill ${candidate.visibility.learning_record === 'visible' ? 'status-success' : 'status-muted'}`}>Learning {candidate.visibility.learning_record}</span>
               <span className={`status-pill ${candidate.visibility.exam_results === 'visible' ? 'status-success' : 'status-muted'}`}>Exams {candidate.visibility.exam_results}</span>
+              <span className={`status-pill ${candidate.is_shortlisted ? 'status-success' : 'status-muted'}`}>
+                {candidate.is_shortlisted ? 'Shortlisted' : 'Not shortlisted'}
+              </span>
             </div>
+            <p className="muted">Company notes: {candidate.notes_count}</p>
             <Link className="secondary-button inline-button" to={`/company/candidates/${candidate.candidate_access_id}`}>
               Review candidate
             </Link>

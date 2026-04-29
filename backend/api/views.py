@@ -2,19 +2,23 @@ from django.contrib.auth import authenticate, login, logout, update_session_auth
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.db.models import Count
 from django.middleware.csrf import get_token
 from django.views.decorators.csrf import ensure_csrf_cookie
 
 from common.decorators import api_endpoint
 from common.http import csrf_response_payload, error_response, parse_json_body, success_response
 from users.models import (
+    CandidateNote,
     CandidateReviewAccess,
+    CandidateShortlist,
     Company,
     ExamResult,
     LearningRecord,
     Skill,
     StudentProfile,
     StudentSkill,
+    StudentVisibilityEvent,
     StudentVisibilitySettings,
     User,
 )
@@ -115,6 +119,43 @@ def get_visibility_settings(user: User) -> StudentVisibilitySettings:
     return settings
 
 
+def record_visibility_event(user: User, settings: StudentVisibilitySettings) -> StudentVisibilityEvent:
+    return StudentVisibilityEvent.objects.create(
+        student=user,
+        share_profile_preview=settings.share_profile_preview,
+        share_learning_record=settings.share_learning_record,
+        share_exam_results=settings.share_exam_results,
+    )
+
+
+def ensure_visibility_event_exists(user: User, settings: StudentVisibilitySettings) -> None:
+    if not StudentVisibilityEvent.objects.filter(student=user).exists():
+        record_visibility_event(user, settings)
+
+
+def serialize_visibility_event(event: StudentVisibilityEvent) -> dict:
+    return {
+        "id": event.id,
+        "share_profile_preview": event.share_profile_preview,
+        "share_learning_record": event.share_learning_record,
+        "share_exam_results": event.share_exam_results,
+        "created_at": event.created_at.isoformat(),
+    }
+
+
+def serialize_student_privacy_settings(user: User) -> dict:
+    settings = get_visibility_settings(user)
+    ensure_visibility_event_exists(user, settings)
+    events = list(StudentVisibilityEvent.objects.filter(student=user).order_by("-created_at", "-id")[:10])
+    return {
+        "student_id": user.id,
+        "share_profile_preview": settings.share_profile_preview,
+        "share_learning_record": settings.share_learning_record,
+        "share_exam_results": settings.share_exam_results,
+        "history": [serialize_visibility_event(event) for event in events],
+    }
+
+
 def serialize_learning_record(record: LearningRecord) -> dict:
     return {
         "id": record.id,
@@ -207,10 +248,33 @@ def hidden_restrictions(message: str) -> list[str]:
     return [message]
 
 
+def serialize_candidate_note(note: CandidateNote) -> dict:
+    return {
+        "id": note.id,
+        "author_name": note.author.full_name,
+        "author_email": note.author.email,
+        "body": note.body,
+        "created_at": note.created_at.isoformat(),
+    }
+
+
+def serialize_candidate_shortlist(shortlist: CandidateShortlist | None) -> dict | None:
+    if shortlist is None:
+        return None
+
+    return {
+        "id": shortlist.id,
+        "created_at": shortlist.created_at.isoformat(),
+        "created_by_name": shortlist.created_by.full_name,
+    }
+
+
 def serialize_company_candidate(access: CandidateReviewAccess) -> dict:
     settings = get_visibility_settings(access.student)
     profile_visible = settings.share_profile_preview
     student_profile = get_student_profile(access.student)
+    shortlist_entry = getattr(access, "shortlist_entry", None)
+    notes_count = getattr(access, "notes_count", 0)
     top_skills = list(
         StudentSkill.objects.filter(student=access.student)
         .select_related("skill")
@@ -233,6 +297,9 @@ def serialize_company_candidate(access: CandidateReviewAccess) -> dict:
             "learning_record": visibility_state(settings.share_learning_record),
             "exam_results": visibility_state(settings.share_exam_results),
         },
+        "is_shortlisted": shortlist_entry is not None,
+        "notes_count": notes_count,
+        "shortlist": serialize_candidate_shortlist(shortlist_entry),
         "updated_at": access.updated_at.isoformat(),
     }
 
@@ -312,6 +379,30 @@ def validate_student_skill_payload(payload: dict) -> dict:
         "skill": skill,
         "proficiency_level": cleaned_proficiency,
     }
+
+
+def validate_student_privacy_settings_payload(payload: dict) -> dict:
+    cleaned = {}
+    errors = {}
+
+    for field in ("share_profile_preview", "share_learning_record", "share_exam_results"):
+        value = payload.get(field)
+        if not isinstance(value, bool):
+            errors[field] = ["This field must be a boolean."]
+        else:
+            cleaned[field] = value
+
+    if errors:
+        raise ValidationError(errors)
+
+    return cleaned
+
+
+def validate_candidate_note_payload(payload: dict) -> dict:
+    body = str(payload.get("body", "")).strip()
+    if not body:
+        raise ValidationError({"body": ["This field is required."]})
+    return {"body": body}
 
 
 @api_endpoint(["GET"])
@@ -553,6 +644,32 @@ def student_skill_detail_view(request, student_skill_id: int):
     return success_response(serialize_student_skills(request.user))
 
 
+@api_endpoint(["GET", "PUT"], authentication_required=True, roles=[User.Role.STUDENT])
+def student_privacy_settings_view(request):
+    settings = get_visibility_settings(request.user)
+    ensure_visibility_event_exists(request.user, settings)
+
+    if request.method == "GET":
+        return success_response(serialize_student_privacy_settings(request.user))
+
+    payload = validate_student_privacy_settings_payload(parse_json_body(request))
+    settings.share_profile_preview = payload["share_profile_preview"]
+    settings.share_learning_record = payload["share_learning_record"]
+    settings.share_exam_results = payload["share_exam_results"]
+    settings.full_clean()
+    settings.save(
+        update_fields=[
+            "share_profile_preview",
+            "share_learning_record",
+            "share_exam_results",
+            "updated_at",
+        ]
+    )
+    record_visibility_event(request.user, settings)
+
+    return success_response(serialize_student_privacy_settings(request.user))
+
+
 @api_endpoint(["GET"], authentication_required=True, roles=[User.Role.STUDENT])
 def student_learning_summary_view(request):
     return success_response(serialize_learning_summary(request.user))
@@ -571,7 +688,8 @@ def company_candidates_view(request):
 
     candidates = list(
         CandidateReviewAccess.objects.filter(company=company, is_active=True)
-        .select_related("student", "company")
+        .select_related("student", "company", "shortlist_entry", "shortlist_entry__created_by")
+        .annotate(notes_count=Count("notes"))
         .order_by("-updated_at", "-id")
     )
     return success_response(
@@ -584,9 +702,131 @@ def company_candidates_view(request):
 
 
 @api_endpoint(["GET"], authentication_required=True, roles=[User.Role.COMPANY])
+def company_shortlist_view(request):
+    company = request.user.company
+    if company is None:
+        raise ValidationError({"company": ["Company context is required for company users."]})
+
+    shortlists = list(
+        CandidateShortlist.objects.filter(company=company)
+        .select_related("candidate_access", "created_by", "student")
+        .order_by("-updated_at", "-id")
+    )
+    return success_response(
+        {
+            "company_id": company.id,
+            "shortlist_count": len(shortlists),
+            "shortlists": [
+                {
+                    "candidate_access_id": shortlist.candidate_access_id,
+                    "student_id": shortlist.student_id,
+                    "display_name": shortlist.student.full_name,
+                    "created_at": shortlist.created_at.isoformat(),
+                    "created_by_name": shortlist.created_by.full_name,
+                    "source": shortlist.candidate_access.source,
+                }
+                for shortlist in shortlists
+            ],
+        }
+    )
+
+
+@api_endpoint(["POST", "DELETE"], authentication_required=True, roles=[User.Role.COMPANY])
+def company_candidate_shortlist_view(request, candidate_access_id: int):
+    candidate_access = get_candidate_review_access(request.user, candidate_access_id)
+    company = request.user.company
+    if company is None:
+        raise ValidationError({"company": ["Company context is required for company users."]})
+
+    shortlist_entry = CandidateShortlist.objects.filter(candidate_access=candidate_access).first()
+    if request.method == "DELETE":
+        if shortlist_entry is not None:
+            shortlist_entry.delete()
+        return success_response(
+            {
+                "candidate_access_id": candidate_access.id,
+                "is_shortlisted": False,
+                "shortlist": None,
+            }
+        )
+
+    created = False
+    if shortlist_entry is None:
+        shortlist_entry = CandidateShortlist(
+            candidate_access=candidate_access,
+            company=company,
+            student=candidate_access.student,
+            created_by=request.user,
+        )
+        shortlist_entry.full_clean()
+        shortlist_entry.save()
+        created = True
+
+    return success_response(
+        {
+            "candidate_access_id": candidate_access.id,
+            "is_shortlisted": True,
+            "shortlist": serialize_candidate_shortlist(shortlist_entry),
+        },
+        status=201 if created else 200,
+    )
+
+
+@api_endpoint(["GET", "POST"], authentication_required=True, roles=[User.Role.COMPANY])
+def company_candidate_notes_view(request, candidate_access_id: int):
+    candidate_access = get_candidate_review_access(request.user, candidate_access_id)
+    company = request.user.company
+    if company is None:
+        raise ValidationError({"company": ["Company context is required for company users."]})
+
+    if request.method == "GET":
+        notes = list(
+            CandidateNote.objects.filter(candidate_access=candidate_access)
+            .select_related("author")
+            .order_by("-created_at", "-id")
+        )
+        return success_response(
+            {
+                "candidate_access_id": candidate_access.id,
+                "notes": [serialize_candidate_note(note) for note in notes],
+            }
+        )
+
+    payload = validate_candidate_note_payload(parse_json_body(request))
+    note = CandidateNote(
+        candidate_access=candidate_access,
+        company=company,
+        student=candidate_access.student,
+        author=request.user,
+        body=payload["body"],
+    )
+    note.full_clean()
+    note.save()
+
+    notes = list(
+        CandidateNote.objects.filter(candidate_access=candidate_access)
+        .select_related("author")
+        .order_by("-created_at", "-id")
+    )
+    return success_response(
+        {
+            "candidate_access_id": candidate_access.id,
+            "notes": [serialize_candidate_note(note) for note in notes],
+        },
+        status=201,
+    )
+
+
+@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.COMPANY])
 def company_candidate_preview_view(request, candidate_access_id: int):
     candidate_access = get_candidate_review_access(request.user, candidate_access_id)
     visibility = get_visibility_settings(candidate_access.student)
+    shortlist_entry = CandidateShortlist.objects.filter(candidate_access=candidate_access).select_related("created_by").first()
+    notes = list(
+        CandidateNote.objects.filter(candidate_access=candidate_access)
+        .select_related("author")
+        .order_by("-created_at", "-id")
+    )
 
     if not visibility.share_profile_preview:
         return success_response(
@@ -595,6 +835,8 @@ def company_candidate_preview_view(request, candidate_access_id: int):
                 "source": candidate_access.source,
                 "visibility": "hidden",
                 "student": None,
+                "shortlist": serialize_candidate_shortlist(shortlist_entry),
+                "notes": [serialize_candidate_note(note) for note in notes],
                 "restrictions": hidden_restrictions("Student profile preview is hidden by privacy settings."),
             }
         )
@@ -619,6 +861,8 @@ def company_candidate_preview_view(request, candidate_access_id: int):
                 "english_level": student_profile.english_level,
                 "skills": [serialize_student_skill(student_skill) for student_skill in student_skills],
             },
+            "shortlist": serialize_candidate_shortlist(shortlist_entry),
+            "notes": [serialize_candidate_note(note) for note in notes],
             "restrictions": [],
         }
     )

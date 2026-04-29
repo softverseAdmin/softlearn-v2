@@ -84,6 +84,9 @@ export interface CompanyCandidate {
     learning_record: string
     exam_results: string
   }
+  is_shortlisted: boolean
+  notes_count: number
+  shortlist: CandidateShortlist | null
   updated_at: string
 }
 
@@ -97,6 +100,8 @@ export interface CompanyCandidatePreviewResponse {
   candidate_access_id: number
   source: string
   visibility: string
+  shortlist: CandidateShortlist | null
+  notes: CandidateNote[]
   student: {
     student_id: number
     name: string
@@ -114,4 +119,60 @@ export interface CompanyCandidateRecordResponse<TSummary> {
   visibility: string
   summary: TSummary
   restrictions: string[]
+}
+
+export interface CandidateShortlist {
+  id: number
+  created_at: string
+  created_by_name: string
+}
+
+export interface CandidateNote {
+  id: number
+  author_name: string
+  author_email: string
+  body: string
+  created_at: string
+}
+
+export interface CandidateNotesResponse {
+  candidate_access_id: number
+  notes: CandidateNote[]
+}
+
+export interface CandidateShortlistResponse {
+  candidate_access_id: number
+  is_shortlisted: boolean
+  shortlist: CandidateShortlist | null
+}
+
+export interface CompanyShortlistEntry {
+  candidate_access_id: number
+  student_id: number
+  display_name: string
+  created_at: string
+  created_by_name: string
+  source: string
+}
+
+export interface CompanyShortlistResponse {
+  company_id: number
+  shortlist_count: number
+  shortlists: CompanyShortlistEntry[]
+}
+
+export interface StudentVisibilityEvent {
+  id: number
+  share_profile_preview: boolean
+  share_learning_record: boolean
+  share_exam_results: boolean
+  created_at: string
+}
+
+export interface StudentPrivacySettings {
+  student_id: number
+  share_profile_preview: boolean
+  share_learning_record: boolean
+  share_exam_results: boolean
+  history: StudentVisibilityEvent[]
 }

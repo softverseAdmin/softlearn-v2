@@ -18,11 +18,13 @@ export const navigationItemsByRole: Record<UserRole, NavigationItem[]> = {
     { label: 'Skills', to: '/student/skills' },
     { label: 'Learning', to: '/student/learning' },
     { label: 'Exams', to: '/student/exams' },
+    { label: 'Privacy', to: '/student/privacy' },
   ],
   company: [
     { label: 'Dashboard', to: '/company' },
     { label: 'Profile', to: '/company/profile' },
     { label: 'Candidates', to: '/company/candidates' },
+    { label: 'Shortlist', to: '/company/shortlist' },
     { label: 'Vacancies', to: '/company/vacancies' },
   ],
   admin: [

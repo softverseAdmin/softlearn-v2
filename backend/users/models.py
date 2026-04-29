@@ -236,6 +236,115 @@ class CandidateReviewAccess(models.Model):
         return f"{self.company.name} -> {self.student.email} ({self.source})"
 
 
+class StudentVisibilityEvent(models.Model):
+    student = models.ForeignKey(
+        "User",
+        on_delete=models.CASCADE,
+        related_name="visibility_events",
+        limit_choices_to={"role": User.Role.STUDENT},
+    )
+    share_profile_preview = models.BooleanField()
+    share_learning_record = models.BooleanField()
+    share_exam_results = models.BooleanField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at", "-id"]
+
+    def clean(self) -> None:
+        super().clean()
+        if self.student.role != User.Role.STUDENT:
+            raise ValidationError({"student": ["Visibility events may only belong to student users."]})
+
+    def __str__(self) -> str:
+        return f"VisibilityEvent<{self.student.email}>"
+
+
+class CandidateShortlist(models.Model):
+    candidate_access = models.OneToOneField(
+        CandidateReviewAccess,
+        on_delete=models.CASCADE,
+        related_name="shortlist_entry",
+    )
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name="candidate_shortlists")
+    student = models.ForeignKey(
+        "User",
+        on_delete=models.CASCADE,
+        related_name="candidate_shortlists",
+        limit_choices_to={"role": User.Role.STUDENT},
+    )
+    created_by = models.ForeignKey(
+        "User",
+        on_delete=models.PROTECT,
+        related_name="created_candidate_shortlists",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-updated_at", "-id"]
+
+    def clean(self) -> None:
+        super().clean()
+        if self.student.role != User.Role.STUDENT:
+            raise ValidationError({"student": ["Shortlist entries may only reference student users."]})
+        if self.created_by.role != User.Role.COMPANY:
+            raise ValidationError({"created_by": ["Shortlist entries must be created by company users."]})
+        if self.candidate_access.company_id != self.company_id:
+            raise ValidationError({"company": ["Shortlist company must match the candidate access company."]})
+        if self.candidate_access.student_id != self.student_id:
+            raise ValidationError({"student": ["Shortlist student must match the candidate access student."]})
+        if self.created_by.company_id != self.company_id:
+            raise ValidationError({"created_by": ["Shortlist creator must belong to the same company."]})
+
+    def __str__(self) -> str:
+        return f"Shortlist<{self.company.name}:{self.student.email}>"
+
+
+class CandidateNote(models.Model):
+    candidate_access = models.ForeignKey(
+        CandidateReviewAccess,
+        on_delete=models.CASCADE,
+        related_name="notes",
+    )
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name="candidate_notes")
+    student = models.ForeignKey(
+        "User",
+        on_delete=models.CASCADE,
+        related_name="candidate_notes",
+        limit_choices_to={"role": User.Role.STUDENT},
+    )
+    author = models.ForeignKey(
+        "User",
+        on_delete=models.PROTECT,
+        related_name="candidate_notes_authored",
+    )
+    body = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at", "-id"]
+
+    def clean(self) -> None:
+        super().clean()
+        if self.student.role != User.Role.STUDENT:
+            raise ValidationError({"student": ["Candidate notes may only reference student users."]})
+        if self.author.role != User.Role.COMPANY:
+            raise ValidationError({"author": ["Candidate notes must be created by company users."]})
+        if self.candidate_access.company_id != self.company_id:
+            raise ValidationError({"company": ["Candidate note company must match the candidate access company."]})
+        if self.candidate_access.student_id != self.student_id:
+            raise ValidationError({"student": ["Candidate note student must match the candidate access student."]})
+        if self.author.company_id != self.company_id:
+            raise ValidationError({"author": ["Candidate note author must belong to the same company."]})
+        if not self.body.strip():
+            raise ValidationError({"body": ["Candidate notes cannot be blank."]})
+
+    def __str__(self) -> str:
+        return f"CandidateNote<{self.company.name}:{self.student.email}>"
+
+
 class StudentSkill(models.Model):
     class Proficiency(models.TextChoices):
         BEGINNER = "beginner", "Beginner"

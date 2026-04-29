@@ -11,7 +11,7 @@ const contentByRole = {
       { title: 'Skills profile', href: '/student/skills' },
       { title: 'Learning progress', href: '/student/learning' },
       { title: 'Exam history', href: '/student/exams' },
-      { title: 'Job matches', href: '/student' },
+      { title: 'Privacy controls', href: '/student/privacy' },
     ],
   },
   company: {
@@ -21,7 +21,7 @@ const contentByRole = {
       { title: 'Company profile', href: '/company/profile' },
       { title: 'Vacancy management', href: '/company/vacancies' },
       { title: 'Candidate review', href: '/company/candidates' },
-      { title: 'Interview workflow', href: '/company' },
+      { title: 'Shortlisted candidates', href: '/company/shortlist' },
     ],
   },
   admin: {
