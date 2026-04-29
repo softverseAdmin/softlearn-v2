@@ -19,6 +19,7 @@ from users.models import (
     StudentVisibilityEvent,
     StudentVisibilitySettings,
     User,
+    Vacancy,
 )
 
 
@@ -159,3 +160,10 @@ class NotificationDeliveryAdmin(admin.ModelAdmin):
     list_display = ("id", "notification", "channel", "status", "created_at")
     list_filter = ("channel", "status")
     search_fields = ("notification__recipient__email", "payload_summary")
+
+
+@admin.register(Vacancy)
+class VacancyAdmin(admin.ModelAdmin):
+    list_display = ("id", "title", "company", "employment_type", "experience_level", "location", "status", "updated_at")
+    list_filter = ("status", "employment_type", "experience_level")
+    search_fields = ("title", "company__name", "location", "description")

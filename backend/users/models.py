@@ -11,6 +11,7 @@ from users.managers import UserManager
 class Company(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, default="")
+    is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -19,6 +20,41 @@ class Company(models.Model):
 
     def __str__(self) -> str:
         return self.name
+
+
+class Vacancy(models.Model):
+    class Status(models.TextChoices):
+        DRAFT = "draft", "Draft"
+        ACTIVE = "active", "Active"
+        INACTIVE = "inactive", "Inactive"
+
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name="vacancies")
+    created_by = models.ForeignKey(
+        "User",
+        on_delete=models.PROTECT,
+        related_name="created_vacancies",
+    )
+    title = models.CharField(max_length=255)
+    description = models.TextField()
+    employment_type = models.CharField(max_length=100)
+    experience_level = models.CharField(max_length=100)
+    location = models.CharField(max_length=100)
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.DRAFT)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-updated_at", "-id"]
+
+    def clean(self) -> None:
+        super().clean()
+        if self.created_by.role != User.Role.COMPANY:
+            raise ValidationError({"created_by": ["Vacancies must be created by company users."]})
+        if self.created_by.company_id != self.company_id:
+            raise ValidationError({"created_by": ["Vacancy creator must belong to the same company."]})
+
+    def __str__(self) -> str:
+        return f"Vacancy<{self.company.name}:{self.title}>"
 
 
 class StudentProfile(models.Model):

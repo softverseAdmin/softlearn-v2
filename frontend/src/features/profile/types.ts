@@ -15,6 +15,25 @@ export interface CompanyProfile {
   profile_complete: boolean
 }
 
+export interface VacancyRecord {
+  vacancy_id: number
+  company_id: number
+  company_name: string
+  title: string
+  description: string
+  employment_type: string
+  experience_level: string
+  location: string
+  status: string
+  created_by_name: string
+  created_at: string
+  updated_at: string
+}
+
+export interface CompanyVacanciesResponse {
+  vacancies: VacancyRecord[]
+}
+
 export interface SkillOption {
   id: number
   name: string
