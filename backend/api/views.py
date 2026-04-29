@@ -7,7 +7,17 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 
 from common.decorators import api_endpoint
 from common.http import csrf_response_payload, error_response, parse_json_body, success_response
-from users.models import Company, Skill, StudentProfile, StudentSkill, User
+from users.models import (
+    CandidateReviewAccess,
+    Company,
+    ExamResult,
+    LearningRecord,
+    Skill,
+    StudentProfile,
+    StudentSkill,
+    StudentVisibilitySettings,
+    User,
+)
 
 
 def serialize_user(user: User) -> dict:
@@ -98,6 +108,149 @@ def serialize_company_profile(user: User) -> dict:
         "description": company.description,
         "profile_complete": bool(company.name.strip() and company.description.strip()),
     }
+
+
+def get_visibility_settings(user: User) -> StudentVisibilitySettings:
+    settings, _ = StudentVisibilitySettings.objects.get_or_create(student=user)
+    return settings
+
+
+def serialize_learning_record(record: LearningRecord) -> dict:
+    return {
+        "id": record.id,
+        "course_title": record.course_title,
+        "category": record.category,
+        "progress_percent": record.progress_percent,
+        "status": record.status,
+        "completed_at": record.completed_at.isoformat() if record.completed_at else None,
+    }
+
+
+def serialize_learning_summary(user: User) -> dict:
+    records = list(LearningRecord.objects.filter(student=user).order_by("course_title", "id"))
+    return {
+        "student_id": user.id,
+        "total_courses": len(records),
+        "completed_courses": sum(1 for record in records if record.status == LearningRecord.Status.COMPLETED),
+        "in_progress_courses": sum(1 for record in records if record.status == LearningRecord.Status.IN_PROGRESS),
+        "records": [serialize_learning_record(record) for record in records],
+    }
+
+
+def serialize_exam_result(result: ExamResult) -> dict:
+    return {
+        "id": result.id,
+        "exam_title": result.exam_title,
+        "category": result.category,
+        "score_percent": result.score_percent,
+        "passed": result.passed,
+        "attempt_number": result.attempt_number,
+        "taken_at": result.taken_at.isoformat(),
+    }
+
+
+def serialize_exam_results_summary(user: User) -> dict:
+    results = list(ExamResult.objects.filter(student=user).order_by("-taken_at", "exam_title", "id"))
+    average_score = None
+    if results:
+        average_score = round(sum(result.score_percent for result in results) / len(results), 1)
+
+    return {
+        "student_id": user.id,
+        "total_results": len(results),
+        "passed_results": sum(1 for result in results if result.passed),
+        "average_score": average_score,
+        "results": [serialize_exam_result(result) for result in results],
+    }
+
+
+def build_candidate_strengths(user: User) -> list[str]:
+    strengths: list[str] = []
+    skill_names = list(
+        StudentSkill.objects.filter(student=user)
+        .select_related("skill")
+        .order_by("skill__name")
+        .values_list("skill__name", flat=True)
+    )
+    profile = get_student_profile(user)
+
+    if skill_names:
+        strengths.append(f"Skills shared: {', '.join(skill_names[:3])}")
+    if profile.japanese_level:
+        strengths.append(f"Japanese level: {profile.japanese_level}")
+    if profile.english_level:
+        strengths.append(f"English level: {profile.english_level}")
+
+    return strengths[:3]
+
+
+def build_candidate_gaps(user: User) -> list[str]:
+    gaps: list[str] = []
+    profile = get_student_profile(user)
+    has_skills = StudentSkill.objects.filter(student=user).exists()
+
+    if not has_skills:
+        gaps.append("No skills shared yet.")
+    if not profile.desired_job_type:
+        gaps.append("Desired job type is not set.")
+    if not profile.desired_work_location:
+        gaps.append("Desired work location is not set.")
+
+    return gaps[:3]
+
+
+def visibility_state(is_visible: bool) -> str:
+    return "visible" if is_visible else "hidden"
+
+
+def hidden_restrictions(message: str) -> list[str]:
+    return [message]
+
+
+def serialize_company_candidate(access: CandidateReviewAccess) -> dict:
+    settings = get_visibility_settings(access.student)
+    profile_visible = settings.share_profile_preview
+    student_profile = get_student_profile(access.student)
+    top_skills = list(
+        StudentSkill.objects.filter(student=access.student)
+        .select_related("skill")
+        .order_by("skill__name")
+        .values_list("skill__name", flat=True)[:3]
+    )
+
+    return {
+        "candidate_access_id": access.id,
+        "source": access.source,
+        "student_id": access.student_id,
+        "display_name": access.student.full_name if profile_visible else "Private candidate",
+        "desired_job_type": student_profile.desired_job_type if profile_visible else "",
+        "desired_work_location": student_profile.desired_work_location if profile_visible else "",
+        "top_skills": top_skills if profile_visible else [],
+        "strengths": build_candidate_strengths(access.student) if profile_visible else [],
+        "gaps": build_candidate_gaps(access.student) if profile_visible else [],
+        "visibility": {
+            "profile_preview": visibility_state(settings.share_profile_preview),
+            "learning_record": visibility_state(settings.share_learning_record),
+            "exam_results": visibility_state(settings.share_exam_results),
+        },
+        "updated_at": access.updated_at.isoformat(),
+    }
+
+
+def get_candidate_review_access(user: User, candidate_access_id: int) -> CandidateReviewAccess:
+    company = user.company
+    if company is None:
+        raise ValidationError({"company": ["Company context is required for company users."]})
+
+    candidate_access = (
+        CandidateReviewAccess.objects.filter(company=company, is_active=True, pk=candidate_access_id)
+        .select_related("student", "company")
+        .first()
+    )
+    if candidate_access is None:
+        raise ValidationError({"candidate_access_id": ["Approved candidate context was not found."]})
+
+    return candidate_access
 
 
 def validate_student_profile_payload(payload: dict) -> dict:
@@ -398,6 +551,137 @@ def student_skill_detail_view(request, student_skill_id: int):
     student_skill.save(update_fields=["skill", "proficiency_level", "updated_at"])
 
     return success_response(serialize_student_skills(request.user))
+
+
+@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.STUDENT])
+def student_learning_summary_view(request):
+    return success_response(serialize_learning_summary(request.user))
+
+
+@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.STUDENT])
+def student_exam_results_view(request):
+    return success_response(serialize_exam_results_summary(request.user))
+
+
+@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.COMPANY])
+def company_candidates_view(request):
+    company = request.user.company
+    if company is None:
+        raise ValidationError({"company": ["Company context is required for company users."]})
+
+    candidates = list(
+        CandidateReviewAccess.objects.filter(company=company, is_active=True)
+        .select_related("student", "company")
+        .order_by("-updated_at", "-id")
+    )
+    return success_response(
+        {
+            "company_id": company.id,
+            "candidate_count": len(candidates),
+            "candidates": [serialize_company_candidate(candidate) for candidate in candidates],
+        }
+    )
+
+
+@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.COMPANY])
+def company_candidate_preview_view(request, candidate_access_id: int):
+    candidate_access = get_candidate_review_access(request.user, candidate_access_id)
+    visibility = get_visibility_settings(candidate_access.student)
+
+    if not visibility.share_profile_preview:
+        return success_response(
+            {
+                "candidate_access_id": candidate_access.id,
+                "source": candidate_access.source,
+                "visibility": "hidden",
+                "student": None,
+                "restrictions": hidden_restrictions("Student profile preview is hidden by privacy settings."),
+            }
+        )
+
+    student_profile = get_student_profile(candidate_access.student)
+    student_skills = list(
+        StudentSkill.objects.filter(student=candidate_access.student)
+        .select_related("skill")
+        .order_by("skill__name")
+    )
+    return success_response(
+        {
+            "candidate_access_id": candidate_access.id,
+            "source": candidate_access.source,
+            "visibility": "visible",
+            "student": {
+                "student_id": candidate_access.student_id,
+                "name": candidate_access.student.full_name,
+                "desired_job_type": student_profile.desired_job_type,
+                "desired_work_location": student_profile.desired_work_location,
+                "japanese_level": student_profile.japanese_level,
+                "english_level": student_profile.english_level,
+                "skills": [serialize_student_skill(student_skill) for student_skill in student_skills],
+            },
+            "restrictions": [],
+        }
+    )
+
+
+@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.COMPANY])
+def company_candidate_learning_record_view(request, candidate_access_id: int):
+    candidate_access = get_candidate_review_access(request.user, candidate_access_id)
+    visibility = get_visibility_settings(candidate_access.student)
+    if not visibility.share_learning_record:
+        return success_response(
+            {
+                "candidate_access_id": candidate_access.id,
+                "visibility": "hidden",
+                "summary": {
+                    "student_id": candidate_access.student_id,
+                    "total_courses": 0,
+                    "completed_courses": 0,
+                    "in_progress_courses": 0,
+                    "records": [],
+                },
+                "restrictions": hidden_restrictions("Student learning record is hidden by privacy settings."),
+            }
+        )
+
+    return success_response(
+        {
+            "candidate_access_id": candidate_access.id,
+            "visibility": "visible",
+            "summary": serialize_learning_summary(candidate_access.student),
+            "restrictions": [],
+        }
+    )
+
+
+@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.COMPANY])
+def company_candidate_exam_results_view(request, candidate_access_id: int):
+    candidate_access = get_candidate_review_access(request.user, candidate_access_id)
+    visibility = get_visibility_settings(candidate_access.student)
+    if not visibility.share_exam_results:
+        return success_response(
+            {
+                "candidate_access_id": candidate_access.id,
+                "visibility": "hidden",
+                "summary": {
+                    "student_id": candidate_access.student_id,
+                    "total_results": 0,
+                    "passed_results": 0,
+                    "average_score": None,
+                    "results": [],
+                },
+                "restrictions": hidden_restrictions("Student exam results are hidden until explicit sharing is allowed."),
+            }
+        )
+
+    return success_response(
+        {
+            "candidate_access_id": candidate_access.id,
+            "visibility": "visible",
+            "summary": serialize_exam_results_summary(candidate_access.student),
+            "restrictions": [],
+        }
+    )
 
 
 @api_endpoint(["GET"], authentication_required=True)

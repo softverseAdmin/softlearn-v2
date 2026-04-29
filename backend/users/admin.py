@@ -1,7 +1,17 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 
-from users.models import Company, Skill, StudentProfile, StudentSkill, User
+from users.models import (
+    CandidateReviewAccess,
+    Company,
+    ExamResult,
+    LearningRecord,
+    Skill,
+    StudentProfile,
+    StudentSkill,
+    StudentVisibilitySettings,
+    User,
+)
 
 
 @admin.register(Company)
@@ -60,3 +70,31 @@ class StudentSkillAdmin(admin.ModelAdmin):
     list_display = ("id", "student", "skill", "proficiency_level", "updated_at")
     list_filter = ("proficiency_level",)
     search_fields = ("student__email", "student__full_name", "skill__name")
+
+
+@admin.register(StudentVisibilitySettings)
+class StudentVisibilitySettingsAdmin(admin.ModelAdmin):
+    list_display = ("id", "student", "share_profile_preview", "share_learning_record", "share_exam_results", "updated_at")
+    list_filter = ("share_profile_preview", "share_learning_record", "share_exam_results")
+    search_fields = ("student__email", "student__full_name")
+
+
+@admin.register(LearningRecord)
+class LearningRecordAdmin(admin.ModelAdmin):
+    list_display = ("id", "student", "course_title", "category", "progress_percent", "status", "updated_at")
+    list_filter = ("status", "category")
+    search_fields = ("student__email", "student__full_name", "course_title", "category")
+
+
+@admin.register(ExamResult)
+class ExamResultAdmin(admin.ModelAdmin):
+    list_display = ("id", "student", "exam_title", "category", "score_percent", "passed", "taken_at")
+    list_filter = ("passed", "category")
+    search_fields = ("student__email", "student__full_name", "exam_title", "category")
+
+
+@admin.register(CandidateReviewAccess)
+class CandidateReviewAccessAdmin(admin.ModelAdmin):
+    list_display = ("id", "company", "student", "source", "is_active", "updated_at")
+    list_filter = ("source", "is_active")
+    search_fields = ("company__name", "student__email", "student__full_name")
