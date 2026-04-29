@@ -1,0 +1,38 @@
+import type { AuthUser, UserRole } from '../auth/types'
+
+export type NavigationItem = {
+  label: string
+  to: string
+}
+
+export const roleHomePaths: Record<UserRole, string> = {
+  student: '/student',
+  company: '/company',
+  admin: '/admin',
+}
+
+export const navigationItemsByRole: Record<UserRole, NavigationItem[]> = {
+  student: [
+    { label: 'Dashboard', to: '/student' },
+    { label: 'Profile', to: '/student/profile' },
+    { label: 'Learning', to: '/student/learning' },
+  ],
+  company: [
+    { label: 'Dashboard', to: '/company' },
+    { label: 'Candidates', to: '/company/candidates' },
+    { label: 'Vacancies', to: '/company/vacancies' },
+  ],
+  admin: [
+    { label: 'Dashboard', to: '/admin' },
+    { label: 'Users', to: '/admin/users' },
+    { label: 'Operations', to: '/admin/operations' },
+  ],
+}
+
+export function getHomePath(user: AuthUser | null) {
+  if (!user) {
+    return '/login'
+  }
+
+  return roleHomePaths[user.role]
+}

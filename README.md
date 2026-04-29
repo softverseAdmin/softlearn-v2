@@ -106,6 +106,33 @@ This repository is an **AI-DLC-first** workspace for a learning and job-matching
 - User-role invariants are enforced at the model level: company users must belong to a company, while student and admin users must not.
 - CI sets an explicit Django secret key for backend validation instead of relying on development defaults.
 
+## Frontend quick start
+
+1. Install frontend dependencies:
+   ```bash
+   cd frontend
+   npm install
+   ```
+2. Copy optional frontend env defaults:
+   ```bash
+   cp .env.example .env.local
+   ```
+3. Start the frontend:
+   ```bash
+   npm run dev
+   ```
+4. Build the frontend:
+   ```bash
+   npm run build
+   ```
+
+### Frontend foundation notes
+
+- The frontend lives in `frontend/` and uses **React + Vite + TypeScript**.
+- It restores the authenticated Django session on app load through `/api/v1/auth/session`.
+- Protected writes stay CSRF-aware through the backend `/api/v1/auth/csrf` endpoint.
+- The app uses one shared router with public, protected, student, company, and admin route areas.
+
 ## Important guardrail
 
 Keep implementation aligned with the accepted ADR-001 stack, the completed AI-DLC unit docs, session-based auth, `/api/v1/`, privacy-aware authorization, and deterministic matching rules.
