@@ -313,11 +313,18 @@ class ApiFoundationTests(TestCase):
         StudentSkill.objects.create(student=student, skill=skill, proficiency_level=StudentSkill.Proficiency.INTERMEDIATE)
         LearningRecord.objects.create(
             student=student,
-            course_title="Python Basics",
+            course_title="Web Fundamentals",
             category="engineering",
             progress_percent=100,
             status=LearningRecord.Status.COMPLETED,
             completed_at=timezone.now(),
+        )
+        LearningRecord.objects.create(
+            student=student,
+            course_title="API Integration",
+            category="engineering",
+            progress_percent=45,
+            status=LearningRecord.Status.IN_PROGRESS,
         )
         ExamResult.objects.create(
             student=student,
@@ -328,16 +335,6 @@ class ApiFoundationTests(TestCase):
             attempt_number=1,
             taken_at=timezone.now(),
         )
-        Notification.objects.create(
-            recipient=student,
-            notification_type=Notification.Type.EXAM_RESULT_AVAILABLE,
-            title="Exam result available",
-            message="A result is ready.",
-            link="/student/exams",
-            entity_type="exam_result",
-            entity_id=1,
-            event_key="dashboard",
-        )
         client = Client()
         client.force_login(student)
 
@@ -345,11 +342,14 @@ class ApiFoundationTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         body = response.json()["data"]
-        self.assertEqual(body["metrics"]["skill_count"], 1)
-        self.assertEqual(body["metrics"]["completed_courses"], 1)
-        self.assertEqual(body["metrics"]["passed_results"], 1)
-        self.assertEqual(body["metrics"]["unread_notifications"], 2)
-        self.assertEqual(body["highlights"]["average_score"], 88.0)
+        self.assertEqual(body["student_name"], "Student User")
+        self.assertEqual(body["continue_learning"]["topic_title"], "API Integration")
+        self.assertEqual(body["continue_learning"]["progress_percent"], 45)
+        self.assertEqual(body["next_action"]["action_type"], "complete_topic")
+        self.assertEqual(body["progress_overview"]["completed_topics"], 1)
+        self.assertEqual(body["progress_overview"]["exam_average"], 88.0)
+        self.assertEqual(body["progress_overview"]["current_level"], "Intermediate")
+        self.assertTrue(any(node["is_current"] for node in body["roadmap_preview"]["nodes"]))
 
     def test_company_dashboard_is_company_scoped(self):
         company = Company.objects.create(name="Softverse", description="Hiring platform team")

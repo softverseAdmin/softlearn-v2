@@ -8,7 +8,7 @@ export function PublicLayout() {
           Softlearn
         </NavLink>
         <nav className="public-nav">
-          <NavLink to="/login">Login</NavLink>
+          <NavLink to="/login">Log in</NavLink>
           <NavLink to="/signup">Sign up</NavLink>
         </nav>
       </header>

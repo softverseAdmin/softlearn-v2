@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import type { AdminDashboardResponse, CompanyDashboardResponse, StudentDashboardResponse } from '../features/dashboard/types'
+import { StudentDashboardRedesign } from '../features/dashboard/StudentDashboardRedesign'
 import { useAuth } from '../auth/useAuth'
 import { ApiError, apiRequest } from '../lib/api'
 
@@ -38,8 +39,6 @@ const contentByRole = {
       { title: 'Notifications', href: '/admin/notifications' },
       { title: 'User management', href: '/admin/users' },
       { title: 'Company management', href: '/admin/operations' },
-      { title: 'Course and exam admin', href: '/admin/operations' },
-      { title: 'Operational review', href: '/admin/operations' },
     ],
   },
 } as const
@@ -100,91 +99,6 @@ export function DashboardPage({ role }: DashboardPageProps) {
       active = false
     }
   }, [role])
-
-  function renderStudentDashboard(studentData: StudentDashboardResponse) {
-    return (
-      <>
-        <div className="card-grid">
-          <article className="card info-card">
-            <h2>Profile readiness</h2>
-            <p className="metric">{studentData.metrics.profile_complete ? 'Ready' : 'In progress'}</p>
-            <p className="muted">{studentData.metrics.skill_count} skills added</p>
-          </article>
-          <article className="card info-card">
-            <h2>Learning progress</h2>
-            <p className="metric">{studentData.metrics.completed_courses}/{studentData.metrics.total_courses}</p>
-            <p className="muted">Courses completed</p>
-          </article>
-          <article className="card info-card">
-            <h2>Exam results</h2>
-            <p className="metric">{studentData.metrics.passed_results}/{studentData.metrics.total_results}</p>
-            <p className="muted">Results passed</p>
-          </article>
-          <article className="card info-card">
-            <h2>Interviews</h2>
-            <p className="metric">{studentData.metrics.active_interviews}</p>
-            <p className="muted">Active interviews</p>
-          </article>
-          <article className="card info-card">
-            <h2>Notifications</h2>
-            <p className="metric">{studentData.metrics.unread_notifications}</p>
-            <p className="muted">Unread updates</p>
-          </article>
-        </div>
-        <div className="page-split">
-          <div className="card stack-card">
-            <h2>Highlights</h2>
-            <p className="muted">Average score: {studentData.highlights.average_score ?? 'No results yet'}</p>
-            <p className="muted">
-              Next interview: {studentData.highlights.next_interview_at ? new Date(studentData.highlights.next_interview_at).toLocaleString() : 'No confirmed interview yet'}
-            </p>
-            <p className="muted">Exam visibility to companies: {studentData.highlights.share_exam_results ? 'Shared' : 'Private'}</p>
-          </div>
-          <div className="card stack-card">
-            <h2>Quick links</h2>
-            {content.links.map((item) => (
-              <Link key={item.href} className="secondary-button inline-button" to={item.href}>
-                {item.title}
-              </Link>
-            ))}
-          </div>
-        </div>
-        <div className="page-split">
-          <div className="card stack-card">
-            <h2>Recent interviews</h2>
-            <div className="stack-list">
-              {studentData.recent_interviews.map((interview) => (
-                <article key={interview.id} className="skill-card">
-                  <div className="skill-card-header">
-                    <div>
-                      <h3>{interview.purpose}</h3>
-                      <p className="muted">{interview.status}</p>
-                    </div>
-                    <Link className="secondary-button inline-button" to={`/student/interviews/${interview.id}`}>
-                      Open
-                    </Link>
-                  </div>
-                </article>
-              ))}
-              {studentData.recent_interviews.length === 0 ? <p className="muted">No interviews yet.</p> : null}
-            </div>
-          </div>
-          <div className="card stack-card">
-            <h2>Recent notifications</h2>
-            <div className="stack-list">
-              {studentData.recent_notifications.map((notification) => (
-                <article key={notification.id} className="skill-card">
-                  <h3>{notification.title}</h3>
-                  <p className="muted">{notification.message}</p>
-                </article>
-              ))}
-              {studentData.recent_notifications.length === 0 ? <p className="muted">No notifications yet.</p> : null}
-            </div>
-          </div>
-        </div>
-      </>
-    )
-  }
 
   function renderCompanyDashboard(companyData: CompanyDashboardResponse) {
     return (
@@ -374,14 +288,25 @@ export function DashboardPage({ role }: DashboardPageProps) {
     )
   }
 
+  if (role === 'student') {
+    return (
+      <StudentDashboardRedesign
+        userName={user?.name ?? 'Student'}
+        loading={loading}
+        error={error}
+        data={(data as StudentDashboardResponse | null) ?? null}
+      />
+    )
+  }
+
   return (
     <section className="page">
-      <div className="page-header">
-        <div>
-          <p className="eyebrow">{role} area</p>
-          <h1>{content.title}</h1>
-          <p className="lead">{content.description}</p>
-        </div>
+        <div className="page-header">
+          <div>
+          <p className="eyebrow">{role} workspace</p>
+            <h1>{content.title}</h1>
+            <p className="lead">{content.description}</p>
+          </div>
         <div className="card compact-card">
           <strong>Session status</strong>
           <p className="muted">{user?.email}</p>
@@ -390,7 +315,6 @@ export function DashboardPage({ role }: DashboardPageProps) {
       </div>
       {error ? <div className="card form-error">{error}</div> : null}
       {loading ? <div className="card">Loading dashboard…</div> : null}
-      {!loading && !error && data && role === 'student' ? renderStudentDashboard(data as StudentDashboardResponse) : null}
       {!loading && !error && data && role === 'company' ? renderCompanyDashboard(data as CompanyDashboardResponse) : null}
       {!loading && !error && data && role === 'admin' ? renderAdminDashboard(data as AdminDashboardResponse) : null}
     </section>

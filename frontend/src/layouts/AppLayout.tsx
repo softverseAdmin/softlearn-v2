@@ -39,7 +39,7 @@ export function AppLayout() {
             <p className="muted">{user.email}</p>
           </div>
           <button className="secondary-button" type="button" onClick={() => void logout()}>
-            Logout
+            Log out
           </button>
         </header>
         {globalError ? (

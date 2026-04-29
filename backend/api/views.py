@@ -362,6 +362,99 @@ def recent_notifications_for_user(user: User, *, limit: int = 5) -> list[dict]:
     return [serialize_notification(notification) for notification in notifications]
 
 
+def roadmap_title_for_record(record: LearningRecord) -> str:
+    if record.category.strip():
+        return f"{record.category.replace('_', ' ').title()} roadmap"
+    return "Current roadmap"
+
+
+def roadmap_state_for_learning_record(record: LearningRecord) -> str:
+    if record.status == LearningRecord.Status.COMPLETED:
+        return "completed"
+    if record.status == LearningRecord.Status.IN_PROGRESS:
+        return "in_progress"
+    return "not_started"
+
+
+def derive_student_level(*, completed_topics: int, skill_count: int, exam_average: float | None) -> str:
+    if completed_topics >= 5 or (exam_average is not None and exam_average >= 90 and skill_count >= 3):
+        return "Advanced"
+    if completed_topics >= 2 or skill_count >= 2 or (exam_average is not None and exam_average >= 75):
+        return "Intermediate"
+    if completed_topics >= 1 or skill_count >= 1:
+        return "Beginner"
+    return "Getting started"
+
+
+def build_student_dashboard_roadmap_nodes(
+    *,
+    learning_records: list[LearningRecord],
+    completed_courses: int,
+    passed_results: int,
+    skill_count: int,
+    profile_complete: bool,
+) -> list[dict]:
+    nodes: list[dict] = []
+
+    preview_records = learning_records[:3]
+    for record in preview_records:
+        nodes.append(
+            {
+                "id": f"topic-{record.id}",
+                "title": record.course_title,
+                "subtitle": roadmap_title_for_record(record),
+                "state": roadmap_state_for_learning_record(record),
+                "progress_percent": 100 if record.status == LearningRecord.Status.COMPLETED else record.progress_percent,
+                "cta_href": "/student/learning",
+                "is_current": False,
+            }
+        )
+
+    exam_state = "locked"
+    if completed_courses > 0:
+        exam_state = "completed" if passed_results >= completed_courses else "exam_required"
+    nodes.append(
+        {
+            "id": "validation-exam",
+            "title": "Validation exam",
+            "subtitle": "Score 90% or higher to unlock the next topic",
+            "state": exam_state,
+            "progress_percent": 100 if exam_state == "completed" else None,
+            "cta_href": "/student/exams",
+            "is_current": False,
+        }
+    )
+
+    skills_state = "locked"
+    if passed_results > 0:
+        if skill_count == 0:
+            skills_state = "not_started"
+        else:
+            skills_state = "completed" if profile_complete else "in_progress"
+    nodes.append(
+        {
+            "id": "skill-readiness",
+            "title": "Skill readiness",
+            "subtitle": "Keep your validated skill profile ready for hiring",
+            "state": skills_state,
+            "progress_percent": 100 if skills_state == "completed" else None,
+            "cta_href": "/student/skills",
+            "is_current": False,
+        }
+    )
+
+    current_assigned = False
+    for node in nodes:
+        if node["state"] in {"in_progress", "not_started", "exam_required"} and not current_assigned:
+            node["is_current"] = True
+            current_assigned = True
+
+    if not current_assigned and nodes:
+        nodes[-1]["is_current"] = True
+
+    return nodes
+
+
 def serialize_admin_user_summary(user: User) -> dict:
     return {
         "user_id": user.id,
@@ -1633,48 +1726,126 @@ def student_dashboard_view(request):
     skills = serialize_student_skills(request.user)
     learning = serialize_learning_summary(request.user)
     exams = serialize_exam_results_summary(request.user)
-    privacy = serialize_student_privacy_settings(request.user)
-    interviews = list(
-        Interview.objects.filter(student=request.user)
-        .select_related("student", "company", "candidate_access", "requested_by")
-        .order_by("-updated_at", "-id")
+    learning_records = list(
+        LearningRecord.objects.filter(student=request.user)
+        .order_by("created_at", "id")
     )
-    unread_notifications = Notification.objects.filter(recipient=request.user, read_at__isnull=True).count()
-    next_interview = (
-        Interview.objects.filter(
-            student=request.user,
-            status=Interview.Status.CONFIRMED,
-            scheduled_start__gte=timezone.now(),
-        )
-        .order_by("scheduled_start", "id")
+    current_learning = (
+        LearningRecord.objects.filter(student=request.user, status=LearningRecord.Status.IN_PROGRESS)
+        .order_by("-updated_at", "-id")
         .first()
     )
+    if current_learning is None:
+        current_learning = (
+            LearningRecord.objects.filter(student=request.user, status=LearningRecord.Status.NOT_STARTED)
+            .order_by("created_at", "id")
+            .first()
+        )
+    if current_learning is None:
+        current_learning = (
+            LearningRecord.objects.filter(student=request.user, status=LearningRecord.Status.COMPLETED)
+            .order_by("-completed_at", "-id")
+            .first()
+        )
+
+    completed_courses = learning["completed_courses"]
+    passed_results = exams["passed_results"]
+    skill_count = skills["skill_count"]
+
+    if current_learning is None:
+        continue_learning = {
+            "roadmap_title": "Learning roadmap",
+            "topic_title": "Start your first topic",
+            "progress_percent": 0,
+            "status": "not_started",
+            "cta_label": "Start learning",
+            "cta_href": "/student/learning",
+        }
+        next_action = {
+            "action_type": "start_learning",
+            "title": "Start your first roadmap topic",
+            "description": "Begin learning so you can unlock topic validation and build your hiring-ready skill profile.",
+            "cta_label": "Start learning",
+            "cta_href": "/student/learning",
+            "requirement": None,
+        }
+    elif current_learning.status != LearningRecord.Status.COMPLETED:
+        continue_learning = {
+            "roadmap_title": roadmap_title_for_record(current_learning),
+            "topic_title": current_learning.course_title,
+            "progress_percent": current_learning.progress_percent,
+            "status": roadmap_state_for_learning_record(current_learning),
+            "cta_label": "Continue learning" if current_learning.status == LearningRecord.Status.IN_PROGRESS else "Start topic",
+            "cta_href": "/student/learning",
+        }
+        next_action = {
+            "action_type": "complete_topic" if current_learning.status == LearningRecord.Status.IN_PROGRESS else "start_topic",
+            "title": "Complete your current topic" if current_learning.status == LearningRecord.Status.IN_PROGRESS else "Start your next topic",
+            "description": f"Finish {current_learning.course_title} to stay on track in your roadmap.",
+            "cta_label": "Continue learning" if current_learning.status == LearningRecord.Status.IN_PROGRESS else "Start topic",
+            "cta_href": "/student/learning",
+            "requirement": None,
+        }
+    elif completed_courses > passed_results:
+        continue_learning = {
+            "roadmap_title": roadmap_title_for_record(current_learning),
+            "topic_title": current_learning.course_title,
+            "progress_percent": 100,
+            "status": "completed",
+            "cta_label": "Review topic",
+            "cta_href": "/student/learning",
+        }
+        next_action = {
+            "action_type": "take_exam",
+            "title": "Take the validation exam",
+            "description": f"You completed {current_learning.course_title}. Pass the exam to unlock the next topic in the roadmap.",
+            "cta_label": "Take exam",
+            "cta_href": "/student/exams",
+            "requirement": "90% required to unlock the next topic",
+        }
+    else:
+        continue_learning = {
+            "roadmap_title": roadmap_title_for_record(current_learning),
+            "topic_title": current_learning.course_title,
+            "progress_percent": 100,
+            "status": "completed",
+            "cta_label": "Continue roadmap",
+            "cta_href": "/student/learning",
+        }
+        next_action = {
+            "action_type": "continue_roadmap",
+            "title": "Move to the next roadmap topic",
+            "description": "Your latest topic has been validated. Keep building momentum with the next learning step.",
+            "cta_label": "Continue learning",
+            "cta_href": "/student/learning",
+            "requirement": None,
+        }
 
     return success_response(
         {
             "student_id": request.user.id,
-            "metrics": {
-                "profile_complete": profile["profile_complete"],
-                "skill_count": skills["skill_count"],
-                "total_courses": learning["total_courses"],
-                "completed_courses": learning["completed_courses"],
-                "total_results": exams["total_results"],
-                "passed_results": exams["passed_results"],
-                "interview_count": len(interviews),
-                "active_interviews": sum(
-                    1
-                    for interview in interviews
-                    if interview.status in {Interview.Status.REQUESTED, Interview.Status.CONFIRMED, Interview.Status.RESCHEDULED}
+            "student_name": request.user.full_name,
+            "header_message": "Continue your roadmap and unlock your next skill.",
+            "continue_learning": continue_learning,
+            "next_action": next_action,
+            "progress_overview": {
+                "completed_topics": completed_courses,
+                "exam_average": exams["average_score"],
+                "current_level": derive_student_level(
+                    completed_topics=completed_courses,
+                    skill_count=skill_count,
+                    exam_average=exams["average_score"],
                 ),
-                "unread_notifications": unread_notifications,
             },
-            "highlights": {
-                "average_score": exams["average_score"],
-                "next_interview_at": next_interview.scheduled_start.isoformat() if next_interview and next_interview.scheduled_start else None,
-                "share_exam_results": privacy["share_exam_results"],
+            "roadmap_preview": {
+                "nodes": build_student_dashboard_roadmap_nodes(
+                    learning_records=learning_records,
+                    completed_courses=completed_courses,
+                    passed_results=passed_results,
+                    skill_count=skill_count,
+                    profile_complete=profile["profile_complete"],
+                )
             },
-            "recent_interviews": [serialize_interview(interview) for interview in interviews[:3]],
-            "recent_notifications": recent_notifications_for_user(request.user),
         }
     )
 

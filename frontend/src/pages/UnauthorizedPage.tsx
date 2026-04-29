@@ -5,8 +5,8 @@ export function UnauthorizedPage() {
     <section className="page">
       <div className="card form-card">
         <p className="eyebrow">Access control</p>
-        <h1>Forbidden</h1>
-        <p className="lead">Your session is valid, but this route is not allowed for your current role.</p>
+        <h1>Access denied</h1>
+        <p className="lead">Your account is signed in, but you do not have permission to open this page.</p>
         <Link className="primary-button" to="/">
           Go home
         </Link>

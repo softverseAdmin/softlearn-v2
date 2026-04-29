@@ -37,9 +37,9 @@ export function LoginPage() {
   return (
     <section className="page">
       <div className="card form-card">
-        <p className="eyebrow">Public route</p>
-        <h1>Login</h1>
-        <p className="lead">Use your email and password to restore a Django-backed browser session.</p>
+        <p className="eyebrow">Welcome back</p>
+        <h1>Log in</h1>
+        <p className="lead">Sign in to continue to your student, company, or admin workspace.</p>
         <form className="form" onSubmit={handleSubmit}>
           <label>
             <span>Email</span>
@@ -56,7 +56,7 @@ export function LoginPage() {
           </label>
           {error ? <p className="form-error">{error}</p> : null}
           <button className="primary-button" type="submit" disabled={submitting}>
-            {submitting ? 'Logging in…' : 'Login'}
+            {submitting ? 'Logging in…' : 'Log in'}
           </button>
         </form>
         <p className="muted">
