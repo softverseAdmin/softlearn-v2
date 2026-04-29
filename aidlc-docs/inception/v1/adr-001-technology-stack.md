@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed for acceptance
+Accepted
 
 ## Context
 
