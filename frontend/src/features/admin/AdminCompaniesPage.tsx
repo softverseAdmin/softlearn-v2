@@ -128,7 +128,7 @@ export function AdminCompaniesPage() {
         <div>
           <p className="eyebrow">Admin companies</p>
           <h1>Company management</h1>
-          <p className="lead">Create, update, and deactivate company records in a protected admin context.</p>
+          <p className="lead">Create, update, and deactivate company records from the admin workspace.</p>
         </div>
       </div>
       {error ? <div className="card form-error">{error}</div> : null}

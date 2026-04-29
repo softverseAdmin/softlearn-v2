@@ -132,7 +132,7 @@ export function AdminUsersPage() {
         <div>
           <p className="eyebrow">Admin users</p>
           <h1>User management</h1>
-          <p className="lead">Create, update, and deactivate platform users in a protected admin context.</p>
+          <p className="lead">Create, update, and deactivate platform users from the admin workspace.</p>
         </div>
       </div>
       {error ? <div className="card form-error">{error}</div> : null}

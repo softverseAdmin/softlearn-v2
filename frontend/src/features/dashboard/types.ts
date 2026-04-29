@@ -1,26 +1,44 @@
 import type { NotificationItem } from '../notifications/types'
 import type { CompanyCandidate, InterviewSummary } from '../profile/types'
 
+export type RoadmapNodeState = 'not_started' | 'in_progress' | 'completed' | 'exam_required' | 'locked'
+
 export interface StudentDashboardResponse {
   student_id: number
-  metrics: {
-    profile_complete: boolean
-    skill_count: number
-    total_courses: number
-    completed_courses: number
-    total_results: number
-    passed_results: number
-    interview_count: number
-    active_interviews: number
-    unread_notifications: number
+  student_name: string
+  header_message: string
+  continue_learning: {
+    roadmap_title: string
+    topic_title: string
+    progress_percent: number
+    status: Exclude<RoadmapNodeState, 'exam_required' | 'locked'>
+    cta_label: string
+    cta_href: string
   }
-  highlights: {
-    average_score: number | null
-    next_interview_at: string | null
-    share_exam_results: boolean
+  next_action: {
+    action_type: 'start_learning' | 'start_topic' | 'complete_topic' | 'take_exam' | 'continue_roadmap'
+    title: string
+    description: string
+    cta_label: string
+    cta_href: string
+    requirement: string | null
   }
-  recent_interviews: InterviewSummary[]
-  recent_notifications: NotificationItem[]
+  progress_overview: {
+    completed_topics: number
+    exam_average: number | null
+    current_level: string
+  }
+  roadmap_preview: {
+    nodes: Array<{
+      id: string
+      title: string
+      subtitle: string
+      state: RoadmapNodeState
+      progress_percent: number | null
+      cta_href: string | null
+      is_current: boolean
+    }>
+  }
 }
 
 export interface CompanyDashboardResponse {

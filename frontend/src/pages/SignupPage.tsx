@@ -43,9 +43,9 @@ export function SignupPage() {
   return (
     <section className="page">
       <div className="card form-card">
-        <p className="eyebrow">Public route</p>
+        <p className="eyebrow">Create your account</p>
         <h1>Sign up</h1>
-        <p className="lead">Create a student or company account using the shared session-auth backend.</p>
+        <p className="lead">Start as a student or company user and continue with a secure browser session.</p>
         <form className="form" onSubmit={handleSubmit}>
           <label>
             <span>Role</span>
@@ -83,7 +83,7 @@ export function SignupPage() {
             />
           </label>
           <p className="muted">
-            Passwords are validated by Django rules, so obvious weak passwords are rejected.
+            Weak passwords are rejected to keep account access protected.
           </p>
           {error ? <p className="form-error">{error}</p> : null}
           <button className="primary-button" type="submit" disabled={submitting}>
@@ -91,7 +91,7 @@ export function SignupPage() {
           </button>
         </form>
         <p className="muted">
-          Already have an account? <Link to="/login">Login</Link>
+          Already have an account? <Link to="/login">Log in</Link>
         </p>
       </div>
     </section>

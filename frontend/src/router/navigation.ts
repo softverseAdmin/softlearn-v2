@@ -35,7 +35,7 @@ export const navigationItemsByRole: Record<UserRole, NavigationItem[]> = {
     { label: 'Dashboard', to: '/admin' },
     { label: 'Notifications', to: '/admin/notifications' },
     { label: 'Users', to: '/admin/users' },
-    { label: 'Operations', to: '/admin/operations' },
+    { label: 'Companies', to: '/admin/operations' },
   ],
 }
 
