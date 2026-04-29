@@ -138,13 +138,49 @@ class ApiFoundationTests(TestCase):
         client, csrf_token = self.csrf_client()
         response = client.post(
             "/api/v1/auth/login",
-            data=json.dumps({"email": "student@example.com", "password": "wrong-password"}),
+            data=json.dumps({"email": "student@example.com", "password": "wrong-password", "role": "student"}),
             content_type="application/json",
             HTTP_X_CSRFTOKEN=csrf_token,
         )
 
         self.assertEqual(response.status_code, 401)
         self.assertEqual(response.json()["error"]["code"], "INVALID_CREDENTIALS")
+
+    def test_login_requires_role(self):
+        User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        client, csrf_token = self.csrf_client()
+        response = client.post(
+            "/api/v1/auth/login",
+            data=json.dumps({"email": "student@example.com", "password": "SecurePass123!"}),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("role", response.json()["error"]["details"])
+
+    def test_login_rejects_role_mismatch(self):
+        User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        client, csrf_token = self.csrf_client()
+        response = client.post(
+            "/api/v1/auth/login",
+            data=json.dumps({"email": "student@example.com", "password": "SecurePass123!", "role": "company"}),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.json()["error"]["code"], "ROLE_MISMATCH")
 
     def test_logout_requires_csrf(self):
         user = User.objects.create_user(

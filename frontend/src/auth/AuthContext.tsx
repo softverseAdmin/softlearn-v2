@@ -61,7 +61,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
   }, [csrfToken, fetchCsrfToken])
 
   const login = useCallback(
-    async (payload: { email: string; password: string }) => {
+    async (payload: { email: string; password: string; role: AuthUser['role'] }) => {
       const token = await ensureCsrfToken()
       const response = await apiRequest<AuthUser & { csrf_token: string }>('/auth/login', {
         method: 'POST',

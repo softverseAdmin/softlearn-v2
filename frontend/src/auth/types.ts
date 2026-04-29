@@ -20,7 +20,7 @@ export interface AuthContextValue {
   user: AuthUser | null
   csrfToken: string | null
   globalError: string | null
-  login: (payload: { email: string; password: string }) => Promise<AuthUser>
+  login: (payload: { email: string; password: string; role: UserRole }) => Promise<AuthUser>
   signup: (payload: {
     role: Extract<UserRole, 'student' | 'company'>
     email: string
