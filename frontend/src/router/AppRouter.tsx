@@ -1,6 +1,8 @@
 import { Route, Routes } from 'react-router-dom'
 
 import { AppLayout } from '../layouts/AppLayout'
+import { CompanyProfilePage } from '../features/profile/CompanyProfilePage'
+import { StudentProfilePage } from '../features/profile/StudentProfilePage'
 import { PublicLayout } from '../layouts/PublicLayout'
 import { DashboardPage } from '../pages/DashboardPage'
 import { LandingPage } from '../pages/LandingPage'
@@ -27,12 +29,13 @@ export function AppRouter() {
         <Route element={<AppLayout />}>
           <Route element={<RoleGuard role="student" />}>
             <Route path="/student" element={<DashboardPage role="student" />} />
-            <Route path="/student/profile" element={<DashboardPage role="student" />} />
+            <Route path="/student/profile" element={<StudentProfilePage />} />
             <Route path="/student/learning" element={<DashboardPage role="student" />} />
           </Route>
 
           <Route element={<RoleGuard role="company" />}>
             <Route path="/company" element={<DashboardPage role="company" />} />
+            <Route path="/company/profile" element={<CompanyProfilePage />} />
             <Route path="/company/candidates" element={<DashboardPage role="company" />} />
             <Route path="/company/vacancies" element={<DashboardPage role="company" />} />
           </Route>

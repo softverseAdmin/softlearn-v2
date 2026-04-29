@@ -3,7 +3,7 @@ import json
 from django.core.exceptions import ValidationError
 from django.test import Client, TestCase
 
-from users.models import Company, User
+from users.models import Company, StudentProfile, User
 
 
 class ApiFoundationTests(TestCase):
@@ -218,3 +218,122 @@ class ApiFoundationTests(TestCase):
                 role=User.Role.STUDENT,
                 company=company,
             )
+
+    def test_student_profile_get_returns_default_profile(self):
+        user = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+
+        client = Client()
+        client.force_login(user)
+        response = client.get("/api/v1/student/profile")
+
+        self.assertEqual(response.status_code, 200)
+        body = response.json()["data"]
+        self.assertEqual(body["name"], "Student User")
+        self.assertEqual(body["desired_job_type"], "")
+        self.assertFalse(body["profile_complete"])
+
+    def test_student_profile_put_updates_basic_fields(self):
+        user = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        client, csrf_token = self.csrf_client()
+        client.force_login(user)
+
+        response = client.put(
+            "/api/v1/student/profile",
+            data=json.dumps(
+                {
+                    "name": "Updated Student",
+                    "desired_job_type": "backend",
+                    "desired_work_location": "Tokyo",
+                    "japanese_level": "N3",
+                    "english_level": "B2",
+                }
+            ),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        user.refresh_from_db()
+        profile = StudentProfile.objects.get(user=user)
+        self.assertEqual(user.full_name, "Updated Student")
+        self.assertEqual(profile.desired_job_type, "backend")
+        self.assertTrue(response.json()["data"]["profile_complete"])
+
+    def test_company_cannot_access_student_profile_endpoint(self):
+        company = Company.objects.create(name="Softverse")
+        company_user = User.objects.create_user(
+            email="company@example.com",
+            password="SecurePass123!",
+            full_name="Company User",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+
+        client = Client()
+        client.force_login(company_user)
+        response = client.get("/api/v1/student/profile")
+        self.assertEqual(response.status_code, 403)
+
+    def test_company_profile_get_returns_company_context(self):
+        company = Company.objects.create(name="Softverse")
+        company_user = User.objects.create_user(
+            email="company@example.com",
+            password="SecurePass123!",
+            full_name="Company User",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+
+        client = Client()
+        client.force_login(company_user)
+        response = client.get("/api/v1/company/profile")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["data"]["name"], "Softverse")
+        self.assertTrue(response.json()["data"]["profile_complete"])
+
+    def test_company_profile_put_updates_name(self):
+        company = Company.objects.create(name="Softverse")
+        company_user = User.objects.create_user(
+            email="company@example.com",
+            password="SecurePass123!",
+            full_name="Company User",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+        client, csrf_token = self.csrf_client()
+        client.force_login(company_user)
+
+        response = client.put(
+            "/api/v1/company/profile",
+            data=json.dumps({"name": "Softverse Japan"}),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        company.refresh_from_db()
+        self.assertEqual(company.name, "Softverse Japan")
+
+    def test_student_cannot_access_company_profile_endpoint(self):
+        user = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+
+        client = Client()
+        client.force_login(user)
+        response = client.get("/api/v1/company/profile")
+        self.assertEqual(response.status_code, 403)

@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 
-from users.models import Company, User
+from users.models import Company, StudentProfile, User
 
 
 @admin.register(Company)
@@ -32,3 +32,17 @@ class UserAdmin(DjangoUserAdmin):
         ),
     )
     readonly_fields = ("date_joined", "created_at", "updated_at", "last_login")
+
+
+@admin.register(StudentProfile)
+class StudentProfileAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "user",
+        "desired_job_type",
+        "desired_work_location",
+        "japanese_level",
+        "english_level",
+        "updated_at",
+    )
+    search_fields = ("user__email", "user__full_name", "desired_job_type", "desired_work_location")
