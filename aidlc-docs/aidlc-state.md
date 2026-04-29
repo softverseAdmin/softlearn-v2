@@ -69,6 +69,14 @@
 | U6-3-company-view-student-results | Protected company-side student-results baseline completed for authorized company users to review only allowed student learning and exam result evidence. |
 | U6-4-privacy-filter-for-results | Privacy-filter baseline completed for consent-aware filtering of company-visible learning and exam result evidence. |
 | U6-5-readiness-score-calculation | Deterministic readiness-score baseline completed for explainable, privacy-aware calculation from learning and exam evidence. |
+| U7-1-vacancy-create | Protected vacancy-creation baseline completed for authorized company users to create structured vacancy records before later management, search, and matching workflows. |
+| U7-2-vacancy-edit | Protected vacancy-edit baseline completed for authorized company users to update company-owned vacancy records while preserving stable vacancy identity. |
+| U7-3-vacancy-delete | Protected vacancy-delete baseline completed for authorized company users to remove or retire company-owned vacancies with stable inactive-state behavior. |
+| U7-4-vacancy-list | Vacancy-list baseline completed for stable visibility-aware vacancy summaries used by later management and discovery contexts. |
+| U7-5-vacancy-detail | Vacancy-detail baseline completed for stable visibility-aware retrieval of a single vacancy record before applications and matching workflows. |
+| U7-6-vacancy-skill-tags | Structured vacancy-skill-tags baseline completed for company-managed skill requirements linked to shared skill taxonomy. |
+| U7-7-vacancy-language-requirements | Structured vacancy-language-requirements baseline completed for company-managed language expectations linked to the shared language-level model. |
+| U7-8-vacancy-location-settings | Structured vacancy-location-settings baseline completed for company-managed location and work-style expectations linked to vacancy records. |
 
 ## Open CHG
 
@@ -80,8 +88,8 @@
 
 | Stage | Overall status |
 | --- | --- |
-| Functional Design | U0-1 through U0-8, U1-1 through U1-8, U2-1 through U2-10, U3-1 through U3-6, U4-1 through U4-8, U5-1 through U5-9, and U6-1 through U6-5 completed; U7-1 is the next unstarted unit. U4-2 remained intentionally documented early while the rest of Phase 4 was completed in sequence around it. |
-| NFR Requirements | U0-1 through U0-8, U1-1 through U1-8, U2-1 through U2-10, U3-1 through U3-6, U4-1 through U4-8, U5-1 through U5-9, and U6-1 through U6-5 completed; U7-1 is the next unstarted unit. U4-2 remained intentionally documented early while the rest of Phase 4 was completed in sequence around it. |
-| NFR Design | U0-1 through U0-8, U1-1 through U1-8, U2-1 through U2-10, U3-1 through U3-6, U4-1 through U4-8, U5-1 through U5-9, and U6-1 through U6-5 completed; U7-1 is the next unstarted unit. U4-2 remained intentionally documented early while the rest of Phase 4 was completed in sequence around it. |
-| Infrastructure Design | U0-1 through U0-8, U1-1 through U1-8, U2-1 through U2-10, U3-1 through U3-6, U4-1 through U4-8, U5-1 through U5-9, and U6-1 through U6-5 completed; U7-1 is the next unstarted unit. U4-2 remained intentionally documented early while the rest of Phase 4 was completed in sequence around it. |
-| Code Generation | Documentation/code-generation planning completed for U0-1 through U0-8, U1-1 through U1-8, U2-1 through U2-10, U3-1 through U3-6, U4-1 through U4-8, U5-1 through U5-9, and U6-1 through U6-5; application code remains blocked until ADR-001 is accepted. U4-2 remained intentionally documented early while the rest of Phase 4 was completed in sequence around it. |
+| Functional Design | U0-1 through U0-8, U1-1 through U1-8, U2-1 through U2-10, U3-1 through U3-6, U4-1 through U4-8, U5-1 through U5-9, U6-1 through U6-5, and U7-1 through U7-8 completed; U8-1 is the next unstarted unit. U4-2 remained intentionally documented early while the rest of Phase 4 was completed in sequence around it. |
+| NFR Requirements | U0-1 through U0-8, U1-1 through U1-8, U2-1 through U2-10, U3-1 through U3-6, U4-1 through U4-8, U5-1 through U5-9, U6-1 through U6-5, and U7-1 through U7-8 completed; U8-1 is the next unstarted unit. U4-2 remained intentionally documented early while the rest of Phase 4 was completed in sequence around it. |
+| NFR Design | U0-1 through U0-8, U1-1 through U1-8, U2-1 through U2-10, U3-1 through U3-6, U4-1 through U4-8, U5-1 through U5-9, U6-1 through U6-5, and U7-1 through U7-8 completed; U8-1 is the next unstarted unit. U4-2 remained intentionally documented early while the rest of Phase 4 was completed in sequence around it. |
+| Infrastructure Design | U0-1 through U0-8, U1-1 through U1-8, U2-1 through U2-10, U3-1 through U3-6, U4-1 through U4-8, U5-1 through U5-9, U6-1 through U6-5, and U7-1 through U7-8 completed; U8-1 is the next unstarted unit. U4-2 remained intentionally documented early while the rest of Phase 4 was completed in sequence around it. |
+| Code Generation | Documentation/code-generation planning completed for U0-1 through U0-8, U1-1 through U1-8, U2-1 through U2-10, U3-1 through U3-6, U4-1 through U4-8, U5-1 through U5-9, U6-1 through U6-5, and U7-1 through U7-8; application code remains blocked until ADR-001 is accepted. U4-2 remained intentionally documented early while the rest of Phase 4 was completed in sequence around it. |
