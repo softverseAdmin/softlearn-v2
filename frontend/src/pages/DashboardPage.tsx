@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import type { AdminDashboardResponse, CompanyDashboardResponse, StudentDashboardResponse } from '../features/dashboard/types'
+import { CompanyDashboardRedesign } from '../features/dashboard/CompanyDashboardRedesign'
 import { StudentDashboardRedesign } from '../features/dashboard/StudentDashboardRedesign'
 import { useAuth } from '../auth/useAuth'
 import { ApiError, apiRequest } from '../lib/api'
@@ -99,107 +100,6 @@ export function DashboardPage({ role }: DashboardPageProps) {
       active = false
     }
   }, [role])
-
-  function renderCompanyDashboard(companyData: CompanyDashboardResponse) {
-    return (
-      <>
-        <div className="card-grid">
-          <article className="card info-card">
-            <h2>Company profile</h2>
-            <p className="metric">{companyData.metrics.profile_complete ? 'Ready' : 'In progress'}</p>
-            <p className="muted">{companyData.company_name}</p>
-          </article>
-          <article className="card info-card">
-            <h2>Candidates</h2>
-            <p className="metric">{companyData.metrics.candidate_count}</p>
-            <p className="muted">Active review contexts</p>
-          </article>
-          <article className="card info-card">
-            <h2>Shortlist</h2>
-            <p className="metric">{companyData.metrics.shortlist_count}</p>
-            <p className="muted">Shortlisted candidates</p>
-          </article>
-          <article className="card info-card">
-            <h2>Vacancies</h2>
-            <p className="metric">{companyData.metrics.vacancy_count}</p>
-            <p className="muted">Draft and active roles</p>
-          </article>
-          <article className="card info-card">
-            <h2>Interviews</h2>
-            <p className="metric">{companyData.metrics.active_interviews}</p>
-            <p className="muted">Active / {companyData.metrics.completed_interviews} completed</p>
-          </article>
-          <article className="card info-card">
-            <h2>Notifications</h2>
-            <p className="metric">{companyData.metrics.unread_notifications}</p>
-            <p className="muted">Unread updates</p>
-          </article>
-        </div>
-        <div className="page-split">
-          <div className="card stack-card">
-            <h2>Recent candidates</h2>
-            <div className="stack-list">
-              {companyData.recent_candidates.map((candidate) => (
-                <article key={candidate.candidate_access_id} className="skill-card">
-                  <div className="skill-card-header">
-                    <div>
-                      <h3>{candidate.display_name}</h3>
-                      <p className="muted">{candidate.source}</p>
-                    </div>
-                    <Link className="secondary-button inline-button" to={`/company/candidates/${candidate.candidate_access_id}`}>
-                      Open
-                    </Link>
-                  </div>
-                </article>
-              ))}
-              {companyData.recent_candidates.length === 0 ? <p className="muted">No candidates yet.</p> : null}
-            </div>
-          </div>
-          <div className="card stack-card">
-            <h2>Quick links</h2>
-            {content.links.map((item) => (
-              <Link key={item.href} className="secondary-button inline-button" to={item.href}>
-                {item.title}
-              </Link>
-            ))}
-          </div>
-        </div>
-        <div className="page-split">
-          <div className="card stack-card">
-            <h2>Recent interviews</h2>
-            <div className="stack-list">
-              {companyData.recent_interviews.map((interview) => (
-                <article key={interview.id} className="skill-card">
-                  <div className="skill-card-header">
-                    <div>
-                      <h3>{interview.student_name}</h3>
-                      <p className="muted">{interview.status}</p>
-                    </div>
-                    <Link className="secondary-button inline-button" to={`/company/interviews/${interview.id}`}>
-                      Open
-                    </Link>
-                  </div>
-                </article>
-              ))}
-              {companyData.recent_interviews.length === 0 ? <p className="muted">No interviews yet.</p> : null}
-            </div>
-          </div>
-          <div className="card stack-card">
-            <h2>Recent notifications</h2>
-            <div className="stack-list">
-              {companyData.recent_notifications.map((notification) => (
-                <article key={notification.id} className="skill-card">
-                  <h3>{notification.title}</h3>
-                  <p className="muted">{notification.message}</p>
-                </article>
-              ))}
-              {companyData.recent_notifications.length === 0 ? <p className="muted">No notifications yet.</p> : null}
-            </div>
-          </div>
-        </div>
-      </>
-    )
-  }
 
   function renderAdminDashboard(adminData: AdminDashboardResponse) {
     return (
@@ -299,6 +199,17 @@ export function DashboardPage({ role }: DashboardPageProps) {
     )
   }
 
+  if (role === 'company') {
+    return (
+      <CompanyDashboardRedesign
+        companyName={user?.name ?? 'Company'}
+        loading={loading}
+        error={error}
+        data={(data as CompanyDashboardResponse | null) ?? null}
+      />
+    )
+  }
+
   return (
     <section className="page">
         <div className="page-header">
@@ -315,7 +226,6 @@ export function DashboardPage({ role }: DashboardPageProps) {
       </div>
       {error ? <div className="card form-error">{error}</div> : null}
       {loading ? <div className="card">Loading dashboard…</div> : null}
-      {!loading && !error && data && role === 'company' ? renderCompanyDashboard(data as CompanyDashboardResponse) : null}
       {!loading && !error && data && role === 'admin' ? renderAdminDashboard(data as AdminDashboardResponse) : null}
     </section>
   )

@@ -395,6 +395,21 @@ class ApiFoundationTests(TestCase):
             full_name="Student User",
             role=User.Role.STUDENT,
         )
+        StudentVisibilitySettings.objects.create(
+            student=student,
+            share_profile_preview=True,
+            share_learning_record=True,
+            share_exam_results=True,
+        )
+        ExamResult.objects.create(
+            student=student,
+            exam_title="Backend Exam",
+            category="engineering",
+            score_percent=92,
+            passed=True,
+            attempt_number=1,
+            taken_at=timezone.now(),
+        )
         candidate_access = CandidateReviewAccess.objects.create(
             company=company,
             student=student,
@@ -438,12 +453,58 @@ class ApiFoundationTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         body = response.json()["data"]
-        self.assertEqual(body["metrics"]["vacancy_count"], 0)
-        self.assertEqual(body["metrics"]["candidate_count"], 1)
-        self.assertEqual(body["metrics"]["shortlist_count"], 1)
-        self.assertEqual(body["metrics"]["interview_count"], 1)
-        self.assertEqual(body["metrics"]["unread_notifications"], 1)
-        self.assertEqual(len(body["recent_candidates"]), 1)
+        self.assertEqual(body["company_name"], "Softverse")
+        self.assertEqual(body["analytics"]["candidates_to_review"], 1)
+        self.assertEqual(body["analytics"]["shortlisted_candidates"], 1)
+        self.assertEqual(body["analytics"]["active_jobs"], 0)
+        self.assertEqual(body["analytics"]["unread_updates"], 1)
+        self.assertEqual(len(body["candidates_to_review"]), 1)
+        self.assertEqual(body["candidates_to_review"][0]["score_percent"], 92.0)
+        self.assertEqual(body["interviews"]["active_count"], 1)
+        self.assertEqual(body["interviews"]["completed_count"], 0)
+
+    def test_company_dashboard_hides_candidate_score_when_exam_results_are_private(self):
+        company = Company.objects.create(name="Softverse", description="Hiring platform team")
+        student = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        StudentVisibilitySettings.objects.create(
+            student=student,
+            share_profile_preview=True,
+            share_learning_record=True,
+            share_exam_results=False,
+        )
+        ExamResult.objects.create(
+            student=student,
+            exam_title="Backend Exam",
+            category="engineering",
+            score_percent=95,
+            passed=True,
+            attempt_number=1,
+            taken_at=timezone.now(),
+        )
+        company_user = User.objects.create_user(
+            email="company@example.com",
+            password="SecurePass123!",
+            full_name="Company User",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+        CandidateReviewAccess.objects.create(
+            company=company,
+            student=student,
+            source=CandidateReviewAccess.Source.MATCH,
+        )
+        client = Client()
+        client.force_login(company_user)
+
+        response = client.get("/api/v1/company/dashboard")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIsNone(response.json()["data"]["candidates_to_review"][0]["score_percent"])
 
     def test_admin_dashboard_returns_platform_counts(self):
         company = Company.objects.create(name="Softverse")

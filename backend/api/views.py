@@ -555,6 +555,69 @@ def serialize_company_candidate(access: CandidateReviewAccess) -> dict:
     }
 
 
+def company_candidate_score_percent(access: CandidateReviewAccess) -> float | None:
+    settings = get_visibility_settings(access.student)
+    if not settings.share_exam_results:
+        return None
+
+    results = list(ExamResult.objects.filter(student=access.student).only("score_percent"))
+    if not results:
+        return None
+
+    return round(sum(result.score_percent for result in results) / len(results), 1)
+
+
+def serialize_company_dashboard_candidate(access: CandidateReviewAccess) -> dict:
+    candidate = serialize_company_candidate(access)
+    return {
+        "candidate_access_id": access.id,
+        "display_name": candidate["display_name"],
+        "source": access.get_source_display(),
+        "score_percent": company_candidate_score_percent(access),
+        "top_skills": candidate["top_skills"],
+        "is_shortlisted": candidate["is_shortlisted"],
+        "cta_label": "Review shortlist" if candidate["is_shortlisted"] else "Review candidate",
+        "cta_href": f"/company/candidates/{access.id}",
+    }
+
+
+def serialize_company_dashboard_job(vacancy: Vacancy) -> dict:
+    return {
+        "vacancy_id": vacancy.id,
+        "title": vacancy.title,
+        "status": vacancy.status,
+        "location": vacancy.location,
+        "cta_label": "Open vacancy",
+        "cta_href": "/company/vacancies",
+    }
+
+
+def interview_timing_label(interview: Interview) -> str:
+    if interview.scheduled_start and interview.scheduled_end:
+        return f"{interview.scheduled_start.isoformat()} to {interview.scheduled_end.isoformat()}"
+    if interview.status == Interview.Status.REQUESTED:
+        return "Waiting for availability"
+    if interview.status == Interview.Status.RESCHEDULED:
+        return "Reschedule requested"
+    if interview.status == Interview.Status.COMPLETED:
+        return "Completed"
+    if interview.status == Interview.Status.CANCELLED:
+        return "Cancelled"
+    return "Schedule pending"
+
+
+def serialize_company_dashboard_interview(interview: Interview) -> dict:
+    return {
+        "id": interview.id,
+        "student_name": interview.student.full_name,
+        "purpose": interview.purpose,
+        "status": interview.status,
+        "timing_label": interview_timing_label(interview),
+        "cta_label": "View interview",
+        "cta_href": f"/company/interviews/{interview.id}",
+    }
+
+
 def get_candidate_review_access(user: User, candidate_access_id: int) -> CandidateReviewAccess:
     company = user.company
     if company is None:
@@ -1900,31 +1963,41 @@ def company_dashboard_view(request):
         .annotate(notes_count=Count("notes"))
         .order_by("-updated_at", "-id")
     )
+    active_jobs = list(
+        Vacancy.objects.filter(company=company, status=Vacancy.Status.ACTIVE)
+        .select_related("company", "created_by")
+        .order_by("-updated_at", "-id")
+    )
     shortlist_count = CandidateShortlist.objects.filter(company=company).count()
-    vacancy_count = Vacancy.objects.filter(company=company, status__in=[Vacancy.Status.DRAFT, Vacancy.Status.ACTIVE]).count()
     unread_notifications = Notification.objects.filter(recipient=request.user, read_at__isnull=True).count()
+    active_interviews = [
+        interview
+        for interview in interviews
+        if interview.status in {Interview.Status.REQUESTED, Interview.Status.CONFIRMED, Interview.Status.RESCHEDULED}
+    ]
+    completed_interviews = [interview for interview in interviews if interview.status == Interview.Status.COMPLETED]
 
     return success_response(
         {
             "company_id": company.id,
             "company_name": company.name,
-            "metrics": {
-                "vacancy_count": vacancy_count,
-                "candidate_count": len(candidates),
-                "shortlist_count": shortlist_count,
-                "interview_count": len(interviews),
-                "active_interviews": sum(
-                    1
-                    for interview in interviews
-                    if interview.status in {Interview.Status.REQUESTED, Interview.Status.CONFIRMED, Interview.Status.RESCHEDULED}
-                ),
-                "completed_interviews": sum(1 for interview in interviews if interview.status == Interview.Status.COMPLETED),
-                "unread_notifications": unread_notifications,
-                "profile_complete": bool(company.name.strip() and company.description.strip()),
+            "header_message": "Review candidates, keep jobs moving, and follow up on interviews from one hiring workspace.",
+            "candidates_to_review": [serialize_company_dashboard_candidate(candidate) for candidate in candidates[:4]],
+            "active_jobs": {
+                "pipeline_summary": f"{len(candidates)} candidate review context{'s' if len(candidates) != 1 else ''} currently need attention.",
+                "jobs": [serialize_company_dashboard_job(vacancy) for vacancy in active_jobs[:4]],
             },
-            "recent_interviews": [serialize_interview(interview) for interview in interviews[:3]],
-            "recent_candidates": [serialize_company_candidate(candidate) for candidate in candidates[:3]],
-            "recent_notifications": recent_notifications_for_user(request.user),
+            "interviews": {
+                "active_count": len(active_interviews),
+                "completed_count": len(completed_interviews),
+                "items": [serialize_company_dashboard_interview(interview) for interview in interviews[:3]],
+            },
+            "analytics": {
+                "candidates_to_review": len(candidates),
+                "shortlisted_candidates": shortlist_count,
+                "active_jobs": len(active_jobs),
+                "unread_updates": unread_notifications,
+            },
         }
     )
 

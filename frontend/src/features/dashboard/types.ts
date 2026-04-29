@@ -1,5 +1,4 @@
 import type { NotificationItem } from '../notifications/types'
-import type { CompanyCandidate, InterviewSummary } from '../profile/types'
 
 export type RoadmapNodeState = 'not_started' | 'in_progress' | 'completed' | 'exam_required' | 'locked'
 
@@ -44,19 +43,47 @@ export interface StudentDashboardResponse {
 export interface CompanyDashboardResponse {
   company_id: number
   company_name: string
-  metrics: {
-    vacancy_count: number
-    candidate_count: number
-    shortlist_count: number
-    interview_count: number
-    active_interviews: number
-    completed_interviews: number
-    unread_notifications: number
-    profile_complete: boolean
+  header_message: string
+  candidates_to_review: Array<{
+    candidate_access_id: number
+    display_name: string
+    source: string
+    score_percent: number | null
+    top_skills: string[]
+    is_shortlisted: boolean
+    cta_label: string
+    cta_href: string
+  }>
+  active_jobs: {
+    pipeline_summary: string
+    jobs: Array<{
+      vacancy_id: number
+      title: string
+      status: string
+      location: string
+      cta_label: string
+      cta_href: string
+    }>
   }
-  recent_interviews: InterviewSummary[]
-  recent_candidates: CompanyCandidate[]
-  recent_notifications: NotificationItem[]
+  interviews: {
+    active_count: number
+    completed_count: number
+    items: Array<{
+      id: number
+      student_name: string
+      purpose: string
+      status: string
+      timing_label: string
+      cta_label: string
+      cta_href: string
+    }>
+  }
+  analytics: {
+    candidates_to_review: number
+    shortlisted_candidates: number
+    active_jobs: number
+    unread_updates: number
+  }
 }
 
 export interface AdminDashboardResponse {
