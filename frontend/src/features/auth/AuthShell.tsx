@@ -132,12 +132,12 @@ export function AuthShell({ eyebrow, title, description, mode, children }: AuthS
   const content = panelCopy[mode]
 
   return (
-    <section className="relative mx-auto flex h-[100dvh] w-full max-w-[1440px] items-center overflow-hidden px-3 py-2 sm:px-5 sm:py-3 lg:px-8">
+    <section className="relative mx-auto flex min-h-[100dvh] w-full max-w-[1440px] items-start px-3 py-2 sm:px-5 sm:py-3 lg:items-center lg:px-8">
       <div className="absolute right-3 top-3 sm:right-5 sm:top-5 lg:right-8">
         <ThemePill />
       </div>
 
-      <div className="grid max-h-[calc(100dvh-1rem)] w-full overflow-hidden rounded-[32px] border border-white/70 bg-white/60 shadow-[0_30px_80px_rgba(17,24,39,0.08)] backdrop-blur lg:grid-cols-[0.84fr_1.16fr]">
+      <div className="grid w-full overflow-hidden rounded-[32px] border border-white/70 bg-white/60 shadow-[0_30px_80px_rgba(17,24,39,0.08)] backdrop-blur lg:grid-cols-[0.84fr_1.16fr]">
         <div className="relative hidden overflow-hidden border-r border-white/50 bg-[linear-gradient(180deg,#eef2ff_0%,#e8eaff_45%,#edf0ff_100%)] px-9 py-6 lg:flex lg:flex-col">
           <div className="absolute -right-12 -top-12 h-64 w-64 rounded-full bg-[radial-gradient(circle,#c7d2fe_0%,rgba(199,210,254,0)_68%)]" />
           <div className="absolute right-8 top-1/3 h-28 w-28 rounded-full bg-[radial-gradient(circle,rgba(196,181,253,0.7)_0%,rgba(196,181,253,0)_72%)]" />
@@ -179,8 +179,8 @@ export function AuthShell({ eyebrow, title, description, mode, children }: AuthS
           <IllustrationBlock />
         </div>
 
-        <div className="flex items-center justify-center overflow-hidden bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.98),rgba(255,255,255,0.92))] p-3 sm:p-5 lg:p-6">
-          <div className="max-h-[calc(100dvh-4rem)] w-full max-w-[600px] overflow-hidden rounded-[32px] border border-white/70 bg-white/92 p-5 shadow-[0_25px_70px_rgba(17,24,39,0.10)] backdrop-blur sm:p-6 lg:p-7">
+        <div className="flex items-center justify-center bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.98),rgba(255,255,255,0.92))] p-3 sm:p-5 lg:p-6">
+          <div className="w-full max-w-[600px] rounded-[32px] border border-white/70 bg-white/92 p-5 shadow-[0_25px_70px_rgba(17,24,39,0.10)] backdrop-blur sm:p-6 lg:p-7">
             <div className="mx-auto w-full max-w-md">
               <div className="mb-5 space-y-2.5 text-center">
                 <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-[var(--sl-border)] bg-[var(--sl-soft)] shadow-[0_12px_30px_rgba(99,102,241,0.15)]">

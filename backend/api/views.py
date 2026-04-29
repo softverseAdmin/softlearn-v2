@@ -1668,8 +1668,21 @@ def interview_reschedule_view(request, interview_id: int):
     interview.scheduled_end = None
     interview.confirmed_at = None
     interview.completed_at = None
+    interview.meeting_provider = ""
+    interview.meeting_url = ""
     interview.full_clean()
-    interview.save(update_fields=["status", "scheduled_start", "scheduled_end", "confirmed_at", "completed_at", "updated_at"])
+    interview.save(
+        update_fields=[
+            "status",
+            "scheduled_start",
+            "scheduled_end",
+            "confirmed_at",
+            "completed_at",
+            "meeting_provider",
+            "meeting_url",
+            "updated_at",
+        ]
+    )
     create_interview_event(
         interview,
         request.user,
@@ -1723,8 +1736,8 @@ def interview_complete_view(request, interview_id: int):
 @api_endpoint(["PUT"], authentication_required=True, roles=[User.Role.STUDENT, User.Role.COMPANY])
 def interview_meeting_link_view(request, interview_id: int):
     interview = get_interview_for_participant(request.user, interview_id)
-    if interview.status not in {Interview.Status.CONFIRMED, Interview.Status.RESCHEDULED}:
-        raise ValidationError({"status": ["Meeting links can only be managed for confirmed or rescheduled interviews."]})
+    if interview.status != Interview.Status.CONFIRMED:
+        raise ValidationError({"status": ["Meeting links can only be managed for confirmed interviews."]})
 
     payload = validate_meeting_link_payload(parse_json_body(request))
     interview.meeting_provider = payload["meeting_provider"]
