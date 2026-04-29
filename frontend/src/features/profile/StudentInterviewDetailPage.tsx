@@ -17,6 +17,9 @@ const emptyInterview: InterviewDetail = {
   scheduled_start: null,
   scheduled_end: null,
   confirmed_at: null,
+  cancelled_at: null,
+  meeting_provider: null,
+  meeting_url: null,
   created_at: '',
   updated_at: '',
   availabilities: [],
@@ -41,6 +44,10 @@ export function StudentInterviewDetailPage() {
   const [startAt, setStartAt] = useState(toInputValue(new Date(Date.now() + 24 * 60 * 60 * 1000)))
   const [endAt, setEndAt] = useState(toInputValue(new Date(Date.now() + 25 * 60 * 60 * 1000)))
   const [note, setNote] = useState('')
+  const [meetingProvider, setMeetingProvider] = useState('custom')
+  const [meetingUrl, setMeetingUrl] = useState('')
+  const [rescheduleReason, setRescheduleReason] = useState('')
+  const [cancelReason, setCancelReason] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
 
@@ -58,6 +65,8 @@ export function StudentInterviewDetailPage() {
         const response = await apiRequest<InterviewDetail>(`/interviews/${params.interviewId}`)
         if (active) {
           setInterview(response)
+          setMeetingProvider(response.meeting_provider ?? 'custom')
+          setMeetingUrl(response.meeting_url ?? '')
         }
       } catch (loadError) {
         if (active) {
@@ -106,6 +115,86 @@ export function StudentInterviewDetailPage() {
     }
   }
 
+  async function handleReschedule(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (!params.interviewId) {
+      return
+    }
+
+    setSaving(true)
+    setError(null)
+    setSuccess(null)
+
+    try {
+      const response = await apiRequest<InterviewDetail>(`/interviews/${params.interviewId}/reschedule`, {
+        method: 'POST',
+        body: { reason: rescheduleReason },
+        csrfToken,
+      })
+      setInterview(response)
+      setRescheduleReason('')
+      setSuccess('Interview moved to rescheduled state.')
+    } catch (saveError) {
+      setError(saveError instanceof ApiError ? saveError.message : 'Unable to reschedule interview.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function handleCancel(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (!params.interviewId) {
+      return
+    }
+
+    setSaving(true)
+    setError(null)
+    setSuccess(null)
+
+    try {
+      const response = await apiRequest<InterviewDetail>(`/interviews/${params.interviewId}/cancel`, {
+        method: 'POST',
+        body: { reason: cancelReason },
+        csrfToken,
+      })
+      setInterview(response)
+      setCancelReason('')
+      setSuccess('Interview cancelled successfully.')
+    } catch (saveError) {
+      setError(saveError instanceof ApiError ? saveError.message : 'Unable to cancel interview.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function handleMeetingLink(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (!params.interviewId) {
+      return
+    }
+
+    setSaving(true)
+    setError(null)
+    setSuccess(null)
+
+    try {
+      const response = await apiRequest<InterviewDetail>(`/interviews/${params.interviewId}/meeting-link`, {
+        method: 'PUT',
+        body: {
+          meeting_provider: meetingProvider,
+          meeting_url: meetingUrl,
+        },
+        csrfToken,
+      })
+      setInterview(response)
+      setSuccess('Meeting link updated successfully.')
+    } catch (saveError) {
+      setError(saveError instanceof ApiError ? saveError.message : 'Unable to update meeting link.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
   if (loading) {
     return <section className="page"><div className="card">Loading interview…</div></section>
   }
@@ -138,6 +227,11 @@ export function StudentInterviewDetailPage() {
               ? `${new Date(interview.scheduled_start).toLocaleString()} - ${new Date(interview.scheduled_end).toLocaleString()}`
               : 'No confirmed schedule yet.'}
           </p>
+          {interview.meeting_url ? (
+            <p className="muted">
+              Meeting link: <a href={interview.meeting_url} target="_blank" rel="noreferrer">{interview.meeting_provider}</a>
+            </p>
+          ) : null}
           <form className="form" onSubmit={handleSubmitAvailability}>
             <label>
               <span>Availability start</span>
@@ -157,6 +251,48 @@ export function StudentInterviewDetailPage() {
           </form>
         </div>
 
+        <div className="card stack-card">
+          <h2>Interview actions</h2>
+          <form className="form" onSubmit={handleMeetingLink}>
+            <label>
+              <span>Meeting provider</span>
+              <select value={meetingProvider} onChange={(event) => setMeetingProvider(event.target.value)}>
+                <option value="zoom">Zoom</option>
+                <option value="google_meet">Google Meet</option>
+                <option value="teams">Microsoft Teams</option>
+                <option value="custom">Custom</option>
+              </select>
+            </label>
+            <label>
+              <span>Meeting URL</span>
+              <input value={meetingUrl} onChange={(event) => setMeetingUrl(event.target.value)} placeholder="https://..." />
+            </label>
+            <button className="secondary-button inline-button" type="submit" disabled={saving || interview.status === 'cancelled'}>
+              {saving ? 'Saving…' : 'Save meeting link'}
+            </button>
+          </form>
+          <form className="form" onSubmit={handleReschedule}>
+            <label>
+              <span>Reschedule reason</span>
+              <textarea value={rescheduleReason} onChange={(event) => setRescheduleReason(event.target.value)} rows={3} required />
+            </label>
+            <button className="secondary-button inline-button" type="submit" disabled={saving || interview.status === 'cancelled'}>
+              {saving ? 'Saving…' : 'Request reschedule'}
+            </button>
+          </form>
+          <form className="form" onSubmit={handleCancel}>
+            <label>
+              <span>Cancellation reason</span>
+              <textarea value={cancelReason} onChange={(event) => setCancelReason(event.target.value)} rows={3} required />
+            </label>
+            <button className="danger-button inline-button" type="submit" disabled={saving || interview.status === 'cancelled'}>
+              {saving ? 'Saving…' : 'Cancel interview'}
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <div className="page-split">
         <div className="card stack-card">
           <h2>Availability timeline</h2>
           <div className="stack-list">

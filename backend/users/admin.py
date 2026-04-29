@@ -127,7 +127,7 @@ class CandidateNoteAdmin(admin.ModelAdmin):
 
 @admin.register(Interview)
 class InterviewAdmin(admin.ModelAdmin):
-    list_display = ("id", "company", "student", "status", "purpose", "scheduled_start", "updated_at")
+    list_display = ("id", "company", "student", "status", "purpose", "meeting_provider", "scheduled_start", "updated_at")
     list_filter = ("status",)
     search_fields = ("company__name", "student__email", "student__full_name", "purpose", "role_context")
 

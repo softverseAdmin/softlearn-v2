@@ -346,6 +346,12 @@ class CandidateNote(models.Model):
 
 
 class Interview(models.Model):
+    class MeetingProvider(models.TextChoices):
+        ZOOM = "zoom", "Zoom"
+        GOOGLE_MEET = "google_meet", "Google Meet"
+        TEAMS = "teams", "Microsoft Teams"
+        CUSTOM = "custom", "Custom"
+
     class Status(models.TextChoices):
         REQUESTED = "requested", "Requested"
         CONFIRMED = "confirmed", "Confirmed"
@@ -376,6 +382,9 @@ class Interview(models.Model):
     scheduled_start = models.DateTimeField(null=True, blank=True)
     scheduled_end = models.DateTimeField(null=True, blank=True)
     confirmed_at = models.DateTimeField(null=True, blank=True)
+    cancelled_at = models.DateTimeField(null=True, blank=True)
+    meeting_provider = models.CharField(max_length=30, choices=MeetingProvider.choices, blank=True, default="")
+    meeting_url = models.URLField(blank=True, default="")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -398,6 +407,10 @@ class Interview(models.Model):
             raise ValidationError({"scheduled_start": ["Confirmed interviews require a final scheduled window."]})
         if self.scheduled_start and self.scheduled_end and self.scheduled_start >= self.scheduled_end:
             raise ValidationError({"scheduled_end": ["Interview end time must be after the start time."]})
+        if self.meeting_provider and not self.meeting_url:
+            raise ValidationError({"meeting_url": ["Meeting URL is required when a meeting provider is set."]})
+        if self.meeting_url and not self.meeting_provider:
+            raise ValidationError({"meeting_provider": ["Meeting provider is required when a meeting URL is set."]})
 
     def __str__(self) -> str:
         return f"Interview<{self.company.name}:{self.student.email}:{self.status}>"
