@@ -23,7 +23,7 @@ As the platform, I need company access control so company users can review only 
 ### 2. Authorization and visibility behavior
 
 - Company users must only access student data within approved company-owned workflow contexts.
-- Access decisions must combine role permission, company boundary, visibility settings, and consent posture where applicable.
+- Access decisions must combine role permission, company boundary, and visibility settings, and must remain compatible with later consent posture where applicable.
 - Denied or restricted outcomes should be the default when access conditions are incomplete or ambiguous.
 - Company-access decisions should remain auditable because they govern sensitive student data.
 
@@ -43,7 +43,7 @@ As the platform, I need company access control so company users can review only 
 
 ### 5. Relationship to later units
 
-- U16-1 role permissions, U16-2 student visibility settings, and U16-4 data consent system all refine the decision inputs used here.
+- U16-1 role permissions and U16-2 student visibility settings define the decision inputs used here, and U16-4 data consent system later extends this baseline with explicit consent records.
 - U11 candidate-review units, U12 interview units, and U17 company dashboard must reuse this company-access posture.
 - Notification and meeting-link units must continue to honor these company-access decisions when exposing sensitive content.
 - Production security-hardening work should preserve the same restrictive access direction rather than weakening it.
@@ -72,7 +72,7 @@ As the platform, I need company access control so company users can review only 
 ## User flow
 
 1. A company-side workflow requests protected student data.
-2. Backend evaluates role permission, company ownership, workflow relationship, visibility settings, and consent posture as applicable.
+2. Backend evaluates role permission, company ownership, workflow relationship, and visibility settings, while remaining compatible with later consent-aware checks where applicable.
 3. The platform returns an allow, deny, or restricted-summary outcome with auditable decision context.
 4. The company user receives only the permitted protected behavior.
 5. Later feature units reuse the same company-access-control baseline rather than redefining access logic.
