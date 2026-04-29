@@ -208,6 +208,9 @@ export interface InterviewSummary {
   scheduled_start: string | null
   scheduled_end: string | null
   confirmed_at: string | null
+  cancelled_at: string | null
+  meeting_provider: string | null
+  meeting_url: string | null
   created_at: string
   updated_at: string
 }

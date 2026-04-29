@@ -7,6 +7,7 @@ from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 from django.middleware.csrf import get_token
 from django.views.decorators.csrf import ensure_csrf_cookie
+from urllib.parse import urlparse
 
 from common.decorators import api_endpoint
 from common.http import csrf_response_payload, error_response, parse_json_body, success_response
@@ -310,6 +311,9 @@ def serialize_interview(interview: Interview, *, include_detail: bool = False) -
         "scheduled_start": interview.scheduled_start.isoformat() if interview.scheduled_start else None,
         "scheduled_end": interview.scheduled_end.isoformat() if interview.scheduled_end else None,
         "confirmed_at": interview.confirmed_at.isoformat() if interview.confirmed_at else None,
+        "cancelled_at": interview.cancelled_at.isoformat() if interview.cancelled_at else None,
+        "meeting_provider": interview.meeting_provider or None,
+        "meeting_url": interview.meeting_url or None,
         "created_at": interview.created_at.isoformat(),
         "updated_at": interview.updated_at.isoformat(),
     }
@@ -559,6 +563,62 @@ def validate_interview_confirmation_payload(payload: dict, interview: Interview)
     if availability is None:
         raise ValidationError({"availability_id": ["Selected availability does not belong to this interview."]})
     return availability
+
+
+def validate_interview_reschedule_payload(payload: dict) -> dict:
+    reason = str(payload.get("reason", "")).strip()
+    if not reason:
+        raise ValidationError({"reason": ["This field is required."]})
+    return {"reason": reason}
+
+
+def validate_interview_cancel_payload(payload: dict) -> dict:
+    reason = str(payload.get("reason", "")).strip()
+    if not reason:
+        raise ValidationError({"reason": ["This field is required."]})
+    return {"reason": reason}
+
+
+def validate_meeting_link_payload(payload: dict) -> dict:
+    provider = str(payload.get("meeting_provider", "")).strip()
+    meeting_url = str(payload.get("meeting_url", "")).strip()
+
+    if provider not in Interview.MeetingProvider.values:
+        raise ValidationError(
+            {
+                "meeting_provider": [
+                    f"Meeting provider must be one of: {', '.join(Interview.MeetingProvider.values)}."
+                ]
+            }
+        )
+    if not meeting_url:
+        raise ValidationError({"meeting_url": ["This field is required."]})
+
+    parsed = urlparse(meeting_url)
+    if parsed.scheme != "https":
+        raise ValidationError({"meeting_url": ["Meeting URL must use https."]})
+    if not parsed.netloc:
+        raise ValidationError({"meeting_url": ["Meeting URL must include a host."]})
+
+    host = parsed.netloc.lower()
+    path = parsed.path or ""
+    allowed = False
+    if provider == Interview.MeetingProvider.ZOOM:
+        allowed = host.endswith(".zoom.us") and path.startswith(("/j/", "/wc/"))
+    elif provider == Interview.MeetingProvider.GOOGLE_MEET:
+        allowed = host == "meet.google.com" and len(path.strip("/")) >= 3
+    elif provider == Interview.MeetingProvider.TEAMS:
+        allowed = host in {"teams.microsoft.com", "teams.live.com"} and bool(path.strip("/"))
+    elif provider == Interview.MeetingProvider.CUSTOM:
+        allowed = True
+
+    if not allowed:
+        raise ValidationError({"meeting_url": ["Meeting URL does not match the selected provider format."]})
+
+    return {
+        "meeting_provider": provider,
+        "meeting_url": meeting_url,
+    }
 
 
 @api_endpoint(["GET"])
@@ -1203,6 +1263,72 @@ def company_interview_confirm_view(request, interview_id: int):
         f"Interview confirmed for {availability.start_at.isoformat()} to {availability.end_at.isoformat()}.",
     )
     return success_response(serialize_interview(get_interview_for_company(request.user, interview.id), include_detail=True))
+
+
+@api_endpoint(["POST"], authentication_required=True, roles=[User.Role.STUDENT, User.Role.COMPANY])
+def interview_reschedule_view(request, interview_id: int):
+    interview = get_interview_for_participant(request.user, interview_id)
+    if interview.status not in {Interview.Status.REQUESTED, Interview.Status.CONFIRMED, Interview.Status.RESCHEDULED}:
+        raise ValidationError({"status": ["Only active interviews can be rescheduled."]})
+
+    payload = validate_interview_reschedule_payload(parse_json_body(request))
+    previous_schedule = "no confirmed schedule"
+    if interview.scheduled_start and interview.scheduled_end:
+        previous_schedule = f"{interview.scheduled_start.isoformat()} to {interview.scheduled_end.isoformat()}"
+
+    interview.status = Interview.Status.RESCHEDULED
+    interview.scheduled_start = None
+    interview.scheduled_end = None
+    interview.confirmed_at = None
+    interview.full_clean()
+    interview.save(update_fields=["status", "scheduled_start", "scheduled_end", "confirmed_at", "updated_at"])
+    create_interview_event(
+        interview,
+        request.user,
+        "rescheduled",
+        f"Interview reschedule requested. Previous schedule: {previous_schedule}. Reason: {payload['reason']}",
+    )
+    return success_response(serialize_interview(get_interview_for_participant(request.user, interview.id), include_detail=True))
+
+
+@api_endpoint(["POST"], authentication_required=True, roles=[User.Role.STUDENT, User.Role.COMPANY])
+def interview_cancel_view(request, interview_id: int):
+    interview = get_interview_for_participant(request.user, interview_id)
+    if interview.status in {Interview.Status.CANCELLED, Interview.Status.COMPLETED}:
+        raise ValidationError({"status": ["This interview can no longer be cancelled."]})
+
+    payload = validate_interview_cancel_payload(parse_json_body(request))
+    interview.status = Interview.Status.CANCELLED
+    interview.cancelled_at = timezone.now()
+    interview.full_clean()
+    interview.save(update_fields=["status", "cancelled_at", "updated_at"])
+    create_interview_event(
+        interview,
+        request.user,
+        "cancelled",
+        f"Interview cancelled. Reason: {payload['reason']}",
+    )
+    return success_response(serialize_interview(get_interview_for_participant(request.user, interview.id), include_detail=True))
+
+
+@api_endpoint(["PUT"], authentication_required=True, roles=[User.Role.STUDENT, User.Role.COMPANY])
+def interview_meeting_link_view(request, interview_id: int):
+    interview = get_interview_for_participant(request.user, interview_id)
+    if interview.status not in {Interview.Status.CONFIRMED, Interview.Status.RESCHEDULED}:
+        raise ValidationError({"status": ["Meeting links can only be managed for confirmed or rescheduled interviews."]})
+
+    payload = validate_meeting_link_payload(parse_json_body(request))
+    interview.meeting_provider = payload["meeting_provider"]
+    interview.meeting_url = payload["meeting_url"]
+    interview.full_clean()
+    interview.save(update_fields=["meeting_provider", "meeting_url", "updated_at"])
+    create_interview_event(
+        interview,
+        request.user,
+        "meeting_link_updated",
+        f"Meeting link updated for provider {interview.meeting_provider}.",
+    )
+    return success_response(serialize_interview(get_interview_for_participant(request.user, interview.id), include_detail=True))
 
 
 @api_endpoint(["GET"], authentication_required=True)

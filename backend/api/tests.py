@@ -1197,3 +1197,159 @@ class ApiFoundationTests(TestCase):
         self.assertEqual(len(list_response.json()["data"]["interviews"]), 1)
         self.assertEqual(detail_response.status_code, 200)
         self.assertEqual(detail_response.json()["data"]["history"][0]["event_type"], "requested")
+
+    def test_interview_can_be_rescheduled_by_participant(self):
+        company = Company.objects.create(name="Softverse")
+        student = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        candidate_access = CandidateReviewAccess.objects.create(
+            company=company,
+            student=student,
+            source=CandidateReviewAccess.Source.APPLICATION,
+        )
+        company_user = User.objects.create_user(
+            email="company@example.com",
+            password="SecurePass123!",
+            full_name="Company User",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+        interview = Interview.objects.create(
+            candidate_access=candidate_access,
+            company=company,
+            student=student,
+            requested_by=company_user,
+            purpose="Technical interview",
+            role_context="Backend trainee",
+            status=Interview.Status.CONFIRMED,
+            scheduled_start=timezone.now() + timedelta(days=1),
+            scheduled_end=timezone.now() + timedelta(days=1, hours=1),
+            confirmed_at=timezone.now(),
+        )
+        client, csrf_token = self.csrf_client()
+        client.force_login(student)
+
+        response = client.post(
+            f"/api/v1/interviews/{interview.id}/reschedule",
+            data=json.dumps({"reason": "Class schedule changed."}),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        interview.refresh_from_db()
+        self.assertEqual(interview.status, Interview.Status.RESCHEDULED)
+        self.assertIsNone(interview.scheduled_start)
+        self.assertEqual(InterviewEvent.objects.filter(interview=interview, event_type="rescheduled").count(), 1)
+
+    def test_interview_can_be_cancelled_by_company(self):
+        company = Company.objects.create(name="Softverse")
+        student = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        candidate_access = CandidateReviewAccess.objects.create(
+            company=company,
+            student=student,
+            source=CandidateReviewAccess.Source.APPLICATION,
+        )
+        company_user = User.objects.create_user(
+            email="company@example.com",
+            password="SecurePass123!",
+            full_name="Company User",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+        interview = Interview.objects.create(
+            candidate_access=candidate_access,
+            company=company,
+            student=student,
+            requested_by=company_user,
+            purpose="Technical interview",
+            role_context="Backend trainee",
+        )
+        client, csrf_token = self.csrf_client()
+        client.force_login(company_user)
+
+        response = client.post(
+            f"/api/v1/interviews/{interview.id}/cancel",
+            data=json.dumps({"reason": "Position has been closed."}),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        interview.refresh_from_db()
+        self.assertEqual(interview.status, Interview.Status.CANCELLED)
+        self.assertIsNotNone(interview.cancelled_at)
+        self.assertEqual(InterviewEvent.objects.filter(interview=interview, event_type="cancelled").count(), 1)
+
+    def test_meeting_link_validation_accepts_zoom_and_rejects_mismatch(self):
+        company = Company.objects.create(name="Softverse")
+        student = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        candidate_access = CandidateReviewAccess.objects.create(
+            company=company,
+            student=student,
+            source=CandidateReviewAccess.Source.APPLICATION,
+        )
+        company_user = User.objects.create_user(
+            email="company@example.com",
+            password="SecurePass123!",
+            full_name="Company User",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+        interview = Interview.objects.create(
+            candidate_access=candidate_access,
+            company=company,
+            student=student,
+            requested_by=company_user,
+            purpose="Technical interview",
+            role_context="Backend trainee",
+            status=Interview.Status.CONFIRMED,
+            scheduled_start=timezone.now() + timedelta(days=1),
+            scheduled_end=timezone.now() + timedelta(days=1, hours=1),
+            confirmed_at=timezone.now(),
+        )
+        client, csrf_token = self.csrf_client()
+        client.force_login(company_user)
+
+        valid_response = client.put(
+            f"/api/v1/interviews/{interview.id}/meeting-link",
+            data=json.dumps(
+                {
+                    "meeting_provider": "zoom",
+                    "meeting_url": "https://softverse.zoom.us/j/123456789",
+                }
+            ),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+        self.assertEqual(valid_response.status_code, 200)
+        interview.refresh_from_db()
+        self.assertEqual(interview.meeting_provider, Interview.MeetingProvider.ZOOM)
+
+        invalid_response = client.put(
+            f"/api/v1/interviews/{interview.id}/meeting-link",
+            data=json.dumps(
+                {
+                    "meeting_provider": "google_meet",
+                    "meeting_url": "https://softverse.zoom.us/j/123456789",
+                }
+            ),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+        self.assertEqual(invalid_response.status_code, 400)
+        self.assertIn("meeting_url", invalid_response.json()["error"]["details"])
