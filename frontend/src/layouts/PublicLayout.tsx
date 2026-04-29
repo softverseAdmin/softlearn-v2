@@ -6,8 +6,8 @@ export function PublicLayout() {
 
   if (isAuthRoute) {
     return (
-      <div className="h-[100dvh] overflow-hidden bg-[radial-gradient(circle_at_top,#ede9fe_0%,#f8fafc_38%,#f8fafc_100%)]">
-        <main className="h-[100dvh] overflow-hidden">
+      <div className="min-h-[100dvh] overflow-x-hidden bg-[radial-gradient(circle_at_top,#ede9fe_0%,#f8fafc_38%,#f8fafc_100%)]">
+        <main className="min-h-[100dvh] overflow-x-hidden overflow-y-auto">
           <Outlet />
         </main>
       </div>
