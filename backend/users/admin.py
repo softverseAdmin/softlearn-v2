@@ -1,13 +1,13 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 
-from users.models import Company, StudentProfile, User
+from users.models import Company, Skill, StudentProfile, StudentSkill, User
 
 
 @admin.register(Company)
 class CompanyAdmin(admin.ModelAdmin):
-    list_display = ("id", "name", "created_at", "updated_at")
-    search_fields = ("name",)
+    list_display = ("id", "name", "updated_at", "created_at")
+    search_fields = ("name", "description")
 
 
 @admin.register(User)
@@ -46,3 +46,17 @@ class StudentProfileAdmin(admin.ModelAdmin):
         "updated_at",
     )
     search_fields = ("user__email", "user__full_name", "desired_job_type", "desired_work_location")
+
+
+@admin.register(Skill)
+class SkillAdmin(admin.ModelAdmin):
+    list_display = ("id", "name", "slug", "updated_at")
+    search_fields = ("name", "slug")
+    readonly_fields = ("slug", "created_at", "updated_at")
+
+
+@admin.register(StudentSkill)
+class StudentSkillAdmin(admin.ModelAdmin):
+    list_display = ("id", "student", "skill", "proficiency_level", "updated_at")
+    list_filter = ("proficiency_level",)
+    search_fields = ("student__email", "student__full_name", "skill__name")

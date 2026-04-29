@@ -7,6 +7,7 @@ import type { CompanyProfile } from './types'
 const emptyProfile: CompanyProfile = {
   company_id: 0,
   name: '',
+  description: '',
   profile_complete: false,
 }
 
@@ -53,7 +54,10 @@ export function CompanyProfilePage() {
     try {
       const updated = await apiRequest<CompanyProfile>('/company/profile', {
         method: 'PUT',
-        body: { name: profile.name },
+        body: {
+          name: profile.name,
+          description: profile.description,
+        },
         csrfToken,
       })
       setProfile(updated)
@@ -75,8 +79,8 @@ export function CompanyProfilePage() {
       <div className="page-header">
         <div>
           <p className="eyebrow">Company profile</p>
-          <h1>Basic company profile</h1>
-          <p className="lead">Maintain the core organization identity used across vacancies, candidate review, and interview workflows.</p>
+          <h1>Company overview</h1>
+          <p className="lead">Maintain the organization identity and summary that later candidate review and vacancy flows will rely on.</p>
         </div>
         <div className="card compact-card">
           <strong>Profile completeness</strong>
@@ -88,6 +92,15 @@ export function CompanyProfilePage() {
           <label>
             <span>Company name</span>
             <input value={profile.name} onChange={(event) => setProfile({ ...profile, name: event.target.value })} required />
+          </label>
+          <label>
+            <span>Company description</span>
+            <textarea
+              value={profile.description}
+              onChange={(event) => setProfile({ ...profile, description: event.target.value })}
+              rows={6}
+              placeholder="Describe the company, hiring focus, and student opportunities."
+            />
           </label>
           {error ? <p className="form-error">{error}</p> : null}
           {success ? <p className="form-success">{success}</p> : null}
