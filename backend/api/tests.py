@@ -12,6 +12,8 @@ from users.models import (
     CandidateReviewAccess,
     CandidateShortlist,
     Company,
+    Course,
+    Exam,
     ExamResult,
     Interview,
     InterviewAvailability,
@@ -709,6 +711,155 @@ class ApiFoundationTests(TestCase):
         self.assertFalse(company.is_active)
         self.assertEqual(company.name, "Softverse Updated")
 
+    def test_admin_can_create_update_and_retire_course(self):
+        admin = User.objects.create_superuser(
+            email="admin@example.com",
+            password="SecurePass123!",
+            full_name="Admin User",
+        )
+        client, csrf_token = self.csrf_client()
+        client.force_login(admin)
+
+        create_response = client.post(
+            "/api/v1/admin/courses",
+            data=json.dumps(
+                {
+                    "title": "Backend Foundations",
+                    "description": "Build backend fundamentals.",
+                    "category": "backend",
+                    "difficulty_level": "beginner",
+                    "estimated_hours": 16,
+                    "status": "draft",
+                }
+            ),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+        course_id = create_response.json()["data"]["course_id"]
+        update_response = client.put(
+            f"/api/v1/admin/courses/{course_id}",
+            data=json.dumps(
+                {
+                    "title": "Backend Foundations Updated",
+                    "description": "Protected backend fundamentals.",
+                    "category": "backend",
+                    "difficulty_level": "intermediate",
+                    "estimated_hours": 24,
+                    "status": "active",
+                }
+            ),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+        delete_response = client.delete(
+            f"/api/v1/admin/courses/{course_id}",
+            data=json.dumps({}),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+
+        self.assertEqual(create_response.status_code, 201)
+        self.assertEqual(update_response.status_code, 200)
+        self.assertEqual(delete_response.status_code, 200)
+        course = Course.objects.get(pk=course_id)
+        self.assertEqual(course.title, "Backend Foundations Updated")
+        self.assertEqual(course.difficulty_level, "intermediate")
+        self.assertEqual(course.estimated_hours, 24)
+        self.assertEqual(course.status, Course.Status.INACTIVE)
+
+    def test_company_user_cannot_access_admin_courses(self):
+        company = Company.objects.create(name="Softverse")
+        company_user = User.objects.create_user(
+            email="company@example.com",
+            password="SecurePass123!",
+            full_name="Company User",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+
+        client = Client()
+        client.force_login(company_user)
+
+        response = client.get("/api/v1/admin/courses")
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_admin_can_create_update_and_retire_exam(self):
+        admin = User.objects.create_superuser(
+            email="admin@example.com",
+            password="SecurePass123!",
+            full_name="Admin User",
+        )
+        client, csrf_token = self.csrf_client()
+        client.force_login(admin)
+
+        create_response = client.post(
+            "/api/v1/admin/exams",
+            data=json.dumps(
+                {
+                    "title": "Backend Validation",
+                    "description": "Backend assessment.",
+                    "category": "backend",
+                    "duration_minutes": 45,
+                    "passing_score_percent": 80,
+                    "question_count": 20,
+                    "status": "draft",
+                }
+            ),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+        exam_id = create_response.json()["data"]["exam_id"]
+        update_response = client.put(
+            f"/api/v1/admin/exams/{exam_id}",
+            data=json.dumps(
+                {
+                    "title": "Backend Validation Updated",
+                    "description": "Protected backend assessment.",
+                    "category": "backend",
+                    "duration_minutes": 60,
+                    "passing_score_percent": 85,
+                    "question_count": 24,
+                    "status": "active",
+                }
+            ),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+        delete_response = client.delete(
+            f"/api/v1/admin/exams/{exam_id}",
+            data=json.dumps({}),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+
+        self.assertEqual(create_response.status_code, 201)
+        self.assertEqual(update_response.status_code, 200)
+        self.assertEqual(delete_response.status_code, 200)
+        exam = Exam.objects.get(pk=exam_id)
+        self.assertEqual(exam.title, "Backend Validation Updated")
+        self.assertEqual(exam.duration_minutes, 60)
+        self.assertEqual(exam.passing_score_percent, 85)
+        self.assertEqual(exam.question_count, 24)
+        self.assertEqual(exam.status, Exam.Status.INACTIVE)
+
+    def test_company_user_cannot_access_admin_exams(self):
+        company = Company.objects.create(name="Softverse")
+        company_user = User.objects.create_user(
+            email="company@example.com",
+            password="SecurePass123!",
+            full_name="Company User",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+
+        client = Client()
+        client.force_login(company_user)
+
+        response = client.get("/api/v1/admin/exams")
+
+        self.assertEqual(response.status_code, 403)
+
     def test_company_can_create_update_and_retire_vacancy(self):
         company = Company.objects.create(name="Softverse")
         company_user = User.objects.create_user(
@@ -1130,6 +1281,268 @@ class ApiFoundationTests(TestCase):
 
         self.assertEqual(remove_response.status_code, 200)
         self.assertFalse(JobBookmark.objects.filter(student=student, vacancy=matching_vacancy).exists())
+
+    def test_student_matches_rank_visible_jobs_deterministically(self):
+        company = Company.objects.create(name="Softverse", is_active=True)
+        company_user = User.objects.create_user(
+            email="company@example.com",
+            password="SecurePass123!",
+            full_name="Company User",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+        student = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        profile = StudentProfile.objects.create(
+            user=student,
+            desired_job_type="backend_engineer",
+            desired_work_location="Tokyo",
+            japanese_level="business",
+            english_level="conversational",
+        )
+        python_skill = Skill.objects.create(name="Python")
+        django_skill = Skill.objects.create(name="Django")
+        StudentSkill.objects.create(student=student, skill=python_skill, proficiency_level="advanced")
+        StudentSkill.objects.create(student=student, skill=django_skill, proficiency_level="intermediate")
+        LearningRecord.objects.create(
+            student=student,
+            course_title="Backend Foundations",
+            category="backend",
+            progress_percent=100,
+            status=LearningRecord.Status.COMPLETED,
+            completed_at=timezone.now(),
+        )
+        ExamResult.objects.create(
+            student=student,
+            exam_title="Backend Validation",
+            category="backend",
+            score_percent=88,
+            passed=True,
+            attempt_number=1,
+            taken_at=timezone.now(),
+        )
+
+        strong_vacancy = Vacancy.objects.create(
+            company=company,
+            created_by=company_user,
+            title="Backend Engineer",
+            description="Build APIs in Tokyo.",
+            employment_type="full_time",
+            experience_level="mid",
+            location="Tokyo",
+            work_style=Vacancy.WorkStyle.HYBRID,
+            relocation_support=True,
+            status=Vacancy.Status.ACTIVE,
+        )
+        possible_vacancy = Vacancy.objects.create(
+            company=company,
+            created_by=company_user,
+            title="Platform Support Engineer",
+            description="Support backend tools remotely.",
+            employment_type="full_time",
+            experience_level="junior",
+            location="Osaka",
+            work_style=Vacancy.WorkStyle.REMOTE,
+            relocation_support=False,
+            status=Vacancy.Status.ACTIVE,
+        )
+        hidden_vacancy = Vacancy.objects.create(
+            company=company,
+            created_by=company_user,
+            title="Hidden Role",
+            description="Draft role.",
+            employment_type="full_time",
+            experience_level="mid",
+            location="Tokyo",
+            work_style=Vacancy.WorkStyle.ONSITE,
+            relocation_support=False,
+            status=Vacancy.Status.DRAFT,
+        )
+        VacancySkillRequirement.objects.create(
+            vacancy=strong_vacancy,
+            skill=python_skill,
+            requirement_type=VacancySkillRequirement.RequirementType.REQUIRED,
+        )
+        VacancySkillRequirement.objects.create(
+            vacancy=strong_vacancy,
+            skill=django_skill,
+            requirement_type=VacancySkillRequirement.RequirementType.PREFERRED,
+        )
+        VacancyLanguageRequirement.objects.create(
+            vacancy=strong_vacancy,
+            language=VacancyLanguageRequirement.Language.JAPANESE,
+            minimum_level=VacancyLanguageRequirement.Level.BUSINESS,
+            requirement_type=VacancyLanguageRequirement.RequirementType.REQUIRED,
+        )
+        VacancySkillRequirement.objects.create(
+            vacancy=possible_vacancy,
+            skill=python_skill,
+            requirement_type=VacancySkillRequirement.RequirementType.PREFERRED,
+        )
+        VacancyLanguageRequirement.objects.create(
+            vacancy=possible_vacancy,
+            language=VacancyLanguageRequirement.Language.ENGLISH,
+            minimum_level=VacancyLanguageRequirement.Level.CONVERSATIONAL,
+            requirement_type=VacancyLanguageRequirement.RequirementType.PREFERRED,
+        )
+        VacancySkillRequirement.objects.create(
+            vacancy=hidden_vacancy,
+            skill=python_skill,
+            requirement_type=VacancySkillRequirement.RequirementType.REQUIRED,
+        )
+
+        client = Client()
+        client.force_login(student)
+
+        response = client.get("/api/v1/student/matches")
+
+        self.assertEqual(response.status_code, 200)
+        matches = response.json()["data"]["matches"]
+        self.assertEqual(len(matches), 2)
+        self.assertEqual(matches[0]["vacancy_id"], strong_vacancy.id)
+        self.assertGreater(matches[0]["match_score"], matches[1]["match_score"])
+        self.assertEqual(matches[0]["match_level"], "Strong Match")
+        self.assertNotIn(hidden_vacancy.id, [item["vacancy_id"] for item in matches])
+        self.assertTrue(matches[0]["can_apply"])
+        self.assertIn("skill", matches[0]["factor_breakdown"])
+
+    def test_company_vacancy_matches_create_privacy_safe_match_contexts(self):
+        company = Company.objects.create(name="Softverse", is_active=True)
+        company_user = User.objects.create_user(
+            email="company@example.com",
+            password="SecurePass123!",
+            full_name="Company User",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+        vacancy = Vacancy.objects.create(
+            company=company,
+            created_by=company_user,
+            title="Backend Engineer",
+            description="Build APIs in Tokyo.",
+            employment_type="full_time",
+            experience_level="mid",
+            location="Tokyo",
+            work_style=Vacancy.WorkStyle.HYBRID,
+            relocation_support=True,
+            status=Vacancy.Status.ACTIVE,
+        )
+        python_skill = Skill.objects.create(name="Python")
+        VacancySkillRequirement.objects.create(
+            vacancy=vacancy,
+            skill=python_skill,
+            requirement_type=VacancySkillRequirement.RequirementType.REQUIRED,
+        )
+        VacancyLanguageRequirement.objects.create(
+            vacancy=vacancy,
+            language=VacancyLanguageRequirement.Language.JAPANESE,
+            minimum_level=VacancyLanguageRequirement.Level.BUSINESS,
+            requirement_type=VacancyLanguageRequirement.RequirementType.REQUIRED,
+        )
+
+        visible_student = User.objects.create_user(
+            email="visible@example.com",
+            password="SecurePass123!",
+            full_name="Visible Student",
+            role=User.Role.STUDENT,
+        )
+        StudentProfile.objects.create(
+            user=visible_student,
+            desired_job_type="backend_engineer",
+            desired_work_location="Tokyo",
+            japanese_level="business",
+            english_level="conversational",
+        )
+        StudentSkill.objects.create(student=visible_student, skill=python_skill, proficiency_level="advanced")
+        LearningRecord.objects.create(
+            student=visible_student,
+            course_title="Backend Foundations",
+            category="backend",
+            progress_percent=100,
+            status=LearningRecord.Status.COMPLETED,
+            completed_at=timezone.now(),
+        )
+        ExamResult.objects.create(
+            student=visible_student,
+            exam_title="Backend Validation",
+            category="backend",
+            score_percent=92,
+            passed=True,
+            attempt_number=1,
+            taken_at=timezone.now(),
+        )
+
+        private_student = User.objects.create_user(
+            email="private@example.com",
+            password="SecurePass123!",
+            full_name="Private Student",
+            role=User.Role.STUDENT,
+        )
+        StudentProfile.objects.create(
+            user=private_student,
+            desired_job_type="backend_engineer",
+            desired_work_location="Tokyo",
+            japanese_level="business",
+            english_level="business",
+        )
+        StudentSkill.objects.create(student=private_student, skill=python_skill, proficiency_level="advanced")
+        StudentVisibilitySettings.objects.create(
+            student=private_student,
+            share_profile_preview=False,
+            share_learning_record=False,
+            share_exam_results=False,
+        )
+
+        low_student = User.objects.create_user(
+            email="low@example.com",
+            password="SecurePass123!",
+            full_name="Low Match Student",
+            role=User.Role.STUDENT,
+        )
+        StudentProfile.objects.create(
+            user=low_student,
+            desired_job_type="designer",
+            desired_work_location="Osaka",
+            japanese_level="basic",
+            english_level="basic",
+        )
+
+        client = Client()
+        client.force_login(company_user)
+
+        response = client.get(f"/api/v1/company/vacancies/{vacancy.id}/matches")
+        candidates_response = client.get("/api/v1/company/candidates")
+
+        self.assertEqual(response.status_code, 200)
+        matches = response.json()["data"]["matches"]
+        self.assertEqual(len(matches), 2)
+        self.assertEqual(matches[0]["display_name"], "Visible Student")
+        private_match = next(item for item in matches if item["student_id"] == private_student.id)
+        self.assertEqual(private_match["display_name"], "Private candidate")
+        self.assertEqual(private_match["top_skills"], [])
+        self.assertTrue(private_match["candidate_access_id"])
+        self.assertTrue(
+            CandidateReviewAccess.objects.filter(
+                company=company,
+                student=visible_student,
+                source=CandidateReviewAccess.Source.MATCH,
+                is_active=True,
+            ).exists()
+        )
+        self.assertFalse(
+            CandidateReviewAccess.objects.filter(
+                company=company,
+                student=low_student,
+                source=CandidateReviewAccess.Source.MATCH,
+                is_active=True,
+            ).exists()
+        )
+        self.assertEqual(candidates_response.status_code, 200)
+        self.assertIn("match", [candidate["source"] for candidate in candidates_response.json()["data"]["candidates"]])
 
     def test_student_can_apply_and_view_application_history(self):
         company = Company.objects.create(name="Softverse", is_active=True)
@@ -1873,9 +2286,18 @@ class ApiFoundationTests(TestCase):
             full_name="Student User",
             role=User.Role.STUDENT,
         )
+        course = Course.objects.create(
+            title="Backend Foundations",
+            description="Backend path",
+            category="backend",
+            difficulty_level="beginner",
+            estimated_hours=12,
+            status=Course.Status.ACTIVE,
+        )
         LearningRecord.objects.create(
             student=user,
-            course_title="Backend Foundations",
+            course=course,
+            course_title="Old Backend Foundations",
             category="backend",
             progress_percent=100,
             status=LearningRecord.Status.COMPLETED,
@@ -1898,6 +2320,8 @@ class ApiFoundationTests(TestCase):
         self.assertEqual(body["total_courses"], 2)
         self.assertEqual(body["completed_courses"], 1)
         self.assertEqual(body["in_progress_courses"], 1)
+        linked_record = next(item for item in body["records"] if item["course_id"] == course.id)
+        self.assertEqual(linked_record["course_title"], "Backend Foundations")
 
     def test_student_exam_results_returns_summary(self):
         user = User.objects.create_user(
@@ -1906,9 +2330,19 @@ class ApiFoundationTests(TestCase):
             full_name="Student User",
             role=User.Role.STUDENT,
         )
+        exam = Exam.objects.create(
+            title="Python Basics Exam",
+            description="Programming validation",
+            category="programming",
+            duration_minutes=30,
+            passing_score_percent=80,
+            question_count=15,
+            status=Exam.Status.ACTIVE,
+        )
         ExamResult.objects.create(
             student=user,
-            exam_title="Python Basics Exam",
+            exam=exam,
+            exam_title="Old Python Basics Exam",
             category="programming",
             score_percent=82,
             passed=True,
@@ -1934,6 +2368,8 @@ class ApiFoundationTests(TestCase):
         self.assertEqual(body["total_results"], 2)
         self.assertEqual(body["passed_results"], 1)
         self.assertEqual(body["average_score"], 75.0)
+        linked_result = next(item for item in body["results"] if item["exam_id"] == exam.id)
+        self.assertEqual(linked_result["exam_title"], "Python Basics Exam")
 
     def test_company_candidates_list_returns_company_safe_preview_cards(self):
         company = Company.objects.create(name="Softverse")

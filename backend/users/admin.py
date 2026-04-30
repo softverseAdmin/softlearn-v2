@@ -8,6 +8,8 @@ from users.models import (
     CandidateReviewAccess,
     CandidateShortlist,
     Company,
+    Course,
+    Exam,
     ExamResult,
     Interview,
     InterviewAvailability,
@@ -95,16 +97,30 @@ class StudentVisibilitySettingsAdmin(admin.ModelAdmin):
 
 @admin.register(LearningRecord)
 class LearningRecordAdmin(admin.ModelAdmin):
-    list_display = ("id", "student", "course_title", "category", "progress_percent", "status", "updated_at")
+    list_display = ("id", "student", "course", "course_title", "category", "progress_percent", "status", "updated_at")
     list_filter = ("status", "category")
-    search_fields = ("student__email", "student__full_name", "course_title", "category")
+    search_fields = ("student__email", "student__full_name", "course__title", "course_title", "category")
+
+
+@admin.register(Course)
+class CourseAdmin(admin.ModelAdmin):
+    list_display = ("id", "title", "category", "difficulty_level", "estimated_hours", "status", "updated_at")
+    list_filter = ("status", "category", "difficulty_level")
+    search_fields = ("title", "description", "category", "difficulty_level")
 
 
 @admin.register(ExamResult)
 class ExamResultAdmin(admin.ModelAdmin):
-    list_display = ("id", "student", "exam_title", "category", "score_percent", "passed", "taken_at")
+    list_display = ("id", "student", "exam", "exam_title", "category", "score_percent", "passed", "taken_at")
     list_filter = ("passed", "category")
-    search_fields = ("student__email", "student__full_name", "exam_title", "category")
+    search_fields = ("student__email", "student__full_name", "exam__title", "exam_title", "category")
+
+
+@admin.register(Exam)
+class ExamAdmin(admin.ModelAdmin):
+    list_display = ("id", "title", "category", "duration_minutes", "passing_score_percent", "question_count", "status", "updated_at")
+    list_filter = ("status", "category")
+    search_fields = ("title", "description", "category")
 
 
 @admin.register(CandidateReviewAccess)
