@@ -1,3 +1,26 @@
+export interface AdminSkillOption {
+  id: number
+  name: string
+  slug: string
+}
+
+export interface AdminVacancySkillRequirement {
+  id: number
+  skill_id: number
+  skill_name: string
+  skill_slug: string
+  requirement_type: string
+}
+
+export interface AdminVacancyLanguageRequirement {
+  id: number
+  language: string
+  language_label: string
+  minimum_level: string
+  minimum_level_label: string
+  requirement_type: string
+}
+
 export interface AdminUserRecord {
   user_id: number
   email: string
@@ -32,6 +55,7 @@ export interface AdminVacanciesResponse {
   vacancies: AdminVacancyRecord[]
   companies: AdminCompanyRecord[]
   company_users: AdminCompanyUserRecord[]
+  available_skills: AdminSkillOption[]
 }
 
 export interface AdminCompanyUserRecord {
@@ -52,6 +76,12 @@ export interface AdminVacancyRecord {
   employment_type: string
   experience_level: string
   location: string
+  work_style: string
+  work_style_label: string
+  relocation_support: boolean
+  skill_requirements: AdminVacancySkillRequirement[]
+  language_requirements: AdminVacancyLanguageRequirement[]
+  is_bookmarked: boolean
   status: string
   created_by_id: number
   created_by_name: string

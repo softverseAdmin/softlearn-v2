@@ -14,11 +14,11 @@ Baseline inception version: v1
 
 ## Scope
 
-Define the baseline application-status-tracking flow so the platform can record, expose, and audit stable application state and status history without collapsing create, withdraw, shortlist, or rejection actions into the same unit.
+Implement the shared application-status-tracking flow so the platform records, exposes, and audits stable application state and status history without collapsing create, withdraw, shortlist, or rejection actions into the same unit.
 
 ## Out of Scope
 
-Concrete frontend/backend implementation code, application creation, withdrawal, shortlist actions, rejection actions, interview scheduling, and notification delivery.
+Interview scheduling and notification delivery beyond the implemented status transitions and history exposure.
 
 ## Dependencies
 
@@ -26,7 +26,7 @@ Depends on the requirements, security, data-model, architecture, base applicatio
 
 ## Acceptance Criteria
 
-The unit documents deterministic application-status tracking, lifecycle-history expectations, and relationship to later student and company actions without producing application code.
+Applications persist one authoritative current status and an ordered audit-friendly history consumed consistently by student and company views.
 
 ## Risks
 
@@ -38,4 +38,4 @@ Exact future expansion for interview-related or offer-related statuses can be re
 
 ## Last Updated
 
-2026-04-29
+2026-04-30

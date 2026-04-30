@@ -14,6 +14,7 @@ const contentByRole = {
     links: [
       { title: 'Notifications', href: '/student/notifications' },
       { title: 'Jobs', href: '/student/jobs' },
+      { title: 'Applications', href: '/student/applications' },
       { title: 'Profile and resume', href: '/student/profile' },
       { title: 'Skills profile', href: '/student/skills' },
       { title: 'Learning progress', href: '/student/learning' },
@@ -27,6 +28,7 @@ const contentByRole = {
     description: 'Review hiring activity, candidate flow, interviews, and notification signals for your company.',
     links: [
       { title: 'Notifications', href: '/company/notifications' },
+      { title: 'Applications', href: '/company/applications' },
       { title: 'Company profile', href: '/company/profile' },
       { title: 'Vacancy management', href: '/company/vacancies' },
       { title: 'Candidate review', href: '/company/candidates' },

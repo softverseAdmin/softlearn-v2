@@ -14,11 +14,11 @@ Baseline inception version: v1
 
 ## Scope
 
-Define the baseline vacancy-language-requirements flow so authorized company users can attach structured language expectations to an existing vacancy without collapsing skill tags, location settings, or matching behavior into the same unit.
+Implement structured vacancy language requirements so authorized company users can attach stable language expectations and minimum levels to a vacancy through the protected vacancy-management flows.
 
 ## Out of Scope
 
-Concrete frontend/backend implementation code, vacancy CRUD behavior, skill tags, location settings, student search filters, applications, and matching calculation.
+Language-match scoring logic, student language assessment, and recommendation behavior beyond exposing structured vacancy expectations.
 
 ## Dependencies
 
@@ -26,16 +26,16 @@ Depends on the requirements, security, data-model, architecture, RBAC, API, vaca
 
 ## Acceptance Criteria
 
-The unit documents structured vacancy language requirements, company ownership boundaries, and relationship to later search and matching units without producing application code.
+Vacancies persist structured language requirements, and company/admin vacancy editors expose the same language contract consistently.
 
 ## Risks
 
-If vacancy language requirements are underspecified here, later search, matching, and candidate-review units can drift into conflicting language-level requirement definitions and vacancy expectations.
+Vacancy language requirements now feed student discovery and later matching inputs, so validation or serializer drift would create inconsistent language expectations across the product.
 
 ## Open Questions
 
-Exact required-versus-preferred language semantics, proficiency granularity, and multi-language combinations can be refined later as long as structured vacancy language requirements remain explicit and vacancy-linked.
+Later units can add more languages or richer level mappings if they preserve the current explicit vacancy-linked language requirement model.
 
 ## Last Updated
 
-2026-04-29
+2026-04-30

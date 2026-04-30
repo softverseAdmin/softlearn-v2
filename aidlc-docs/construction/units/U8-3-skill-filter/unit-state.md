@@ -14,28 +14,28 @@ Baseline inception version: v1
 
 ## Scope
 
-Define the baseline skill-filter flow so authenticated students can narrow visible jobs using structured vacancy skill requirements without collapsing language, location, salary, bookmarks, or matching into the same unit.
+Implement structured skill filtering for the student jobs experience using vacancy skill requirements from the shared skill taxonomy.
 
 ## Out of Scope
 
-Concrete frontend/backend implementation code, language/location/salary filters, bookmarks, applications, and matching calculation.
+Skill-match scoring, recommendation weighting, and student skill assessment beyond using the shared vacancy taxonomy for filtering.
 
 ## Dependencies
 
-Depends on the requirements, security, data-model, architecture, API, job-list-page, job-search-bar, and vacancy-skill-tags baselines.
+Depends on the requirements, security, data-model, architecture, API, frontend initialization, routing, state-management, base-layout, vacancy-skill-tags, job-list-page, and job-search-bar baselines.
 
 ## Acceptance Criteria
 
-The unit documents skill-filter behavior, structured filter boundaries, and relationship to later search and bookmark units without producing application code.
+Students can filter visible jobs by structured vacancy skill tags, and the filter behavior preserves the same visibility posture as the base job list.
 
 ## Risks
 
-If the skill filter is underspecified here, later search, bookmark, and matching units can drift into conflicting skill-based filtering behavior and alternate vacancy-skill interpretations.
+Skill filtering now shares data with vacancy authoring and later matching units, so taxonomy drift would create inconsistent discovery behavior.
 
 ## Open Questions
 
-Exact multi-select behavior, required-versus-preferred skill filtering semantics, and empty-filter defaults can be refined later as long as structured skill filtering remains explicit and stable.
+Later units can add richer multi-skill weighting if they preserve the current structured vacancy-skill filter contract.
 
 ## Last Updated
 
-2026-04-29
+2026-04-30

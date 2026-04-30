@@ -16,6 +16,7 @@ export const navigationItemsByRole: Record<UserRole, NavigationItem[]> = {
     { label: 'Dashboard', to: '/student' },
     { label: 'Notifications', to: '/student/notifications' },
     { label: 'Jobs', to: '/student/jobs' },
+    { label: 'Applications', to: '/student/applications' },
     { label: 'Profile', to: '/student/profile' },
     { label: 'Skills', to: '/student/skills' },
     { label: 'Learning', to: '/student/learning' },
@@ -26,6 +27,7 @@ export const navigationItemsByRole: Record<UserRole, NavigationItem[]> = {
   company: [
     { label: 'Dashboard', to: '/company' },
     { label: 'Notifications', to: '/company/notifications' },
+    { label: 'Applications', to: '/company/applications' },
     { label: 'Profile', to: '/company/profile' },
     { label: 'Candidates', to: '/company/candidates' },
     { label: 'Interviews', to: '/company/interviews' },

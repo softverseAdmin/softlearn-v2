@@ -14,11 +14,11 @@ Baseline inception version: v1
 
 ## Scope
 
-Define the baseline apply-to-job flow so an authenticated student can create an application for a visible vacancy using deterministic eligibility, ownership, and initial-status rules without collapsing later status-tracking or company-review behavior into the same unit.
+Implement the protected apply-to-job flow so an authenticated student can create an application for a visible vacancy using deterministic eligibility, ownership, and initial-status rules without collapsing later status-tracking or company-review behavior into the same unit.
 
 ## Out of Scope
 
-Concrete frontend/backend implementation code, later company review actions, interview scheduling, notifications, and detailed status-lifecycle management beyond initial submission behavior.
+Interview scheduling, notifications, and detailed lifecycle behavior beyond the shared application status model used by the implemented flow.
 
 ## Dependencies
 
@@ -26,16 +26,16 @@ Depends on the requirements, security, data-model, architecture, student authent
 
 ## Acceptance Criteria
 
-The unit documents deterministic student-owned application creation, duplicate-prevention expectations, and relationship to later application status and company-review units without producing application code.
+Students can submit a protected application from a visible job context, duplicate active applications are blocked, and initial submitted status history is persisted.
 
 ## Risks
 
-If application creation is underspecified here, later units can drift into duplicate applications, unauthorized vacancy targeting, inconsistent initial status behavior, and broken status-history linkage.
+Application creation now depends on the shared lifecycle model and company review surfaces, so contract drift across these areas would create inconsistent hiring state.
 
 ## Open Questions
 
-Exact later eligibility checks such as application windows or additional screening questions can be refined later as long as baseline submission remains deterministic and student-owned.
+Future units can add richer screening inputs or eligibility windows if they preserve the current visible-vacancy and student-owned submission rules.
 
 ## Last Updated
 
-2026-04-29
+2026-04-30

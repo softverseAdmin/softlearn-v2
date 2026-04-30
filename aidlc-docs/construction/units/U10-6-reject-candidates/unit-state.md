@@ -14,11 +14,11 @@ Baseline inception version: v1
 
 ## Scope
 
-Define the baseline reject-candidates flow so authorized company users can mark an application as rejected using deterministic authorization, terminal-state, and audit rules without collapsing notification or interview behavior into the same unit.
+Implement the protected reject-candidates flow so authorized company users can mark an application as rejected using deterministic authorization, terminal-state, and audit rules.
 
 ## Out of Scope
 
-Concrete frontend/backend implementation code, application creation, passive company review, shortlist actions, notification delivery, and interview scheduling.
+Notification delivery and interview scheduling beyond the implemented rejection transition and company application review behavior.
 
 ## Dependencies
 
@@ -26,7 +26,7 @@ Depends on the requirements, security, data-model, architecture, company authori
 
 ## Acceptance Criteria
 
-The unit documents deterministic company-side rejection behavior, terminal-state expectations, and relationship to shared application status without producing application code.
+Authorized company users can reject eligible applications, and the rejected terminal state plus history are persisted and exposed through company application review.
 
 ## Risks
 
@@ -38,4 +38,4 @@ Exact future handling of structured rejection reasons and student-facing communi
 
 ## Last Updated
 
-2026-04-29
+2026-04-30

@@ -14,11 +14,11 @@ Baseline inception version: v1
 
 ## Scope
 
-Define the baseline vacancy-location-settings flow so authorized company users can attach structured location and work-style expectations to an existing vacancy without collapsing skill tags, language requirements, or matching behavior into the same unit.
+Implement structured vacancy location settings so authorized company users can manage location, work style, and relocation-support posture as part of protected vacancy authoring.
 
 ## Out of Scope
 
-Concrete frontend/backend implementation code, vacancy CRUD behavior, skill tags, language requirements, student search filters, applications, and matching calculation.
+Location matching logic, map integrations, and multi-region optimization beyond the structured location/work-style metadata now stored on vacancies.
 
 ## Dependencies
 
@@ -26,16 +26,16 @@ Depends on the requirements, security, data-model, architecture, RBAC, API, vaca
 
 ## Acceptance Criteria
 
-The unit documents structured vacancy location settings, company ownership boundaries, and relationship to later search and matching units without producing application code.
+Vacancies persist structured location settings including work style and relocation support, and company/admin vacancy editors expose the same contract consistently.
 
 ## Risks
 
-If vacancy location settings are underspecified here, later search, matching, and candidate-review units can drift into conflicting location, remote, and work-style requirement definitions.
+Location settings now feed student discovery filters, so inconsistent work-style or relocation handling would create confusing discovery behavior and weak matching inputs.
 
 ## Open Questions
 
-Exact remote, hybrid, relocation, and multi-location semantics can be refined later as long as structured vacancy location settings remain explicit and vacancy-linked.
+Later units can add multi-region or relocation-detail semantics if they preserve the current explicit location/work-style contract.
 
 ## Last Updated
 
-2026-04-29
+2026-04-30

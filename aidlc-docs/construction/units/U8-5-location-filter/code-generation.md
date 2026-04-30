@@ -2,36 +2,34 @@
 
 ## Implementation plan
 
-No application code for this unit.
-
-This unit defines the location-filter baseline only. Later backend and frontend units may implement structured location filtering, filter UI behavior, and tests from this design.
+1. Extend the student jobs API to accept structured location and work-style filters based on vacancy metadata.
+2. Expose available visible-job locations and work styles to the student discovery UI.
+3. Add location and work-style filter controls to the student jobs page.
+4. Cover filtered-result and visibility behavior with backend tests.
 
 ## Files to create or update
 
-- `aidlc-docs/construction/units/U8-5-location-filter/unit-state.md`
-- `aidlc-docs/construction/units/U8-5-location-filter/functional-design.md`
-- `aidlc-docs/construction/units/U8-5-location-filter/nfr-requirements.md`
-- `aidlc-docs/construction/units/U8-5-location-filter/nfr-design.md`
-- `aidlc-docs/construction/units/U8-5-location-filter/infrastructure-design.md`
+- `backend/api/views.py`
+- `backend/api/tests.py`
+- `frontend/src/features/profile/types.ts`
+- `frontend/src/features/profile/StudentJobsPage.tsx`
 - `aidlc-docs/construction/units/U8-5-location-filter/code-generation.md`
-- `aidlc-docs/aidlc-state.md`
+- `aidlc-docs/construction/units/U8-5-location-filter/unit-state.md`
 
 ## Test plan
 
-- Review the unit against the requirements, security, data-model, architecture, and vacancy-visibility baselines.
-- Confirm the unit defines structured location filtering clearly.
-- Confirm the unit remains separate from other filters, bookmarks, applications, and matching workflows.
-- Confirm no application code is added.
-- Run `./scripts/aidlc-check.sh`.
+- `. .venv\Scripts\Activate.ps1; cd backend; python manage.py check; python manage.py test`
+- `cd frontend; npm run build; npm run lint`
+- `bash ./scripts/aidlc-check.sh` in a shell that can execute the repository validation script.
 
 ## Rollback plan
 
-Revert the documentation-only change if the location-filter baseline is rejected or replaced by an approved revision.
+- Revert the structured location/work-style filtering in the student jobs API and page.
+- Restore discovery to the prior non-location-filtered state.
 
 ## Review checklist
 
-- Location-filter flow documented
-- Structured filter and visible-result expectations documented
-- Relationship to later bookmarks, applications, and matching units documented
-- Separation from other filters and matching logic preserved
-- No application code introduced
+- Location filtering consumes structured vacancy location metadata
+- Work-style filtering stays consistent with vacancy authoring settings
+- Filtered results preserve visible vacancy boundaries
+- Student discovery exposes stable location and work-style options from visible jobs

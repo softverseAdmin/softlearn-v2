@@ -14,11 +14,11 @@ Baseline inception version: v1
 
 ## Scope
 
-Define the baseline vacancy-skill-tags flow so authorized company users can attach structured skill requirements to an existing vacancy without collapsing language requirements, location settings, or matching behavior into the same unit.
+Implement structured vacancy skill tags so authorized company users can attach required and preferred shared-taxonomy skills to a vacancy through the protected vacancy-management flows.
 
 ## Out of Scope
 
-Concrete frontend/backend implementation code, vacancy CRUD behavior, language requirements, location settings, student search filters, applications, and matching calculation.
+Match scoring logic, recommendation behavior, and student-owned skill profiling beyond consuming the shared taxonomy already present in the app.
 
 ## Dependencies
 
@@ -26,16 +26,16 @@ Depends on the requirements, security, data-model, architecture, RBAC, API, vaca
 
 ## Acceptance Criteria
 
-The unit documents structured vacancy skill-tag behavior, company ownership boundaries, and relationship to later search and matching units without producing application code.
+Vacancies persist structured required and preferred skill requirements, and company/admin vacancy editors expose the same skill-tagging contract consistently.
 
 ## Risks
 
-If vacancy skill tags are underspecified here, later search, matching, and application-readiness units can drift into conflicting skill-requirement definitions and vacancy taxonomy expectations.
+Vacancy skill tags now feed student discovery and later matching inputs, so serializer or validation drift would create inconsistent search and matching foundations.
 
 ## Open Questions
 
-Exact required-versus-preferred skill semantics, proficiency granularity, and bulk-tagging workflows can be refined later as long as structured vacancy skill tagging remains explicit and vacancy-linked.
+Later units can add richer proficiency or weighting semantics if they preserve the current vacancy-linked required/preferred taxonomy model.
 
 ## Last Updated
 
-2026-04-29
+2026-04-30

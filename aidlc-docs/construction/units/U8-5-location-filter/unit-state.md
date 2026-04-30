@@ -14,28 +14,28 @@ Baseline inception version: v1
 
 ## Scope
 
-Define the baseline location-filter flow so authenticated students can narrow visible jobs using structured vacancy location and work-style settings without collapsing skill, language, salary, bookmarks, or matching into the same unit.
+Implement structured location and work-style filtering for the student jobs experience using vacancy location metadata, work style, and relocation-support posture.
 
 ## Out of Scope
 
-Concrete frontend/backend implementation code, skill/language/salary filters, bookmarks, applications, and matching calculation.
+Location-match scoring, map integrations, and advanced multi-region recommendation behavior beyond the structured vacancy location contract used for filtering.
 
 ## Dependencies
 
-Depends on the requirements, security, data-model, architecture, API, job-list-page, job-search-bar, and vacancy-location-settings baselines.
+Depends on the requirements, security, data-model, architecture, API, frontend initialization, routing, state-management, base-layout, vacancy-location-settings, job-list-page, and job-search-bar baselines.
 
 ## Acceptance Criteria
 
-The unit documents location-filter behavior, structured filter boundaries, and relationship to later search and bookmark units without producing application code.
+Students can filter visible jobs by location and work style, and the filter behavior preserves the same visibility posture as the base job list.
 
 ## Risks
 
-If the location filter is underspecified here, later search, bookmark, and matching units can drift into conflicting location-based filtering behavior and alternate vacancy-location interpretations.
+Location filtering now shares data with vacancy authoring and later matching units, so inconsistent work-style or location handling would create confusing discovery behavior.
 
 ## Open Questions
 
-Exact remote/hybrid semantics, multi-location behavior, and empty-filter defaults can be refined later as long as structured location filtering remains explicit and stable.
+Later units can refine remote and region semantics if they preserve the current structured location/work-style filter contract.
 
 ## Last Updated
 
-2026-04-29
+2026-04-30
