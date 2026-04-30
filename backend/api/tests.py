@@ -6,6 +6,8 @@ from django.test import Client, TestCase
 from django.utils import timezone
 
 from users.models import (
+    Application,
+    ApplicationStatusHistory,
     CandidateNote,
     CandidateReviewAccess,
     CandidateShortlist,
@@ -14,6 +16,7 @@ from users.models import (
     Interview,
     InterviewAvailability,
     InterviewEvent,
+    JobBookmark,
     LearningRecord,
     Notification,
     NotificationDelivery,
@@ -24,6 +27,8 @@ from users.models import (
     StudentVisibilitySettings,
     User,
     Vacancy,
+    VacancyLanguageRequirement,
+    VacancySkillRequirement,
 )
 
 
@@ -807,6 +812,114 @@ class ApiFoundationTests(TestCase):
         self.assertEqual(len(response.json()["data"]["vacancies"]), 1)
         self.assertEqual(response.json()["data"]["vacancies"][0]["company_name"], "Softverse")
 
+    def test_company_vacancy_metadata_is_saved_and_updated(self):
+        company = Company.objects.create(name="Softverse")
+        company_user = User.objects.create_user(
+            email="company@example.com",
+            password="SecurePass123!",
+            full_name="Company User",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+        python_skill = Skill.objects.create(name="Python")
+        react_skill = Skill.objects.create(name="React")
+        client, csrf_token = self.csrf_client()
+        client.force_login(company_user)
+
+        create_response = client.post(
+            "/api/v1/company/vacancies",
+            data=json.dumps(
+                {
+                    "title": "Platform Engineer",
+                    "description": "Build hiring platform services.",
+                    "employment_type": "full_time",
+                    "experience_level": "mid",
+                    "location": "Tokyo",
+                    "work_style": "hybrid",
+                    "relocation_support": True,
+                    "status": "active",
+                    "required_skill_ids": [python_skill.id],
+                    "preferred_skill_ids": [react_skill.id],
+                    "language_requirements": [
+                        {
+                            "language": "japanese",
+                            "minimum_level": "business",
+                            "requirement_type": "required",
+                        },
+                        {
+                            "language": "english",
+                            "minimum_level": "conversational",
+                            "requirement_type": "preferred",
+                        },
+                    ],
+                }
+            ),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+
+        self.assertEqual(create_response.status_code, 201)
+        vacancy_id = create_response.json()["data"]["vacancy_id"]
+        self.assertEqual(create_response.json()["data"]["work_style"], "hybrid")
+        self.assertTrue(create_response.json()["data"]["relocation_support"])
+        self.assertEqual(len(create_response.json()["data"]["skill_requirements"]), 2)
+        self.assertEqual(len(create_response.json()["data"]["language_requirements"]), 2)
+
+        update_response = client.put(
+            f"/api/v1/company/vacancies/{vacancy_id}",
+            data=json.dumps(
+                {
+                    "title": "Platform Engineer",
+                    "description": "Build hiring platform services and discovery flows.",
+                    "employment_type": "full_time",
+                    "experience_level": "senior",
+                    "location": "Osaka",
+                    "work_style": "remote",
+                    "relocation_support": False,
+                    "status": "active",
+                    "required_skill_ids": [react_skill.id],
+                    "preferred_skill_ids": [],
+                    "language_requirements": [
+                        {
+                            "language": "english",
+                            "minimum_level": "fluent",
+                            "requirement_type": "required",
+                        }
+                    ],
+                }
+            ),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+
+        self.assertEqual(update_response.status_code, 200)
+        vacancy = Vacancy.objects.get(pk=vacancy_id)
+        self.assertEqual(vacancy.work_style, Vacancy.WorkStyle.REMOTE)
+        self.assertFalse(vacancy.relocation_support)
+        self.assertEqual(VacancySkillRequirement.objects.filter(vacancy=vacancy).count(), 1)
+        self.assertTrue(
+            VacancySkillRequirement.objects.filter(
+                vacancy=vacancy,
+                skill=react_skill,
+                requirement_type=VacancySkillRequirement.RequirementType.REQUIRED,
+            ).exists()
+        )
+        self.assertEqual(VacancyLanguageRequirement.objects.filter(vacancy=vacancy).count(), 1)
+        self.assertTrue(
+            VacancyLanguageRequirement.objects.filter(
+                vacancy=vacancy,
+                language=VacancyLanguageRequirement.Language.ENGLISH,
+                minimum_level=VacancyLanguageRequirement.Level.FLUENT,
+                requirement_type=VacancyLanguageRequirement.RequirementType.REQUIRED,
+            ).exists()
+        )
+
+        list_response = client.get("/api/v1/company/vacancies")
+
+        self.assertEqual(list_response.status_code, 200)
+        self.assertEqual(len(list_response.json()["data"]["available_skills"]), 2)
+        self.assertEqual(list_response.json()["data"]["vacancies"][0]["work_style"], "remote")
+
     def test_student_job_list_shows_only_active_visible_vacancies(self):
         company = Company.objects.create(name="Softverse", is_active=True)
         inactive_company = Company.objects.create(name="Hiddenverse", is_active=False)
@@ -885,6 +998,428 @@ class ApiFoundationTests(TestCase):
         response = client.get("/api/v1/student/jobs")
 
         self.assertEqual(response.status_code, 403)
+
+    def test_student_job_filters_and_bookmarks_respect_visibility(self):
+        company = Company.objects.create(name="Softverse", is_active=True)
+        hidden_company = Company.objects.create(name="Hiddenverse", is_active=False)
+        company_user = User.objects.create_user(
+            email="company@example.com",
+            password="SecurePass123!",
+            full_name="Company User",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+        hidden_company_user = User.objects.create_user(
+            email="hidden@example.com",
+            password="SecurePass123!",
+            full_name="Hidden Company User",
+            role=User.Role.COMPANY,
+            company=hidden_company,
+        )
+        student = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        python_skill = Skill.objects.create(name="Python")
+        react_skill = Skill.objects.create(name="React")
+        matching_vacancy = Vacancy.objects.create(
+            company=company,
+            created_by=company_user,
+            title="Backend Engineer",
+            description="Build APIs with Python.",
+            employment_type="full_time",
+            experience_level="junior",
+            location="Tokyo",
+            work_style=Vacancy.WorkStyle.HYBRID,
+            relocation_support=True,
+            status=Vacancy.Status.ACTIVE,
+        )
+        other_vacancy = Vacancy.objects.create(
+            company=company,
+            created_by=company_user,
+            title="Frontend Engineer",
+            description="Build UI with React.",
+            employment_type="full_time",
+            experience_level="mid",
+            location="Osaka",
+            work_style=Vacancy.WorkStyle.ONSITE,
+            relocation_support=False,
+            status=Vacancy.Status.ACTIVE,
+        )
+        hidden_vacancy = Vacancy.objects.create(
+            company=hidden_company,
+            created_by=hidden_company_user,
+            title="Hidden Engineer",
+            description="Should not be visible.",
+            employment_type="full_time",
+            experience_level="mid",
+            location="Tokyo",
+            work_style=Vacancy.WorkStyle.REMOTE,
+            relocation_support=False,
+            status=Vacancy.Status.ACTIVE,
+        )
+        VacancySkillRequirement.objects.create(
+            vacancy=matching_vacancy,
+            skill=python_skill,
+            requirement_type=VacancySkillRequirement.RequirementType.REQUIRED,
+        )
+        VacancySkillRequirement.objects.create(
+            vacancy=other_vacancy,
+            skill=react_skill,
+            requirement_type=VacancySkillRequirement.RequirementType.REQUIRED,
+        )
+        VacancyLanguageRequirement.objects.create(
+            vacancy=matching_vacancy,
+            language=VacancyLanguageRequirement.Language.JAPANESE,
+            minimum_level=VacancyLanguageRequirement.Level.BUSINESS,
+            requirement_type=VacancyLanguageRequirement.RequirementType.REQUIRED,
+        )
+        VacancyLanguageRequirement.objects.create(
+            vacancy=other_vacancy,
+            language=VacancyLanguageRequirement.Language.ENGLISH,
+            minimum_level=VacancyLanguageRequirement.Level.FLUENT,
+            requirement_type=VacancyLanguageRequirement.RequirementType.REQUIRED,
+        )
+
+        client, csrf_token = self.csrf_client()
+        client.force_login(student)
+
+        filtered_response = client.get(
+            "/api/v1/student/jobs?q=Backend&skills=python&languages=japanese&locations=Tokyo&work_styles=hybrid"
+        )
+
+        self.assertEqual(filtered_response.status_code, 200)
+        vacancies = filtered_response.json()["data"]["vacancies"]
+        self.assertEqual(len(vacancies), 1)
+        self.assertEqual(vacancies[0]["vacancy_id"], matching_vacancy.id)
+        self.assertFalse(vacancies[0]["is_bookmarked"])
+
+        bookmark_response = client.post(
+            f"/api/v1/student/jobs/{matching_vacancy.id}/bookmark",
+            data=json.dumps({}),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+        hidden_bookmark_response = client.post(
+            f"/api/v1/student/jobs/{hidden_vacancy.id}/bookmark",
+            data=json.dumps({}),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+
+        self.assertEqual(bookmark_response.status_code, 201)
+        self.assertEqual(hidden_bookmark_response.status_code, 404)
+        self.assertTrue(JobBookmark.objects.filter(student=student, vacancy=matching_vacancy).exists())
+
+        bookmarked_response = client.get(
+            "/api/v1/student/jobs?q=Backend&skills=python&languages=japanese&locations=Tokyo&work_styles=hybrid"
+        )
+
+        self.assertEqual(bookmarked_response.status_code, 200)
+        self.assertEqual(bookmarked_response.json()["data"]["bookmark_count"], 1)
+        self.assertTrue(bookmarked_response.json()["data"]["vacancies"][0]["is_bookmarked"])
+
+        remove_response = client.delete(
+            f"/api/v1/student/jobs/{matching_vacancy.id}/bookmark",
+            data=json.dumps({}),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+
+        self.assertEqual(remove_response.status_code, 200)
+        self.assertFalse(JobBookmark.objects.filter(student=student, vacancy=matching_vacancy).exists())
+
+    def test_student_can_apply_and_view_application_history(self):
+        company = Company.objects.create(name="Softverse", is_active=True)
+        company_user = User.objects.create_user(
+            email="company@example.com",
+            password="SecurePass123!",
+            full_name="Company User",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+        student = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        vacancy = Vacancy.objects.create(
+            company=company,
+            created_by=company_user,
+            title="Backend Engineer",
+            description="Build APIs.",
+            employment_type="full_time",
+            experience_level="junior",
+            location="Tokyo",
+            status=Vacancy.Status.ACTIVE,
+        )
+        client, csrf_token = self.csrf_client()
+        client.force_login(student)
+
+        create_response = client.post(
+            "/api/v1/student/applications",
+            data=json.dumps({"vacancy_id": vacancy.id}),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+        list_response = client.get("/api/v1/student/applications")
+
+        self.assertEqual(create_response.status_code, 201)
+        body = create_response.json()["data"]
+        self.assertEqual(body["status"], Application.Status.SUBMITTED)
+        self.assertEqual(len(body["history"]), 1)
+        self.assertEqual(body["history"][0]["to_status"], Application.Status.SUBMITTED)
+        self.assertEqual(list_response.status_code, 200)
+        self.assertEqual(list_response.json()["data"]["application_count"], 1)
+        self.assertTrue(
+            CandidateReviewAccess.objects.filter(
+                company=company,
+                student=student,
+                source=CandidateReviewAccess.Source.APPLICATION,
+                is_active=True,
+            ).exists()
+        )
+
+    def test_student_application_rejects_duplicate_active_submission(self):
+        company = Company.objects.create(name="Softverse", is_active=True)
+        company_user = User.objects.create_user(
+            email="company@example.com",
+            password="SecurePass123!",
+            full_name="Company User",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+        student = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        vacancy = Vacancy.objects.create(
+            company=company,
+            created_by=company_user,
+            title="Backend Engineer",
+            description="Build APIs.",
+            employment_type="full_time",
+            experience_level="junior",
+            location="Tokyo",
+            status=Vacancy.Status.ACTIVE,
+        )
+        Application.objects.create(company=company, vacancy=vacancy, student=student, status=Application.Status.SUBMITTED)
+        client, csrf_token = self.csrf_client()
+        client.force_login(student)
+
+        response = client.post(
+            "/api/v1/student/applications",
+            data=json.dumps({"vacancy_id": vacancy.id}),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("vacancy_id", response.json()["error"]["details"])
+
+    def test_student_can_withdraw_application(self):
+        company = Company.objects.create(name="Softverse", is_active=True)
+        company_user = User.objects.create_user(
+            email="company@example.com",
+            password="SecurePass123!",
+            full_name="Company User",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+        student = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        vacancy = Vacancy.objects.create(
+            company=company,
+            created_by=company_user,
+            title="Backend Engineer",
+            description="Build APIs.",
+            employment_type="full_time",
+            experience_level="junior",
+            location="Tokyo",
+            status=Vacancy.Status.ACTIVE,
+        )
+        application = Application.objects.create(
+            company=company,
+            vacancy=vacancy,
+            student=student,
+            status=Application.Status.SUBMITTED,
+        )
+        ApplicationStatusHistory.objects.create(
+            application=application,
+            actor=student,
+            from_status="",
+            to_status=Application.Status.SUBMITTED,
+            note="Application submitted by student.",
+        )
+        CandidateReviewAccess.objects.create(
+            company=company,
+            student=student,
+            source=CandidateReviewAccess.Source.APPLICATION,
+            is_active=True,
+        )
+        client, csrf_token = self.csrf_client()
+        client.force_login(student)
+
+        response = client.post(
+            f"/api/v1/student/applications/{application.id}/withdraw",
+            data=json.dumps({}),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        application.refresh_from_db()
+        self.assertEqual(application.status, Application.Status.WITHDRAWN)
+        self.assertEqual(application.history.count(), 2)
+        self.assertFalse(
+            CandidateReviewAccess.objects.get(
+                company=company,
+                student=student,
+                source=CandidateReviewAccess.Source.APPLICATION,
+            ).is_active
+        )
+
+    def test_company_can_view_and_shortlist_applications(self):
+        company = Company.objects.create(name="Softverse", is_active=True)
+        company_user = User.objects.create_user(
+            email="company@example.com",
+            password="SecurePass123!",
+            full_name="Company User",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+        student = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        StudentVisibilitySettings.objects.create(
+            student=student,
+            share_profile_preview=True,
+            share_learning_record=True,
+            share_exam_results=False,
+        )
+        vacancy = Vacancy.objects.create(
+            company=company,
+            created_by=company_user,
+            title="Backend Engineer",
+            description="Build APIs.",
+            employment_type="full_time",
+            experience_level="junior",
+            location="Tokyo",
+            status=Vacancy.Status.ACTIVE,
+        )
+        application = Application.objects.create(
+            company=company,
+            vacancy=vacancy,
+            student=student,
+            status=Application.Status.SUBMITTED,
+        )
+        ApplicationStatusHistory.objects.create(
+            application=application,
+            actor=student,
+            from_status="",
+            to_status=Application.Status.SUBMITTED,
+            note="Application submitted by student.",
+        )
+        client, csrf_token = self.csrf_client()
+        client.force_login(company_user)
+
+        list_response = client.get("/api/v1/company/applications")
+        shortlist_response = client.post(
+            f"/api/v1/company/applications/{application.id}/shortlist",
+            data=json.dumps({}),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+
+        self.assertEqual(list_response.status_code, 200)
+        self.assertEqual(list_response.json()["data"]["application_count"], 1)
+        self.assertEqual(list_response.json()["data"]["applications"][0]["display_name"], "Student User")
+        self.assertEqual(shortlist_response.status_code, 200)
+        application.refresh_from_db()
+        self.assertEqual(application.status, Application.Status.SHORTLISTED)
+        candidate_access = CandidateReviewAccess.objects.get(
+            company=company,
+            student=student,
+            source=CandidateReviewAccess.Source.APPLICATION,
+        )
+        self.assertTrue(CandidateShortlist.objects.filter(candidate_access=candidate_access).exists())
+
+    def test_company_can_reject_application(self):
+        company = Company.objects.create(name="Softverse", is_active=True)
+        company_user = User.objects.create_user(
+            email="company@example.com",
+            password="SecurePass123!",
+            full_name="Company User",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+        student = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        vacancy = Vacancy.objects.create(
+            company=company,
+            created_by=company_user,
+            title="Backend Engineer",
+            description="Build APIs.",
+            employment_type="full_time",
+            experience_level="junior",
+            location="Tokyo",
+            status=Vacancy.Status.ACTIVE,
+        )
+        application = Application.objects.create(
+            company=company,
+            vacancy=vacancy,
+            student=student,
+            status=Application.Status.SUBMITTED,
+        )
+        ApplicationStatusHistory.objects.create(
+            application=application,
+            actor=student,
+            from_status="",
+            to_status=Application.Status.SUBMITTED,
+            note="Application submitted by student.",
+        )
+        CandidateReviewAccess.objects.create(
+            company=company,
+            student=student,
+            source=CandidateReviewAccess.Source.APPLICATION,
+            is_active=True,
+        )
+        client, csrf_token = self.csrf_client()
+        client.force_login(company_user)
+
+        response = client.post(
+            f"/api/v1/company/applications/{application.id}/reject",
+            data=json.dumps({}),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        application.refresh_from_db()
+        self.assertEqual(application.status, Application.Status.REJECTED)
+        self.assertFalse(
+            CandidateReviewAccess.objects.get(
+                company=company,
+                student=student,
+                source=CandidateReviewAccess.Source.APPLICATION,
+            ).is_active
+        )
 
     def test_admin_can_view_vacancies(self):
         company = Company.objects.create(name="Softverse")

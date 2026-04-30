@@ -2,6 +2,8 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 
 from users.models import (
+    Application,
+    ApplicationStatusHistory,
     CandidateNote,
     CandidateReviewAccess,
     CandidateShortlist,
@@ -10,6 +12,7 @@ from users.models import (
     Interview,
     InterviewAvailability,
     InterviewEvent,
+    JobBookmark,
     LearningRecord,
     Notification,
     NotificationDelivery,
@@ -20,6 +23,8 @@ from users.models import (
     StudentVisibilitySettings,
     User,
     Vacancy,
+    VacancyLanguageRequirement,
+    VacancySkillRequirement,
 )
 
 
@@ -164,6 +169,40 @@ class NotificationDeliveryAdmin(admin.ModelAdmin):
 
 @admin.register(Vacancy)
 class VacancyAdmin(admin.ModelAdmin):
-    list_display = ("id", "title", "company", "employment_type", "experience_level", "location", "status", "updated_at")
-    list_filter = ("status", "employment_type", "experience_level")
+    list_display = ("id", "title", "company", "employment_type", "experience_level", "location", "work_style", "status", "updated_at")
+    list_filter = ("status", "employment_type", "experience_level", "work_style", "relocation_support")
     search_fields = ("title", "company__name", "location", "description")
+
+
+@admin.register(VacancySkillRequirement)
+class VacancySkillRequirementAdmin(admin.ModelAdmin):
+    list_display = ("id", "vacancy", "skill", "requirement_type", "updated_at")
+    list_filter = ("requirement_type",)
+    search_fields = ("vacancy__title", "vacancy__company__name", "skill__name")
+
+
+@admin.register(VacancyLanguageRequirement)
+class VacancyLanguageRequirementAdmin(admin.ModelAdmin):
+    list_display = ("id", "vacancy", "language", "minimum_level", "requirement_type", "updated_at")
+    list_filter = ("language", "minimum_level", "requirement_type")
+    search_fields = ("vacancy__title", "vacancy__company__name")
+
+
+@admin.register(JobBookmark)
+class JobBookmarkAdmin(admin.ModelAdmin):
+    list_display = ("id", "student", "vacancy", "created_at")
+    search_fields = ("student__email", "student__full_name", "vacancy__title", "vacancy__company__name")
+
+
+@admin.register(Application)
+class ApplicationAdmin(admin.ModelAdmin):
+    list_display = ("id", "student", "vacancy", "company", "status", "updated_at")
+    list_filter = ("status",)
+    search_fields = ("student__email", "student__full_name", "vacancy__title", "company__name")
+
+
+@admin.register(ApplicationStatusHistory)
+class ApplicationStatusHistoryAdmin(admin.ModelAdmin):
+    list_display = ("id", "application", "from_status", "to_status", "actor", "created_at")
+    list_filter = ("to_status",)
+    search_fields = ("application__student__email", "application__vacancy__title", "actor__email", "note")

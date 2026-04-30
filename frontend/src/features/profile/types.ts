@@ -1,3 +1,8 @@
+export interface SelectOption {
+  value: string
+  label: string
+}
+
 export interface StudentProfile {
   student_id: number
   name: string
@@ -24,18 +29,107 @@ export interface VacancyRecord {
   employment_type: string
   experience_level: string
   location: string
+  work_style: string
+  work_style_label: string
+  relocation_support: boolean
+  skill_requirements: VacancySkillRequirement[]
+  language_requirements: VacancyLanguageRequirement[]
+  is_bookmarked: boolean
   status: string
   created_by_name: string
   created_at: string
   updated_at: string
 }
 
+export interface VacancySkillRequirement {
+  id: number
+  skill_id: number
+  skill_name: string
+  skill_slug: string
+  requirement_type: string
+}
+
+export interface VacancyLanguageRequirement {
+  id: number
+  language: string
+  language_label: string
+  minimum_level: string
+  minimum_level_label: string
+  requirement_type: string
+}
+
 export interface CompanyVacanciesResponse {
   vacancies: VacancyRecord[]
+  available_skills: SkillOption[]
 }
 
 export interface StudentJobsResponse {
   vacancies: VacancyRecord[]
+  query: string
+  filters: {
+    skills: string[]
+    languages: string[]
+    locations: string[]
+    work_styles: string[]
+  }
+  result_count: number
+  bookmark_count: number
+  available_skills: SkillOption[]
+  available_languages: SelectOption[]
+  available_locations: string[]
+  available_work_styles: SelectOption[]
+}
+
+export interface ApplicationStatusHistoryRecord {
+  id: number
+  from_status: string | null
+  to_status: string
+  actor_name: string | null
+  actor_role: string | null
+  note: string
+  created_at: string
+}
+
+export interface StudentApplicationRecord {
+  application_id: number
+  vacancy_id: number
+  vacancy_title: string
+  company_id: number
+  company_name: string
+  status: string
+  can_withdraw: boolean
+  submitted_at: string
+  updated_at: string
+  history: ApplicationStatusHistoryRecord[]
+}
+
+export interface StudentApplicationsResponse {
+  student_id: number
+  application_count: number
+  applications: StudentApplicationRecord[]
+}
+
+export interface CompanyApplicationRecord {
+  application_id: number
+  candidate_access_id: number | null
+  vacancy_id: number
+  vacancy_title: string
+  student_id: number
+  display_name: string
+  desired_job_type: string
+  desired_work_location: string
+  status: string
+  can_shortlist: boolean
+  can_reject: boolean
+  submitted_at: string
+  updated_at: string
+  history: ApplicationStatusHistoryRecord[]
+}
+
+export interface CompanyApplicationsResponse {
+  company_id: number
+  application_count: number
+  applications: CompanyApplicationRecord[]
 }
 
 export interface SkillOption {

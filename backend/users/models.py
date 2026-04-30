@@ -28,6 +28,11 @@ class Vacancy(models.Model):
         ACTIVE = "active", "Active"
         INACTIVE = "inactive", "Inactive"
 
+    class WorkStyle(models.TextChoices):
+        ONSITE = "onsite", "Onsite"
+        HYBRID = "hybrid", "Hybrid"
+        REMOTE = "remote", "Remote"
+
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name="vacancies")
     created_by = models.ForeignKey(
         "User",
@@ -39,6 +44,8 @@ class Vacancy(models.Model):
     employment_type = models.CharField(max_length=100)
     experience_level = models.CharField(max_length=100)
     location = models.CharField(max_length=100)
+    work_style = models.CharField(max_length=20, choices=WorkStyle.choices, default=WorkStyle.ONSITE)
+    relocation_support = models.BooleanField(default=False)
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.DRAFT)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -55,6 +62,124 @@ class Vacancy(models.Model):
 
     def __str__(self) -> str:
         return f"Vacancy<{self.company.name}:{self.title}>"
+
+
+class VacancySkillRequirement(models.Model):
+    class RequirementType(models.TextChoices):
+        REQUIRED = "required", "Required"
+        PREFERRED = "preferred", "Preferred"
+
+    vacancy = models.ForeignKey(Vacancy, on_delete=models.CASCADE, related_name="skill_requirements")
+    skill = models.ForeignKey("Skill", on_delete=models.CASCADE, related_name="vacancy_requirements")
+    requirement_type = models.CharField(max_length=20, choices=RequirementType.choices)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["requirement_type", "skill__name", "id"]
+        constraints = [
+            models.UniqueConstraint(fields=["vacancy", "skill"], name="unique_vacancy_skill_requirement"),
+        ]
+
+    def __str__(self) -> str:
+        return f"VacancySkillRequirement<{self.vacancy_id}:{self.skill.name}:{self.requirement_type}>"
+
+
+class VacancyLanguageRequirement(models.Model):
+    class Language(models.TextChoices):
+        JAPANESE = "japanese", "Japanese"
+        ENGLISH = "english", "English"
+
+    class Level(models.TextChoices):
+        BASIC = "basic", "Basic"
+        CONVERSATIONAL = "conversational", "Conversational"
+        BUSINESS = "business", "Business"
+        FLUENT = "fluent", "Fluent"
+        NATIVE = "native", "Native"
+
+    class RequirementType(models.TextChoices):
+        REQUIRED = "required", "Required"
+        PREFERRED = "preferred", "Preferred"
+
+    vacancy = models.ForeignKey(Vacancy, on_delete=models.CASCADE, related_name="language_requirements")
+    language = models.CharField(max_length=20, choices=Language.choices)
+    minimum_level = models.CharField(max_length=20, choices=Level.choices)
+    requirement_type = models.CharField(max_length=20, choices=RequirementType.choices)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["language", "id"]
+        constraints = [
+            models.UniqueConstraint(fields=["vacancy", "language"], name="unique_vacancy_language_requirement"),
+        ]
+
+    def __str__(self) -> str:
+        return f"VacancyLanguageRequirement<{self.vacancy_id}:{self.language}:{self.minimum_level}>"
+
+
+class Application(models.Model):
+    class Status(models.TextChoices):
+        SUBMITTED = "submitted", "Submitted"
+        UNDER_REVIEW = "under_review", "Under review"
+        SHORTLISTED = "shortlisted", "Shortlisted"
+        REJECTED = "rejected", "Rejected"
+        WITHDRAWN = "withdrawn", "Withdrawn"
+
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name="applications")
+    vacancy = models.ForeignKey(Vacancy, on_delete=models.CASCADE, related_name="applications")
+    student = models.ForeignKey(
+        "User",
+        on_delete=models.CASCADE,
+        related_name="applications",
+        limit_choices_to={"role": "student"},
+    )
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.SUBMITTED)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-updated_at", "-id"]
+
+    def clean(self) -> None:
+        super().clean()
+        if self.student.role != User.Role.STUDENT:
+            raise ValidationError({"student": ["Applications may only belong to student users."]})
+        if self.vacancy.company_id != self.company_id:
+            raise ValidationError({"company": ["Application company must match the vacancy company."]})
+
+    def __str__(self) -> str:
+        return f"Application<{self.student.email}:{self.vacancy.title}:{self.status}>"
+
+
+class ApplicationStatusHistory(models.Model):
+    application = models.ForeignKey(Application, on_delete=models.CASCADE, related_name="history")
+    actor = models.ForeignKey(
+        "User",
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name="application_status_events",
+    )
+    from_status = models.CharField(max_length=20, blank=True, default="")
+    to_status = models.CharField(max_length=20, choices=Application.Status.choices)
+    note = models.CharField(max_length=255, blank=True, default="")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["created_at", "id"]
+
+    def clean(self) -> None:
+        super().clean()
+        if self.from_status and self.from_status not in Application.Status.values:
+            raise ValidationError({"from_status": ["Unsupported application status value."]})
+        if self.actor and self.actor.role == User.Role.COMPANY and self.actor.company_id != self.application.company_id:
+            raise ValidationError({"actor": ["Company actors must belong to the same company as the application."]})
+        if self.actor and self.actor.role == User.Role.STUDENT and self.actor_id != self.application.student_id:
+            raise ValidationError({"actor": ["Student actors must own the application."]})
+
+    def __str__(self) -> str:
+        return f"ApplicationStatusHistory<{self.application_id}:{self.to_status}>"
 
 
 class StudentProfile(models.Model):
@@ -142,6 +267,31 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self) -> str:
         return self.email
+
+
+class JobBookmark(models.Model):
+    student = models.ForeignKey(
+        "User",
+        on_delete=models.CASCADE,
+        related_name="job_bookmarks",
+        limit_choices_to={"role": User.Role.STUDENT},
+    )
+    vacancy = models.ForeignKey(Vacancy, on_delete=models.CASCADE, related_name="bookmarks")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at", "-id"]
+        constraints = [
+            models.UniqueConstraint(fields=["student", "vacancy"], name="unique_student_job_bookmark"),
+        ]
+
+    def clean(self) -> None:
+        super().clean()
+        if self.student.role != User.Role.STUDENT:
+            raise ValidationError({"student": ["Job bookmarks may only belong to student users."]})
+
+    def __str__(self) -> str:
+        return f"JobBookmark<{self.student.email}:{self.vacancy.title}>"
 
 
 class StudentVisibilitySettings(models.Model):

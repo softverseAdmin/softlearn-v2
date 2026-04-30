@@ -2,36 +2,35 @@
 
 ## Implementation plan
 
-No application code for this unit.
-
-This unit defines the shortlist-candidates baseline only. Later frontend and backend units may implement protected shortlist actions, shortlist-state handling, and tests from this design.
+1. Add a protected company shortlist endpoint for authorized application contexts.
+2. Reuse or create application-based candidate review access for the shortlisted student.
+3. Create shortlist state without duplicating shortlist entries on repeated requests.
+4. Update application status and history to the shared shortlisted lifecycle state.
 
 ## Files to create or update
 
-- `aidlc-docs/construction/units/U10-5-shortlist-candidates/unit-state.md`
-- `aidlc-docs/construction/units/U10-5-shortlist-candidates/functional-design.md`
-- `aidlc-docs/construction/units/U10-5-shortlist-candidates/nfr-requirements.md`
-- `aidlc-docs/construction/units/U10-5-shortlist-candidates/nfr-design.md`
-- `aidlc-docs/construction/units/U10-5-shortlist-candidates/infrastructure-design.md`
+- `backend/api/views.py`
+- `backend/api/urls.py`
+- `backend/api/tests.py`
+- `frontend/src/features/profile/CompanyApplicationsPage.tsx`
+- `frontend/src/features/profile/types.ts`
 - `aidlc-docs/construction/units/U10-5-shortlist-candidates/code-generation.md`
-- `aidlc-docs/aidlc-state.md`
+- `aidlc-docs/construction/units/U10-5-shortlist-candidates/unit-state.md`
 
 ## Test plan
 
-- Review the unit against the requirements, security, company review, and application lifecycle baselines.
-- Confirm the unit defines the shortlist action clearly.
-- Confirm the unit remains separate from shortlist-view presentation, rejection, and downstream workflows.
-- Confirm no application code is added.
-- Run `./scripts/aidlc-check.sh`.
+- `. .venv\Scripts\Activate.ps1; cd backend; python manage.py check; python manage.py test`
+- `cd frontend; npm run build; npm run lint`
+- `bash ./scripts/aidlc-check.sh` in a shell that can execute the repository validation script.
 
 ## Rollback plan
 
-Revert the documentation-only change if the shortlist-candidates baseline is rejected or replaced by an approved revision.
+- Revert the shortlist endpoint and company UI action.
+- Restore the prior state without application-driven shortlist transitions.
 
 ## Review checklist
 
-- Company-side shortlist action documented
-- Authorization, duplicate-prevention, and lifecycle expectations documented
-- Relationship to later shortlist-view and workflow units documented
-- Separation from shortlist browsing and downstream actions preserved
-- No application code introduced
+- Company shortlist actions stay within company ownership boundaries
+- Duplicate shortlist entries are prevented
+- Shortlist actions update shared application status history
+- Existing shortlist and candidate review surfaces can consume the new state

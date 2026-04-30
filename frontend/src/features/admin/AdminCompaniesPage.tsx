@@ -15,6 +15,7 @@ export function AdminCompaniesPage() {
     vacancies: [],
     companies: [],
     company_users: [],
+    available_skills: [],
   })
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)

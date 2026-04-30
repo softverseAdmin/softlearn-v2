@@ -5,6 +5,7 @@ import { AdminVacanciesPage } from '../features/admin/AdminVacanciesPage'
 import { AdminUsersPage } from '../features/admin/AdminUsersPage'
 import { NotificationsPage } from '../features/notifications/NotificationsPage'
 import { AppLayout } from '../layouts/AppLayout'
+import { CompanyApplicationsPage } from '../features/profile/CompanyApplicationsPage'
 import { CompanyCandidateDetailPage } from '../features/profile/CompanyCandidateDetailPage'
 import { CompanyCandidatesPage } from '../features/profile/CompanyCandidatesPage'
 import { CompanyInterviewDetailPage } from '../features/profile/CompanyInterviewDetailPage'
@@ -12,6 +13,7 @@ import { CompanyInterviewsPage } from '../features/profile/CompanyInterviewsPage
 import { CompanyProfilePage } from '../features/profile/CompanyProfilePage'
 import { CompanyShortlistPage } from '../features/profile/CompanyShortlistPage'
 import { CompanyVacanciesPage } from '../features/profile/CompanyVacanciesPage'
+import { StudentApplicationsPage } from '../features/profile/StudentApplicationsPage'
 import { StudentExamResultsPage } from '../features/profile/StudentExamResultsPage'
 import { StudentInterviewDetailPage } from '../features/profile/StudentInterviewDetailPage'
 import { StudentInterviewsPage } from '../features/profile/StudentInterviewsPage'
@@ -47,6 +49,7 @@ export function AppRouter() {
           <Route element={<RoleGuard role="student" />}>
             <Route path="/student" element={<DashboardPage role="student" />} />
             <Route path="/student/notifications" element={<NotificationsPage />} />
+            <Route path="/student/applications" element={<StudentApplicationsPage />} />
             <Route path="/student/profile" element={<StudentProfilePage />} />
             <Route path="/student/skills" element={<StudentSkillsPage />} />
             <Route path="/student/jobs" element={<StudentJobsPage />} />
@@ -60,6 +63,7 @@ export function AppRouter() {
           <Route element={<RoleGuard role="company" />}>
             <Route path="/company" element={<DashboardPage role="company" />} />
             <Route path="/company/notifications" element={<NotificationsPage />} />
+            <Route path="/company/applications" element={<CompanyApplicationsPage />} />
             <Route path="/company/profile" element={<CompanyProfilePage />} />
             <Route path="/company/candidates" element={<CompanyCandidatesPage />} />
             <Route path="/company/candidates/:candidateAccessId" element={<CompanyCandidateDetailPage />} />

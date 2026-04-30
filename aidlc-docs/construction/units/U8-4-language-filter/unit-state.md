@@ -14,28 +14,28 @@ Baseline inception version: v1
 
 ## Scope
 
-Define the baseline language-filter flow so authenticated students can narrow visible jobs using structured vacancy language requirements without collapsing skill, location, salary, bookmarks, or matching into the same unit.
+Implement structured language filtering for the student jobs experience using vacancy language requirements with stable language and minimum-level metadata.
 
 ## Out of Scope
 
-Concrete frontend/backend implementation code, skill/location/salary filters, bookmarks, applications, and matching calculation.
+Language proficiency scoring, recommendation weighting, and student language assessment beyond using the vacancy language contract for filtering.
 
 ## Dependencies
 
-Depends on the requirements, security, data-model, architecture, API, job-list-page, job-search-bar, and vacancy-language-requirements baselines.
+Depends on the requirements, security, data-model, architecture, API, frontend initialization, routing, state-management, base-layout, vacancy-language-requirements, job-list-page, and job-search-bar baselines.
 
 ## Acceptance Criteria
 
-The unit documents language-filter behavior, structured filter boundaries, and relationship to later search and bookmark units without producing application code.
+Students can filter visible jobs by structured vacancy language requirements, and the filter behavior preserves the same visibility posture as the base job list.
 
 ## Risks
 
-If the language filter is underspecified here, later search, bookmark, and matching units can drift into conflicting language-based filtering behavior and alternate vacancy-language interpretations.
+Language filtering now shares data with vacancy authoring and later matching units, so contract drift would create inconsistent discovery behavior.
 
 ## Open Questions
 
-Exact multi-select behavior, minimum-level semantics, and empty-filter defaults can be refined later as long as structured language filtering remains explicit and stable.
+Later units can refine level semantics if they preserve the current structured vacancy-language filter contract.
 
 ## Last Updated
 
-2026-04-29
+2026-04-30

@@ -2,36 +2,39 @@
 
 ## Implementation plan
 
-No application code for this unit.
-
-This unit defines the vacancy-location-settings baseline only. Later backend and frontend units may implement protected location-setting authoring, validation flows, and tests from this design.
+1. Extend vacancies with structured work-style and relocation-support settings alongside location.
+2. Update company and admin vacancy authoring flows to manage location, work style, and relocation posture together.
+3. Expose the structured location settings in vacancy serialization for discovery filters.
+4. Cover persistence and update behavior with backend tests.
 
 ## Files to create or update
 
-- `aidlc-docs/construction/units/U7-8-vacancy-location-settings/unit-state.md`
-- `aidlc-docs/construction/units/U7-8-vacancy-location-settings/functional-design.md`
-- `aidlc-docs/construction/units/U7-8-vacancy-location-settings/nfr-requirements.md`
-- `aidlc-docs/construction/units/U7-8-vacancy-location-settings/nfr-design.md`
-- `aidlc-docs/construction/units/U7-8-vacancy-location-settings/infrastructure-design.md`
+- `backend/users/models.py`
+- `backend/users/admin.py`
+- `backend/users/migrations/0014_vacancy_metadata_and_bookmarks.py`
+- `backend/api/views.py`
+- `backend/api/tests.py`
+- `frontend/src/features/profile/types.ts`
+- `frontend/src/features/profile/CompanyVacanciesPage.tsx`
+- `frontend/src/features/admin/types.ts`
+- `frontend/src/features/admin/AdminVacanciesPage.tsx`
 - `aidlc-docs/construction/units/U7-8-vacancy-location-settings/code-generation.md`
-- `aidlc-docs/aidlc-state.md`
+- `aidlc-docs/construction/units/U7-8-vacancy-location-settings/unit-state.md`
 
 ## Test plan
 
-- Review the unit against the requirements, security, data-model, architecture, and vacancy-visibility baselines.
-- Confirm the unit defines structured vacancy location settings clearly.
-- Confirm the unit remains separate from skill tags, language requirements, and matching workflows.
-- Confirm no application code is added.
-- Run `./scripts/aidlc-check.sh`.
+- `. .venv\Scripts\Activate.ps1; cd backend; python manage.py check; python manage.py test`
+- `cd frontend; npm run build; npm run lint`
+- `bash ./scripts/aidlc-check.sh` in a shell that can execute the repository validation script.
 
 ## Rollback plan
 
-Revert the documentation-only change if the vacancy-location-settings baseline is rejected or replaced by an approved revision.
+- Revert the structured vacancy work-style and relocation settings.
+- Restore vacancy authoring to the prior location-only contract.
 
 ## Review checklist
 
-- Vacancy-location-settings flow documented
-- Company ownership, structured-setting, and validation expectations documented
-- Relationship to later search, application, and matching units documented
-- Separation from skill, language, and matching logic preserved
-- No application code introduced
+- Vacancy location settings stay structured and vacancy-linked
+- Work-style and relocation flags are validated consistently
+- Company and admin vacancy editors use the same location contract
+- Student discovery can filter on the new location/work-style metadata

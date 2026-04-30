@@ -2,36 +2,43 @@
 
 ## Implementation plan
 
-No application code for this unit.
-
-This unit defines the apply-to-job baseline only. Later frontend and backend units may implement protected submission flows, duplicate-prevention checks, and tests from this design.
+1. Add application and application-status-history backend models plus a protected student apply endpoint.
+2. Enforce visible-vacancy eligibility and duplicate active-application prevention.
+3. Add the student jobs apply action and a student applications page for immediate result visibility.
+4. Cover creation and duplicate-prevention behavior with backend tests.
 
 ## Files to create or update
 
-- `aidlc-docs/construction/units/U10-1-apply-to-job/unit-state.md`
-- `aidlc-docs/construction/units/U10-1-apply-to-job/functional-design.md`
-- `aidlc-docs/construction/units/U10-1-apply-to-job/nfr-requirements.md`
-- `aidlc-docs/construction/units/U10-1-apply-to-job/nfr-design.md`
-- `aidlc-docs/construction/units/U10-1-apply-to-job/infrastructure-design.md`
+- `backend/users/models.py`
+- `backend/users/admin.py`
+- `backend/users/migrations/0013_application_applicationstatushistory.py`
+- `backend/api/views.py`
+- `backend/api/urls.py`
+- `backend/api/tests.py`
+- `frontend/src/features/profile/StudentJobsPage.tsx`
+- `frontend/src/features/profile/StudentApplicationsPage.tsx`
+- `frontend/src/features/profile/types.ts`
+- `frontend/src/router/AppRouter.tsx`
+- `frontend/src/router/navigation.ts`
+- `frontend/src/app/PageTitle.tsx`
+- `frontend/src/pages/DashboardPage.tsx`
 - `aidlc-docs/construction/units/U10-1-apply-to-job/code-generation.md`
-- `aidlc-docs/aidlc-state.md`
+- `aidlc-docs/construction/units/U10-1-apply-to-job/unit-state.md`
 
 ## Test plan
 
-- Review the unit against the requirements, security, vacancy-visibility, and base application API baselines.
-- Confirm the unit defines student-owned application creation clearly.
-- Confirm the unit remains separate from later status, company review, and interview workflows.
-- Confirm no application code is added.
-- Run `./scripts/aidlc-check.sh`.
+- `. .venv\Scripts\Activate.ps1; cd backend; python manage.py check; python manage.py test`
+- `cd frontend; npm run build; npm run lint`
+- `bash ./scripts/aidlc-check.sh` in a shell that can execute the repository validation script.
 
 ## Rollback plan
 
-Revert the documentation-only change if the apply-to-job baseline is rejected or replaced by an approved revision.
+- Revert the application model, API, and student UI additions.
+- Restore the prior student jobs page without apply behavior.
 
 ## Review checklist
 
-- Student-owned application creation flow documented
-- Eligibility, duplicate-prevention, and initial-status expectations documented
-- Relationship to later status and company-review units documented
-- Separation from downstream workflow actions preserved
-- No application code introduced
+- Students can submit applications only to visible active vacancies
+- Duplicate active applications are rejected deterministically
+- Initial submitted status and history evidence are created
+- Student UI exposes apply and application-tracking flows

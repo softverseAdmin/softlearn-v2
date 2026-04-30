@@ -2,36 +2,34 @@
 
 ## Implementation plan
 
-No application code for this unit.
-
-This unit defines the language-filter baseline only. Later backend and frontend units may implement structured language filtering, filter UI behavior, and tests from this design.
+1. Extend the student jobs API to accept structured language filter inputs based on vacancy language requirements.
+2. Expose available visible-job language options to the student discovery UI.
+3. Add language-filter controls to the student jobs page and combine them with search and skill filters.
+4. Cover filtered-result and visibility behavior with backend tests.
 
 ## Files to create or update
 
-- `aidlc-docs/construction/units/U8-4-language-filter/unit-state.md`
-- `aidlc-docs/construction/units/U8-4-language-filter/functional-design.md`
-- `aidlc-docs/construction/units/U8-4-language-filter/nfr-requirements.md`
-- `aidlc-docs/construction/units/U8-4-language-filter/nfr-design.md`
-- `aidlc-docs/construction/units/U8-4-language-filter/infrastructure-design.md`
+- `backend/api/views.py`
+- `backend/api/tests.py`
+- `frontend/src/features/profile/types.ts`
+- `frontend/src/features/profile/StudentJobsPage.tsx`
 - `aidlc-docs/construction/units/U8-4-language-filter/code-generation.md`
-- `aidlc-docs/aidlc-state.md`
+- `aidlc-docs/construction/units/U8-4-language-filter/unit-state.md`
 
 ## Test plan
 
-- Review the unit against the requirements, security, data-model, architecture, and vacancy-visibility baselines.
-- Confirm the unit defines structured language filtering clearly.
-- Confirm the unit remains separate from other filters, bookmarks, applications, and matching workflows.
-- Confirm no application code is added.
-- Run `./scripts/aidlc-check.sh`.
+- `. .venv\Scripts\Activate.ps1; cd backend; python manage.py check; python manage.py test`
+- `cd frontend; npm run build; npm run lint`
+- `bash ./scripts/aidlc-check.sh` in a shell that can execute the repository validation script.
 
 ## Rollback plan
 
-Revert the documentation-only change if the language-filter baseline is rejected or replaced by an approved revision.
+- Revert the structured language filtering in the student jobs API and page.
+- Restore discovery to the prior non-language-filtered state.
 
 ## Review checklist
 
-- Language-filter flow documented
-- Structured filter and visible-result expectations documented
-- Relationship to later bookmarks, applications, and matching units documented
-- Separation from other filters and matching logic preserved
-- No application code introduced
+- Language filtering consumes structured vacancy language requirements
+- Invalid language filters fail deterministically
+- Filtered results preserve visible vacancy boundaries
+- Student discovery exposes stable language options from visible jobs

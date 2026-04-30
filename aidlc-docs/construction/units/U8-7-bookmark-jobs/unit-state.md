@@ -14,28 +14,28 @@ Baseline inception version: v1
 
 ## Scope
 
-Define the baseline bookmark-jobs flow so authenticated students can save visible jobs for later review without collapsing applications, search filters, or matching behavior into the same unit.
+Implement protected student job bookmarks so authenticated students can save and unsave visible jobs from the discovery experience without collapsing applications or matching behavior into the same unit.
 
 ## Out of Scope
 
-Concrete frontend/backend implementation code, applications, matching logic, recommendation behavior, and company-side bookmark visibility.
+Saved-jobs reminder workflows, recommendation signals, and company-side bookmark visibility beyond the protected student-owned bookmark behavior shipped in this unit.
 
 ## Dependencies
 
-Depends on the requirements, security, data-model, architecture, authentication, RBAC, API, frontend initialization, routing, state-management, base-layout, job-list-page, job-search-bar, and vacancy-detail baselines.
+Depends on the requirements, security, data-model, architecture, authentication, RBAC, API, frontend initialization, routing, state-management, base-layout, job-list-page, job-search-bar, skill-filter, language-filter, and location-filter baselines.
 
 ## Acceptance Criteria
 
-The unit documents student job-bookmark behavior, ownership boundaries, and relationship to later application and matching units without producing application code.
+Students can save and remove visible-job bookmarks through protected flows, and bookmark state is surfaced consistently in the student jobs experience.
 
 ## Risks
 
-If bookmarking is underspecified here, later saved-job, application, and matching units can drift into conflicting bookmark ownership, visible-job eligibility, and later-review expectations.
+Bookmarking now sits in the main discovery flow, so visibility or ownership drift would leak student-specific state or expose unauthorized vacancies.
 
 ## Open Questions
 
-Exact saved-jobs page behavior, bookmark ordering, and reminder or notification features can be refined later as long as student-owned job bookmarking remains explicit and traceable.
+Later units can add saved-job pages or reminder behavior if they preserve the current student-owned bookmark model.
 
 ## Last Updated
 
-2026-04-29
+2026-04-30

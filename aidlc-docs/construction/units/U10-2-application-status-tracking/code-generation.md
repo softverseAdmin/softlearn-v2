@@ -2,36 +2,37 @@
 
 ## Implementation plan
 
-No application code for this unit.
-
-This unit defines the application-status-tracking baseline only. Later frontend and backend units may implement lifecycle storage, status-history presentation, and tests from this design.
+1. Add the shared application status vocabulary to the backend application model.
+2. Add application status-history persistence and serialization for student and company views.
+3. Reuse shared status transitions from apply, withdraw, shortlist, and reject flows.
+4. Expose ordered history in both student and company application pages.
 
 ## Files to create or update
 
-- `aidlc-docs/construction/units/U10-2-application-status-tracking/unit-state.md`
-- `aidlc-docs/construction/units/U10-2-application-status-tracking/functional-design.md`
-- `aidlc-docs/construction/units/U10-2-application-status-tracking/nfr-requirements.md`
-- `aidlc-docs/construction/units/U10-2-application-status-tracking/nfr-design.md`
-- `aidlc-docs/construction/units/U10-2-application-status-tracking/infrastructure-design.md`
+- `backend/users/models.py`
+- `backend/users/migrations/0013_application_applicationstatushistory.py`
+- `backend/api/views.py`
+- `backend/api/tests.py`
+- `frontend/src/features/profile/types.ts`
+- `frontend/src/features/profile/StudentApplicationsPage.tsx`
+- `frontend/src/features/profile/CompanyApplicationsPage.tsx`
 - `aidlc-docs/construction/units/U10-2-application-status-tracking/code-generation.md`
-- `aidlc-docs/aidlc-state.md`
+- `aidlc-docs/construction/units/U10-2-application-status-tracking/unit-state.md`
 
 ## Test plan
 
-- Review the unit against the requirements, security, and application-domain baselines.
-- Confirm the unit defines shared current-status and status-history behavior clearly.
-- Confirm the unit remains separate from creation and action-specific workflow units.
-- Confirm no application code is added.
-- Run `./scripts/aidlc-check.sh`.
+- `. .venv\Scripts\Activate.ps1; cd backend; python manage.py check; python manage.py test`
+- `cd frontend; npm run build; npm run lint`
+- `bash ./scripts/aidlc-check.sh` in a shell that can execute the repository validation script.
 
 ## Rollback plan
 
-Revert the documentation-only change if the application-status-tracking baseline is rejected or replaced by an approved revision.
+- Revert the shared application status and history additions.
+- Restore the app to the prior state without application lifecycle persistence.
 
 ## Review checklist
 
-- Shared current-status and history model documented
-- Access, auditability, and lifecycle expectations documented
-- Relationship to later action units documented
-- Separation from action-specific workflow behavior preserved
-- No application code introduced
+- One authoritative application status is stored per application
+- Ordered status history is created for each supported transition
+- Student and company views consume the same lifecycle vocabulary
+- Action-specific units reuse the shared status model

@@ -2,7 +2,7 @@ from django.contrib.auth import authenticate, login, logout, update_session_auth
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 from django.middleware.csrf import get_token
@@ -12,6 +12,8 @@ from urllib.parse import urlparse
 from common.decorators import api_endpoint
 from common.http import csrf_response_payload, error_response, parse_json_body, success_response
 from users.models import (
+    Application,
+    ApplicationStatusHistory,
     CandidateNote,
     CandidateReviewAccess,
     CandidateShortlist,
@@ -20,6 +22,7 @@ from users.models import (
     Interview,
     InterviewAvailability,
     InterviewEvent,
+    JobBookmark,
     LearningRecord,
     Notification,
     Skill,
@@ -29,6 +32,8 @@ from users.models import (
     StudentVisibilitySettings,
     User,
     Vacancy,
+    VacancyLanguageRequirement,
+    VacancySkillRequirement,
 )
 from users.notifications import emit_interview_event_notifications
 
@@ -278,6 +283,71 @@ def serialize_candidate_shortlist(shortlist: CandidateShortlist | None) -> dict 
     }
 
 
+def serialize_application_status_history(entry: ApplicationStatusHistory) -> dict:
+    return {
+        "id": entry.id,
+        "from_status": entry.from_status or None,
+        "to_status": entry.to_status,
+        "actor_name": entry.actor.full_name if entry.actor else None,
+        "actor_role": entry.actor.role if entry.actor else None,
+        "note": entry.note,
+        "created_at": entry.created_at.isoformat(),
+    }
+
+
+def application_is_withdrawable(application: Application) -> bool:
+    return application.status in {Application.Status.SUBMITTED, Application.Status.UNDER_REVIEW}
+
+
+def application_is_shortlistable(application: Application) -> bool:
+    return application.status in {Application.Status.SUBMITTED, Application.Status.UNDER_REVIEW}
+
+
+def application_is_rejectable(application: Application) -> bool:
+    return application.status in {Application.Status.SUBMITTED, Application.Status.UNDER_REVIEW}
+
+
+def serialize_student_application(application: Application) -> dict:
+    return {
+        "application_id": application.id,
+        "vacancy_id": application.vacancy_id,
+        "vacancy_title": application.vacancy.title,
+        "company_id": application.company_id,
+        "company_name": application.company.name,
+        "status": application.status,
+        "can_withdraw": application_is_withdrawable(application),
+        "submitted_at": application.created_at.isoformat(),
+        "updated_at": application.updated_at.isoformat(),
+        "history": [serialize_application_status_history(item) for item in application.history.all()],
+    }
+
+
+def serialize_company_application(application: Application) -> dict:
+    visibility = get_visibility_settings(application.student)
+    student_profile = get_student_profile(application.student)
+    candidate_access = CandidateReviewAccess.objects.filter(
+        company=application.company,
+        student=application.student,
+        source=CandidateReviewAccess.Source.APPLICATION,
+    ).first()
+    return {
+        "application_id": application.id,
+        "candidate_access_id": candidate_access.id if candidate_access else None,
+        "vacancy_id": application.vacancy_id,
+        "vacancy_title": application.vacancy.title,
+        "student_id": application.student_id,
+        "display_name": application.student.full_name if visibility.share_profile_preview else "Private candidate",
+        "desired_job_type": student_profile.desired_job_type if visibility.share_profile_preview else "",
+        "desired_work_location": student_profile.desired_work_location if visibility.share_profile_preview else "",
+        "status": application.status,
+        "can_shortlist": application_is_shortlistable(application),
+        "can_reject": application_is_rejectable(application),
+        "submitted_at": application.created_at.isoformat(),
+        "updated_at": application.updated_at.isoformat(),
+        "history": [serialize_application_status_history(item) for item in application.history.all()],
+    }
+
+
 def serialize_interview_event(event: InterviewEvent) -> dict:
     return {
         "id": event.id,
@@ -524,7 +594,37 @@ def serialize_admin_company_user(user: User) -> dict:
     }
 
 
-def serialize_vacancy(vacancy: Vacancy) -> dict:
+def serialize_vacancy_skill_requirement(requirement: VacancySkillRequirement) -> dict:
+    return {
+        "id": requirement.id,
+        "skill_id": requirement.skill_id,
+        "skill_name": requirement.skill.name,
+        "skill_slug": requirement.skill.slug,
+        "requirement_type": requirement.requirement_type,
+    }
+
+
+def serialize_vacancy_language_requirement(requirement: VacancyLanguageRequirement) -> dict:
+    return {
+        "id": requirement.id,
+        "language": requirement.language,
+        "language_label": requirement.get_language_display(),
+        "minimum_level": requirement.minimum_level,
+        "minimum_level_label": requirement.get_minimum_level_display(),
+        "requirement_type": requirement.requirement_type,
+    }
+
+
+def serialize_choice_option(value: str, label: str) -> dict:
+    return {
+        "value": value,
+        "label": label,
+    }
+
+
+def serialize_vacancy(vacancy: Vacancy, *, bookmarked_vacancy_ids: set[int] | None = None) -> dict:
+    skill_requirements = list(vacancy.skill_requirements.all())
+    language_requirements = list(vacancy.language_requirements.all())
     return {
         "vacancy_id": vacancy.id,
         "company_id": vacancy.company_id,
@@ -534,6 +634,16 @@ def serialize_vacancy(vacancy: Vacancy) -> dict:
         "employment_type": vacancy.employment_type,
         "experience_level": vacancy.experience_level,
         "location": vacancy.location,
+        "work_style": vacancy.work_style,
+        "work_style_label": vacancy.get_work_style_display(),
+        "relocation_support": vacancy.relocation_support,
+        "skill_requirements": [
+            serialize_vacancy_skill_requirement(requirement) for requirement in skill_requirements
+        ],
+        "language_requirements": [
+            serialize_vacancy_language_requirement(requirement) for requirement in language_requirements
+        ],
+        "is_bookmarked": vacancy.id in bookmarked_vacancy_ids if bookmarked_vacancy_ids is not None else False,
         "status": vacancy.status,
         "created_by_id": vacancy.created_by_id,
         "created_by_name": vacancy.created_by.full_name,
@@ -922,6 +1032,86 @@ def validate_admin_company_payload(payload: dict) -> dict:
     }
 
 
+def validate_skill_selection_payload(raw_value, field_name: str) -> tuple[list[Skill], list[str]]:
+    if raw_value in (None, ""):
+        return [], []
+    if not isinstance(raw_value, list):
+        return [], ["This field must be a list of skill ids."]
+
+    cleaned_ids: list[int] = []
+    errors: list[str] = []
+    for raw_item in raw_value:
+        try:
+            skill_id = int(raw_item)
+        except (TypeError, ValueError):
+            errors.append("Each skill id must be a valid integer.")
+            continue
+        cleaned_ids.append(skill_id)
+
+    if len(set(cleaned_ids)) != len(cleaned_ids):
+        errors.append("Duplicate skill ids are not allowed.")
+
+    if errors:
+        return [], errors
+
+    skills_by_id = Skill.objects.in_bulk(cleaned_ids)
+    missing_ids = [str(skill_id) for skill_id in cleaned_ids if skill_id not in skills_by_id]
+    if missing_ids:
+        return [], [f"Unknown skill ids: {', '.join(missing_ids)}."]
+
+    return [skills_by_id[skill_id] for skill_id in cleaned_ids], []
+
+
+def validate_language_requirements_payload(raw_value) -> tuple[list[dict], list[str]]:
+    if raw_value in (None, ""):
+        return [], []
+    if not isinstance(raw_value, list):
+        return [], ["This field must be a list of language requirement objects."]
+
+    cleaned_requirements: list[dict] = []
+    errors: list[str] = []
+    seen_languages: set[str] = set()
+
+    for index, raw_item in enumerate(raw_value):
+        if not isinstance(raw_item, dict):
+            errors.append(f"Language requirement #{index + 1} must be an object.")
+            continue
+
+        language = str(raw_item.get("language", "")).strip().lower()
+        minimum_level = str(raw_item.get("minimum_level", "")).strip().lower()
+        requirement_type = str(raw_item.get("requirement_type", "")).strip().lower()
+
+        if language not in VacancyLanguageRequirement.Language.values:
+            errors.append(
+                f"Language requirement #{index + 1} must use one of: {', '.join(VacancyLanguageRequirement.Language.values)}."
+            )
+            continue
+        if minimum_level not in VacancyLanguageRequirement.Level.values:
+            errors.append(
+                f"Language requirement #{index + 1} minimum_level must be one of: {', '.join(VacancyLanguageRequirement.Level.values)}."
+            )
+            continue
+        if requirement_type not in VacancyLanguageRequirement.RequirementType.values:
+            errors.append(
+                f"Language requirement #{index + 1} requirement_type must be one of: {', '.join(VacancyLanguageRequirement.RequirementType.values)}."
+            )
+            continue
+        if language in seen_languages:
+            errors.append(f"Language requirement #{index + 1} duplicates the {language} requirement.")
+            continue
+
+        seen_languages.add(language)
+        cleaned_requirements.append(
+            {
+                "language": language,
+                "minimum_level": minimum_level,
+                "requirement_type": requirement_type,
+            }
+        )
+
+    return cleaned_requirements, errors
+
+
 def validate_vacancy_payload(payload: dict) -> dict:
     cleaned = {
         "title": str(payload.get("title", "")).strip(),
@@ -929,20 +1119,66 @@ def validate_vacancy_payload(payload: dict) -> dict:
         "employment_type": str(payload.get("employment_type", "")).strip(),
         "experience_level": str(payload.get("experience_level", "")).strip(),
         "location": str(payload.get("location", "")).strip(),
+        "work_style": str(payload.get("work_style", Vacancy.WorkStyle.ONSITE)).strip(),
         "status": str(payload.get("status", Vacancy.Status.DRAFT)).strip(),
     }
+    raw_relocation_support = payload.get("relocation_support", False)
+    required_skills, required_skill_errors = validate_skill_selection_payload(
+        payload.get("required_skill_ids", []),
+        "required_skill_ids",
+    )
+    preferred_skills, preferred_skill_errors = validate_skill_selection_payload(
+        payload.get("preferred_skill_ids", []),
+        "preferred_skill_ids",
+    )
+    language_requirements, language_requirement_errors = validate_language_requirements_payload(
+        payload.get("language_requirements", []),
+    )
     errors = {}
     for field in ("title", "description", "employment_type", "experience_level", "location"):
         if not cleaned[field]:
             errors[field] = ["This field is required."]
 
+    if cleaned["work_style"] not in Vacancy.WorkStyle.values:
+        errors["work_style"] = [f"Work style must be one of: {', '.join(Vacancy.WorkStyle.values)}."]
     if cleaned["status"] not in Vacancy.Status.values:
         errors["status"] = [f"Status must be one of: {', '.join(Vacancy.Status.values)}."]
+    if not isinstance(raw_relocation_support, bool):
+        errors["relocation_support"] = ["This field must be a boolean."]
+    if required_skill_errors:
+        errors["required_skill_ids"] = required_skill_errors
+    if preferred_skill_errors:
+        errors["preferred_skill_ids"] = preferred_skill_errors
+    if language_requirement_errors:
+        errors["language_requirements"] = language_requirement_errors
+
+    overlap_skill_ids = {skill.id for skill in required_skills}.intersection(skill.id for skill in preferred_skills)
+    if overlap_skill_ids:
+        errors["preferred_skill_ids"] = ["A skill cannot be both required and preferred for the same vacancy."]
 
     if errors:
         raise ValidationError(errors)
 
-    return cleaned
+    return {
+        **cleaned,
+        "relocation_support": raw_relocation_support,
+        "required_skills": required_skills,
+        "preferred_skills": preferred_skills,
+        "language_requirements": language_requirements,
+    }
+
+
+def validate_application_payload(payload: dict) -> dict:
+    raw_vacancy_id = payload.get("vacancy_id")
+    if raw_vacancy_id in (None, ""):
+        raise ValidationError({"vacancy_id": ["This field is required."]})
+
+    try:
+        vacancy_id = int(raw_vacancy_id)
+    except (TypeError, ValueError) as exc:
+        raise ValidationError({"vacancy_id": ["A valid vacancy_id is required."]}) from exc
+
+    return {"vacancy_id": vacancy_id}
 
 
 def validate_admin_vacancy_payload(payload: dict) -> dict:
@@ -1057,6 +1293,7 @@ def get_company_vacancy(user: User, vacancy_id: int) -> Vacancy:
     vacancy = (
         Vacancy.objects.filter(company=company, pk=vacancy_id)
         .select_related("company", "created_by")
+        .prefetch_related("skill_requirements__skill", "language_requirements")
         .first()
     )
     if vacancy is None:
@@ -1064,8 +1301,311 @@ def get_company_vacancy(user: User, vacancy_id: int) -> Vacancy:
     return vacancy
 
 
+def visible_student_vacancies_queryset():
+    return (
+        Vacancy.objects.filter(status=Vacancy.Status.ACTIVE, company__is_active=True)
+        .select_related("company", "created_by")
+        .prefetch_related("skill_requirements__skill", "language_requirements")
+    )
+
+
+def get_visible_student_vacancy(vacancy_id: int) -> Vacancy | None:
+    return (
+        visible_student_vacancies_queryset()
+        .filter(pk=vacancy_id)
+        .first()
+    )
+
+
+def get_student_application(user: User, application_id: int) -> Application | None:
+    return (
+        Application.objects.filter(pk=application_id, student=user)
+        .select_related("company", "vacancy")
+        .prefetch_related("history__actor")
+        .first()
+    )
+
+
+def get_company_application(user: User, application_id: int) -> Application | None:
+    company = user.company
+    if company is None:
+        raise ValidationError({"company": ["Company context is required for company users."]})
+
+    return (
+        Application.objects.filter(pk=application_id, company=company)
+        .select_related("company", "vacancy", "student")
+        .prefetch_related("history__actor")
+        .first()
+    )
+
+
 def get_admin_vacancy(vacancy_id: int) -> Vacancy | None:
-    return Vacancy.objects.filter(pk=vacancy_id).select_related("company", "created_by").first()
+    return (
+        Vacancy.objects.filter(pk=vacancy_id)
+        .select_related("company", "created_by")
+        .prefetch_related("skill_requirements__skill", "language_requirements")
+        .first()
+    )
+
+
+def sync_vacancy_skill_requirements(
+    vacancy: Vacancy,
+    *,
+    required_skills: list[Skill],
+    preferred_skills: list[Skill],
+) -> None:
+    desired = {skill.id: VacancySkillRequirement.RequirementType.REQUIRED for skill in required_skills}
+    desired.update({skill.id: VacancySkillRequirement.RequirementType.PREFERRED for skill in preferred_skills})
+
+    existing_requirements = {
+        requirement.skill_id: requirement
+        for requirement in VacancySkillRequirement.objects.filter(vacancy=vacancy).select_related("skill")
+    }
+
+    for skill_id, requirement in existing_requirements.items():
+        desired_requirement_type = desired.pop(skill_id, None)
+        if desired_requirement_type is None:
+            requirement.delete()
+            continue
+        if requirement.requirement_type != desired_requirement_type:
+            requirement.requirement_type = desired_requirement_type
+            requirement.full_clean()
+            requirement.save(update_fields=["requirement_type", "updated_at"])
+
+    for skill_id, requirement_type in desired.items():
+        requirement = VacancySkillRequirement(
+            vacancy=vacancy,
+            skill_id=skill_id,
+            requirement_type=requirement_type,
+        )
+        requirement.full_clean()
+        requirement.save()
+
+
+def sync_vacancy_language_requirements(vacancy: Vacancy, *, language_requirements: list[dict]) -> None:
+    desired = {item["language"]: item for item in language_requirements}
+    existing_requirements = {
+        requirement.language: requirement
+        for requirement in VacancyLanguageRequirement.objects.filter(vacancy=vacancy)
+    }
+
+    for language, requirement in existing_requirements.items():
+        desired_requirement = desired.pop(language, None)
+        if desired_requirement is None:
+            requirement.delete()
+            continue
+        if (
+            requirement.minimum_level != desired_requirement["minimum_level"]
+            or requirement.requirement_type != desired_requirement["requirement_type"]
+        ):
+            requirement.minimum_level = desired_requirement["minimum_level"]
+            requirement.requirement_type = desired_requirement["requirement_type"]
+            requirement.full_clean()
+            requirement.save(update_fields=["minimum_level", "requirement_type", "updated_at"])
+
+    for language, desired_requirement in desired.items():
+        requirement = VacancyLanguageRequirement(
+            vacancy=vacancy,
+            language=language,
+            minimum_level=desired_requirement["minimum_level"],
+            requirement_type=desired_requirement["requirement_type"],
+        )
+        requirement.full_clean()
+        requirement.save()
+
+
+def parse_csv_query_values(raw_value: str) -> list[str]:
+    values: list[str] = []
+    for item in raw_value.split(","):
+        cleaned = item.strip()
+        if cleaned and cleaned not in values:
+            values.append(cleaned)
+    return values
+
+
+def validate_student_jobs_filters(request) -> dict:
+    query = request.GET.get("q", "").strip()
+    skill_slugs = [value.lower() for value in parse_csv_query_values(request.GET.get("skills", ""))]
+    languages = [value.lower() for value in parse_csv_query_values(request.GET.get("languages", ""))]
+    locations = parse_csv_query_values(request.GET.get("locations", ""))
+    work_styles = [value.lower() for value in parse_csv_query_values(request.GET.get("work_styles", ""))]
+
+    errors = {}
+    if skill_slugs:
+        known_skill_slugs = set(Skill.objects.filter(slug__in=skill_slugs).values_list("slug", flat=True))
+        invalid_skill_slugs = [slug for slug in skill_slugs if slug not in known_skill_slugs]
+        if invalid_skill_slugs:
+            errors["skills"] = [f"Unknown skill filters: {', '.join(invalid_skill_slugs)}."]
+
+    invalid_languages = [value for value in languages if value not in VacancyLanguageRequirement.Language.values]
+    if invalid_languages:
+        errors["languages"] = [
+            f"Language filters must be one of: {', '.join(VacancyLanguageRequirement.Language.values)}."
+        ]
+
+    invalid_work_styles = [value for value in work_styles if value not in Vacancy.WorkStyle.values]
+    if invalid_work_styles:
+        errors["work_styles"] = [f"Work style filters must be one of: {', '.join(Vacancy.WorkStyle.values)}."]
+
+    if errors:
+        raise ValidationError(errors)
+
+    return {
+        "query": query,
+        "skill_slugs": skill_slugs,
+        "languages": languages,
+        "locations": locations,
+        "work_styles": work_styles,
+    }
+
+
+def build_student_jobs_response(user: User, filters: dict) -> dict:
+    visible_vacancies = list(visible_student_vacancies_queryset().order_by("-updated_at", "-id"))
+    filtered_queryset = visible_student_vacancies_queryset()
+
+    if filters["query"]:
+        filtered_queryset = filtered_queryset.filter(
+            Q(title__icontains=filters["query"])
+            | Q(description__icontains=filters["query"])
+            | Q(company__name__icontains=filters["query"])
+            | Q(location__icontains=filters["query"])
+        )
+    if filters["skill_slugs"]:
+        filtered_queryset = filtered_queryset.filter(skill_requirements__skill__slug__in=filters["skill_slugs"])
+    if filters["languages"]:
+        filtered_queryset = filtered_queryset.filter(language_requirements__language__in=filters["languages"])
+    if filters["locations"]:
+        location_query = Q()
+        for location in filters["locations"]:
+            location_query |= Q(location__iexact=location)
+        filtered_queryset = filtered_queryset.filter(location_query)
+    if filters["work_styles"]:
+        filtered_queryset = filtered_queryset.filter(work_style__in=filters["work_styles"])
+
+    vacancies = list(filtered_queryset.distinct().order_by("-updated_at", "-id"))
+    bookmarked_vacancy_ids = set(
+        JobBookmark.objects.filter(student=user, vacancy_id__in=[vacancy.id for vacancy in vacancies]).values_list(
+            "vacancy_id",
+            flat=True,
+        )
+    )
+
+    visible_skill_ids = {
+        requirement.skill_id
+        for vacancy in visible_vacancies
+        for requirement in vacancy.skill_requirements.all()
+    }
+    available_skills = list(Skill.objects.filter(id__in=visible_skill_ids).order_by("name"))
+    available_languages = [
+        serialize_choice_option(value, label)
+        for value, label in VacancyLanguageRequirement.Language.choices
+        if any(
+            requirement.language == value
+            for vacancy in visible_vacancies
+            for requirement in vacancy.language_requirements.all()
+        )
+    ]
+    available_locations = sorted({vacancy.location for vacancy in visible_vacancies if vacancy.location})
+    available_work_styles = [
+        serialize_choice_option(value, label)
+        for value, label in Vacancy.WorkStyle.choices
+        if any(vacancy.work_style == value for vacancy in visible_vacancies)
+    ]
+
+    return {
+        "vacancies": [serialize_vacancy(vacancy, bookmarked_vacancy_ids=bookmarked_vacancy_ids) for vacancy in vacancies],
+        "query": filters["query"],
+        "filters": {
+            "skills": filters["skill_slugs"],
+            "languages": filters["languages"],
+            "locations": filters["locations"],
+            "work_styles": filters["work_styles"],
+        },
+        "result_count": len(vacancies),
+        "bookmark_count": JobBookmark.objects.filter(student=user).count(),
+        "available_skills": [serialize_skill(skill) for skill in available_skills],
+        "available_languages": available_languages,
+        "available_locations": available_locations,
+        "available_work_styles": available_work_styles,
+    }
+
+
+def get_or_create_application_candidate_access(application: Application) -> CandidateReviewAccess:
+    candidate_access, created = CandidateReviewAccess.objects.get_or_create(
+        company=application.company,
+        student=application.student,
+        source=CandidateReviewAccess.Source.APPLICATION,
+        defaults={"is_active": True},
+    )
+    if not created and not candidate_access.is_active:
+        candidate_access.is_active = True
+        candidate_access.save(update_fields=["is_active", "updated_at"])
+    return candidate_access
+
+
+def sync_application_candidate_access(company: Company, student: User) -> None:
+    candidate_access = CandidateReviewAccess.objects.filter(
+        company=company,
+        student=student,
+        source=CandidateReviewAccess.Source.APPLICATION,
+    ).first()
+    if candidate_access is None:
+        return
+
+    has_active_applications = Application.objects.filter(
+        company=company,
+        student=student,
+        status__in=[
+            Application.Status.SUBMITTED,
+            Application.Status.UNDER_REVIEW,
+            Application.Status.SHORTLISTED,
+        ],
+    ).exists()
+    if candidate_access.is_active != has_active_applications:
+        candidate_access.is_active = has_active_applications
+        candidate_access.save(update_fields=["is_active", "updated_at"])
+
+
+def create_application_history(
+    application: Application,
+    *,
+    from_status: str,
+    to_status: str,
+    actor: User | None,
+    note: str = "",
+) -> ApplicationStatusHistory:
+    history_entry = ApplicationStatusHistory(
+        application=application,
+        actor=actor,
+        from_status=from_status,
+        to_status=to_status,
+        note=note,
+    )
+    history_entry.full_clean()
+    history_entry.save()
+    return history_entry
+
+
+def transition_application_status(
+    application: Application,
+    *,
+    to_status: str,
+    actor: User | None,
+    note: str = "",
+) -> Application:
+    previous_status = application.status
+    application.status = to_status
+    application.full_clean()
+    application.save(update_fields=["status", "updated_at"])
+    create_application_history(
+        application,
+        from_status=previous_status,
+        to_status=to_status,
+        actor=actor,
+        note=note,
+    )
+    sync_application_candidate_access(application.company, application.student)
+    return application
 
 
 @api_endpoint(["GET"])
@@ -1256,12 +1796,117 @@ def student_profile_view(request):
 
 @api_endpoint(["GET"], authentication_required=True, roles=[User.Role.STUDENT])
 def student_jobs_view(request):
-    vacancies = list(
-        Vacancy.objects.filter(status=Vacancy.Status.ACTIVE, company__is_active=True)
-        .select_related("company", "created_by")
-        .order_by("-updated_at", "-id")
+    filters = validate_student_jobs_filters(request)
+    return success_response(build_student_jobs_response(request.user, filters))
+
+
+@api_endpoint(["POST", "DELETE"], authentication_required=True, roles=[User.Role.STUDENT])
+def student_job_bookmark_view(request, vacancy_id: int):
+    if request.method == "DELETE":
+        JobBookmark.objects.filter(student=request.user, vacancy_id=vacancy_id).delete()
+        return success_response({"vacancy_id": vacancy_id, "is_bookmarked": False})
+
+    vacancy = get_visible_student_vacancy(vacancy_id)
+    if vacancy is None:
+        return error_response(
+            request,
+            "NOT_FOUND",
+            "The requested vacancy is not available for bookmarking.",
+            details={"vacancy_id": [str(vacancy_id)]},
+            status=404,
+        )
+
+    bookmark, created = JobBookmark.objects.get_or_create(student=request.user, vacancy=vacancy)
+    if not created:
+        return success_response({"vacancy_id": vacancy.id, "is_bookmarked": True})
+    return success_response({"vacancy_id": vacancy.id, "is_bookmarked": True}, status=201)
+
+
+@api_endpoint(["GET", "POST"], authentication_required=True, roles=[User.Role.STUDENT])
+def student_applications_view(request):
+    if request.method == "GET":
+        applications = list(
+            Application.objects.filter(student=request.user)
+            .select_related("company", "vacancy")
+            .prefetch_related("history__actor")
+            .order_by("-updated_at", "-id")
+        )
+        return success_response(
+            {
+                "student_id": request.user.id,
+                "application_count": len(applications),
+                "applications": [serialize_student_application(application) for application in applications],
+            }
+        )
+
+    payload = validate_application_payload(parse_json_body(request))
+    vacancy = get_visible_student_vacancy(payload["vacancy_id"])
+    if vacancy is None:
+        return error_response(
+            request,
+            "NOT_FOUND",
+            "The requested vacancy is not available for student applications.",
+            details={"vacancy_id": [str(payload["vacancy_id"])]},
+            status=404,
+        )
+
+    duplicate_application = Application.objects.filter(
+        student=request.user,
+        vacancy=vacancy,
+    ).exclude(status__in=[Application.Status.REJECTED, Application.Status.WITHDRAWN])
+    if duplicate_application.exists():
+        raise ValidationError({"vacancy_id": ["An active application already exists for this vacancy."]})
+
+    with transaction.atomic():
+        application = Application(
+            company=vacancy.company,
+            vacancy=vacancy,
+            student=request.user,
+            status=Application.Status.SUBMITTED,
+        )
+        application.full_clean()
+        application.save()
+        create_application_history(
+            application,
+            from_status="",
+            to_status=Application.Status.SUBMITTED,
+            actor=request.user,
+            note="Application submitted by student.",
+        )
+        get_or_create_application_candidate_access(application)
+
+    application = (
+        Application.objects.filter(pk=application.pk)
+        .select_related("company", "vacancy")
+        .prefetch_related("history__actor")
+        .first()
     )
-    return success_response({"vacancies": [serialize_vacancy(vacancy) for vacancy in vacancies]})
+    return success_response(serialize_student_application(application), status=201)
+
+
+@api_endpoint(["POST"], authentication_required=True, roles=[User.Role.STUDENT])
+def student_application_withdraw_view(request, application_id: int):
+    application = get_student_application(request.user, application_id)
+    if application is None:
+        return error_response(
+            request,
+            "NOT_FOUND",
+            "The requested application was not found.",
+            details={"application_id": [str(application_id)]},
+            status=404,
+        )
+
+    if not application_is_withdrawable(application):
+        raise ValidationError({"application_id": ["This application can no longer be withdrawn."]})
+
+    transition_application_status(
+        application,
+        to_status=Application.Status.WITHDRAWN,
+        actor=request.user,
+        note="Application withdrawn by student.",
+    )
+    application = get_student_application(request.user, application_id)
+    return success_response(serialize_student_application(application))
 
 
 @api_endpoint(["GET", "PUT"], authentication_required=True, roles=[User.Role.COMPANY])
@@ -1292,23 +1937,41 @@ def company_vacancies_view(request):
         vacancies = list(
             Vacancy.objects.filter(company=company)
             .select_related("company", "created_by")
+            .prefetch_related("skill_requirements__skill", "language_requirements")
             .order_by("-updated_at", "-id")
         )
-        return success_response({"vacancies": [serialize_vacancy(vacancy) for vacancy in vacancies]})
+        return success_response(
+            {
+                "vacancies": [serialize_vacancy(vacancy) for vacancy in vacancies],
+                "available_skills": [serialize_skill(skill) for skill in Skill.objects.order_by("name")],
+            }
+        )
 
     payload = validate_vacancy_payload(parse_json_body(request))
-    vacancy = Vacancy(
-        company=company,
-        created_by=request.user,
-        title=payload["title"],
-        description=payload["description"],
-        employment_type=payload["employment_type"],
-        experience_level=payload["experience_level"],
-        location=payload["location"],
-        status=payload["status"],
-    )
-    vacancy.full_clean()
-    vacancy.save()
+    with transaction.atomic():
+        vacancy = Vacancy(
+            company=company,
+            created_by=request.user,
+            title=payload["title"],
+            description=payload["description"],
+            employment_type=payload["employment_type"],
+            experience_level=payload["experience_level"],
+            location=payload["location"],
+            work_style=payload["work_style"],
+            relocation_support=payload["relocation_support"],
+            status=payload["status"],
+        )
+        vacancy.full_clean()
+        vacancy.save()
+        sync_vacancy_skill_requirements(
+            vacancy,
+            required_skills=payload["required_skills"],
+            preferred_skills=payload["preferred_skills"],
+        )
+        sync_vacancy_language_requirements(
+            vacancy,
+            language_requirements=payload["language_requirements"],
+        )
     return success_response(serialize_vacancy(vacancy), status=201)
 
 
@@ -1328,11 +1991,33 @@ def company_vacancy_detail_view(request, vacancy_id: int):
     vacancy.employment_type = payload["employment_type"]
     vacancy.experience_level = payload["experience_level"]
     vacancy.location = payload["location"]
+    vacancy.work_style = payload["work_style"]
+    vacancy.relocation_support = payload["relocation_support"]
     vacancy.status = payload["status"]
-    vacancy.full_clean()
-    vacancy.save(
-        update_fields=["title", "description", "employment_type", "experience_level", "location", "status", "updated_at"]
-    )
+    with transaction.atomic():
+        vacancy.full_clean()
+        vacancy.save(
+            update_fields=[
+                "title",
+                "description",
+                "employment_type",
+                "experience_level",
+                "location",
+                "work_style",
+                "relocation_support",
+                "status",
+                "updated_at",
+            ]
+        )
+        sync_vacancy_skill_requirements(
+            vacancy,
+            required_skills=payload["required_skills"],
+            preferred_skills=payload["preferred_skills"],
+        )
+        sync_vacancy_language_requirements(
+            vacancy,
+            language_requirements=payload["language_requirements"],
+        )
     return success_response(serialize_vacancy(vacancy))
 
 
@@ -1425,6 +2110,93 @@ def student_learning_summary_view(request):
 @api_endpoint(["GET"], authentication_required=True, roles=[User.Role.STUDENT])
 def student_exam_results_view(request):
     return success_response(serialize_exam_results_summary(request.user))
+
+
+@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.COMPANY])
+def company_applications_view(request):
+    company = request.user.company
+    if company is None:
+        raise ValidationError({"company": ["Company context is required for company users."]})
+
+    applications = list(
+        Application.objects.filter(company=company)
+        .select_related("company", "vacancy", "student")
+        .prefetch_related("history__actor")
+        .order_by("-updated_at", "-id")
+    )
+    return success_response(
+        {
+            "company_id": company.id,
+            "application_count": len(applications),
+            "applications": [serialize_company_application(application) for application in applications],
+        }
+    )
+
+
+@api_endpoint(["POST"], authentication_required=True, roles=[User.Role.COMPANY])
+def company_application_shortlist_view(request, application_id: int):
+    application = get_company_application(request.user, application_id)
+    if application is None:
+        return error_response(
+            request,
+            "NOT_FOUND",
+            "The requested application was not found.",
+            details={"application_id": [str(application_id)]},
+            status=404,
+        )
+
+    if application.status == Application.Status.SHORTLISTED:
+        return success_response(serialize_company_application(application))
+
+    if not application_is_shortlistable(application):
+        raise ValidationError({"application_id": ["This application cannot be shortlisted from its current status."]})
+
+    with transaction.atomic():
+        candidate_access = get_or_create_application_candidate_access(application)
+        shortlist_entry = CandidateShortlist.objects.filter(candidate_access=candidate_access).first()
+        if shortlist_entry is None:
+            shortlist_entry = CandidateShortlist(
+                candidate_access=candidate_access,
+                company=application.company,
+                student=application.student,
+                created_by=request.user,
+            )
+            shortlist_entry.full_clean()
+            shortlist_entry.save()
+        transition_application_status(
+            application,
+            to_status=Application.Status.SHORTLISTED,
+            actor=request.user,
+            note="Application shortlisted by company.",
+        )
+
+    application = get_company_application(request.user, application_id)
+    return success_response(serialize_company_application(application))
+
+
+@api_endpoint(["POST"], authentication_required=True, roles=[User.Role.COMPANY])
+def company_application_reject_view(request, application_id: int):
+    application = get_company_application(request.user, application_id)
+    if application is None:
+        return error_response(
+            request,
+            "NOT_FOUND",
+            "The requested application was not found.",
+            details={"application_id": [str(application_id)]},
+            status=404,
+        )
+
+    if not application_is_rejectable(application):
+        raise ValidationError({"application_id": ["This application cannot be rejected from its current status."]})
+
+    transition_application_status(
+        application,
+        to_status=Application.Status.REJECTED,
+        actor=request.user,
+        note="Application rejected by company.",
+    )
+    application = get_company_application(request.user, application_id)
+    return success_response(serialize_company_application(application))
 
 
 @api_endpoint(["GET"], authentication_required=True, roles=[User.Role.COMPANY])
@@ -2206,6 +2978,7 @@ def admin_vacancies_view(request):
     if request.method == "GET":
         vacancies = list(
             Vacancy.objects.select_related("company", "created_by")
+            .prefetch_related("skill_requirements__skill", "language_requirements")
             .order_by("-updated_at", "-id")
         )
         companies = list(Company.objects.order_by("name"))
@@ -2219,22 +2992,35 @@ def admin_vacancies_view(request):
                 "vacancies": [serialize_vacancy(vacancy) for vacancy in vacancies],
                 "companies": [serialize_admin_company(company) for company in companies],
                 "company_users": [serialize_admin_company_user(user) for user in company_users],
+                "available_skills": [serialize_skill(skill) for skill in Skill.objects.order_by("name")],
             }
         )
 
     payload = validate_admin_vacancy_payload(parse_json_body(request))
-    vacancy = Vacancy(
-        company=payload["company"],
-        created_by=payload["created_by"],
-        title=payload["title"],
-        description=payload["description"],
-        employment_type=payload["employment_type"],
-        experience_level=payload["experience_level"],
-        location=payload["location"],
-        status=payload["status"],
-    )
-    vacancy.full_clean()
-    vacancy.save()
+    with transaction.atomic():
+        vacancy = Vacancy(
+            company=payload["company"],
+            created_by=payload["created_by"],
+            title=payload["title"],
+            description=payload["description"],
+            employment_type=payload["employment_type"],
+            experience_level=payload["experience_level"],
+            location=payload["location"],
+            work_style=payload["work_style"],
+            relocation_support=payload["relocation_support"],
+            status=payload["status"],
+        )
+        vacancy.full_clean()
+        vacancy.save()
+        sync_vacancy_skill_requirements(
+            vacancy,
+            required_skills=payload["required_skills"],
+            preferred_skills=payload["preferred_skills"],
+        )
+        sync_vacancy_language_requirements(
+            vacancy,
+            language_requirements=payload["language_requirements"],
+        )
     return success_response(serialize_vacancy(vacancy), status=201)
 
 
@@ -2264,21 +3050,35 @@ def admin_vacancy_detail_view(request, vacancy_id: int):
     vacancy.employment_type = payload["employment_type"]
     vacancy.experience_level = payload["experience_level"]
     vacancy.location = payload["location"]
+    vacancy.work_style = payload["work_style"]
+    vacancy.relocation_support = payload["relocation_support"]
     vacancy.status = payload["status"]
-    vacancy.full_clean()
-    vacancy.save(
-        update_fields=[
-            "company",
-            "created_by",
-            "title",
-            "description",
-            "employment_type",
-            "experience_level",
-            "location",
-            "status",
-            "updated_at",
-        ]
-    )
+    with transaction.atomic():
+        vacancy.full_clean()
+        vacancy.save(
+            update_fields=[
+                "company",
+                "created_by",
+                "title",
+                "description",
+                "employment_type",
+                "experience_level",
+                "location",
+                "work_style",
+                "relocation_support",
+                "status",
+                "updated_at",
+            ]
+        )
+        sync_vacancy_skill_requirements(
+            vacancy,
+            required_skills=payload["required_skills"],
+            preferred_skills=payload["preferred_skills"],
+        )
+        sync_vacancy_language_requirements(
+            vacancy,
+            language_requirements=payload["language_requirements"],
+        )
     return success_response(serialize_vacancy(vacancy))
 
 

@@ -14,11 +14,11 @@ Baseline inception version: v1
 
 ## Scope
 
-Define the baseline job-search-bar flow so authenticated students can refine visible jobs through a general search query without collapsing structured filters, bookmarks, applications, or matching into the same unit.
+Implement the student job search bar so authenticated students can refine visible jobs through a general query without collapsing structured filters, bookmarks, applications, or matching into the same unit.
 
 ## Out of Scope
 
-Concrete frontend/backend implementation code, structured skill/language/location/salary filters, bookmarks, applications, and matching logic.
+Search ranking optimization, recommendation behavior, and salary filtering beyond the visible discovery query shipped in this unit.
 
 ## Dependencies
 
@@ -26,16 +26,16 @@ Depends on the requirements, security, data-model, architecture, API, frontend i
 
 ## Acceptance Criteria
 
-The unit documents job-search-bar behavior, query boundaries, and relationship to later structured filters and bookmark units without producing application code.
+Students can search visible jobs through a stable query flow, and search results preserve the same active and authorized vacancy boundaries as the base job list.
 
 ## Risks
 
-If the job search bar is underspecified here, later search filters, job browsing, and bookmark units can drift into conflicting query behavior and search-state expectations.
+Search now drives student discovery, so any visibility drift would expose unauthorized jobs or create inconsistent filter state.
 
 ## Open Questions
 
-Exact query matching behavior, debounce timing, and empty-query handling can be refined later as long as general job-search-bar behavior remains explicit and stable.
+Later units can refine ranking or debounce behavior if they preserve the current visible-vacancy search contract.
 
 ## Last Updated
 
-2026-04-29
+2026-04-30

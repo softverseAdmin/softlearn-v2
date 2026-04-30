@@ -14,11 +14,11 @@ Baseline inception version: v1
 
 ## Scope
 
-Define the baseline company-view-applications flow so authorized company users can review applications submitted to their vacancies using approved visibility, ranking, and status-history context without collapsing shortlist or rejection actions into the same unit.
+Implement the protected company-view-applications flow so authorized company users can review applications submitted to their vacancies using approved visibility and status-history context.
 
 ## Out of Scope
 
-Concrete frontend/backend implementation code, student application creation, shortlist actions, rejection actions, interview scheduling, and notification delivery.
+Interview scheduling and notification delivery beyond the implemented company application review and action-launch context.
 
 ## Dependencies
 
@@ -26,7 +26,7 @@ Depends on the requirements, security, data-model, architecture, company authori
 
 ## Acceptance Criteria
 
-The unit documents authorized company-side application review behavior, visibility constraints, and relationship to later shortlist and rejection actions without producing application code.
+Company users can review their own vacancy applications with privacy-safe candidate context, current status, and ordered history.
 
 ## Risks
 
@@ -38,4 +38,4 @@ Exact list sorting, filtering defaults, and recruiter-side comparison affordance
 
 ## Last Updated
 
-2026-04-29
+2026-04-30
