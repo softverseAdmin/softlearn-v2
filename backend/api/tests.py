@@ -561,13 +561,13 @@ class ApiFoundationTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         body = response.json()["data"]
-        self.assertEqual(body["metrics"]["students"], 1)
-        self.assertEqual(body["metrics"]["company_users"], 1)
-        self.assertEqual(body["metrics"]["admins"], 1)
-        self.assertEqual(body["metrics"]["companies"], 1)
-        self.assertEqual(body["metrics"]["active_vacancies"], 0)
-        self.assertEqual(body["metrics"]["completed_interviews"], 1)
-        self.assertEqual(body["metrics"]["unread_notifications"], 1)
+        self.assertEqual(body["system_stats"]["active_students"], 1)
+        self.assertEqual(body["system_stats"]["companies"], 1)
+        self.assertEqual(body["system_stats"]["revenue_label"], "Unavailable")
+        self.assertEqual(body["system_stats"]["revenue_description"], "Billing and premium purchase tracking are not connected yet.")
+        self.assertTrue(any(item["kind"] == "user" for item in body["recent_activity"]))
+        self.assertTrue(any(item["kind"] == "interview" for item in body["recent_activity"]))
+        self.assertEqual(body["system_status"][0]["value"], "1")
 
     def test_admin_can_create_and_list_users(self):
         company = Company.objects.create(name="Softverse")

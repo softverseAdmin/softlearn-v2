@@ -478,6 +478,16 @@ def serialize_admin_interview_summary(interview: Interview) -> dict:
     }
 
 
+def serialize_admin_activity_item(item_id: str, kind: str, title: str, description: str, timestamp) -> dict:
+    return {
+        "id": item_id,
+        "kind": kind,
+        "title": title,
+        "description": description,
+        "timestamp": timestamp.isoformat(),
+    }
+
+
 def serialize_admin_user(user: User) -> dict:
     return {
         "user_id": user.id,
@@ -2009,29 +2019,113 @@ def admin_dashboard_view(request):
         Interview.objects.select_related("student", "company", "candidate_access", "requested_by")
         .order_by("-updated_at", "-id")[:5]
     )
+    notifications = list(
+        Notification.objects.filter(recipient=request.user)
+        .select_related("actor")
+        .order_by("-created_at", "-id")[:5]
+    )
     total_interviews = Interview.objects.count()
+    students = User.objects.filter(role=User.Role.STUDENT).count()
+    company_users = User.objects.filter(role=User.Role.COMPANY).count()
+    admins = User.objects.filter(role=User.Role.ADMIN).count()
+    companies = Company.objects.count()
+    active_vacancies = Vacancy.objects.filter(status=Vacancy.Status.ACTIVE).count()
+    active_interviews = Interview.objects.filter(
+        status__in=[Interview.Status.REQUESTED, Interview.Status.CONFIRMED, Interview.Status.RESCHEDULED]
+    ).count()
+    completed_interviews = Interview.objects.filter(status=Interview.Status.COMPLETED).count()
+    cancelled_interviews = Interview.objects.filter(status=Interview.Status.CANCELLED).count()
     unread_notifications = Notification.objects.filter(recipient=request.user, read_at__isnull=True).count()
+
+    activity_items = [
+        *[
+            serialize_admin_activity_item(
+                f"user-{user.id}",
+                "user",
+                f"{user.full_name} joined the platform",
+                f"{user.role.title()} account created{f' for {user.company.name}' if user.company else ''}.",
+                user.date_joined,
+            )
+            for user in users[:3]
+        ],
+        *[
+            serialize_admin_activity_item(
+                f"interview-{interview.id}",
+                "interview",
+                f"Interview {interview.status.replace('_', ' ')}",
+                f"{interview.company.name} and {interview.student.full_name} updated the {interview.purpose.lower()} flow.",
+                interview.updated_at,
+            )
+            for interview in interviews[:3]
+        ],
+        *[
+            serialize_admin_activity_item(
+                f"notification-{notification.id}",
+                "notification",
+                notification.title,
+                notification.message,
+                notification.created_at,
+            )
+            for notification in notifications[:3]
+        ],
+    ]
+    activity_items.sort(key=lambda item: item["timestamp"], reverse=True)
 
     return success_response(
         {
-            "metrics": {
+            "header_message": "Monitor platform activity, review recent events, and keep core system operations visible from one control surface.",
+            "system_stats": {
                 "total_users": User.objects.count(),
-                "students": User.objects.filter(role=User.Role.STUDENT).count(),
-                "company_users": User.objects.filter(role=User.Role.COMPANY).count(),
-                "admins": User.objects.filter(role=User.Role.ADMIN).count(),
-                "companies": Company.objects.count(),
-                "active_vacancies": Vacancy.objects.filter(status=Vacancy.Status.ACTIVE).count(),
-                "total_interviews": total_interviews,
-                "active_interviews": Interview.objects.filter(
-                    status__in=[Interview.Status.REQUESTED, Interview.Status.CONFIRMED, Interview.Status.RESCHEDULED]
-                ).count(),
-                "completed_interviews": Interview.objects.filter(status=Interview.Status.COMPLETED).count(),
-                "cancelled_interviews": Interview.objects.filter(status=Interview.Status.CANCELLED).count(),
-                "unread_notifications": unread_notifications,
+                "active_students": students,
+                "companies": companies,
+                "revenue_label": "Unavailable",
+                "revenue_description": "Billing and premium purchase tracking are not connected yet.",
             },
-            "recent_users": [serialize_admin_user_summary(user) for user in users],
-            "recent_interviews": [serialize_admin_interview_summary(interview) for interview in interviews],
-            "recent_notifications": recent_notifications_for_user(request.user),
+            "recent_activity": activity_items[:5],
+            "system_status": [
+                {
+                    "id": "unread-updates",
+                    "label": "Unread platform updates",
+                    "value": str(unread_notifications),
+                    "tone": "warning" if unread_notifications else "healthy",
+                    "description": "Admin notifications waiting for review.",
+                },
+                {
+                    "id": "live-vacancies",
+                    "label": "Live vacancies",
+                    "value": str(active_vacancies),
+                    "tone": "healthy" if active_vacancies else "neutral",
+                    "description": "Currently active company job postings.",
+                },
+                {
+                    "id": "active-interviews",
+                    "label": "Active interviews",
+                    "value": str(active_interviews),
+                    "tone": "healthy" if active_interviews else "neutral",
+                    "description": "Interview workflows still in progress.",
+                },
+                {
+                    "id": "completed-interviews",
+                    "label": "Completed interviews",
+                    "value": str(completed_interviews),
+                    "tone": "healthy",
+                    "description": f"{cancelled_interviews} cancelled across the current dataset.",
+                },
+                {
+                    "id": "platform-admins",
+                    "label": "Admin coverage",
+                    "value": str(admins),
+                    "tone": "healthy" if admins else "warning",
+                    "description": f"{company_users} company users are currently managed on the platform.",
+                },
+                {
+                    "id": "interview-volume",
+                    "label": "Interview volume",
+                    "value": str(total_interviews),
+                    "tone": "neutral",
+                    "description": "Total interviews recorded across all companies.",
+                },
+            ],
         }
     )
 

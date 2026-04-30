@@ -87,35 +87,26 @@ export interface CompanyDashboardResponse {
 }
 
 export interface AdminDashboardResponse {
-  metrics: {
+  header_message: string
+  system_stats: {
     total_users: number
-    students: number
-    company_users: number
-    admins: number
+    active_students: number
     companies: number
-    active_vacancies: number
-    total_interviews: number
-    active_interviews: number
-    completed_interviews: number
-    cancelled_interviews: number
-    unread_notifications: number
+    revenue_label: string
+    revenue_description: string
   }
-  recent_users: Array<{
-    user_id: number
-    name: string
-    email: string
-    role: string
-    company_name: string | null
-    date_joined: string
+  recent_activity: Array<{
+    id: string
+    kind: 'user' | 'interview' | 'notification'
+    title: string
+    description: string
+    timestamp: string
   }>
-  recent_interviews: Array<{
+  system_status: Array<{
     id: number
-    company_name: string
-    student_name: string
-    status: string
-    updated_at: string
-    scheduled_start: string | null
-    scheduled_end: string | null
+    label: string
+    value: string
+    tone: 'healthy' | 'warning' | 'neutral'
+    description: string
   }>
-  recent_notifications: NotificationItem[]
 }
