@@ -26,7 +26,7 @@ function RoleOption({
 }) {
   return (
     <button
-      className={`flex items-center justify-center gap-2 rounded-[12px] border px-3 py-3 text-sm font-semibold transition ${
+      className={`flex items-center justify-center gap-2 rounded-[12px] border px-2.5 py-2.5 text-sm font-semibold transition sm:px-3 sm:py-3 ${
         selected
           ? 'border-[var(--sl-primary)] bg-[var(--sl-soft)] text-[var(--sl-primary)] shadow-sm'
           : 'border-transparent bg-transparent text-slate-500'
@@ -82,10 +82,11 @@ export function LoginPage() {
       eyebrow="Welcome back"
       title="Log in to continue learning"
       description="Pick up your roadmap, validate your next skill, or review your hiring pipeline from the right workspace."
+      fullViewport
       mode="login"
     >
-      <form className="space-y-4" onSubmit={handleSubmit}>
-        <div className="space-y-2.5">
+      <form className="space-y-3.5 sm:space-y-4" onSubmit={handleSubmit}>
+        <div className="space-y-2">
           <p className="text-sm font-medium text-[var(--sl-text)]">Select account type</p>
           <div className="grid grid-cols-3 rounded-2xl border border-[var(--sl-border)] bg-[#f8fafc] p-1.5">
             <RoleOption role="student" selected={selectedRole === 'student'} label="Student" onClick={setSelectedRole}>
@@ -119,7 +120,7 @@ export function LoginPage() {
             </InputIcon>
             <input
               id="email"
-              className="h-12 w-full rounded-[12px] border border-[var(--sl-border)] pl-11 pr-3.5 text-[15px] text-[var(--sl-text)] outline-none transition focus:border-[var(--sl-primary)] focus:ring-4 focus:ring-[var(--sl-soft)]"
+              className="h-11 w-full rounded-[12px] border border-[var(--sl-border)] pl-11 pr-3.5 text-[15px] text-[var(--sl-text)] outline-none transition focus:border-[var(--sl-primary)] focus:ring-4 focus:ring-[var(--sl-soft)] sm:h-12"
               type="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
@@ -141,7 +142,7 @@ export function LoginPage() {
             </InputIcon>
             <input
               id="password"
-              className="h-12 w-full rounded-[12px] border border-[var(--sl-border)] pl-11 pr-3.5 text-[15px] text-[var(--sl-text)] outline-none transition focus:border-[var(--sl-primary)] focus:ring-4 focus:ring-[var(--sl-soft)]"
+              className="h-11 w-full rounded-[12px] border border-[var(--sl-border)] pl-11 pr-3.5 text-[15px] text-[var(--sl-text)] outline-none transition focus:border-[var(--sl-primary)] focus:ring-4 focus:ring-[var(--sl-soft)] sm:h-12"
               type="password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
@@ -170,8 +171,8 @@ export function LoginPage() {
           </button>
         </div>
 
-        {recoveryMessage ? <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">{recoveryMessage}</p> : null}
-        {error ? <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p> : null}
+        {recoveryMessage ? <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm text-amber-800">{recoveryMessage}</p> : null}
+        {error ? <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-sm text-red-700">{error}</p> : null}
 
         <button
           className="inline-flex h-11 w-full items-center justify-center rounded-[10px] bg-[var(--sl-primary)] px-5 text-sm font-semibold text-white shadow-sm transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-70"
@@ -182,7 +183,7 @@ export function LoginPage() {
         </button>
       </form>
 
-      <div className="mt-5 flex flex-col gap-2 text-sm text-[var(--sl-muted)] sm:flex-row sm:items-center sm:justify-between">
+      <div className="mt-4 flex flex-col gap-2 text-sm text-[var(--sl-muted)] sm:mt-5 sm:flex-row sm:items-center sm:justify-between">
         <p>New to Softlearn?</p>
         <Link className="font-semibold text-[var(--sl-primary)]" to="/signup">
           Create an account
