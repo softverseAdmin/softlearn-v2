@@ -14,11 +14,11 @@ Baseline inception version: v1
 
 ## Scope
 
-Define the baseline student job-list-page flow so authenticated students can browse visible active vacancies in list form without collapsing search-bar behavior, structured filters, bookmarks, applications, or matching into the same unit.
+Implement the protected student job-list-page flow so authenticated students can browse visible active vacancies in list form without collapsing search-bar behavior, structured filters, bookmarks, applications, or matching into the same unit.
 
 ## Out of Scope
 
-Concrete frontend/backend implementation code, search-bar behavior, skill/language/location/salary filters, bookmarks, applications, and matching logic.
+Search-bar behavior, skill/language/location/salary filters, bookmarks, applications, and matching logic.
 
 ## Dependencies
 
@@ -26,16 +26,16 @@ Depends on the requirements, security, data-model, architecture, authentication,
 
 ## Acceptance Criteria
 
-The unit documents student job-list-page behavior, visible-vacancy boundaries, and relationship to later search and bookmark units without producing application code.
+Students can open a protected jobs page and browse only the visible active vacancy subset with stable loading, empty, and populated list states.
 
 ## Risks
 
-If the job list page is underspecified here, later search, bookmark, application, and matching units can drift into conflicting assumptions about which vacancies students may browse and how list states behave.
+If vacancy visibility rules drift here, later search, bookmark, application, and matching units can build on an inconsistent browseable vacancy set.
 
 ## Open Questions
 
-Exact default ordering, pagination, and empty-state messaging can be refined later as long as the visible job-list page remains explicit and aligned with the vacancy visibility baseline.
+Later units can refine ordering density, pagination, and transition into job-detail flows as long as the visible active vacancy baseline remains intact.
 
 ## Last Updated
 
-2026-04-29
+2026-04-30

@@ -1,6 +1,7 @@
 import { Route, Routes } from 'react-router-dom'
 
 import { AdminCompaniesPage } from '../features/admin/AdminCompaniesPage'
+import { AdminVacanciesPage } from '../features/admin/AdminVacanciesPage'
 import { AdminUsersPage } from '../features/admin/AdminUsersPage'
 import { NotificationsPage } from '../features/notifications/NotificationsPage'
 import { AppLayout } from '../layouts/AppLayout'
@@ -14,6 +15,7 @@ import { CompanyVacanciesPage } from '../features/profile/CompanyVacanciesPage'
 import { StudentExamResultsPage } from '../features/profile/StudentExamResultsPage'
 import { StudentInterviewDetailPage } from '../features/profile/StudentInterviewDetailPage'
 import { StudentInterviewsPage } from '../features/profile/StudentInterviewsPage'
+import { StudentJobsPage } from '../features/profile/StudentJobsPage'
 import { StudentLearningPage } from '../features/profile/StudentLearningPage'
 import { StudentPrivacySettingsPage } from '../features/profile/StudentPrivacySettingsPage'
 import { StudentProfilePage } from '../features/profile/StudentProfilePage'
@@ -47,6 +49,7 @@ export function AppRouter() {
             <Route path="/student/notifications" element={<NotificationsPage />} />
             <Route path="/student/profile" element={<StudentProfilePage />} />
             <Route path="/student/skills" element={<StudentSkillsPage />} />
+            <Route path="/student/jobs" element={<StudentJobsPage />} />
             <Route path="/student/learning" element={<StudentLearningPage />} />
             <Route path="/student/exams" element={<StudentExamResultsPage />} />
             <Route path="/student/interviews" element={<StudentInterviewsPage />} />
@@ -71,6 +74,7 @@ export function AppRouter() {
             <Route path="/admin/notifications" element={<NotificationsPage />} />
             <Route path="/admin/users" element={<AdminUsersPage />} />
             <Route path="/admin/operations" element={<AdminCompaniesPage />} />
+            <Route path="/admin/vacancies" element={<AdminVacanciesPage />} />
           </Route>
         </Route>
       </Route>

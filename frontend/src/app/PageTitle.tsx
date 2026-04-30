@@ -8,6 +8,7 @@ const titledRoutes = [
   { path: '/unauthorized', title: 'Access denied' },
   { path: '/student', title: 'Student dashboard' },
   { path: '/student/notifications', title: 'Student notifications' },
+  { path: '/student/jobs', title: 'Student jobs' },
   { path: '/student/profile', title: 'Student profile' },
   { path: '/student/skills', title: 'Student skills' },
   { path: '/student/learning', title: 'Learning progress' },

@@ -34,6 +34,10 @@ export interface CompanyVacanciesResponse {
   vacancies: VacancyRecord[]
 }
 
+export interface StudentJobsResponse {
+  vacancies: VacancyRecord[]
+}
+
 export interface SkillOption {
   id: number
   name: string

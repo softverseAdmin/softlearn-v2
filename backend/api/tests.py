@@ -807,6 +807,85 @@ class ApiFoundationTests(TestCase):
         self.assertEqual(len(response.json()["data"]["vacancies"]), 1)
         self.assertEqual(response.json()["data"]["vacancies"][0]["company_name"], "Softverse")
 
+    def test_student_job_list_shows_only_active_visible_vacancies(self):
+        company = Company.objects.create(name="Softverse", is_active=True)
+        inactive_company = Company.objects.create(name="Hiddenverse", is_active=False)
+        company_user = User.objects.create_user(
+            email="company@example.com",
+            password="SecurePass123!",
+            full_name="Company User",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+        hidden_company_user = User.objects.create_user(
+            email="hidden@example.com",
+            password="SecurePass123!",
+            full_name="Hidden Company User",
+            role=User.Role.COMPANY,
+            company=inactive_company,
+        )
+        student = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        Vacancy.objects.create(
+            company=company,
+            created_by=company_user,
+            title="Backend Engineer",
+            description="Build APIs.",
+            employment_type="full_time",
+            experience_level="junior",
+            location="Tokyo",
+            status=Vacancy.Status.ACTIVE,
+        )
+        Vacancy.objects.create(
+            company=company,
+            created_by=company_user,
+            title="Draft Engineer",
+            description="Not visible.",
+            employment_type="full_time",
+            experience_level="junior",
+            location="Tokyo",
+            status=Vacancy.Status.DRAFT,
+        )
+        Vacancy.objects.create(
+            company=inactive_company,
+            created_by=hidden_company_user,
+            title="Hidden Engineer",
+            description="Company is inactive.",
+            employment_type="full_time",
+            experience_level="junior",
+            location="Osaka",
+            status=Vacancy.Status.ACTIVE,
+        )
+        client = Client()
+        client.force_login(student)
+
+        response = client.get("/api/v1/student/jobs")
+
+        self.assertEqual(response.status_code, 200)
+        vacancies = response.json()["data"]["vacancies"]
+        self.assertEqual(len(vacancies), 1)
+        self.assertEqual(vacancies[0]["title"], "Backend Engineer")
+
+    def test_company_user_cannot_access_student_job_list(self):
+        company = Company.objects.create(name="Softverse")
+        company_user = User.objects.create_user(
+            email="company@example.com",
+            password="SecurePass123!",
+            full_name="Company User",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+        client = Client()
+        client.force_login(company_user)
+
+        response = client.get("/api/v1/student/jobs")
+
+        self.assertEqual(response.status_code, 403)
+
     def test_admin_can_view_vacancies(self):
         company = Company.objects.create(name="Softverse")
         company_user = User.objects.create_user(
@@ -837,7 +916,125 @@ class ApiFoundationTests(TestCase):
         response = client.get("/api/v1/admin/vacancies")
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.json()["data"]["vacancies"]), 1)
+        body = response.json()["data"]
+        self.assertEqual(len(body["vacancies"]), 1)
+        self.assertEqual(body["companies"][0]["name"], "Softverse")
+        self.assertEqual(body["company_users"][0]["email"], "company@example.com")
+
+    def test_admin_can_create_update_and_retire_vacancy(self):
+        company = Company.objects.create(name="Softverse")
+        other_company = Company.objects.create(name="Otherverse")
+        company_user = User.objects.create_user(
+            email="company@example.com",
+            password="SecurePass123!",
+            full_name="Company User",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+        other_company_user = User.objects.create_user(
+            email="other@example.com",
+            password="SecurePass123!",
+            full_name="Other Company User",
+            role=User.Role.COMPANY,
+            company=other_company,
+        )
+        admin = User.objects.create_superuser(
+            email="admin@example.com",
+            password="SecurePass123!",
+            full_name="Admin User",
+        )
+        client, csrf_token = self.csrf_client()
+        client.force_login(admin)
+
+        create_response = client.post(
+            "/api/v1/admin/vacancies",
+            data=json.dumps(
+                {
+                    "company_id": company.id,
+                    "created_by_id": company_user.id,
+                    "title": "Backend Engineer",
+                    "description": "Build platform APIs.",
+                    "employment_type": "full_time",
+                    "experience_level": "junior",
+                    "location": "Tokyo",
+                    "status": "draft",
+                }
+            ),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+        vacancy_id = create_response.json()["data"]["vacancy_id"]
+        update_response = client.put(
+            f"/api/v1/admin/vacancies/{vacancy_id}",
+            data=json.dumps(
+                {
+                    "company_id": other_company.id,
+                    "created_by_id": other_company_user.id,
+                    "title": "Backend Engineer Updated",
+                    "description": "Build protected platform APIs.",
+                    "employment_type": "full_time",
+                    "experience_level": "mid",
+                    "location": "Osaka",
+                    "status": "active",
+                }
+            ),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+        delete_response = client.delete(
+            f"/api/v1/admin/vacancies/{vacancy_id}",
+            data=json.dumps({}),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+
+        self.assertEqual(create_response.status_code, 201)
+        self.assertEqual(update_response.status_code, 200)
+        self.assertEqual(delete_response.status_code, 200)
+        vacancy = Vacancy.objects.get(pk=vacancy_id)
+        self.assertEqual(vacancy.company, other_company)
+        self.assertEqual(vacancy.created_by, other_company_user)
+        self.assertEqual(vacancy.title, "Backend Engineer Updated")
+        self.assertEqual(vacancy.status, Vacancy.Status.INACTIVE)
+
+    def test_admin_vacancy_create_rejects_cross_company_creator(self):
+        company = Company.objects.create(name="Softverse")
+        other_company = Company.objects.create(name="Otherverse")
+        other_company_user = User.objects.create_user(
+            email="other@example.com",
+            password="SecurePass123!",
+            full_name="Other Company User",
+            role=User.Role.COMPANY,
+            company=other_company,
+        )
+        admin = User.objects.create_superuser(
+            email="admin@example.com",
+            password="SecurePass123!",
+            full_name="Admin User",
+        )
+        client, csrf_token = self.csrf_client()
+        client.force_login(admin)
+
+        response = client.post(
+            "/api/v1/admin/vacancies",
+            data=json.dumps(
+                {
+                    "company_id": company.id,
+                    "created_by_id": other_company_user.id,
+                    "title": "Backend Engineer",
+                    "description": "Build platform APIs.",
+                    "employment_type": "full_time",
+                    "experience_level": "junior",
+                    "location": "Tokyo",
+                    "status": "draft",
+                }
+            ),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("created_by_id", response.json()["error"]["details"])
 
     def test_company_user_requires_company(self):
         with self.assertRaises(ValidationError):

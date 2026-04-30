@@ -2,36 +2,39 @@
 
 ## Implementation plan
 
-No application code for this unit.
-
-This unit defines the job-list-page baseline only. Later backend and frontend units may implement student-visible job browsing, list-page rendering, and tests from this design.
+1. Add a student-facing vacancy list API that returns only active vacancies from active companies.
+2. Add backend tests for visibility filtering and student-only access.
+3. Add a protected student jobs page, route, navigation entry, and title mapping.
+4. Keep the implementation list-only, without search, filters, bookmarks, applications, or matching behavior.
 
 ## Files to create or update
 
-- `aidlc-docs/construction/units/U8-1-job-list-page/unit-state.md`
-- `aidlc-docs/construction/units/U8-1-job-list-page/functional-design.md`
-- `aidlc-docs/construction/units/U8-1-job-list-page/nfr-requirements.md`
-- `aidlc-docs/construction/units/U8-1-job-list-page/nfr-design.md`
-- `aidlc-docs/construction/units/U8-1-job-list-page/infrastructure-design.md`
+- `backend/api/views.py`
+- `backend/api/urls.py`
+- `backend/api/tests.py`
+- `frontend/src/features/profile/StudentJobsPage.tsx`
+- `frontend/src/features/profile/types.ts`
+- `frontend/src/router/AppRouter.tsx`
+- `frontend/src/router/navigation.ts`
+- `frontend/src/app/PageTitle.tsx`
+- `frontend/src/pages/DashboardPage.tsx`
 - `aidlc-docs/construction/units/U8-1-job-list-page/code-generation.md`
-- `aidlc-docs/aidlc-state.md`
+- `aidlc-docs/construction/units/U8-1-job-list-page/unit-state.md`
 
 ## Test plan
 
-- Review the unit against the requirements, security, data-model, architecture, and vacancy-visibility baselines.
-- Confirm the unit defines the student job list page clearly.
-- Confirm the unit remains separate from search controls, filters, bookmarks, applications, and matching workflows.
-- Confirm no application code is added.
-- Run `./scripts/aidlc-check.sh`.
+- `. .venv\Scripts\Activate.ps1; cd backend; python manage.py check; python manage.py test`
+- `cd frontend; npm run build; npm run lint`
+- `bash ./scripts/aidlc-check.sh` in a shell that can execute the repository validation script.
 
 ## Rollback plan
 
-Revert the documentation-only change if the job-list-page baseline is rejected or replaced by an approved revision.
+- Revert the student jobs API, page, route, navigation, and document updates.
+- Restore the app to the prior state without a student-facing vacancy browsing surface.
 
 ## Review checklist
 
-- Student job-list-page flow documented
-- Visible-job boundaries and stable list-state expectations documented
-- Relationship to later search, filter, bookmark, application, and matching units documented
-- Separation from search controls, filters, and matching logic preserved
-- No application code introduced
+- Student route exposes a stable visible vacancy list
+- Only active vacancies from active companies are returned
+- Student UI handles loading, empty, and populated list states
+- Search, filters, bookmarks, applications, and matching remain out of scope

@@ -13,6 +13,7 @@ const contentByRole = {
     description: 'Review learning, exams, interviews, privacy, and notification signals in one protected view.',
     links: [
       { title: 'Notifications', href: '/student/notifications' },
+      { title: 'Jobs', href: '/student/jobs' },
       { title: 'Profile and resume', href: '/student/profile' },
       { title: 'Skills profile', href: '/student/skills' },
       { title: 'Learning progress', href: '/student/learning' },
@@ -40,6 +41,7 @@ const contentByRole = {
       { title: 'Notifications', href: '/admin/notifications' },
       { title: 'User management', href: '/admin/users' },
       { title: 'Company management', href: '/admin/operations' },
+      { title: 'Vacancy management', href: '/admin/vacancies' },
     ],
   },
 } as const
