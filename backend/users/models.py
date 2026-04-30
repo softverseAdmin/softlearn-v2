@@ -226,6 +226,31 @@ class Skill(models.Model):
         return self.name
 
 
+class Course(models.Model):
+    class Status(models.TextChoices):
+        DRAFT = "draft", "Draft"
+        ACTIVE = "active", "Active"
+        INACTIVE = "inactive", "Inactive"
+
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True, default="")
+    category = models.CharField(max_length=100)
+    difficulty_level = models.CharField(max_length=50, blank=True, default="")
+    estimated_hours = models.PositiveSmallIntegerField(
+        default=0,
+        validators=[MinValueValidator(0)],
+    )
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.DRAFT)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-updated_at", "-id"]
+
+    def __str__(self) -> str:
+        return self.title
+
+
 class User(AbstractBaseUser, PermissionsMixin):
     class Role(models.TextChoices):
         STUDENT = "student", "Student"
@@ -331,6 +356,13 @@ class LearningRecord(models.Model):
         related_name="learning_records",
         limit_choices_to={"role": User.Role.STUDENT},
     )
+    course = models.ForeignKey(
+        Course,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="learning_records",
+    )
     course_title = models.CharField(max_length=255)
     category = models.CharField(max_length=100)
     progress_percent = models.PositiveSmallIntegerField(
@@ -360,12 +392,51 @@ class LearningRecord(models.Model):
         return f"{self.student.email} - {self.course_title}"
 
 
+class Exam(models.Model):
+    class Status(models.TextChoices):
+        DRAFT = "draft", "Draft"
+        ACTIVE = "active", "Active"
+        INACTIVE = "inactive", "Inactive"
+
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True, default="")
+    category = models.CharField(max_length=100)
+    duration_minutes = models.PositiveSmallIntegerField(
+        default=0,
+        validators=[MinValueValidator(0)],
+    )
+    passing_score_percent = models.PositiveSmallIntegerField(
+        default=70,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+    )
+    question_count = models.PositiveSmallIntegerField(
+        default=0,
+        validators=[MinValueValidator(0)],
+    )
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.DRAFT)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-updated_at", "-id"]
+
+    def __str__(self) -> str:
+        return self.title
+
+
 class ExamResult(models.Model):
     student = models.ForeignKey(
         "User",
         on_delete=models.CASCADE,
         related_name="exam_results",
         limit_choices_to={"role": User.Role.STUDENT},
+    )
+    exam = models.ForeignKey(
+        Exam,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="results",
     )
     exam_title = models.CharField(max_length=255)
     category = models.CharField(max_length=100)

@@ -18,6 +18,8 @@ from users.models import (
     CandidateReviewAccess,
     CandidateShortlist,
     Company,
+    Course,
+    Exam,
     ExamResult,
     Interview,
     InterviewAvailability,
@@ -173,16 +175,33 @@ def serialize_student_privacy_settings(user: User) -> dict:
 def serialize_learning_record(record: LearningRecord) -> dict:
     return {
         "id": record.id,
-        "course_title": record.course_title,
-        "category": record.category,
+        "course_id": record.course_id,
+        "course_title": learning_record_title(record),
+        "category": learning_record_category(record),
         "progress_percent": record.progress_percent,
         "status": record.status,
         "completed_at": record.completed_at.isoformat() if record.completed_at else None,
     }
 
 
+def learning_record_title(record: LearningRecord) -> str:
+    if record.course_id and record.course is not None:
+        return record.course.title
+    return record.course_title
+
+
+def learning_record_category(record: LearningRecord) -> str:
+    if record.course_id and record.course is not None:
+        return record.course.category
+    return record.category
+
+
 def serialize_learning_summary(user: User) -> dict:
-    records = list(LearningRecord.objects.filter(student=user).order_by("course_title", "id"))
+    records = list(
+        LearningRecord.objects.filter(student=user)
+        .select_related("course")
+        .order_by("course_title", "id")
+    )
     return {
         "student_id": user.id,
         "total_courses": len(records),
@@ -195,8 +214,9 @@ def serialize_learning_summary(user: User) -> dict:
 def serialize_exam_result(result: ExamResult) -> dict:
     return {
         "id": result.id,
-        "exam_title": result.exam_title,
-        "category": result.category,
+        "exam_id": result.exam_id,
+        "exam_title": exam_result_title(result),
+        "category": exam_result_category(result),
         "score_percent": result.score_percent,
         "passed": result.passed,
         "attempt_number": result.attempt_number,
@@ -204,8 +224,24 @@ def serialize_exam_result(result: ExamResult) -> dict:
     }
 
 
+def exam_result_title(result: ExamResult) -> str:
+    if result.exam_id and result.exam is not None:
+        return result.exam.title
+    return result.exam_title
+
+
+def exam_result_category(result: ExamResult) -> str:
+    if result.exam_id and result.exam is not None:
+        return result.exam.category
+    return result.category
+
+
 def serialize_exam_results_summary(user: User) -> dict:
-    results = list(ExamResult.objects.filter(student=user).order_by("-taken_at", "exam_title", "id"))
+    results = list(
+        ExamResult.objects.filter(student=user)
+        .select_related("exam")
+        .order_by("-taken_at", "exam_title", "id")
+    )
     average_score = None
     if results:
         average_score = round(sum(result.score_percent for result in results) / len(results), 1)
@@ -252,6 +288,25 @@ def build_candidate_gaps(user: User) -> list[str]:
         gaps.append("Desired work location is not set.")
 
     return gaps[:3]
+
+
+MATCH_SCORE_WEIGHTS = {
+    "skill": 40,
+    "language": 20,
+    "location": 15,
+    "readiness": 15,
+    "profile": 10,
+}
+
+MATCH_RECOMMENDATION_THRESHOLD = 40.0
+
+LANGUAGE_LEVEL_RANKS = {
+    VacancyLanguageRequirement.Level.BASIC: 1,
+    VacancyLanguageRequirement.Level.CONVERSATIONAL: 2,
+    VacancyLanguageRequirement.Level.BUSINESS: 3,
+    VacancyLanguageRequirement.Level.FLUENT: 4,
+    VacancyLanguageRequirement.Level.NATIVE: 5,
+}
 
 
 def visibility_state(is_visible: bool) -> str:
@@ -348,6 +403,99 @@ def serialize_company_application(application: Application) -> dict:
     }
 
 
+def serialize_match_factor_breakdown(match_result: dict) -> dict:
+    return {
+        "skill": match_result["factors"]["skill"],
+        "language": match_result["factors"]["language"],
+        "location": match_result["factors"]["location"],
+        "readiness": match_result["factors"]["readiness"],
+        "profile": match_result["factors"]["profile"],
+    }
+
+
+def privacy_safe_match_reasons(student: User, match_result: dict) -> tuple[list[str], list[str]]:
+    visibility = get_visibility_settings(student)
+    if visibility.share_profile_preview:
+        return match_result["strengths"], match_result["gaps"]
+
+    strengths: list[str] = []
+    gaps: list[str] = []
+    if match_result["factors"]["skill"] >= 60:
+        strengths.append("Structured skill alignment supports this recommendation.")
+    if match_result["factors"]["language"] >= 60:
+        strengths.append("Language alignment supports this recommendation.")
+    if match_result["factors"]["location"] >= 60:
+        strengths.append("Location compatibility supports this recommendation.")
+    if match_result["factors"]["readiness"] >= 60:
+        strengths.append("Learning readiness supports this recommendation.")
+    if match_result["factors"]["profile"] < 100:
+        gaps.append("Some profile details remain incomplete.")
+    if match_result["factors"]["skill"] < 60:
+        gaps.append("More visible skill alignment would strengthen the match.")
+    if match_result["factors"]["language"] < 60:
+        gaps.append("Language alignment could be stronger.")
+
+    return strengths[:4], gaps[:4]
+
+
+def serialize_student_match_record(
+    user: User,
+    vacancy: Vacancy,
+    match_result: dict,
+    *,
+    bookmarked_vacancy_ids: set[int],
+    active_application_vacancy_ids: set[int],
+) -> dict:
+    vacancy_data = serialize_vacancy(vacancy, bookmarked_vacancy_ids=bookmarked_vacancy_ids)
+    return {
+        **vacancy_data,
+        "match_score": match_result["score"],
+        "match_level": match_result["level"],
+        "strengths": match_result["strengths"],
+        "gaps": match_result["gaps"],
+        "factor_breakdown": serialize_match_factor_breakdown(match_result),
+        "has_active_application": vacancy.id in active_application_vacancy_ids,
+        "can_apply": vacancy.id not in active_application_vacancy_ids,
+    }
+
+
+def serialize_company_vacancy_match_record(vacancy: Vacancy, student: User, match_result: dict) -> dict:
+    visibility = get_visibility_settings(student)
+    profile = get_student_profile(student)
+    candidate_access = CandidateReviewAccess.objects.filter(
+        company=vacancy.company,
+        student=student,
+        source=CandidateReviewAccess.Source.MATCH,
+    ).first()
+    strengths, gaps = privacy_safe_match_reasons(student, match_result)
+    top_skills = list(
+        StudentSkill.objects.filter(student=student)
+        .select_related("skill")
+        .order_by("skill__name")
+        .values_list("skill__name", flat=True)[:3]
+    ) if visibility.share_profile_preview else []
+
+    return {
+        "candidate_access_id": candidate_access.id if candidate_access else None,
+        "vacancy_id": vacancy.id,
+        "student_id": student.id,
+        "display_name": student.full_name if visibility.share_profile_preview else "Private candidate",
+        "desired_job_type": profile.desired_job_type if visibility.share_profile_preview else "",
+        "desired_work_location": profile.desired_work_location if visibility.share_profile_preview else "",
+        "top_skills": top_skills,
+        "match_score": match_result["score"],
+        "match_level": match_result["level"],
+        "strengths": strengths,
+        "gaps": gaps,
+        "factor_breakdown": serialize_match_factor_breakdown(match_result),
+        "visibility": {
+            "profile_preview": visibility_state(visibility.share_profile_preview),
+            "learning_record": visibility_state(visibility.share_learning_record),
+            "exam_results": visibility_state(visibility.share_exam_results),
+        },
+    }
+
+
 def serialize_interview_event(event: InterviewEvent) -> dict:
     return {
         "id": event.id,
@@ -433,8 +581,9 @@ def recent_notifications_for_user(user: User, *, limit: int = 5) -> list[dict]:
 
 
 def roadmap_title_for_record(record: LearningRecord) -> str:
-    if record.category.strip():
-        return f"{record.category.replace('_', ' ').title()} roadmap"
+    category = learning_record_category(record)
+    if category.strip():
+        return f"{category.replace('_', ' ').title()} roadmap"
     return "Current roadmap"
 
 
@@ -456,6 +605,271 @@ def derive_student_level(*, completed_topics: int, skill_count: int, exam_averag
     return "Getting started"
 
 
+def normalize_language_level(raw_value: str) -> str:
+    cleaned = raw_value.strip().lower().replace("-", "_").replace(" ", "_")
+    if cleaned in LANGUAGE_LEVEL_RANKS:
+        return cleaned
+
+    aliases = {
+        "n5": VacancyLanguageRequirement.Level.BASIC,
+        "n4": VacancyLanguageRequirement.Level.CONVERSATIONAL,
+        "n3": VacancyLanguageRequirement.Level.BUSINESS,
+        "n2": VacancyLanguageRequirement.Level.FLUENT,
+        "n1": VacancyLanguageRequirement.Level.NATIVE,
+        "beginner": VacancyLanguageRequirement.Level.BASIC,
+        "intermediate": VacancyLanguageRequirement.Level.CONVERSATIONAL,
+        "advanced": VacancyLanguageRequirement.Level.FLUENT,
+    }
+    return aliases.get(cleaned, "")
+
+
+def match_level_for_score(score: float) -> str:
+    if score >= 80:
+        return "Strong Match"
+    if score >= 60:
+        return "Good Match"
+    if score >= 40:
+        return "Possible Match"
+    return "Low Match"
+
+
+def build_student_profile_completion(user: User, profile: StudentProfile) -> dict:
+    fields = {
+        "full_name": bool(user.full_name.strip()),
+        "desired_job_type": bool(profile.desired_job_type.strip()),
+        "desired_work_location": bool(profile.desired_work_location.strip()),
+        "japanese_level": bool(profile.japanese_level.strip()),
+        "english_level": bool(profile.english_level.strip()),
+    }
+    completed = sum(1 for filled in fields.values() if filled)
+    percent = round((completed / len(fields)) * 100, 1)
+    strengths: list[str] = []
+    gaps: list[str] = []
+
+    if percent == 100:
+        strengths.append("Profile is complete for hiring recommendations.")
+    else:
+        missing_fields = [field.replace("_", " ") for field, filled in fields.items() if not filled]
+        if missing_fields:
+            gaps.append(f"Complete profile fields: {', '.join(missing_fields[:3])}.")
+
+    return {
+        "percent": percent,
+        "strengths": strengths,
+        "gaps": gaps,
+    }
+
+
+def build_skill_match(student: User, vacancy: Vacancy) -> dict:
+    student_skills = {
+        student_skill.skill_id: student_skill.skill.name
+        for student_skill in StudentSkill.objects.filter(student=student).select_related("skill")
+    }
+    required_requirements = [item for item in vacancy.skill_requirements.all() if item.requirement_type == VacancySkillRequirement.RequirementType.REQUIRED]
+    preferred_requirements = [item for item in vacancy.skill_requirements.all() if item.requirement_type == VacancySkillRequirement.RequirementType.PREFERRED]
+
+    matched_required = [item for item in required_requirements if item.skill_id in student_skills]
+    matched_preferred = [item for item in preferred_requirements if item.skill_id in student_skills]
+    missing_required = [item.skill.name for item in required_requirements if item.skill_id not in student_skills]
+    missing_preferred = [item.skill.name for item in preferred_requirements if item.skill_id not in student_skills]
+
+    if not required_requirements and not preferred_requirements:
+        return {
+            "percent": 100.0,
+            "strengths": ["No vacancy-specific skill tags block this role."],
+            "gaps": [],
+        }
+
+    required_percent = 100.0 if not required_requirements else (len(matched_required) / len(required_requirements)) * 100
+    preferred_percent = 100.0 if not preferred_requirements else (len(matched_preferred) / len(preferred_requirements)) * 100
+    percent = round((required_percent * 0.75) + (preferred_percent * 0.25), 1)
+
+    strengths: list[str] = []
+    gaps: list[str] = []
+    if matched_required:
+        strengths.append(
+            f"Required skills aligned: {', '.join(item.skill.name for item in matched_required[:3])}."
+        )
+    elif required_requirements:
+        gaps.append("No required vacancy skills are currently shown on the profile.")
+
+    if matched_preferred:
+        strengths.append(
+            f"Preferred skills aligned: {', '.join(item.skill.name for item in matched_preferred[:3])}."
+        )
+
+    if missing_required:
+        gaps.append(f"Missing required skills: {', '.join(missing_required[:3])}.")
+    elif missing_preferred:
+        gaps.append(f"Preferred skills not yet shown: {', '.join(missing_preferred[:3])}.")
+
+    return {
+        "percent": percent,
+        "strengths": strengths[:2],
+        "gaps": gaps[:2],
+    }
+
+
+def build_language_match(profile: StudentProfile, vacancy: Vacancy) -> dict:
+    language_requirements = list(vacancy.language_requirements.all())
+    if not language_requirements:
+        return {
+            "percent": 100.0,
+            "strengths": ["No explicit vacancy language requirement blocks this role."],
+            "gaps": [],
+        }
+
+    student_levels = {
+        VacancyLanguageRequirement.Language.JAPANESE: normalize_language_level(profile.japanese_level),
+        VacancyLanguageRequirement.Language.ENGLISH: normalize_language_level(profile.english_level),
+    }
+
+    weighted_scores: list[float] = []
+    strengths: list[str] = []
+    gaps: list[str] = []
+    for requirement in language_requirements:
+        student_level = student_levels.get(requirement.language, "")
+        required_rank = LANGUAGE_LEVEL_RANKS[requirement.minimum_level]
+        student_rank = LANGUAGE_LEVEL_RANKS.get(student_level, 0)
+        meets = student_rank >= required_rank and student_rank > 0
+        score = 100.0 if meets else (0.0 if requirement.requirement_type == VacancyLanguageRequirement.RequirementType.REQUIRED else 35.0)
+        weight = 0.7 if requirement.requirement_type == VacancyLanguageRequirement.RequirementType.REQUIRED else 0.3
+        weighted_scores.append(score * weight)
+
+        if meets:
+            strengths.append(
+                f"{requirement.get_language_display()} meets the {requirement.get_minimum_level_display().lower()} requirement."
+            )
+        else:
+            current_level = student_level.replace("_", " ") if student_level else "not set"
+            gaps.append(
+                f"{requirement.get_language_display()} is {current_level} against a {requirement.get_minimum_level_display().lower()} {requirement.requirement_type} baseline."
+            )
+
+    percent = round(sum(weighted_scores), 1)
+    return {
+        "percent": percent,
+        "strengths": strengths[:2],
+        "gaps": gaps[:2],
+    }
+
+
+def build_location_match(profile: StudentProfile, vacancy: Vacancy) -> dict:
+    desired_location = profile.desired_work_location.strip().lower()
+    vacancy_location = vacancy.location.strip().lower()
+    work_style = vacancy.work_style
+
+    if not desired_location:
+        return {
+            "percent": 50.0,
+            "strengths": [],
+            "gaps": ["Desired work location is not set yet."],
+        }
+
+    if desired_location == vacancy_location or desired_location == work_style:
+        return {
+            "percent": 100.0,
+            "strengths": ["Location preference aligns with this vacancy."],
+            "gaps": [],
+        }
+
+    if work_style == Vacancy.WorkStyle.REMOTE:
+        return {
+            "percent": 85.0,
+            "strengths": ["Remote work style expands location compatibility."],
+            "gaps": [],
+        }
+
+    if work_style == Vacancy.WorkStyle.HYBRID:
+        return {
+            "percent": 70.0,
+            "strengths": ["Hybrid work style offers partial location flexibility."],
+            "gaps": [f"Preferred location differs from {vacancy.location}."],
+        }
+
+    return {
+        "percent": 25.0,
+        "strengths": [],
+        "gaps": [f"Preferred location differs from {vacancy.location}."],
+    }
+
+
+def build_readiness_match(student: User) -> dict:
+    learning_summary = serialize_learning_summary(student)
+    exam_summary = serialize_exam_results_summary(student)
+
+    learning_score = min(
+        100.0,
+        (learning_summary["completed_courses"] * 25.0) + (learning_summary["in_progress_courses"] * 10.0),
+    )
+    exam_score = float(exam_summary["average_score"] or 0.0)
+    percent = round((learning_score + exam_score) / 2.0, 1)
+
+    strengths: list[str] = []
+    gaps: list[str] = []
+    if learning_summary["completed_courses"] > 0:
+        strengths.append(f"Completed topics: {learning_summary['completed_courses']}.")
+    if exam_summary["average_score"] is not None and exam_summary["average_score"] >= 75:
+        strengths.append(f"Exam readiness average: {exam_summary['average_score']:.1f}%.")
+    if learning_summary["completed_courses"] == 0:
+        gaps.append("No completed learning topics yet.")
+    if exam_summary["average_score"] is None:
+        gaps.append("No exam evidence shared yet.")
+
+    return {
+        "percent": percent,
+        "strengths": strengths[:2],
+        "gaps": gaps[:2],
+    }
+
+
+def aggregate_match_result(student: User, vacancy: Vacancy) -> dict:
+    profile = get_student_profile(student)
+    skill_match = build_skill_match(student, vacancy)
+    language_match = build_language_match(profile, vacancy)
+    location_match = build_location_match(profile, vacancy)
+    readiness_match = build_readiness_match(student)
+    profile_match = build_student_profile_completion(student, profile)
+
+    weighted_score = (
+        (skill_match["percent"] * MATCH_SCORE_WEIGHTS["skill"])
+        + (language_match["percent"] * MATCH_SCORE_WEIGHTS["language"])
+        + (location_match["percent"] * MATCH_SCORE_WEIGHTS["location"])
+        + (readiness_match["percent"] * MATCH_SCORE_WEIGHTS["readiness"])
+        + (profile_match["percent"] * MATCH_SCORE_WEIGHTS["profile"])
+    ) / 100.0
+    score = round(weighted_score, 1)
+
+    strengths = (
+        skill_match["strengths"]
+        + language_match["strengths"]
+        + location_match["strengths"]
+        + readiness_match["strengths"]
+        + profile_match["strengths"]
+    )[:4]
+    gaps = (
+        skill_match["gaps"]
+        + language_match["gaps"]
+        + location_match["gaps"]
+        + readiness_match["gaps"]
+        + profile_match["gaps"]
+    )[:4]
+
+    return {
+        "score": score,
+        "level": match_level_for_score(score),
+        "strengths": strengths,
+        "gaps": gaps,
+        "factors": {
+            "skill": round(skill_match["percent"], 1),
+            "language": round(language_match["percent"], 1),
+            "location": round(location_match["percent"], 1),
+            "readiness": round(readiness_match["percent"], 1),
+            "profile": round(profile_match["percent"], 1),
+        },
+    }
+
+
 def build_student_dashboard_roadmap_nodes(
     *,
     learning_records: list[LearningRecord],
@@ -471,7 +885,7 @@ def build_student_dashboard_roadmap_nodes(
         nodes.append(
             {
                 "id": f"topic-{record.id}",
-                "title": record.course_title,
+                "title": learning_record_title(record),
                 "subtitle": roadmap_title_for_record(record),
                 "state": roadmap_state_for_learning_record(record),
                 "progress_percent": 100 if record.status == LearningRecord.Status.COMPLETED else record.progress_percent,
@@ -580,6 +994,79 @@ def serialize_admin_company(company: Company) -> dict:
         "user_count": company.users.count(),
         "created_at": company.created_at.isoformat(),
         "updated_at": company.updated_at.isoformat(),
+    }
+
+
+def serialize_admin_course(course: Course) -> dict:
+    return {
+        "course_id": course.id,
+        "title": course.title,
+        "description": course.description,
+        "category": course.category,
+        "difficulty_level": course.difficulty_level,
+        "estimated_hours": course.estimated_hours,
+        "status": course.status,
+        "learning_record_count": course.learning_records.count(),
+        "created_at": course.created_at.isoformat(),
+        "updated_at": course.updated_at.isoformat(),
+    }
+
+
+def build_course_readiness_cues(course: Course) -> list[str]:
+    cues: list[str] = []
+    if course.difficulty_level.strip():
+        cues.append(f"Level: {course.difficulty_level}")
+    if course.category.strip():
+        cues.append(f"Category: {course.category}")
+    if course.estimated_hours > 0:
+        cues.append(f"Estimated {course.estimated_hours}h")
+    return cues[:3]
+
+
+def serialize_student_course_summary(course: Course) -> dict:
+    return {
+        "course_id": course.id,
+        "title": course.title,
+        "description": course.description,
+        "category": course.category,
+        "difficulty_level": course.difficulty_level,
+        "estimated_hours": course.estimated_hours,
+        "status": course.status,
+        "readiness_cues": build_course_readiness_cues(course),
+        "detail_href": f"/student/courses/{course.id}",
+    }
+
+
+def serialize_student_course_detail(course: Course) -> dict:
+    return {
+        **serialize_student_course_summary(course),
+        "learning_outcomes": [
+            item
+            for item in [
+                f"Build {course.category.replace('_', ' ')} readiness." if course.category.strip() else "",
+                f"Prepare for a {course.difficulty_level.lower()} learning path." if course.difficulty_level.strip() else "",
+                f"Plan roughly {course.estimated_hours} hours of study." if course.estimated_hours > 0 else "",
+            ]
+            if item
+        ][:3],
+        "next_step_label": "View learning summary",
+        "next_step_href": "/student/learning",
+    }
+
+
+def serialize_admin_exam(exam: Exam) -> dict:
+    return {
+        "exam_id": exam.id,
+        "title": exam.title,
+        "description": exam.description,
+        "category": exam.category,
+        "duration_minutes": exam.duration_minutes,
+        "passing_score_percent": exam.passing_score_percent,
+        "question_count": exam.question_count,
+        "status": exam.status,
+        "result_count": exam.results.count(),
+        "created_at": exam.created_at.isoformat(),
+        "updated_at": exam.updated_at.isoformat(),
     }
 
 
@@ -1032,6 +1519,102 @@ def validate_admin_company_payload(payload: dict) -> dict:
     }
 
 
+def validate_admin_course_payload(payload: dict) -> dict:
+    title = str(payload.get("title", "")).strip()
+    description = str(payload.get("description", "")).strip()
+    category = str(payload.get("category", "")).strip()
+    difficulty_level = str(payload.get("difficulty_level", "")).strip()
+    status = str(payload.get("status", Course.Status.DRAFT)).strip().lower()
+    raw_estimated_hours = payload.get("estimated_hours", 0)
+
+    errors = {}
+    if not title:
+        errors["title"] = ["This field is required."]
+    if not category:
+        errors["category"] = ["This field is required."]
+    if status not in Course.Status.values:
+        errors["status"] = [f"Status must be one of: {', '.join(Course.Status.values)}."]
+
+    try:
+        estimated_hours = int(raw_estimated_hours)
+    except (TypeError, ValueError):
+        estimated_hours = 0
+        errors["estimated_hours"] = ["Estimated hours must be a valid integer."]
+    else:
+        if estimated_hours < 0:
+            errors["estimated_hours"] = ["Estimated hours must be zero or greater."]
+
+    if errors:
+        raise ValidationError(errors)
+
+    return {
+        "title": title,
+        "description": description,
+        "category": category,
+        "difficulty_level": difficulty_level,
+        "estimated_hours": estimated_hours,
+        "status": status,
+    }
+
+
+def validate_admin_exam_payload(payload: dict) -> dict:
+    title = str(payload.get("title", "")).strip()
+    description = str(payload.get("description", "")).strip()
+    category = str(payload.get("category", "")).strip()
+    status = str(payload.get("status", Exam.Status.DRAFT)).strip().lower()
+    raw_duration_minutes = payload.get("duration_minutes", 0)
+    raw_passing_score_percent = payload.get("passing_score_percent", 70)
+    raw_question_count = payload.get("question_count", 0)
+
+    errors = {}
+    if not title:
+        errors["title"] = ["This field is required."]
+    if not category:
+        errors["category"] = ["This field is required."]
+    if status not in Exam.Status.values:
+        errors["status"] = [f"Status must be one of: {', '.join(Exam.Status.values)}."]
+
+    try:
+        duration_minutes = int(raw_duration_minutes)
+    except (TypeError, ValueError):
+        duration_minutes = 0
+        errors["duration_minutes"] = ["Duration minutes must be a valid integer."]
+    else:
+        if duration_minutes < 0:
+            errors["duration_minutes"] = ["Duration minutes must be zero or greater."]
+
+    try:
+        passing_score_percent = int(raw_passing_score_percent)
+    except (TypeError, ValueError):
+        passing_score_percent = 70
+        errors["passing_score_percent"] = ["Passing score percent must be a valid integer."]
+    else:
+        if passing_score_percent < 0 or passing_score_percent > 100:
+            errors["passing_score_percent"] = ["Passing score percent must be between 0 and 100."]
+
+    try:
+        question_count = int(raw_question_count)
+    except (TypeError, ValueError):
+        question_count = 0
+        errors["question_count"] = ["Question count must be a valid integer."]
+    else:
+        if question_count < 0:
+            errors["question_count"] = ["Question count must be zero or greater."]
+
+    if errors:
+        raise ValidationError(errors)
+
+    return {
+        "title": title,
+        "description": description,
+        "category": category,
+        "duration_minutes": duration_minutes,
+        "passing_score_percent": passing_score_percent,
+        "question_count": question_count,
+        "status": status,
+    }
+
+
 def validate_skill_selection_payload(raw_value, field_name: str) -> tuple[list[Skill], list[str]]:
     if raw_value in (None, ""):
         return [], []
@@ -1309,6 +1892,10 @@ def visible_student_vacancies_queryset():
     )
 
 
+def matchable_students_queryset():
+    return User.objects.filter(role=User.Role.STUDENT, is_active=True).order_by("id")
+
+
 def get_visible_student_vacancy(vacancy_id: int) -> Vacancy | None:
     return (
         visible_student_vacancies_queryset()
@@ -1346,6 +1933,22 @@ def get_admin_vacancy(vacancy_id: int) -> Vacancy | None:
         .prefetch_related("skill_requirements__skill", "language_requirements")
         .first()
     )
+
+
+def get_admin_course(course_id: int) -> Course | None:
+    return Course.objects.filter(pk=course_id).first()
+
+
+def visible_student_courses_queryset():
+    return Course.objects.filter(status=Course.Status.ACTIVE).order_by("-updated_at", "-id")
+
+
+def get_visible_student_course(course_id: int) -> Course | None:
+    return visible_student_courses_queryset().filter(pk=course_id).first()
+
+
+def get_admin_exam(exam_id: int) -> Exam | None:
+    return Exam.objects.filter(pk=exam_id).first()
 
 
 def sync_vacancy_skill_requirements(
@@ -1412,6 +2015,67 @@ def sync_vacancy_language_requirements(vacancy: Vacancy, *, language_requirement
         )
         requirement.full_clean()
         requirement.save()
+
+
+def ensure_match_candidate_access(company: Company, student: User) -> CandidateReviewAccess:
+    candidate_access, created = CandidateReviewAccess.objects.get_or_create(
+        company=company,
+        student=student,
+        source=CandidateReviewAccess.Source.MATCH,
+        defaults={"is_active": True},
+    )
+    if not created and not candidate_access.is_active:
+        candidate_access.is_active = True
+        candidate_access.save(update_fields=["is_active", "updated_at"])
+    return candidate_access
+
+
+def sync_company_match_candidate_accesses(company: Company) -> None:
+    active_vacancies = list(
+        Vacancy.objects.filter(company=company, status=Vacancy.Status.ACTIVE)
+        .select_related("company", "created_by")
+        .prefetch_related("skill_requirements__skill", "language_requirements")
+        .order_by("-updated_at", "-id")
+    )
+    students = list(matchable_students_queryset())
+
+    matched_student_ids: set[int] = set()
+    for student in students:
+        best_score = 0.0
+        for vacancy in active_vacancies:
+            match_result = aggregate_match_result(student, vacancy)
+            best_score = max(best_score, match_result["score"])
+        if best_score >= MATCH_RECOMMENDATION_THRESHOLD:
+            ensure_match_candidate_access(company, student)
+            matched_student_ids.add(student.id)
+
+    stale_accesses = CandidateReviewAccess.objects.filter(
+        company=company,
+        source=CandidateReviewAccess.Source.MATCH,
+    ).exclude(student_id__in=matched_student_ids)
+    stale_accesses.update(is_active=False, updated_at=timezone.now())
+
+
+def ranked_matches_for_vacancy(vacancy: Vacancy) -> list[tuple[User, dict]]:
+    matches: list[tuple[User, dict]] = []
+    for student in matchable_students_queryset():
+        match_result = aggregate_match_result(student, vacancy)
+        if match_result["score"] >= MATCH_RECOMMENDATION_THRESHOLD:
+            matches.append((student, match_result))
+
+    matches.sort(key=lambda item: (-item[1]["score"], item[0].full_name.lower(), item[0].id))
+    return matches
+
+
+def ranked_matches_for_student(student: User) -> list[tuple[Vacancy, dict]]:
+    matches: list[tuple[Vacancy, dict]] = []
+    for vacancy in visible_student_vacancies_queryset().order_by("-updated_at", "-id"):
+        match_result = aggregate_match_result(student, vacancy)
+        if match_result["score"] >= MATCH_RECOMMENDATION_THRESHOLD:
+            matches.append((vacancy, match_result))
+
+    matches.sort(key=lambda item: (-item[1]["score"], item[0].title.lower(), item[0].id))
+    return matches
 
 
 def parse_csv_query_values(raw_value: str) -> list[str]:
@@ -1800,6 +2464,62 @@ def student_jobs_view(request):
     return success_response(build_student_jobs_response(request.user, filters))
 
 
+@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.STUDENT])
+def student_courses_view(request):
+    courses = list(visible_student_courses_queryset())
+    return success_response(
+        {
+            "result_count": len(courses),
+            "courses": [serialize_student_course_summary(course) for course in courses],
+        }
+    )
+
+
+@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.STUDENT])
+def student_course_detail_view(request, course_id: int):
+    course = get_visible_student_course(course_id)
+    if course is None:
+        return error_response(
+            request,
+            "NOT_FOUND",
+            "The requested course is not available.",
+            details={"course_id": [str(course_id)]},
+            status=404,
+        )
+
+    return success_response(serialize_student_course_detail(course))
+
+
+@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.STUDENT])
+def student_matches_view(request):
+    matches = ranked_matches_for_student(request.user)
+    bookmarked_vacancy_ids = set(
+        JobBookmark.objects.filter(student=request.user).values_list("vacancy_id", flat=True)
+    )
+    active_application_vacancy_ids = set(
+        Application.objects.filter(student=request.user)
+        .exclude(status__in=[Application.Status.REJECTED, Application.Status.WITHDRAWN])
+        .values_list("vacancy_id", flat=True)
+    )
+
+    return success_response(
+        {
+            "student_id": request.user.id,
+            "match_count": len(matches),
+            "matches": [
+                serialize_student_match_record(
+                    request.user,
+                    vacancy,
+                    match_result,
+                    bookmarked_vacancy_ids=bookmarked_vacancy_ids,
+                    active_application_vacancy_ids=active_application_vacancy_ids,
+                )
+                for vacancy, match_result in matches
+            ],
+        }
+    )
+
+
 @api_endpoint(["POST", "DELETE"], authentication_required=True, roles=[User.Role.STUDENT])
 def student_job_bookmark_view(request, vacancy_id: int):
     if request.method == "DELETE":
@@ -2021,6 +2741,25 @@ def company_vacancy_detail_view(request, vacancy_id: int):
     return success_response(serialize_vacancy(vacancy))
 
 
+@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.COMPANY])
+def company_vacancy_matches_view(request, vacancy_id: int):
+    vacancy = get_company_vacancy(request.user, vacancy_id)
+    sync_company_match_candidate_accesses(vacancy.company)
+    matches = ranked_matches_for_vacancy(vacancy)
+    return success_response(
+        {
+            "company_id": vacancy.company_id,
+            "vacancy_id": vacancy.id,
+            "vacancy_title": vacancy.title,
+            "match_count": len(matches),
+            "matches": [
+                serialize_company_vacancy_match_record(vacancy, student, match_result)
+                for student, match_result in matches
+            ],
+        }
+    )
+
+
 @api_endpoint(["GET", "POST"], authentication_required=True, roles=[User.Role.STUDENT])
 def student_skills_view(request):
     if request.method == "GET":
@@ -2205,6 +2944,7 @@ def company_candidates_view(request):
     if company is None:
         raise ValidationError({"company": ["Company context is required for company users."]})
 
+    sync_company_match_candidate_accesses(company)
     candidates = list(
         CandidateReviewAccess.objects.filter(company=company, is_active=True)
         .select_related("student", "company", "shortlist_entry", "shortlist_entry__created_by")
@@ -2677,22 +3417,26 @@ def student_dashboard_view(request):
     exams = serialize_exam_results_summary(request.user)
     learning_records = list(
         LearningRecord.objects.filter(student=request.user)
+        .select_related("course")
         .order_by("created_at", "id")
     )
     current_learning = (
         LearningRecord.objects.filter(student=request.user, status=LearningRecord.Status.IN_PROGRESS)
+        .select_related("course")
         .order_by("-updated_at", "-id")
         .first()
     )
     if current_learning is None:
         current_learning = (
             LearningRecord.objects.filter(student=request.user, status=LearningRecord.Status.NOT_STARTED)
+            .select_related("course")
             .order_by("created_at", "id")
             .first()
         )
     if current_learning is None:
         current_learning = (
             LearningRecord.objects.filter(student=request.user, status=LearningRecord.Status.COMPLETED)
+            .select_related("course")
             .order_by("-completed_at", "-id")
             .first()
         )
@@ -2721,7 +3465,7 @@ def student_dashboard_view(request):
     elif current_learning.status != LearningRecord.Status.COMPLETED:
         continue_learning = {
             "roadmap_title": roadmap_title_for_record(current_learning),
-            "topic_title": current_learning.course_title,
+            "topic_title": learning_record_title(current_learning),
             "progress_percent": current_learning.progress_percent,
             "status": roadmap_state_for_learning_record(current_learning),
             "cta_label": "Continue learning" if current_learning.status == LearningRecord.Status.IN_PROGRESS else "Start topic",
@@ -2730,7 +3474,7 @@ def student_dashboard_view(request):
         next_action = {
             "action_type": "complete_topic" if current_learning.status == LearningRecord.Status.IN_PROGRESS else "start_topic",
             "title": "Complete your current topic" if current_learning.status == LearningRecord.Status.IN_PROGRESS else "Start your next topic",
-            "description": f"Finish {current_learning.course_title} to stay on track in your roadmap.",
+            "description": f"Finish {learning_record_title(current_learning)} to stay on track in your roadmap.",
             "cta_label": "Continue learning" if current_learning.status == LearningRecord.Status.IN_PROGRESS else "Start topic",
             "cta_href": "/student/learning",
             "requirement": None,
@@ -2738,7 +3482,7 @@ def student_dashboard_view(request):
     elif completed_courses > passed_results:
         continue_learning = {
             "roadmap_title": roadmap_title_for_record(current_learning),
-            "topic_title": current_learning.course_title,
+            "topic_title": learning_record_title(current_learning),
             "progress_percent": 100,
             "status": "completed",
             "cta_label": "Review topic",
@@ -2747,7 +3491,7 @@ def student_dashboard_view(request):
         next_action = {
             "action_type": "take_exam",
             "title": "Take the validation exam",
-            "description": f"You completed {current_learning.course_title}. Pass the exam to unlock the next topic in the roadmap.",
+            "description": f"You completed {learning_record_title(current_learning)}. Pass the exam to unlock the next topic in the roadmap.",
             "cta_label": "Take exam",
             "cta_href": "/student/exams",
             "requirement": "90% required to unlock the next topic",
@@ -2755,7 +3499,7 @@ def student_dashboard_view(request):
     else:
         continue_learning = {
             "roadmap_title": roadmap_title_for_record(current_learning),
-            "topic_title": current_learning.course_title,
+            "topic_title": learning_record_title(current_learning),
             "progress_percent": 100,
             "status": "completed",
             "cta_label": "Continue roadmap",
@@ -2805,6 +3549,7 @@ def company_dashboard_view(request):
     if company is None:
         raise ValidationError({"company": ["Company context is required for company users."]})
 
+    sync_company_match_candidate_accesses(company)
     interviews = list(
         Interview.objects.filter(company=company)
         .select_related("student", "company", "candidate_access", "requested_by")
@@ -3180,6 +3925,129 @@ def admin_company_detail_view(request, company_id: int):
     company.full_clean()
     company.save(update_fields=["name", "description", "is_active", "updated_at"])
     return success_response(serialize_admin_company(company))
+
+
+@api_endpoint(["GET", "POST"], authentication_required=True, roles=[User.Role.ADMIN])
+def admin_courses_view(request):
+    if request.method == "GET":
+        courses = list(Course.objects.order_by("-updated_at", "-id"))
+        return success_response({"courses": [serialize_admin_course(course) for course in courses]})
+
+    payload = validate_admin_course_payload(parse_json_body(request))
+    course = Course(
+        title=payload["title"],
+        description=payload["description"],
+        category=payload["category"],
+        difficulty_level=payload["difficulty_level"],
+        estimated_hours=payload["estimated_hours"],
+        status=payload["status"],
+    )
+    course.full_clean()
+    course.save()
+    return success_response(serialize_admin_course(course), status=201)
+
+
+@api_endpoint(["PUT", "DELETE"], authentication_required=True, roles=[User.Role.ADMIN])
+def admin_course_detail_view(request, course_id: int):
+    course = get_admin_course(course_id)
+    if course is None:
+        return error_response(
+            request,
+            "NOT_FOUND",
+            "The requested course was not found.",
+            details={"course_id": [str(course_id)]},
+            status=404,
+        )
+
+    if request.method == "DELETE":
+        course.status = Course.Status.INACTIVE
+        course.full_clean()
+        course.save(update_fields=["status", "updated_at"])
+        return success_response(serialize_admin_course(course))
+
+    payload = validate_admin_course_payload(parse_json_body(request))
+    course.title = payload["title"]
+    course.description = payload["description"]
+    course.category = payload["category"]
+    course.difficulty_level = payload["difficulty_level"]
+    course.estimated_hours = payload["estimated_hours"]
+    course.status = payload["status"]
+    course.full_clean()
+    course.save(
+        update_fields=[
+            "title",
+            "description",
+            "category",
+            "difficulty_level",
+            "estimated_hours",
+            "status",
+            "updated_at",
+        ]
+    )
+    return success_response(serialize_admin_course(course))
+
+
+@api_endpoint(["GET", "POST"], authentication_required=True, roles=[User.Role.ADMIN])
+def admin_exams_view(request):
+    if request.method == "GET":
+        exams = list(Exam.objects.order_by("-updated_at", "-id"))
+        return success_response({"exams": [serialize_admin_exam(exam) for exam in exams]})
+
+    payload = validate_admin_exam_payload(parse_json_body(request))
+    exam = Exam(
+        title=payload["title"],
+        description=payload["description"],
+        category=payload["category"],
+        duration_minutes=payload["duration_minutes"],
+        passing_score_percent=payload["passing_score_percent"],
+        question_count=payload["question_count"],
+        status=payload["status"],
+    )
+    exam.full_clean()
+    exam.save()
+    return success_response(serialize_admin_exam(exam), status=201)
+
+
+@api_endpoint(["PUT", "DELETE"], authentication_required=True, roles=[User.Role.ADMIN])
+def admin_exam_detail_view(request, exam_id: int):
+    exam = get_admin_exam(exam_id)
+    if exam is None:
+        return error_response(
+            request,
+            "NOT_FOUND",
+            "The requested exam was not found.",
+            details={"exam_id": [str(exam_id)]},
+            status=404,
+        )
+
+    if request.method == "DELETE":
+        exam.status = Exam.Status.INACTIVE
+        exam.full_clean()
+        exam.save(update_fields=["status", "updated_at"])
+        return success_response(serialize_admin_exam(exam))
+
+    payload = validate_admin_exam_payload(parse_json_body(request))
+    exam.title = payload["title"]
+    exam.description = payload["description"]
+    exam.category = payload["category"]
+    exam.duration_minutes = payload["duration_minutes"]
+    exam.passing_score_percent = payload["passing_score_percent"]
+    exam.question_count = payload["question_count"]
+    exam.status = payload["status"]
+    exam.full_clean()
+    exam.save(
+        update_fields=[
+            "title",
+            "description",
+            "category",
+            "duration_minutes",
+            "passing_score_percent",
+            "question_count",
+            "status",
+            "updated_at",
+        ]
+    )
+    return success_response(serialize_admin_exam(exam))
 
 
 @api_endpoint(["GET"], authentication_required=True)
