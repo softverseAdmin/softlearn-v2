@@ -513,6 +513,17 @@ def serialize_admin_company(company: Company) -> dict:
     }
 
 
+def serialize_admin_company_user(user: User) -> dict:
+    return {
+        "user_id": user.id,
+        "name": user.full_name,
+        "email": user.email,
+        "company_id": user.company_id,
+        "company_name": user.company.name if user.company else None,
+        "is_active": user.is_active,
+    }
+
+
 def serialize_vacancy(vacancy: Vacancy) -> dict:
     return {
         "vacancy_id": vacancy.id,
@@ -524,6 +535,7 @@ def serialize_vacancy(vacancy: Vacancy) -> dict:
         "experience_level": vacancy.experience_level,
         "location": vacancy.location,
         "status": vacancy.status,
+        "created_by_id": vacancy.created_by_id,
         "created_by_name": vacancy.created_by.full_name,
         "created_at": vacancy.created_at.isoformat(),
         "updated_at": vacancy.updated_at.isoformat(),
@@ -933,6 +945,51 @@ def validate_vacancy_payload(payload: dict) -> dict:
     return cleaned
 
 
+def validate_admin_vacancy_payload(payload: dict) -> dict:
+    cleaned = validate_vacancy_payload(payload)
+    raw_company_id = payload.get("company_id")
+    raw_created_by_id = payload.get("created_by_id")
+    errors = {}
+
+    company = None
+    created_by = None
+
+    if raw_company_id in (None, ""):
+        errors["company_id"] = ["This field is required."]
+    else:
+        try:
+            company = Company.objects.get(pk=int(raw_company_id))
+        except (TypeError, ValueError):
+            errors["company_id"] = ["A valid company_id is required."]
+        except Company.DoesNotExist:
+            errors["company_id"] = ["Selected company does not exist."]
+
+    if raw_created_by_id in (None, ""):
+        errors["created_by_id"] = ["This field is required."]
+    else:
+        try:
+            created_by = User.objects.select_related("company").get(pk=int(raw_created_by_id))
+        except (TypeError, ValueError):
+            errors["created_by_id"] = ["A valid created_by_id is required."]
+        except User.DoesNotExist:
+            errors["created_by_id"] = ["Selected company user does not exist."]
+
+    if created_by is not None and created_by.role != User.Role.COMPANY:
+        errors["created_by_id"] = ["Vacancies must be created by company users."]
+
+    if company is not None and created_by is not None and created_by.company_id != company.id:
+        errors["created_by_id"] = ["Selected company user must belong to the selected company."]
+
+    if errors:
+        raise ValidationError(errors)
+
+    return {
+        **cleaned,
+        "company": company,
+        "created_by": created_by,
+    }
+
+
 def validate_admin_user_payload(payload: dict, *, creating: bool) -> dict:
     cleaned = {
         "email": str(payload.get("email", "")).strip().lower(),
@@ -1005,6 +1062,10 @@ def get_company_vacancy(user: User, vacancy_id: int) -> Vacancy:
     if vacancy is None:
         raise ValidationError({"vacancy_id": ["Vacancy was not found for this company context."]})
     return vacancy
+
+
+def get_admin_vacancy(vacancy_id: int) -> Vacancy | None:
+    return Vacancy.objects.filter(pk=vacancy_id).select_related("company", "created_by").first()
 
 
 @api_endpoint(["GET"])
@@ -1191,6 +1252,16 @@ def student_profile_view(request):
     )
 
     return success_response(serialize_student_profile(request.user))
+
+
+@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.STUDENT])
+def student_jobs_view(request):
+    vacancies = list(
+        Vacancy.objects.filter(status=Vacancy.Status.ACTIVE, company__is_active=True)
+        .select_related("company", "created_by")
+        .order_by("-updated_at", "-id")
+    )
+    return success_response({"vacancies": [serialize_vacancy(vacancy) for vacancy in vacancies]})
 
 
 @api_endpoint(["GET", "PUT"], authentication_required=True, roles=[User.Role.COMPANY])
@@ -2130,13 +2201,85 @@ def admin_dashboard_view(request):
     )
 
 
-@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.ADMIN])
+@api_endpoint(["GET", "POST"], authentication_required=True, roles=[User.Role.ADMIN])
 def admin_vacancies_view(request):
-    vacancies = list(
-        Vacancy.objects.select_related("company", "created_by")
-        .order_by("-updated_at", "-id")
+    if request.method == "GET":
+        vacancies = list(
+            Vacancy.objects.select_related("company", "created_by")
+            .order_by("-updated_at", "-id")
+        )
+        companies = list(Company.objects.order_by("name"))
+        company_users = list(
+            User.objects.filter(role=User.Role.COMPANY, company__isnull=False)
+            .select_related("company")
+            .order_by("company__name", "full_name", "email")
+        )
+        return success_response(
+            {
+                "vacancies": [serialize_vacancy(vacancy) for vacancy in vacancies],
+                "companies": [serialize_admin_company(company) for company in companies],
+                "company_users": [serialize_admin_company_user(user) for user in company_users],
+            }
+        )
+
+    payload = validate_admin_vacancy_payload(parse_json_body(request))
+    vacancy = Vacancy(
+        company=payload["company"],
+        created_by=payload["created_by"],
+        title=payload["title"],
+        description=payload["description"],
+        employment_type=payload["employment_type"],
+        experience_level=payload["experience_level"],
+        location=payload["location"],
+        status=payload["status"],
     )
-    return success_response({"vacancies": [serialize_vacancy(vacancy) for vacancy in vacancies]})
+    vacancy.full_clean()
+    vacancy.save()
+    return success_response(serialize_vacancy(vacancy), status=201)
+
+
+@api_endpoint(["PUT", "DELETE"], authentication_required=True, roles=[User.Role.ADMIN])
+def admin_vacancy_detail_view(request, vacancy_id: int):
+    vacancy = get_admin_vacancy(vacancy_id)
+    if vacancy is None:
+        return error_response(
+            request,
+            "NOT_FOUND",
+            "The requested vacancy was not found.",
+            details={"vacancy_id": [str(vacancy_id)]},
+            status=404,
+        )
+
+    if request.method == "DELETE":
+        vacancy.status = Vacancy.Status.INACTIVE
+        vacancy.full_clean()
+        vacancy.save(update_fields=["status", "updated_at"])
+        return success_response(serialize_vacancy(vacancy))
+
+    payload = validate_admin_vacancy_payload(parse_json_body(request))
+    vacancy.company = payload["company"]
+    vacancy.created_by = payload["created_by"]
+    vacancy.title = payload["title"]
+    vacancy.description = payload["description"]
+    vacancy.employment_type = payload["employment_type"]
+    vacancy.experience_level = payload["experience_level"]
+    vacancy.location = payload["location"]
+    vacancy.status = payload["status"]
+    vacancy.full_clean()
+    vacancy.save(
+        update_fields=[
+            "company",
+            "created_by",
+            "title",
+            "description",
+            "employment_type",
+            "experience_level",
+            "location",
+            "status",
+            "updated_at",
+        ]
+    )
+    return success_response(serialize_vacancy(vacancy))
 
 
 @api_endpoint(["GET", "POST"], authentication_required=True, roles=[User.Role.ADMIN])

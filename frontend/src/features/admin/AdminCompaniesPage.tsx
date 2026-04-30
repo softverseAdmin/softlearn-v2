@@ -11,7 +11,11 @@ const emptyCompaniesResponse: AdminCompaniesResponse = {
 export function AdminCompaniesPage() {
   const { csrfToken } = useAuth()
   const [data, setData] = useState<AdminCompaniesResponse>(emptyCompaniesResponse)
-  const [vacancies, setVacancies] = useState<AdminVacanciesResponse>({ vacancies: [] })
+  const [vacancies, setVacancies] = useState<AdminVacanciesResponse>({
+    vacancies: [],
+    companies: [],
+    company_users: [],
+  })
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [selectedCompanyId, setSelectedCompanyId] = useState<number | null>(null)

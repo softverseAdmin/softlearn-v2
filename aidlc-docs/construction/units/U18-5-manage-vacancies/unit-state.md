@@ -14,11 +14,11 @@ Baseline inception version: v1
 
 ## Scope
 
-Define the baseline manage-vacancies flow so authorized admins can perform protected vacancy management with full CRUD-oriented control and auditability.
+Implement the protected admin manage-vacancies workflow so authorized admins can perform vacancy listing, creation, updating, and deactivation with audit-friendly deterministic behavior.
 
 ## Out of Scope
 
-Concrete frontend or backend implementation code, Bulk-import tooling, External ATS synchronization, Company self-service vacancy workflows, and Heavy analytics.
+Bulk-import tooling, External ATS synchronization, Company self-service vacancy workflows, and Heavy analytics.
 
 ## Dependencies
 
@@ -26,16 +26,16 @@ Depends on the requirements, security, data-model, architecture, shared authoriz
 
 ## Acceptance Criteria
 
-The unit documents manage vacancies behavior, boundaries, and integrations without producing application code.
+Admins can manage vacancies through protected backend and frontend flows while preserving company linkage, creator invariants, and deterministic inactive-state handling.
 
 ## Risks
 
-If this unit is underspecified here, later implementation can create authorization gaps, conflicting behavior, or blurred boundaries with adjacent workflows.
+The current vacancy model requires a company-linked company user as creator, so admin management must preserve that invariant or risk invalid vacancy ownership.
 
 ## Open Questions
 
-Later implementation can refine detailed field shapes and UX behavior as long as the documented authorization, privacy, and deterministic rules remain intact.
+Later units can add richer audit trails, filtering, and moderation-specific controls if admin operations need deeper intervention tooling.
 
 ## Last Updated
 
-2026-04-29
+2026-04-30
