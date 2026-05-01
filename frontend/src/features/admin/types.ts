@@ -38,6 +38,8 @@ export interface AdminCompanyRecord {
   description: string
   is_active: boolean
   user_count: number
+  vacancy_count: number
+  active_vacancy_count: number
   created_at: string
   updated_at: string
 }

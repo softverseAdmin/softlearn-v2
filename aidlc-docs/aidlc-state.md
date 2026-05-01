@@ -1,15 +1,13 @@
 # AI-DLC state
 
-- **Project status:** construction documentation complete and implementation started
+- **Project status:** construction documentation complete and implementation in progress - Phase 3 (Company Setup) now complete, ready for Phase 4 (Hiring Workflow)
 - **Baseline version:** v1
 - **Technology decision:** accepted local-first Django + React + PostgreSQL stack with Django-native session auth
-- **Current active unit:** None
+- **Current active units:** None - Phase 3 complete, planning Phase 4
 
 ## Active units
 
-| Unit | Stage | Status |
-| --- | --- | --- |
-| None | N/A | none |
+(None - Phase 3 complete)
 
 ## Completed units
 
@@ -134,7 +132,7 @@
 | U17-3-admin-dashboard | Admin-dashboard baseline completed for protected lightweight platform and operational summaries that link into deeper admin-management workflows. |
 | U17-4-analytics-summary | Analytics-summary baseline completed for deterministic lightweight aggregate metrics shared across protected dashboards without a heavy analytics engine. |
 | U18-1-manage-users | Manage-users baseline completed for protected admin CRUD-oriented control over platform user accounts with auditability. |
-| U18-2-manage-companies | Manage-companies baseline completed for protected admin CRUD-oriented control over company records with auditability. |
+| U18-2-manage-companies | Manage-companies baseline completed with implementation started for protected admin CRUD-oriented control over company records with richer context and soft deactivation. |
 | U18-3-manage-courses | Manage-courses baseline completed for protected admin CRUD-oriented control over learning content records with auditability. |
 | U18-4-manage-exams | Manage-exams baseline completed for protected admin CRUD-oriented control over exam records with auditability. |
 | U18-5-manage-vacancies | Manage-vacancies baseline completed for protected admin CRUD-oriented control over vacancy records with auditability. |

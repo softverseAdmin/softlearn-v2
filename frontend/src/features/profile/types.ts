@@ -72,6 +72,22 @@ export interface CompanyProfile {
   profile_complete: boolean
 }
 
+export interface CompanyHiringPreferences {
+  default_experience_level: string
+  preferred_skills: string[]
+  min_salary: number | null
+  max_salary: number | null
+}
+
+export interface CompanyMember {
+  id: number
+  user_id: number
+  email: string
+  full_name: string
+  role: 'admin' | 'member' | 'viewer'
+  created_at: string
+}
+
 export interface VacancyRecord {
   vacancy_id: number
   company_id: number

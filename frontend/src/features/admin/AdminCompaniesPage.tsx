@@ -31,6 +31,16 @@ export function AdminCompaniesPage() {
     [data.companies, selectedCompanyId],
   )
 
+  const selectedCompanyUsers = useMemo(
+    () => vacancies.company_users.filter((user) => user.company_id === selectedCompanyId),
+    [selectedCompanyId, vacancies.company_users],
+  )
+
+  const selectedCompanyVacancies = useMemo(
+    () => vacancies.vacancies.filter((vacancy) => vacancy.company_id === selectedCompanyId),
+    [selectedCompanyId, vacancies.vacancies],
+  )
+
   useEffect(() => {
     let active = true
 
@@ -95,16 +105,17 @@ export function AdminCompaniesPage() {
         description,
         is_active: isActive,
       }
+      let savedCompany: AdminCompanyRecord
 
       if (selectedCompany) {
-        await apiRequest<AdminCompanyRecord>(`/admin/companies/${selectedCompany.company_id}`, {
+        savedCompany = await apiRequest<AdminCompanyRecord>(`/admin/companies/${selectedCompany.company_id}`, {
           method: 'PUT',
           body,
           csrfToken,
         })
         setSuccess('Company updated successfully.')
       } else {
-        await apiRequest<AdminCompanyRecord>('/admin/companies', {
+        savedCompany = await apiRequest<AdminCompanyRecord>('/admin/companies', {
           method: 'POST',
           body,
           csrfToken,
@@ -113,11 +124,29 @@ export function AdminCompaniesPage() {
       }
 
       await refreshCompanies()
-      if (!selectedCompany) {
-        setSelectedCompanyId(null)
-      }
+      setSelectedCompanyId(savedCompany.company_id)
     } catch (saveError) {
       setError(saveError instanceof ApiError ? saveError.message : 'Unable to save company.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function handleDeactivate(companyId: number) {
+    setSaving(true)
+    setError(null)
+    setSuccess(null)
+
+    try {
+      await apiRequest<AdminCompanyRecord>(`/admin/companies/${companyId}`, {
+        method: 'DELETE',
+        csrfToken,
+      })
+      await refreshCompanies()
+      setSelectedCompanyId(companyId)
+      setSuccess('Company retired successfully.')
+    } catch (saveError) {
+      setError(saveError instanceof ApiError ? saveError.message : 'Unable to retire company.')
     } finally {
       setSaving(false)
     }
@@ -188,33 +217,112 @@ export function AdminCompaniesPage() {
                   </span>
                 </div>
                 <p className="muted">{company.description || 'No description yet.'}</p>
-                <button className="secondary-button inline-button" type="button" onClick={() => setSelectedCompanyId(company.company_id)}>
-                  Edit
-                </button>
+                <p className="muted">
+                  {company.user_count} users · {company.vacancy_count} vacancies · {company.active_vacancy_count} active
+                </p>
+                <div className="actions">
+                  <button className="secondary-button inline-button" type="button" onClick={() => setSelectedCompanyId(company.company_id)}>
+                    Edit
+                  </button>
+                  {company.is_active ? (
+                    <button
+                      className="danger-button inline-button"
+                      type="button"
+                      onClick={() => void handleDeactivate(company.company_id)}
+                      disabled={saving}
+                    >
+                      Retire
+                    </button>
+                  ) : null}
+                </div>
               </article>
             ))}
+            {data.companies.length === 0 ? <p className="muted">No companies yet.</p> : null}
+          </div>
+        </div>
+      </div>
+
+      <div className="page-split">
+        <div className="card stack-card">
+          <h2>Company context</h2>
+          {selectedCompany ? (
+            <div className="stack-list">
+              <article className="skill-card">
+                <div className="skill-card-header">
+                  <div>
+                    <h3>{selectedCompany.name}</h3>
+                    <p className="muted">
+                      Created {new Date(selectedCompany.created_at).toLocaleString()}
+                    </p>
+                  </div>
+                  <span className={`status-pill ${selectedCompany.is_active ? 'status-success' : 'status-muted'}`}>
+                    {selectedCompany.is_active ? 'Active' : 'Inactive'}
+                  </span>
+                </div>
+                <p className="muted">{selectedCompany.description || 'No description yet.'}</p>
+                <p className="muted">
+                  {selectedCompany.user_count} company users · {selectedCompany.vacancy_count} vacancies ·{' '}
+                  {selectedCompany.active_vacancy_count} active vacancies
+                </p>
+                <p className="muted">Last updated {new Date(selectedCompany.updated_at).toLocaleString()}</p>
+              </article>
+            </div>
+          ) : (
+            <p className="muted">Select a company to inspect linked users and vacancy ownership.</p>
+          )}
+        </div>
+
+        <div className="card stack-card">
+          <h2>Company members</h2>
+          <div className="stack-list">
+            {selectedCompanyUsers.map((user) => (
+              <article key={user.user_id} className="skill-card">
+                <div className="skill-card-header">
+                  <div>
+                    <h3>{user.name}</h3>
+                    <p className="muted">{user.email}</p>
+                  </div>
+                  <span className={`status-pill ${user.is_active ? 'status-success' : 'status-muted'}`}>
+                    {user.is_active ? 'Active' : 'Inactive'}
+                  </span>
+                </div>
+              </article>
+            ))}
+            {selectedCompany ? (
+              selectedCompanyUsers.length === 0 ? <p className="muted">No company users are assigned yet.</p> : null
+            ) : (
+              <p className="muted">Select a company to inspect its assigned company users.</p>
+            )}
           </div>
         </div>
       </div>
 
       <div className="card stack-card">
-        <h2>Vacancy visibility</h2>
+        <h2>Linked vacancies</h2>
         <div className="stack-list">
-          {vacancies.vacancies.map((vacancy) => (
+          {selectedCompanyVacancies.map((vacancy) => (
             <article key={vacancy.vacancy_id} className="skill-card">
               <div className="skill-card-header">
                 <div>
                   <h3>{vacancy.title}</h3>
-                  <p className="muted">{vacancy.company_name}</p>
+                  <p className="muted">
+                    {vacancy.created_by_name} · {vacancy.employment_type} · {vacancy.experience_level}
+                  </p>
                 </div>
                 <span className={`status-pill ${vacancy.status === 'active' ? 'status-success' : 'status-muted'}`}>
                   {vacancy.status}
                 </span>
               </div>
-              <p className="muted">{vacancy.employment_type} · {vacancy.experience_level} · {vacancy.location}</p>
+              <p className="muted">
+                {vacancy.location} · {vacancy.work_style_label}{vacancy.relocation_support ? ' · Relocation support' : ''}
+              </p>
             </article>
           ))}
-          {vacancies.vacancies.length === 0 ? <p className="muted">No vacancies yet.</p> : null}
+          {selectedCompany ? (
+            selectedCompanyVacancies.length === 0 ? <p className="muted">No vacancies are linked to this company yet.</p> : null
+          ) : (
+            <p className="muted">Select a company to inspect vacancy ownership and status.</p>
+          )}
         </div>
       </div>
     </section>

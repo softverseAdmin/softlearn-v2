@@ -1,6 +1,6 @@
 # Unit: U18-2-manage-companies
 
-Status: completed
+Status: completed with implementation started
 
 Baseline inception version: v1
 
