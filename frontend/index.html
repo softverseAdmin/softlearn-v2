@@ -3,8 +3,26 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Softlearn</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="SoftLearn" />
+    <meta name="theme-color" content="#6366f1" />
+    <meta name="description" content="SoftLearn - AI-powered learning and hiring platform" />
+    <meta name="format-detection" content="telephone=no" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <title>SoftLearn</title>
+    <style>
+      :root {
+        --safe-area-top: max(0px, env(safe-area-inset-top));
+        --safe-area-right: max(0px, env(safe-area-inset-right));
+        --safe-area-bottom: max(0px, env(safe-area-inset-bottom));
+        --safe-area-left: max(0px, env(safe-area-inset-left));
+      }
+      html, body { -webkit-touch-callout: none; }
+      input, textarea, select { -webkit-user-select: text; user-select: text; }
+      button { -webkit-user-select: none; user-select: none; }
+    </style>
   </head>
   <body>
     <div id="root"></div>
