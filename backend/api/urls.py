@@ -93,4 +93,13 @@ urlpatterns = [
     path("v1/access/student", views.student_access_view, name="api-access-student"),
     path("v1/access/company", views.company_access_view, name="api-access-company"),
     path("v1/access/admin", views.admin_access_view, name="api-access-admin"),
+    # Phase 14: Learning Enhancements
+    path("v1/exam-categories", views.exam_categories_view, name="api-exam-categories"),
+    path("v1/exam-categories/<int:category_id>", views.exam_category_detail_view, name="api-exam-category-detail"),
+    path("v1/exams/<int:exam_id>/practice-questions", views.practice_questions_list_view, name="api-practice-questions-list"),
+    path("v1/practice-questions/<int:question_id>", views.practice_question_detail_view, name="api-practice-question-detail"),
+    path("v1/exams/<int:exam_id>/mock-exams", views.mock_exams_list_view, name="api-mock-exams-list"),
+    path("v1/study-plan", views.study_plan_view, name="api-study-plan"),
+    path("v1/student/performance", views.student_performance_view, name="api-student-performance"),
+    path("v1/student/performance/<int:exam_id>", views.student_performance_exam_view, name="api-student-performance-exam"),
 ]

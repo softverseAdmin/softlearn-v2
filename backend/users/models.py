@@ -681,6 +681,21 @@ class LessonProgress(models.Model):
         return f"{self.learning_record.student.email} - {self.lesson.title} - {self.status}"
 
 
+class ExamCategory(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+    description = models.TextField(blank=True)
+    icon = models.CharField(max_length=50, default='book', help_text='Bootstrap icon name')
+    order = models.PositiveIntegerField(default=0)
+    active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['order', 'name']
+    
+    def __str__(self) -> str:
+        return self.name
+
+
 class Exam(models.Model):
     class Status(models.TextChoices):
         DRAFT = "draft", "Draft"
@@ -689,6 +704,13 @@ class Exam(models.Model):
 
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True, default="")
+    category_fk = models.ForeignKey(
+        ExamCategory,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='exams'
+    )
     category = models.CharField(max_length=100)
     duration_minutes = models.PositiveSmallIntegerField(
         default=0,
@@ -989,6 +1011,153 @@ class ExamResult(models.Model):
 
     def __str__(self) -> str:
         return f"{self.student.email} - {self.exam_title}"
+
+
+class PracticeQuestion(models.Model):
+    class DifficultyChoices(models.TextChoices):
+        EASY = "easy", "Easy"
+        MEDIUM = "medium", "Medium"
+        HARD = "hard", "Hard"
+    
+    exam = models.ForeignKey(Exam, on_delete=models.CASCADE, related_name='practice_questions')
+    question_text = models.TextField()
+    explanation = models.TextField(blank=True, help_text='Explanation shown after answering')
+    difficulty = models.CharField(
+        max_length=20,
+        choices=DifficultyChoices.choices,
+        default=DifficultyChoices.MEDIUM
+    )
+    topic = models.CharField(max_length=255, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+    
+    def __str__(self) -> str:
+        return f"{self.exam.title} - {self.question_text[:50]}"
+
+
+class PracticeQuestionOption(models.Model):
+    question = models.ForeignKey(PracticeQuestion, on_delete=models.CASCADE, related_name='options')
+    option_text = models.TextField()
+    is_correct = models.BooleanField(default=False)
+    explanation = models.TextField(blank=True)
+    
+    class Meta:
+        ordering = ['id']
+    
+    def __str__(self) -> str:
+        return f"{self.question_id} - Option"
+
+
+class MockExam(models.Model):
+    exam = models.ForeignKey(Exam, on_delete=models.CASCADE, related_name='mock_exams')
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    duration_minutes = models.PositiveSmallIntegerField(default=60, validators=[MinValueValidator(1)])
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+    
+    def __str__(self) -> str:
+        return f"{self.exam.title} - {self.title}"
+
+
+class StudyPlan(models.Model):
+    student = models.OneToOneField(StudentProfile, on_delete=models.CASCADE, related_name='study_plan')
+    exam = models.ForeignKey(Exam, on_delete=models.CASCADE, related_name='study_plans')
+    created_at = models.DateTimeField(auto_now_add=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+    
+    def __str__(self) -> str:
+        return f"{self.student.user.email} - {self.exam.title}"
+
+
+class StudyPlanItem(models.Model):
+    class ItemTypeChoices(models.TextChoices):
+        LESSON = "lesson", "Course Lesson"
+        PRACTICE = "practice", "Practice Questions"
+        MOCK = "mock", "Mock Exam"
+        READING = "reading", "Reading Material"
+    
+    study_plan = models.ForeignKey(StudyPlan, on_delete=models.CASCADE, related_name='items')
+    item_type = models.CharField(max_length=20, choices=ItemTypeChoices.choices)
+    lesson = models.ForeignKey(
+        Lesson,
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name='study_plan_items'
+    )
+    practice_question = models.ForeignKey(
+        PracticeQuestion,
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name='study_plan_items'
+    )
+    mock_exam = models.ForeignKey(
+        MockExam,
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name='study_plan_items'
+    )
+    completed = models.BooleanField(default=False)
+    completion_date = models.DateField(null=True, blank=True)
+    order = models.PositiveIntegerField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['order']
+    
+    def __str__(self) -> str:
+        return f"{self.study_plan_id} - Item {self.order}"
+
+
+class StudentPerformanceMetric(models.Model):
+    class MetricTypeChoices(models.TextChoices):
+        EXAM_ATTEMPTS = "exam_attempts", "Total Exam Attempts"
+        AVERAGE_SCORE = "average_score", "Average Score"
+        BEST_SCORE = "best_score", "Best Score"
+        IMPROVEMENT = "improvement", "Score Improvement"
+        PRACTICE_QUESTIONS = "practice_questions", "Practice Questions Done"
+        MOCK_EXAMS = "mock_exams", "Mock Exams Done"
+        TIME_SPENT = "time_spent", "Hours Spent Studying"
+    
+    class TrendChoices(models.TextChoices):
+        UP = "up", "Improving"
+        STABLE = "stable", "Stable"
+        DOWN = "down", "Declining"
+    
+    student = models.ForeignKey(StudentProfile, on_delete=models.CASCADE, related_name='performance_metrics')
+    exam = models.ForeignKey(Exam, on_delete=models.CASCADE, related_name='performance_metrics')
+    metric_type = models.CharField(max_length=30, choices=MetricTypeChoices.choices)
+    value = models.FloatField()
+    trend = models.CharField(
+        max_length=10,
+        choices=TrendChoices.choices,
+        null=True,
+        blank=True
+    )
+    calculated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-calculated_at']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['student', 'exam', 'metric_type'],
+                name='unique_student_exam_metric'
+            )
+        ]
+    
+    def __str__(self) -> str:
+        return f"{self.student.user.email} - {self.exam.title} - {self.metric_type}"
 
 
 class CandidateReviewAccess(models.Model):
