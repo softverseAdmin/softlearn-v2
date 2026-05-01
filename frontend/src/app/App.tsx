@@ -2,11 +2,12 @@ import { BrowserRouter } from 'react-router-dom'
 import { useEffect } from 'react'
 
 import { AuthProvider } from '../auth/AuthContext'
+import { ThemeProvider } from '../auth/ThemeContext'
 import { PageTitle } from './PageTitle'
 import { AppRouter } from '../router/AppRouter'
 import { useServiceWorker, useWebVitals, usePerformanceMetrics, useNetworkStatus } from '../hooks/usePerformance'
 
-function App() {
+function AppContent() {
   // Initialize performance monitoring and optimization
   useServiceWorker()
   useWebVitals()
@@ -23,11 +24,21 @@ function App() {
   }, [])
 
   return (
+    <>
+      <PageTitle />
+      <AppRouter />
+    </>
+  )
+}
+
+function App() {
+  return (
     <BrowserRouter>
-      <AuthProvider>
-        <PageTitle />
-        <AppRouter />
-      </AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <AppContent />
+        </AuthProvider>
+      </ThemeProvider>
     </BrowserRouter>
   )
 }

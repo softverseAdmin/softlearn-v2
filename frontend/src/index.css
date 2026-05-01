@@ -28,6 +28,63 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Dark mode colors */
+html.dark {
+  --sl-bg: #0f172a;
+  --sl-surface: #1e293b;
+  --sl-primary: #818cf8;
+  --sl-soft: #312e81;
+  --sl-text: #f1f5f9;
+  --sl-muted: #94a3b8;
+  --sl-border: #334155;
+  --sl-success: #4ade80;
+  --sl-warning: #fbbf24;
+  --sl-danger: #f87171;
+  color-scheme: dark;
+}
+
+/* Smooth transition for theme changes */
+html, body, a, button, input, select, textarea, .card, .sidebar, .shell-main {
+  transition: background-color 100ms ease-in-out, color 100ms ease-in-out, border-color 100ms ease-in-out;
+}
+
+/* Dark mode specific element styles */
+html.dark input,
+html.dark select,
+html.dark textarea {
+  background-color: #334155;
+  color: #f1f5f9;
+  border-color: #475569;
+}
+
+html.dark input::placeholder,
+html.dark select::placeholder,
+html.dark textarea::placeholder {
+  color: #94a3b8;
+}
+
+html.dark button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+html.dark .card {
+  border-color: var(--sl-border);
+}
+
+html.dark .sidebar {
+  background-color: #0f172a;
+}
+
+html.dark .nav-link {
+  color: #cbd5e1;
+}
+
+html.dark .nav-link:hover,
+html.dark .nav-link-active {
+  background-color: #1e293b;
+  color: #ffffff;
+}
+
 * {
   box-sizing: border-box;
 }
