@@ -1,0 +1,86 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: softlearn-db
+    environment:
+      POSTGRES_DB: softlearn_db
+      POSTGRES_USER: softlearn_user
+      POSTGRES_PASSWORD: softlearn_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U softlearn_user -d softlearn_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: softlearn-cache
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.backend
+    container_name: softlearn-api
+    environment:
+      DEBUG: "False"
+      DJANGO_SECRET_KEY: "docker-secret-key-change-in-production"
+      DJANGO_ALLOWED_HOSTS: "localhost,127.0.0.1,backend"
+      DJANGO_CORS_ALLOWED_ORIGINS: "http://localhost:3000,http://127.0.0.1:3000"
+      POSTGRES_DB: softlearn_db
+      POSTGRES_USER: softlearn_user
+      POSTGRES_PASSWORD: softlearn_pass
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+      REDIS_URL: "redis://redis:6379/1"
+      ENVIRONMENT: "development"
+      SENTRY_DSN: ""
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8000"
+
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.frontend
+    container_name: softlearn-web
+    environment:
+      REACT_APP_API_URL: "http://localhost:8000/api"
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  default:
+    name: softlearn-network
