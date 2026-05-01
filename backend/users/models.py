@@ -251,6 +251,31 @@ class Course(models.Model):
         return self.title
 
 
+class Lesson(models.Model):
+    class Status(models.TextChoices):
+        DRAFT = "draft", "Draft"
+        ACTIVE = "active", "Active"
+        INACTIVE = "inactive", "Inactive"
+
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="lessons")
+    title = models.CharField(max_length=255)
+    summary = models.TextField(blank=True, default="")
+    content = models.TextField(blank=True, default="")
+    sequence_number = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.DRAFT)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["course_id", "sequence_number", "id"]
+        constraints = [
+            models.UniqueConstraint(fields=["course", "sequence_number"], name="unique_course_lesson_sequence"),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.course.title} - {self.title}"
+
+
 class User(AbstractBaseUser, PermissionsMixin):
     class Role(models.TextChoices):
         STUDENT = "student", "Student"
@@ -392,6 +417,59 @@ class LearningRecord(models.Model):
         return f"{self.student.email} - {self.course_title}"
 
 
+class LessonProgress(models.Model):
+    class Status(models.TextChoices):
+        NOT_STARTED = "not_started", "Not started"
+        IN_PROGRESS = "in_progress", "In progress"
+        COMPLETED = "completed", "Completed"
+
+    learning_record = models.ForeignKey(
+        LearningRecord,
+        on_delete=models.CASCADE,
+        related_name="lesson_progress",
+    )
+    lesson = models.ForeignKey(
+        Lesson,
+        on_delete=models.CASCADE,
+        related_name="progress_entries",
+    )
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.NOT_STARTED)
+    started_at = models.DateTimeField(null=True, blank=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["lesson__sequence_number", "lesson_id", "id"]
+        constraints = [
+            models.UniqueConstraint(fields=["learning_record", "lesson"], name="unique_learning_record_lesson_progress"),
+        ]
+
+    def clean(self) -> None:
+        super().clean()
+        if self.learning_record.course_id != self.lesson.course_id:
+            raise ValidationError({"lesson": ["Lesson progress must belong to the same course as the learning record."]})
+        if self.status == self.Status.NOT_STARTED:
+            if self.started_at is not None or self.completed_at is not None:
+                raise ValidationError(
+                    {
+                        "status": [
+                            "Not-started lesson progress cannot have started_at or completed_at timestamps."
+                        ]
+                    }
+                )
+        elif self.status == self.Status.IN_PROGRESS:
+            if self.started_at is None:
+                raise ValidationError({"started_at": ["In-progress lesson progress requires a started_at timestamp."]})
+            if self.completed_at is not None:
+                raise ValidationError({"completed_at": ["In-progress lesson progress cannot have a completion timestamp."]})
+        elif self.completed_at is None:
+            raise ValidationError({"completed_at": ["Completed lesson progress requires a completion timestamp."]})
+
+    def __str__(self) -> str:
+        return f"{self.learning_record.student.email} - {self.lesson.title} - {self.status}"
+
+
 class Exam(models.Model):
     class Status(models.TextChoices):
         DRAFT = "draft", "Draft"
@@ -413,6 +491,10 @@ class Exam(models.Model):
         default=0,
         validators=[MinValueValidator(0)],
     )
+    max_attempts = models.PositiveSmallIntegerField(
+        default=3,
+        validators=[MinValueValidator(1)],
+    )
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.DRAFT)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -422,6 +504,136 @@ class Exam(models.Model):
 
     def __str__(self) -> str:
         return self.title
+
+
+class ExamQuestion(models.Model):
+    class QuestionType(models.TextChoices):
+        SINGLE_CHOICE = "single_choice", "Single choice"
+
+    class Status(models.TextChoices):
+        DRAFT = "draft", "Draft"
+        ACTIVE = "active", "Active"
+        INACTIVE = "inactive", "Inactive"
+
+    exam = models.ForeignKey(Exam, on_delete=models.CASCADE, related_name="questions")
+    prompt = models.TextField()
+    instructions = models.TextField(blank=True, default="")
+    question_type = models.CharField(max_length=30, choices=QuestionType.choices, default=QuestionType.SINGLE_CHOICE)
+    sequence_number = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
+    points = models.PositiveSmallIntegerField(default=1, validators=[MinValueValidator(1)])
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.DRAFT)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["exam_id", "sequence_number", "id"]
+        constraints = [
+            models.UniqueConstraint(fields=["exam", "sequence_number"], name="unique_exam_question_sequence"),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.exam.title} - Q{self.sequence_number}"
+
+
+class ExamAnswerOption(models.Model):
+    class Status(models.TextChoices):
+        ACTIVE = "active", "Active"
+        INACTIVE = "inactive", "Inactive"
+
+    question = models.ForeignKey(ExamQuestion, on_delete=models.CASCADE, related_name="answer_options")
+    option_text = models.CharField(max_length=255)
+    sequence_number = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
+    is_correct = models.BooleanField(default=False)
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.ACTIVE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["question_id", "sequence_number", "id"]
+        constraints = [
+            models.UniqueConstraint(fields=["question", "sequence_number"], name="unique_question_option_sequence"),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.question} - Option {self.sequence_number}"
+
+
+class ExamAttempt(models.Model):
+    class Status(models.TextChoices):
+        SUBMITTED = "submitted", "Submitted"
+        SCORED = "scored", "Scored"
+
+    student = models.ForeignKey(
+        "User",
+        on_delete=models.CASCADE,
+        related_name="exam_attempts",
+        limit_choices_to={"role": User.Role.STUDENT},
+    )
+    exam = models.ForeignKey(Exam, on_delete=models.CASCADE, related_name="attempts")
+    attempt_number = models.PositiveSmallIntegerField(default=1, validators=[MinValueValidator(1)])
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.SUBMITTED)
+    score_percent = models.PositiveSmallIntegerField(
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+    )
+    passed = models.BooleanField(null=True, blank=True)
+    started_at = models.DateTimeField()
+    submitted_at = models.DateTimeField(null=True, blank=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-started_at", "-id"]
+        constraints = [
+            models.UniqueConstraint(fields=["student", "exam", "attempt_number"], name="unique_student_exam_attempt"),
+        ]
+
+    def clean(self) -> None:
+        super().clean()
+        if self.student.role != User.Role.STUDENT:
+            raise ValidationError({"student": ["Exam attempts may only belong to student users."]})
+        if self.status == self.Status.SCORED:
+            if self.score_percent is None:
+                raise ValidationError({"score_percent": ["Scored attempts require a score."]})
+            if self.passed is None:
+                raise ValidationError({"passed": ["Scored attempts require a pass/fail outcome."]})
+            if self.submitted_at is None or self.completed_at is None:
+                raise ValidationError({"submitted_at": ["Scored attempts require submitted_at and completed_at timestamps."]})
+        elif self.score_percent is not None or self.passed is not None or self.completed_at is not None:
+            raise ValidationError({"status": ["Submitted attempts cannot include final scoring fields."]})
+
+    def __str__(self) -> str:
+        return f"{self.student.email} - {self.exam.title} - attempt {self.attempt_number}"
+
+
+class ExamAttemptAnswer(models.Model):
+    attempt = models.ForeignKey(ExamAttempt, on_delete=models.CASCADE, related_name="answers")
+    question = models.ForeignKey(ExamQuestion, on_delete=models.CASCADE, related_name="attempt_answers")
+    selected_option = models.ForeignKey(
+        ExamAnswerOption,
+        on_delete=models.CASCADE,
+        related_name="selected_attempt_answers",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["question__sequence_number", "id"]
+        constraints = [
+            models.UniqueConstraint(fields=["attempt", "question"], name="unique_attempt_question_answer"),
+        ]
+
+    def clean(self) -> None:
+        super().clean()
+        if self.question.exam_id != self.attempt.exam_id:
+            raise ValidationError({"question": ["Attempt answers must belong to the same exam as the attempt."]})
+        if self.selected_option.question_id != self.question_id:
+            raise ValidationError({"selected_option": ["Selected option must belong to the provided question."]})
+
+    def __str__(self) -> str:
+        return f"{self.attempt} - Q{self.question.sequence_number}"
 
 
 class ExamResult(models.Model):
@@ -437,6 +649,13 @@ class ExamResult(models.Model):
         blank=True,
         on_delete=models.SET_NULL,
         related_name="results",
+    )
+    attempt = models.OneToOneField(
+        ExamAttempt,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="result",
     )
     exam_title = models.CharField(max_length=255)
     category = models.CharField(max_length=100)
