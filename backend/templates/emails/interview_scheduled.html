@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interview Scheduled</title>
+    <style>
+        * { margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; background-color: #f9f9f9; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 20px; text-align: center; color: white; }
+        .logo { font-size: 28px; font-weight: bold; margin-bottom: 10px; }
+        .content { padding: 40px 20px; background-color: white; }
+        .greeting { font-size: 18px; margin-bottom: 20px; }
+        .message { margin: 20px 0; line-height: 1.8; }
+        .alert { background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; border-radius: 4px; margin: 20px 0; }
+        .details { background-color: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0; }
+        .detail-item { margin: 15px 0; }
+        .detail-label { font-weight: 600; color: #667eea; display: block; }
+        .detail-value { margin-top: 5px; }
+        .cta-button { display: inline-block; background-color: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; margin: 20px 0; }
+        .meeting-link { background-color: #e7f3ff; border-left: 4px solid #667eea; padding: 15px; border-radius: 4px; margin: 20px 0; }
+        .footer { background-color: #f9f9f9; padding: 20px; text-align: center; font-size: 12px; color: #999; border-top: 1px solid #eee; }
+        .footer a { color: #667eea; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">SoftLearn</div>
+            <div>Interview Scheduled</div>
+        </div>
+        <div class="content">
+            <div class="greeting">Hi {{ student_name }},</div>
+            <div class="message">
+                Congratulations! Your interview has been scheduled at <strong>{{ company_name }}</strong>.
+            </div>
+            <div class="alert">
+                <strong>📅 Interview Date & Time:</strong> {{ interview_date }}
+            </div>
+            <div class="details">
+                <div class="detail-item">
+                    <span class="detail-label">Company:</span>
+                    <span class="detail-value">{{ company_name }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">When:</span>
+                    <span class="detail-value">{{ interview_date }}</span>
+                </div>
+                {% if meeting_link %}
+                <div class="detail-item">
+                    <span class="detail-label">Interview Type:</span>
+                    <span class="detail-value">Virtual</span>
+                </div>
+                {% endif %}
+            </div>
+            {% if meeting_link %}
+            <div class="meeting-link">
+                <strong>📞 Meeting Link:</strong><br>
+                <a href="{{ meeting_link }}" style="color: #667eea; text-decoration: none; word-break: break-all;">{{ meeting_link }}</a>
+            </div>
+            {% endif %}
+            <div class="message">
+                <strong>✅ What to do next:</strong>
+                <ul style="margin: 10px 0 0 20px; padding: 0;">
+                    <li>Mark your calendar and prepare in advance</li>
+                    <li>Test your internet connection and camera/microphone if virtual</li>
+                    <li>Review the job description once more</li>
+                    <li>Check the interview details in your account</li>
+                </ul>
+            </div>
+            <a href="{{ app_url }}/student/interviews" class="cta-button">View Interview Details</a>
+            <div class="message">
+                Good luck! We're rooting for you.<br>
+                The SoftLearn Team
+            </div>
+        </div>
+        <div class="footer">
+            <p>
+                <a href="{{ app_url }}/settings/notifications">Manage Notification Preferences</a> | 
+                <a href="{{ app_url }}/help">Help & Support</a>
+            </p>
+            <p style="margin-top: 10px;">© 2026 SoftLearn. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

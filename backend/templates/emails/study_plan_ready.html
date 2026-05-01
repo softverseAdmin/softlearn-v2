@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study Plan Ready</title>
+    <style>
+        * { margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; background-color: #f9f9f9; }
+        .header { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); padding: 40px 20px; text-align: center; color: white; text-shadow: 1px 1px 2px rgba(0,0,0,0.1); }
+        .logo { font-size: 28px; font-weight: bold; margin-bottom: 10px; }
+        .content { padding: 40px 20px; background-color: white; }
+        .greeting { font-size: 18px; margin-bottom: 20px; }
+        .message { margin: 20px 0; line-height: 1.8; }
+        .achievement { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white; padding: 30px; border-radius: 8px; text-align: center; margin: 20px 0; }
+        .achievement-emoji { font-size: 48px; margin-bottom: 10px; }
+        .achievement-text { font-size: 20px; font-weight: bold; }
+        .plan-preview { background-color: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0; }
+        .plan-title { font-weight: 600; color: #fa709a; margin-bottom: 15px; font-size: 16px; }
+        .plan-item { padding: 10px 0; border-bottom: 1px solid #ddd; }
+        .plan-item:last-child { border-bottom: none; }
+        .plan-icon { margin-right: 10px; }
+        .benefits { margin: 20px 0; }
+        .benefit-item { padding: 10px 0; padding-left: 25px; position: relative; }
+        .benefit-item:before { content: "✓"; position: absolute; left: 0; color: #fa709a; font-weight: bold; }
+        .cta-button { display: inline-block; background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; margin: 20px 0; font-weight: 600; }
+        .footer { background-color: #f9f9f9; padding: 20px; text-align: center; font-size: 12px; color: #999; border-top: 1px solid #eee; }
+        .footer a { color: #fa709a; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">SoftLearn</div>
+            <div>Your Study Plan is Ready!</div>
+        </div>
+        <div class="content">
+            <div class="greeting">Hi {{ student_name }},</div>
+            <div class="message">
+                We've created a personalized study plan just for you! Based on your goals, learning pace, and career aspirations, we've designed a comprehensive roadmap to help you succeed.
+            </div>
+            <div class="achievement">
+                <div class="achievement-emoji">🎯</div>
+                <div class="achievement-text">{{ study_plan_title }}</div>
+            </div>
+            <div class="plan-preview">
+                <div class="plan-title">📚 What's Included:</div>
+                <div class="plan-item">
+                    <span class="plan-icon">📖</span> Curated courses and lessons tailored to your goals
+                </div>
+                <div class="plan-item">
+                    <span class="plan-icon">✍️</span> Practice questions and mock exams
+                </div>
+                <div class="plan-item">
+                    <span class="plan-icon">📊</span> Progress tracking and performance insights
+                </div>
+                <div class="plan-item">
+                    <span class="plan-icon">🎓</span> Industry-relevant skills development
+                </div>
+                <div class="plan-item">
+                    <span class="plan-icon">💼</span> Interview preparation materials
+                </div>
+            </div>
+            <div class="benefits">
+                <strong>Why This Plan Works:</strong>
+                <div class="benefit-item">Personalized based on your profile and goals</div>
+                <div class="benefit-item">Structured progression from fundamentals to advanced</div>
+                <div class="benefit-item">Regular checkpoints to measure progress</div>
+                <div class="benefit-item">Optimized to fit your learning schedule</div>
+            </div>
+            <div class="message">
+                You can start learning right away! Follow the recommended pace, complete the lessons, and track your progress. Don't hesitate to adjust the plan if needed - learning is a journey, not a race.
+            </div>
+            <a href="{{ app_url }}/student/study-plan" class="cta-button">Start Your Study Plan</a>
+            <div class="message">
+                We believe in your potential. Let's get you to your goals!<br>
+                The SoftLearn Team
+            </div>
+        </div>
+        <div class="footer">
+            <p>
+                <a href="{{ app_url }}/settings/notifications">Manage Notification Preferences</a> | 
+                <a href="{{ app_url }}/help">Help & Support</a>
+            </p>
+            <p style="margin-top: 10px;">© 2026 SoftLearn. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>
