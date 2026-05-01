@@ -25,6 +25,7 @@ from users.models import (
     ExamAnswerOption,
     ExamAttempt,
     ExamAttemptAnswer,
+    ExamCategory,
     ExamQuestion,
     ExamResult,
     Interview,
@@ -34,17 +35,23 @@ from users.models import (
     Lesson,
     LessonProgress,
     LearningRecord,
+    MockExam,
     MockExamAttempt,
     MockExamAttemptAnswer,
     Notification,
     Skill,
+    PracticeQuestion,
     PracticeQuestionAttempt,
+    PracticeQuestionOption,
     StudentAvailabilityProfile,
     StudentEducation,
     StudentExperience,
+    StudentPerformanceMetric,
     StudentProfile,
     StudentResume,
     StudentSkill,
+    StudyPlan,
+    StudyPlanItem,
     StudentVisibilityEvent,
     StudentVisibilitySettings,
     User,
@@ -6462,3 +6469,359 @@ def company_access_view(request):
 @api_endpoint(["GET"], authentication_required=True, roles=[User.Role.ADMIN])
 def admin_access_view(request):
     return success_response({"message": "Admin access granted.", "role": request.user.role})
+
+
+
+
+# Phase 14: Learning Enhancements
+
+# Serializers
+
+def serialize_exam_category(category: ExamCategory) -> dict:
+    return {
+        "id": category.id,
+        "name": category.name,
+        "description": category.description,
+        "icon": category.icon,
+        "order": category.order,
+        "active": category.active,
+        "created_at": category.created_at.isoformat(),
+    }
+
+def serialize_practice_question(question: PracticeQuestion) -> dict:
+    return {
+        "id": question.id,
+        "exam_id": question.exam_id,
+        "question_text": question.question_text,
+        "explanation": question.explanation,
+        "difficulty": question.difficulty,
+        "topic": question.topic,
+        "options": [serialize_practice_question_option(opt) for opt in question.options.all()],
+        "created_at": question.created_at.isoformat(),
+    }
+
+def serialize_practice_question_option(option: PracticeQuestionOption) -> dict:
+    return {
+        "id": option.id,
+        "question_id": option.question_id,
+        "option_text": option.option_text,
+        "is_correct": option.is_correct,
+        "explanation": option.explanation,
+    }
+
+def serialize_mock_exam(exam: MockExam) -> dict:
+    return {
+        "id": exam.id,
+        "exam_id": exam.exam_id,
+        "title": exam.title,
+        "description": exam.description,
+        "duration_minutes": exam.duration_minutes,
+        "created_at": exam.created_at.isoformat(),
+    }
+
+def serialize_study_plan(plan: StudyPlan) -> dict:
+    return {
+        "id": plan.id,
+        "student_id": plan.student_id,
+        "exam_id": plan.exam_id,
+        "exam_title": plan.exam.title,
+        "created_at": plan.created_at.isoformat(),
+        "completed_at": plan.completed_at.isoformat() if plan.completed_at else None,
+    }
+
+def serialize_study_plan_item(item: StudyPlanItem) -> dict:
+    return {
+        "id": item.id,
+        "study_plan_id": item.study_plan_id,
+        "item_type": item.item_type,
+        "lesson_id": item.lesson_id,
+        "practice_question_id": item.practice_question_id,
+        "mock_exam_id": item.mock_exam_id,
+        "completed": item.completed,
+        "completion_date": item.completion_date.isoformat() if item.completion_date else None,
+        "order": item.order,
+    }
+
+def serialize_performance_metric(metric: StudentPerformanceMetric) -> dict:
+    return {
+        "id": metric.id,
+        "student_id": metric.student_id,
+        "exam_id": metric.exam_id,
+        "metric_type": metric.metric_type,
+        "value": metric.value,
+        "trend": metric.trend,
+        "calculated_at": metric.calculated_at.isoformat(),
+    }
+
+# Endpoints
+
+@api_endpoint(["GET", "POST"], authentication_required=False)
+def exam_categories_view(request):
+    if request.method == "POST":
+        if not hasattr(request.user, 'is_staff') or not request.user.is_staff:
+            return error_response(
+                request,
+                "forbidden",
+                "Only admin users can create exam categories.",
+                status=403,
+            )
+        
+        try:
+            payload = parse_json_body(request)
+        except (ValueError, ValidationError) as e:
+            return error_response(
+                request,
+                "invalid_request",
+                str(e),
+                status=400,
+            )
+        
+        try:
+            category = ExamCategory.objects.create(
+                name=payload.get("name"),
+                description=payload.get("description", ""),
+                icon=payload.get("icon", "book"),
+                order=payload.get("order", 0),
+                active=payload.get("active", True),
+            )
+            return success_response(serialize_exam_category(category), status=201)
+        except (ValueError, ValidationError) as e:
+            return error_response(request, "invalid_data", str(e), status=400)
+    
+    categories = ExamCategory.objects.filter(active=True).order_by("order", "name")
+    return success_response({
+        "categories": [serialize_exam_category(cat) for cat in categories]
+    })
+
+@api_endpoint(["GET", "PUT", "DELETE"], authentication_required=False)
+def exam_category_detail_view(request, category_id):
+    try:
+        category = ExamCategory.objects.get(id=category_id)
+    except ExamCategory.DoesNotExist:
+        return error_response(
+            request,
+            "not_found",
+            "Exam category not found.",
+            status=404,
+        )
+    
+    if request.method == "GET":
+        exams = category.exams.filter(status=Exam.Status.ACTIVE)
+        return success_response({
+            "category": serialize_exam_category(category),
+            "exams": [{"id": e.id, "title": e.title} for e in exams],
+        })
+    
+    if not hasattr(request.user, 'is_staff') or not request.user.is_staff:
+        return error_response(
+            request,
+            "forbidden",
+            "Only admin users can modify exam categories.",
+            status=403,
+        )
+    
+    if request.method == "PUT":
+        try:
+            payload = parse_json_body(request)
+        except (ValueError, ValidationError) as e:
+            return error_response(request, "invalid_request", str(e), status=400)
+        
+        category.name = payload.get("name", category.name)
+        category.description = payload.get("description", category.description)
+        category.icon = payload.get("icon", category.icon)
+        category.order = payload.get("order", category.order)
+        category.active = payload.get("active", category.active)
+        category.save()
+        return success_response(serialize_exam_category(category))
+    
+    if request.method == "DELETE":
+        if category.exams.exists():
+            return error_response(
+                request,
+                "conflict",
+                "Cannot delete category with associated exams.",
+                status=400,
+            )
+        category.delete()
+        return success_response({"message": "Category deleted successfully."})
+
+@api_endpoint(["GET", "POST"], authentication_required=False)
+def practice_questions_list_view(request, exam_id):
+    try:
+        exam = Exam.objects.get(id=exam_id)
+    except Exam.DoesNotExist:
+        return error_response(request, "not_found", "Exam not found.", status=404)
+    
+    if request.method == "POST":
+        if not hasattr(request.user, 'is_staff') or not request.user.is_staff:
+            return error_response(
+                request,
+                "forbidden",
+                "Only admin users can create practice questions.",
+                status=403,
+            )
+        
+        try:
+            payload = parse_json_body(request)
+        except (ValueError, ValidationError) as e:
+            return error_response(request, "invalid_request", str(e), status=400)
+        
+        try:
+            question = PracticeQuestion.objects.create(
+                exam=exam,
+                question_text=payload.get("question_text"),
+                explanation=payload.get("explanation", ""),
+                difficulty=payload.get("difficulty", "medium"),
+                topic=payload.get("topic", ""),
+            )
+            
+            for opt in payload.get("options", []):
+                PracticeQuestionOption.objects.create(
+                    question=question,
+                    option_text=opt.get("option_text"),
+                    is_correct=opt.get("is_correct", False),
+                    explanation=opt.get("explanation", ""),
+                )
+            
+            return success_response(serialize_practice_question(question), status=201)
+        except (ValueError, ValidationError) as e:
+            return error_response(request, "invalid_data", str(e), status=400)
+    
+    questions = PracticeQuestion.objects.filter(exam=exam).order_by("-created_at")
+    return success_response({
+        "questions": [serialize_practice_question(q) for q in questions]
+    })
+
+@api_endpoint(["GET", "POST"], authentication_required=False)
+def practice_question_detail_view(request, question_id):
+    try:
+        question = PracticeQuestion.objects.get(id=question_id)
+    except PracticeQuestion.DoesNotExist:
+        return error_response(
+            request,
+            "not_found",
+            "Practice question not found.",
+            status=404,
+        )
+    
+    if request.method == "GET":
+        return success_response(serialize_practice_question(question))
+    
+    if request.method == "POST":
+        if not request.user.is_authenticated or request.user.role != User.Role.STUDENT:
+            return error_response(
+                request,
+                "unauthorized",
+                "Only authenticated students can submit answers.",
+                status=403,
+            )
+        
+        try:
+            payload = parse_json_body(request)
+        except (ValueError, ValidationError) as e:
+            return error_response(request, "invalid_request", str(e), status=400)
+        
+        try:
+            option_id = payload.get("selected_option_id")
+            selected_option = PracticeQuestionOption.objects.get(
+                id=option_id,
+                question=question
+            )
+            
+            is_correct = selected_option.is_correct
+            
+            return success_response({
+                "is_correct": is_correct,
+                "explanation": selected_option.explanation,
+                "correct_option_id": PracticeQuestionOption.objects.filter(
+                    question=question,
+                    is_correct=True
+                ).first().id,
+            })
+        except PracticeQuestionOption.DoesNotExist:
+            return error_response(request, "not_found", "Option not found.", status=404)
+
+@api_endpoint(["GET", "POST"], authentication_required=False)
+def mock_exams_list_view(request, exam_id):
+    try:
+        exam = Exam.objects.get(id=exam_id)
+    except Exam.DoesNotExist:
+        return error_response(request, "not_found", "Exam not found.", status=404)
+    
+    if request.method == "POST":
+        if not hasattr(request.user, 'is_staff') or not request.user.is_staff:
+            return error_response(
+                request,
+                "forbidden",
+                "Only admin users can create mock exams.",
+                status=403,
+            )
+        
+        try:
+            payload = parse_json_body(request)
+        except (ValueError, ValidationError) as e:
+            return error_response(request, "invalid_request", str(e), status=400)
+        
+        try:
+            mock_exam = MockExam.objects.create(
+                exam=exam,
+                title=payload.get("title"),
+                description=payload.get("description", ""),
+                duration_minutes=payload.get("duration_minutes", exam.duration_minutes),
+            )
+            return success_response(serialize_mock_exam(mock_exam), status=201)
+        except (ValueError, ValidationError) as e:
+            return error_response(request, "invalid_data", str(e), status=400)
+    
+    mock_exams = MockExam.objects.filter(exam=exam).order_by("-created_at")
+    return success_response({
+        "mock_exams": [serialize_mock_exam(m) for m in mock_exams]
+    })
+
+@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.STUDENT])
+def study_plan_view(request):
+    try:
+        profile = StudentProfile.objects.get(user=request.user)
+        plan = StudyPlan.objects.get(student=profile)
+    except (StudentProfile.DoesNotExist, StudyPlan.DoesNotExist):
+        return error_response(request, "not_found", "No study plan found.", status=404)
+    
+    items = plan.items.all()
+    return success_response({
+        "plan": serialize_study_plan(plan),
+        "items": [serialize_study_plan_item(item) for item in items],
+    })
+
+@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.STUDENT])
+def student_performance_view(request):
+    try:
+        profile = StudentProfile.objects.get(user=request.user)
+    except StudentProfile.DoesNotExist:
+        return error_response(
+            request,
+            "not_found",
+            "Student profile not found.",
+            status=404,
+        )
+    
+    metrics = StudentPerformanceMetric.objects.filter(student=profile).order_by("-calculated_at")
+    return success_response({
+        "metrics": [serialize_performance_metric(m) for m in metrics]
+    })
+
+@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.STUDENT])
+def student_performance_exam_view(request, exam_id):
+    try:
+        exam = Exam.objects.get(id=exam_id)
+        profile = StudentProfile.objects.get(user=request.user)
+    except (Exam.DoesNotExist, StudentProfile.DoesNotExist):
+        return error_response(request, "not_found", "Not found.", status=404)
+    
+    metrics = StudentPerformanceMetric.objects.filter(
+        student=profile,
+        exam=exam
+    ).order_by("-calculated_at")
+    
+    return success_response({
+        "metrics": [serialize_performance_metric(m) for m in metrics]
+    })
