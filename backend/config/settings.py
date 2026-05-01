@@ -142,23 +142,39 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 # Caching Configuration
-CACHES = {
-    "default": {
-        "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": os.getenv("REDIS_URL", "redis://127.0.0.1:6379/1"),
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            "CONNECTION_POOL_KWARGS": {
-                "max_connections": 50,
-                "retry_on_timeout": True,
+cache_location = os.getenv("REDIS_URL", "redis://127.0.0.1:6379/1")
+
+# Try to use Redis, fallback to local memory cache if unavailable
+try:
+    import redis
+    redis.from_url(cache_location, socket_connect_timeout=2)
+    
+    CACHES = {
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": cache_location,
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+                "CONNECTION_POOL_KWARGS": {
+                    "max_connections": 50,
+                    "retry_on_timeout": True,
+                },
+                "SOCKET_CONNECT_TIMEOUT": 5,
+                "SOCKET_TIMEOUT": 5,
             },
-            "SOCKET_CONNECT_TIMEOUT": 5,
-            "SOCKET_TIMEOUT": 5,
-        },
-        "KEY_PREFIX": "softlearn",
-        "TIMEOUT": 300,  # Default 5 minutes
+            "KEY_PREFIX": "softlearn",
+            "TIMEOUT": 300,
+        }
     }
-}
+except Exception:
+    # Fallback to local memory cache for development/testing
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": "softlearn-cache",
+            "TIMEOUT": 300,
+        }
+    }
 
 # Sentry Configuration
 SENTRY_DSN = os.getenv("SENTRY_DSN", "")
