@@ -14,11 +14,11 @@ Baseline inception version: v1
 
 ## Scope
 
-Define the baseline student resume-management flow for authenticated self-service maintenance of resume metadata and optional protected resume files.
+Implement authenticated student self-service maintenance of protected resume metadata and active-resume selection inside the profile workspace.
 
 ## Out of Scope
 
-Concrete frontend/backend implementation code, final storage-provider selection, company review permissions, and detailed privacy or consent policy units.
+Binary file storage integration, final storage-provider selection, company review permissions, and detailed privacy or consent policy units.
 
 ## Dependencies
 
@@ -26,16 +26,16 @@ Depends on the data-model, security, matching, architecture, RBAC, frontend foun
 
 ## Acceptance Criteria
 
-The unit documents student-owned resume management, optional upload-safety posture, profile-completeness alignment, and protected-access behavior without producing application code.
+Students can manage resume metadata through protected backend routes and the student profile UI, and only one resume can remain active at a time.
 
 ## Risks
 
-If resume management is modeled inconsistently here, later profile completeness, privacy, storage, and company-review units will drift into conflicting ownership and access rules.
+If resume metadata drifts from the shared student profile contract, later readiness, privacy, storage, and company-review behavior will become inconsistent.
 
 ## Open Questions
 
-Exact file-type list, maximum size values, and final storage-serving mechanics can be refined later as long as protected ownership and restricted access stay intact.
+Protected binary upload and storage-serving behavior can be added later without changing the metadata contract shipped here.
 
 ## Last Updated
 
-2026-04-29
+2026-05-01

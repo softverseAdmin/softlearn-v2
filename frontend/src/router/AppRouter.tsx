@@ -1,6 +1,10 @@
 import { Route, Routes } from 'react-router-dom'
 
 import { AdminCompaniesPage } from '../features/admin/AdminCompaniesPage'
+import { AdminCoursesPage } from '../features/admin/AdminCoursesPage'
+import { AdminCourseLessonsPage } from '../features/admin/AdminCourseLessonsPage'
+import { AdminExamsPage } from '../features/admin/AdminExamsPage'
+import { AdminExamQuestionsPage } from '../features/admin/AdminExamQuestionsPage'
 import { AdminVacanciesPage } from '../features/admin/AdminVacanciesPage'
 import { AdminUsersPage } from '../features/admin/AdminUsersPage'
 import { NotificationsPage } from '../features/notifications/NotificationsPage'
@@ -12,13 +16,21 @@ import { CompanyInterviewDetailPage } from '../features/profile/CompanyInterview
 import { CompanyInterviewsPage } from '../features/profile/CompanyInterviewsPage'
 import { CompanyProfilePage } from '../features/profile/CompanyProfilePage'
 import { CompanyShortlistPage } from '../features/profile/CompanyShortlistPage'
+import { CompanyVacancyMatchesPage } from '../features/profile/CompanyVacancyMatchesPage'
 import { CompanyVacanciesPage } from '../features/profile/CompanyVacanciesPage'
 import { StudentApplicationsPage } from '../features/profile/StudentApplicationsPage'
-import { StudentExamResultsPage } from '../features/profile/StudentExamResultsPage'
+import { StudentCourseCatalogPage } from '../features/profile/StudentCourseCatalogPage'
+import { StudentCourseDetailPage } from '../features/profile/StudentCourseDetailPage'
+import { StudentExamPage } from '../features/profile/StudentExamPage'
+import StudentExamResultsPage from '../features/profile/StudentExamResultsPage'
 import { StudentInterviewDetailPage } from '../features/profile/StudentInterviewDetailPage'
 import { StudentInterviewsPage } from '../features/profile/StudentInterviewsPage'
 import { StudentJobsPage } from '../features/profile/StudentJobsPage'
+import { StudentLessonPage } from '../features/profile/StudentLessonPage'
 import { StudentLearningPage } from '../features/profile/StudentLearningPage'
+import { StudentMatchesPage } from '../features/profile/StudentMatchesPage'
+import { StudentMockExamPage } from '../features/profile/StudentMockExamPage'
+import { StudentPreparationPage } from '../features/profile/StudentPreparationPage'
 import { StudentPrivacySettingsPage } from '../features/profile/StudentPrivacySettingsPage'
 import { StudentProfilePage } from '../features/profile/StudentProfilePage'
 import { StudentSkillsPage } from '../features/profile/StudentSkillsPage'
@@ -49,12 +61,19 @@ export function AppRouter() {
           <Route element={<RoleGuard role="student" />}>
             <Route path="/student" element={<DashboardPage role="student" />} />
             <Route path="/student/notifications" element={<NotificationsPage />} />
+            <Route path="/student/matches" element={<StudentMatchesPage />} />
             <Route path="/student/applications" element={<StudentApplicationsPage />} />
             <Route path="/student/profile" element={<StudentProfilePage />} />
             <Route path="/student/skills" element={<StudentSkillsPage />} />
+            <Route path="/student/courses" element={<StudentCourseCatalogPage />} />
+            <Route path="/student/courses/:courseId" element={<StudentCourseDetailPage />} />
+            <Route path="/student/courses/:courseId/lessons/:lessonId" element={<StudentLessonPage />} />
             <Route path="/student/jobs" element={<StudentJobsPage />} />
             <Route path="/student/learning" element={<StudentLearningPage />} />
+            <Route path="/student/preparation" element={<StudentPreparationPage />} />
             <Route path="/student/exams" element={<StudentExamResultsPage />} />
+            <Route path="/student/exams/:examId" element={<StudentExamPage />} />
+            <Route path="/student/mock-exams/:examId" element={<StudentMockExamPage />} />
             <Route path="/student/interviews" element={<StudentInterviewsPage />} />
             <Route path="/student/interviews/:interviewId" element={<StudentInterviewDetailPage />} />
             <Route path="/student/privacy" element={<StudentPrivacySettingsPage />} />
@@ -71,6 +90,7 @@ export function AppRouter() {
             <Route path="/company/interviews/:interviewId" element={<CompanyInterviewDetailPage />} />
             <Route path="/company/shortlist" element={<CompanyShortlistPage />} />
             <Route path="/company/vacancies" element={<CompanyVacanciesPage />} />
+            <Route path="/company/vacancies/:vacancyId/matches" element={<CompanyVacancyMatchesPage />} />
           </Route>
 
           <Route element={<RoleGuard role="admin" />}>
@@ -78,6 +98,10 @@ export function AppRouter() {
             <Route path="/admin/notifications" element={<NotificationsPage />} />
             <Route path="/admin/users" element={<AdminUsersPage />} />
             <Route path="/admin/operations" element={<AdminCompaniesPage />} />
+            <Route path="/admin/courses" element={<AdminCoursesPage />} />
+            <Route path="/admin/courses/:courseId/lessons" element={<AdminCourseLessonsPage />} />
+            <Route path="/admin/exams" element={<AdminExamsPage />} />
+            <Route path="/admin/exams/:examId/questions" element={<AdminExamQuestionsPage />} />
             <Route path="/admin/vacancies" element={<AdminVacanciesPage />} />
           </Route>
         </Route>

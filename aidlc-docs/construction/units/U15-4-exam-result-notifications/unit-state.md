@@ -14,11 +14,11 @@ Baseline inception version: v1
 
 ## Scope
 
-Define the baseline exam-result-notifications flow so students receive deterministic notifications when official exam results become available or materially change.
+Implement deterministic student-only notifications for official exam-result availability and result updates through the shared notification core.
 
 ## Out of Scope
 
-Concrete frontend or backend implementation code, Company-facing exam-result notifications, Push-delivery channels, Marketing notifications, and Heavy analytics.
+Company-facing exam-result notifications, push-delivery channels, marketing notifications, and heavy analytics.
 
 ## Dependencies
 
@@ -26,16 +26,16 @@ Depends on the requirements, security, data-model, architecture, shared authoriz
 
 ## Acceptance Criteria
 
-The unit documents exam result notifications behavior, boundaries, and integrations without producing application code.
+Official exam results create summary-safe notifications for the owning student with simulated delivery records and protected links back to exam history.
 
 ## Risks
 
-If this unit is underspecified here, later implementation can create authorization gaps, conflicting behavior, or blurred boundaries with adjacent workflows.
+If exam-result notifications reach unauthorized users or reveal answer-level detail, student privacy and exam integrity are weakened.
 
 ## Open Questions
 
-Later implementation can refine detailed field shapes and UX behavior as long as the documented authorization, privacy, and deterministic rules remain intact.
+Later dashboards may surface exam notification counts without changing the current student-only trigger rules.
 
 ## Last Updated
 
-2026-04-29
+2026-05-01

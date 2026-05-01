@@ -17,6 +17,7 @@ const contentByRole = {
       { title: 'Applications', href: '/student/applications' },
       { title: 'Profile and resume', href: '/student/profile' },
       { title: 'Skills profile', href: '/student/skills' },
+      { title: 'Course catalog', href: '/student/courses' },
       { title: 'Learning progress', href: '/student/learning' },
       { title: 'Exam history', href: '/student/exams' },
       { title: 'Interview schedule', href: '/student/interviews' },
@@ -111,46 +112,32 @@ export function DashboardPage({ role }: DashboardPageProps) {
         <div className="card-grid">
           <article className="card info-card">
             <h2>Users</h2>
-            <p className="metric">{adminData.metrics.total_users}</p>
-            <p className="muted">{adminData.metrics.students} students / {adminData.metrics.company_users} company / {adminData.metrics.admins} admins</p>
+            <p className="metric">{adminData.system_stats.total_users}</p>
+            <p className="muted">{adminData.system_stats.active_students} active students</p>
           </article>
           <article className="card info-card">
             <h2>Companies</h2>
-            <p className="metric">{adminData.metrics.companies}</p>
+            <p className="metric">{adminData.system_stats.companies}</p>
             <p className="muted">Registered company contexts</p>
           </article>
           <article className="card info-card">
-            <h2>Vacancies</h2>
-            <p className="metric">{adminData.metrics.active_vacancies}</p>
-            <p className="muted">Active company roles</p>
-          </article>
-          <article className="card info-card">
-            <h2>Interviews</h2>
-            <p className="metric">{adminData.metrics.total_interviews}</p>
-            <p className="muted">{adminData.metrics.active_interviews} active / {adminData.metrics.completed_interviews} completed</p>
-          </article>
-          <article className="card info-card">
-            <h2>Cancelled interviews</h2>
-            <p className="metric">{adminData.metrics.cancelled_interviews}</p>
-            <p className="muted">Terminal cancellations</p>
-          </article>
-          <article className="card info-card">
-            <h2>Notifications</h2>
-            <p className="metric">{adminData.metrics.unread_notifications}</p>
-            <p className="muted">Unread admin updates</p>
+            <h2>Revenue</h2>
+            <p className="metric">{adminData.system_stats.revenue_label}</p>
+            <p className="muted">{adminData.system_stats.revenue_description}</p>
           </article>
         </div>
         <div className="page-split">
           <div className="card stack-card">
-            <h2>Recent users</h2>
+            <h2>Recent activity</h2>
             <div className="stack-list">
-              {adminData.recent_users.map((recentUser) => (
-                <article key={recentUser.user_id} className="skill-card">
-                  <h3>{recentUser.name}</h3>
-                  <p className="muted">{recentUser.email} · {recentUser.role}</p>
+              {adminData.recent_activity.map((item) => (
+                <article key={item.id} className="skill-card">
+                  <h3>{item.title}</h3>
+                  <p className="muted">{item.description}</p>
+                  <p className="muted">{new Date(item.timestamp).toLocaleString()}</p>
                 </article>
               ))}
-              {adminData.recent_users.length === 0 ? <p className="muted">No recent users.</p> : null}
+              {adminData.recent_activity.length === 0 ? <p className="muted">No recent activity.</p> : null}
             </div>
           </div>
           <div className="card stack-card">
@@ -162,30 +149,23 @@ export function DashboardPage({ role }: DashboardPageProps) {
             ))}
           </div>
         </div>
-        <div className="page-split">
-          <div className="card stack-card">
-            <h2>Recent interviews</h2>
-            <div className="stack-list">
-              {adminData.recent_interviews.map((interview) => (
-                <article key={interview.id} className="skill-card">
-                  <h3>{interview.company_name} - {interview.student_name}</h3>
-                  <p className="muted">{interview.status}</p>
-                </article>
-              ))}
-              {adminData.recent_interviews.length === 0 ? <p className="muted">No recent interviews.</p> : null}
-            </div>
-          </div>
-          <div className="card stack-card">
-            <h2>Recent notifications</h2>
-            <div className="stack-list">
-              {adminData.recent_notifications.map((notification) => (
-                <article key={notification.id} className="skill-card">
-                  <h3>{notification.title}</h3>
-                  <p className="muted">{notification.message}</p>
-                </article>
-              ))}
-              {adminData.recent_notifications.length === 0 ? <p className="muted">No notifications yet.</p> : null}
-            </div>
+        <div className="card stack-card">
+          <h2>System status</h2>
+          <div className="stack-list">
+            {adminData.system_status.map((item) => (
+              <article key={item.id} className="skill-card">
+                <div className="skill-card-header">
+                  <div>
+                    <h3>{item.label}</h3>
+                    <p className="muted">{item.description}</p>
+                  </div>
+                  <span className={`status-pill ${item.tone === 'warning' ? 'status-muted' : 'status-success'}`}>
+                    {item.value}
+                  </span>
+                </div>
+              </article>
+            ))}
+            {adminData.system_status.length === 0 ? <p className="muted">No system status items.</p> : null}
           </div>
         </div>
       </>

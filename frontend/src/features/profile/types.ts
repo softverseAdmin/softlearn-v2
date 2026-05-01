@@ -11,6 +11,58 @@ export interface StudentProfile {
   japanese_level: string
   english_level: string
   profile_complete: boolean
+  education_records: StudentEducationRecord[]
+  experience_records: StudentExperienceRecord[]
+  resumes: StudentResumeRecord[]
+  availability: StudentAvailabilityProfile
+  profile_extension_summary: StudentProfileExtensionSummary
+}
+
+export interface StudentEducationRecord {
+  id: number
+  institution: string
+  field_of_study: string
+  start_date: string
+  end_date: string | null
+  completion_status: string
+}
+
+export interface StudentExperienceRecord {
+  id: number
+  organization: string
+  role_title: string
+  experience_type: string
+  start_date: string
+  end_date: string | null
+  is_current: boolean
+  summary: string
+}
+
+export interface StudentResumeRecord {
+  id: number
+  display_name: string
+  file_name: string
+  source_type: string
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface StudentAvailabilityProfile {
+  job_search_status: string
+  earliest_start_date: string | null
+  interview_availability: string
+  scheduling_notes: string
+  availability_set: boolean
+  updated_at: string
+}
+
+export interface StudentProfileExtensionSummary {
+  education_count: number
+  experience_count: number
+  resume_count: number
+  has_active_resume: boolean
+  availability_set: boolean
 }
 
 export interface CompanyProfile {
@@ -78,6 +130,30 @@ export interface StudentJobsResponse {
   available_languages: SelectOption[]
   available_locations: string[]
   available_work_styles: SelectOption[]
+}
+
+export interface MatchFactorBreakdown {
+  skill: number
+  language: number
+  location: number
+  readiness: number
+  profile: number
+}
+
+export interface StudentMatchedJobRecord extends VacancyRecord {
+  match_score: number
+  match_level: string
+  strengths: string[]
+  gaps: string[]
+  factor_breakdown: MatchFactorBreakdown
+  has_active_application: boolean
+  can_apply: boolean
+}
+
+export interface StudentMatchesResponse {
+  student_id: number
+  match_count: number
+  matches: StudentMatchedJobRecord[]
 }
 
 export interface ApplicationStatusHistoryRecord {
@@ -153,6 +229,7 @@ export interface StudentSkillsResponse {
 
 export interface LearningRecord {
   id: number
+  course_id: number | null
   course_title: string
   category: string
   progress_percent: number
@@ -168,8 +245,94 @@ export interface LearningSummary {
   records: LearningRecord[]
 }
 
+export interface CourseCatalogRecord {
+  course_id: number
+  title: string
+  description: string
+  category: string
+  difficulty_level: string
+  estimated_hours: number
+  status: string
+  lesson_count: number
+  is_enrolled: boolean
+  enrollment_status: string | null
+  progress_percent: number | null
+  readiness_cues: string[]
+  detail_href: string
+  next_step_label: string
+  next_step_href: string
+}
+
+export interface CourseCatalogResponse {
+  result_count: number
+  courses: CourseCatalogRecord[]
+}
+
+export interface CourseEnrollmentState {
+  is_enrolled: boolean
+  learning_record_id: number | null
+  status: string | null
+  progress_percent: number | null
+  completed_at: string | null
+  lesson_count: number
+  completed_lesson_count: number
+}
+
+export interface CourseLessonSummary {
+  lesson_id: number
+  title: string
+  summary: string
+  sequence_number: number
+  status: string | null
+  is_accessible: boolean
+  detail_href: string | null
+}
+
+export interface CourseDetailResponse extends CourseCatalogRecord {
+  enrollment: CourseEnrollmentState
+  lessons: CourseLessonSummary[]
+  learning_outcomes: string[]
+}
+
+export interface StudentCourseEnrollmentResponse {
+  course_id: number
+  created: boolean
+  enrollment: CourseEnrollmentState
+  next_step_href: string
+  next_step_label: string
+}
+
+export interface LessonProgressState {
+  status: string
+  started_at: string | null
+  completed_at: string | null
+}
+
+export interface LessonDetailResponse {
+  lesson_id: number
+  course_id: number
+  course_title: string
+  course_href: string
+  title: string
+  summary: string
+  content: string
+  sequence_number: number
+  total_lessons: number
+  progress: LessonProgressState
+  previous_lesson_href: string | null
+  next_lesson_href: string | null
+}
+
+export interface LessonProgressUpdateResponse {
+  lesson: LessonDetailResponse
+  enrollment: CourseEnrollmentState
+  next_step_href: string
+}
+
 export interface ExamResult {
   id: number
+  exam_id: number | null
+  attempt_id: number | null
   exam_title: string
   category: string
   score_percent: number
@@ -178,12 +341,232 @@ export interface ExamResult {
   taken_at: string
 }
 
+export interface AvailableExamRecord {
+  exam_id: number
+  title: string
+  description: string
+  category: string
+  duration_minutes: number
+  passing_score_percent: number
+  question_count: number
+  max_attempts: number
+  attempt_count: number
+  can_take: boolean
+  retake_message: string
+  next_attempt_number: number | null
+  detail_href: string
+}
+
 export interface ExamResultsSummary {
   student_id: number
   total_results: number
   passed_results: number
   average_score: number | null
   results: ExamResult[]
+  available_exams: AvailableExamRecord[]
+}
+
+export interface StudentExamQuestionOption {
+  option_id: number
+  option_text: string
+  sequence_number: number
+}
+
+export interface StudentExamQuestion {
+  question_id: number
+  prompt: string
+  instructions: string
+  question_type: string
+  sequence_number: number
+  points: number
+  options: StudentExamQuestionOption[]
+}
+
+export interface StudentExamDetailResponse {
+  exam_id: number
+  title: string
+  description: string
+  category: string
+  duration_minutes: number
+  passing_score_percent: number
+  question_count: number
+  max_attempts: number
+  attempt_count: number
+  can_take: boolean
+  retake_message: string
+  next_attempt_number: number | null
+  questions: StudentExamQuestion[]
+}
+
+export interface StudentExamSubmitResponse {
+  exam_id: number
+  attempt_id: number
+  attempt_number: number
+  score_percent: number
+  passed: boolean
+  passing_score_percent: number
+  result_id: number
+  history_href: string
+}
+
+export interface PreparationCategorySummary {
+  category: string
+  label: string
+  course_count: number
+  completed_courses: number
+  in_progress_courses: number
+  practice_question_count: number
+  practice_attempt_count: number
+  practice_accuracy: number | null
+  mock_attempt_count: number
+  best_mock_score: number | null
+  latest_mock_score: number | null
+  available_exam_count: number
+}
+
+export interface StudyPlanItem {
+  category: string
+  label: string
+  status: 'not_started' | 'focus' | 'in_progress' | 'ready'
+  practice_target: number
+  practice_completed: number
+  latest_mock_score: number | null
+  next_step: string
+  cta_href: string
+}
+
+export interface PreparationPerformanceCategory {
+  category: string
+  label: string
+  practice_attempt_count: number
+  practice_accuracy: number | null
+  mock_attempt_count: number
+  best_mock_score: number | null
+  latest_mock_score: number | null
+}
+
+export interface PracticeAttemptActivity {
+  attempt_id: number
+  exam_id: number
+  exam_title: string
+  category: string
+  question_id: number
+  question_prompt: string
+  is_correct: boolean
+  created_at: string
+}
+
+export interface MockExamAttemptRecord {
+  attempt_id: number
+  exam_id: number
+  exam_title: string
+  category: string
+  attempt_number: number
+  score_percent: number
+  correct_answer_count: number
+  total_questions: number
+  submitted_at: string
+}
+
+export interface StudentMockExamRecord {
+  exam_id: number
+  title: string
+  description: string
+  category: string
+  duration_minutes: number
+  question_count: number
+  attempt_count: number
+  best_score: number | null
+  last_score: number | null
+  detail_href: string
+}
+
+export interface PreparationSummaryResponse {
+  student_id: number
+  categories: PreparationCategorySummary[]
+  study_plan: {
+    items: StudyPlanItem[]
+  }
+  performance: {
+    practice_attempt_count: number
+    practice_accuracy: number | null
+    mock_attempt_count: number
+    best_mock_score: number | null
+    recent_mock_score: number | null
+    category_breakdown: PreparationPerformanceCategory[]
+  }
+  mock_exams: StudentMockExamRecord[]
+  recent_activity: {
+    practice_attempts: PracticeAttemptActivity[]
+    mock_attempts: MockExamAttemptRecord[]
+  }
+}
+
+export interface PracticeQuestionRecord {
+  question_id: number
+  exam_id: number
+  exam_title: string
+  category: string
+  prompt: string
+  instructions: string
+  sequence_number: number
+  points: number
+  options: StudentExamQuestionOption[]
+  attempt_count: number
+  last_outcome: boolean | null
+}
+
+export interface PracticeQuestionsResponse {
+  selected_category: string | null
+  selected_exam_id: number | null
+  categories: SelectOption[]
+  exams: Array<{
+    exam_id: number
+    title: string
+    category: string
+  }>
+  question_count: number
+  questions: PracticeQuestionRecord[]
+}
+
+export interface PracticeQuestionAttemptResponse {
+  attempt_id: number
+  question_id: number
+  selected_option_id: number
+  is_correct: boolean
+  correct_option_id: number
+  correct_option_text: string
+  feedback: string
+  performance_snapshot: {
+    category: string
+    practice_attempt_count: number
+    practice_accuracy: number | null
+  }
+}
+
+export interface StudentMockExamDetailResponse {
+  exam_id: number
+  title: string
+  description: string
+  category: string
+  duration_minutes: number
+  question_count: number
+  attempt_count: number
+  next_attempt_number: number
+  best_score: number | null
+  last_score: number | null
+  questions: StudentExamQuestion[]
+}
+
+export interface StudentMockExamSubmitResponse {
+  attempt_id: number
+  exam_id: number
+  exam_title: string
+  attempt_number: number
+  score_percent: number
+  correct_answer_count: number
+  total_questions: number
+  history_href: string
 }
 
 export interface CompanyCandidate {
@@ -211,6 +594,34 @@ export interface CompanyCandidatesResponse {
   company_id: number
   candidate_count: number
   candidates: CompanyCandidate[]
+}
+
+export interface CompanyVacancyMatchRecord {
+  candidate_access_id: number | null
+  vacancy_id: number
+  student_id: number
+  display_name: string
+  desired_job_type: string
+  desired_work_location: string
+  top_skills: string[]
+  match_score: number
+  match_level: string
+  strengths: string[]
+  gaps: string[]
+  factor_breakdown: MatchFactorBreakdown
+  visibility: {
+    profile_preview: string
+    learning_record: string
+    exam_results: string
+  }
+}
+
+export interface CompanyVacancyMatchesResponse {
+  company_id: number
+  vacancy_id: number
+  vacancy_title: string
+  match_count: number
+  matches: CompanyVacancyMatchRecord[]
 }
 
 export interface CompanyCandidatePreviewResponse {

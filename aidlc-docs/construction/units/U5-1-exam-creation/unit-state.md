@@ -14,28 +14,29 @@ Baseline inception version: v1
 
 ## Scope
 
-Define the baseline protected exam-creation flow so authorized platform operators can create structured exam records without collapsing question authoring, answer handling, scoring, or exam-taking behavior into the same unit.
+Implement protected admin exam creation and maintenance for shared exams, including top-level assessment settings such as timing, passing score, and max attempts.
 
 ## Out of Scope
 
-Concrete frontend/backend implementation code, question creation, answer-option management, exam taking, answer submission, score calculation, pass/fail evaluation, exam history, retake policy, and broad admin exam-management workflows beyond baseline creation.
+Question authoring, student exam-taking, answer persistence, scoring internals, and company-facing result exposure.
 
 ## Dependencies
 
-Depends on the requirements, security, data-model, authentication, RBAC, API, routing, state-management, and base-layout baselines.
+Depends on authentication, RBAC, admin routing, and the shared assessment domain.
 
 ## Acceptance Criteria
 
-The unit documents protected exam creation, validation outcomes, authoring boundaries, and relationship to later exam units without producing application code.
+Admins can create, update, and retire shared exam records through protected APIs and admin UI.
 
 ## Risks
 
-If exam creation is underspecified here, later question, attempt, scoring, and result units can drift into conflicting exam-definition, visibility, and audit expectations.
+If exam-level policy fields drift from the shared exam record, later taking and retake logic can become inconsistent.
 
 ## Open Questions
 
-Exact draft-versus-published lifecycle rules, richer exam metadata, and approval workflows can be refined later as long as protected exam creation remains explicit and auditable.
+Richer publication workflows can be added later without replacing shared exam records as the source of truth.
 
 ## Last Updated
 
-2026-04-29
+2026-05-01
+

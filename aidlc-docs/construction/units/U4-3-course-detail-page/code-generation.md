@@ -2,36 +2,36 @@
 
 ## Implementation plan
 
-No application code for this unit.
-
-This unit defines the course-detail baseline only. Later backend and frontend units may implement detail routes, reads, fallback states, and tests from this design.
+1. Add a protected student single-course detail API backed by the shared `Course` record.
+2. Return meaningful course detail fields, learning outcomes, and stable unavailable behavior for missing or inactive courses.
+3. Build a student course detail page with onward links toward the current learning area.
+4. Cover stable detail access behavior with backend tests.
 
 ## Files to create or update
 
-- `aidlc-docs/construction/units/U4-3-course-detail-page/unit-state.md`
-- `aidlc-docs/construction/units/U4-3-course-detail-page/functional-design.md`
-- `aidlc-docs/construction/units/U4-3-course-detail-page/nfr-requirements.md`
-- `aidlc-docs/construction/units/U4-3-course-detail-page/nfr-design.md`
-- `aidlc-docs/construction/units/U4-3-course-detail-page/infrastructure-design.md`
+- `backend/api/views.py`
+- `backend/api/urls.py`
+- `backend/api/tests.py`
+- `frontend/src/features/profile/types.ts`
+- `frontend/src/features/profile/StudentCourseDetailPage.tsx`
+- `frontend/src/router/AppRouter.tsx`
+- `frontend/src/app/PageTitle.tsx`
 - `aidlc-docs/construction/units/U4-3-course-detail-page/code-generation.md`
-- `aidlc-docs/aidlc-state.md`
+- `aidlc-docs/construction/units/U4-3-course-detail-page/unit-state.md`
 
 ## Test plan
 
-- Review the unit against the requirements, data-model, API, routing, and layout baselines.
-- Confirm the unit defines course-detail behavior clearly.
-- Confirm the unit remains separate from listing, enrollment, and lesson-delivery workflows.
-- Confirm no application code is added.
-- Run `./scripts/aidlc-check.sh`.
+- `. .venv\Scripts\Activate.ps1; cd backend; python manage.py check; python manage.py test`
+- `cd frontend; npm run build; npm run lint`
+- `bash ./scripts/aidlc-check.sh` in a shell that can execute the repository validation script.
 
 ## Rollback plan
 
-Revert the documentation-only change if the course-detail baseline is rejected or replaced by an approved revision.
+- Revert the student course detail API, course detail page, route wiring, and related tests.
 
 ## Review checklist
 
-- Course-detail flow documented
-- Single-course data expectations documented
-- Navigation to later enrollment or lesson actions documented
-- Separation from listing and learning-state tracking preserved
-- No application code introduced
+- Detail data stays course-centered
+- Missing or inactive courses return stable not-found behavior
+- Navigation from listing to detail works consistently
+- Detail page stays separate from enrollment and lesson delivery logic

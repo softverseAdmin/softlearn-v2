@@ -14,28 +14,28 @@ Baseline inception version: v1
 
 ## Scope
 
-Define the baseline student-facing matched-jobs flow so a student can review ranked job recommendations using deterministic explainable match results without collapsing search, bookmark, or application behavior into the same unit.
+Implement a protected student matched-jobs experience that surfaces deterministic job recommendations, explanations, bookmarks, and apply-state context.
 
 ## Out of Scope
 
-Concrete frontend/backend implementation code, aggregate score calculation logic, search filtering, bookmarking, applications, and any hidden company-internal data exposure.
+Push notifications for recommendations, personalized AI ranking, and employer-visible student preference analytics.
 
 ## Dependencies
 
-Depends on the requirements, security, data-model, architecture, vacancy visibility baselines, job-search baselines, bookmark-jobs baseline, and U9-1 through U9-6 matching baselines.
+Depends on job-list-page, bookmark-jobs, applications, access control, and match-score-calculation.
 
 ## Acceptance Criteria
 
-The unit documents student-facing matched-jobs behavior, ranking and explanation constraints, and relationship to upstream aggregate match scoring without producing application code.
+Students can open a matched-jobs page, see deterministic ranked vacancies with factor breakdowns, and act on bookmark and apply controls without bypassing existing visibility rules.
 
 ## Risks
 
-If student matched-job views are underspecified here, later implementation can drift into opaque recommendation behavior, inconsistent ranking, or confusion between matched jobs, search results, and bookmarks.
+If matched jobs bypass discovery visibility rules, students could see inactive or unauthorized vacancies.
 
 ## Open Questions
 
-Exact student UI sorting, refresh timing, and saved-view affordances can be refined later as long as ranking and explanation behavior remain deterministic.
+Future versions can add match-history or recommendation refresh indicators if they preserve deterministic scoring and visibility constraints.
 
 ## Last Updated
 
-2026-04-29
+2026-04-30

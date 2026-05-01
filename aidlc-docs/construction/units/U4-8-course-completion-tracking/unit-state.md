@@ -14,28 +14,28 @@ Baseline inception version: v1
 
 ## Scope
 
-Define the baseline course-completion flow so a student’s finished-course outcome can be tracked as protected, enrollment-linked learning evidence derived from lesson progress.
+Implement deterministic course completion and progress rollup from active lesson progress under a student-owned course learning record.
 
 ## Out of Scope
 
-Concrete frontend/backend implementation code, lesson authoring, enrollment creation, lesson-progress implementation detail, certification issuance, and readiness-score calculation.
+Certificates, readiness-score changes, company visibility into protected completion data, and manual completion overrides.
 
 ## Dependencies
 
-Depends on the requirements, security, data-model, privacy, lesson progress, and learning-route baselines.
+Depends on shared lessons, course enrollment, lesson progress, student dashboard continuation logic, and learning summary surfaces.
 
 ## Acceptance Criteria
 
-The unit documents course-completion behavior, derivation expectations, and protected learning-evidence boundaries without producing application code.
+Course-level progress and completion update deterministically from lesson progress and stay aligned across student-facing learning surfaces.
 
 ## Risks
 
-If course completion is vague here, later readiness, matching, privacy, and company-visibility units can drift into conflicting completion or learning-evidence rules.
+If completion rollup diverges between APIs, the student dashboard, course detail, and matching evidence can drift out of sync.
 
 ## Open Questions
 
-Exact completion thresholds, certificate UX, and manual override policy can be refined later as long as completion remains derived from protected enrollment-linked learning state.
+Certificate UX and downstream readiness use can evolve later while preserving the same deterministic lesson-based completion rule.
 
 ## Last Updated
 
-2026-04-29
+2026-04-30

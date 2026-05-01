@@ -14,11 +14,11 @@ Baseline inception version: v1
 
 ## Scope
 
-Define the baseline student availability-management flow for authenticated self-service maintenance of structured readiness and availability records.
+Implement authenticated student self-service maintenance of structured job-search and interview-readiness records inside the profile workspace.
 
 ## Out of Scope
 
-Concrete frontend/backend implementation code, interview scheduling workflows, calendar integration, and detailed privacy or consent policy units.
+Interview scheduling workflows, calendar integration, and detailed privacy or consent policy units.
 
 ## Dependencies
 
@@ -26,16 +26,16 @@ Depends on the data-model, security, matching, RBAC, frontend foundation, routin
 
 ## Acceptance Criteria
 
-The unit documents student-owned availability management, profile-completeness alignment, scheduling-boundary expectations, and protected-access behavior without producing application code.
+Students can update structured availability data through protected backend routes and the student profile UI without leaking scheduling data outside student-owned flows.
 
 ## Risks
 
-If availability is modeled inconsistently here, later profile completeness, scheduling, privacy, and candidate-review units will drift into conflicting ownership and access rules.
+If availability drifts from the shared student profile contract, later readiness, scheduling, privacy, and candidate-review behavior will become inconsistent.
 
 ## Open Questions
 
-Exact field set, supported time-window granularity, and any future calendar-provider integration can be refined later as long as protected ownership and scheduling boundaries stay intact.
+Future calendar integrations can be layered on later without changing the protected availability profile contract shipped here.
 
 ## Last Updated
 
-2026-04-29
+2026-05-01

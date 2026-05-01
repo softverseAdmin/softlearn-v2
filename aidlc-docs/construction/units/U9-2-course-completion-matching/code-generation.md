@@ -2,36 +2,29 @@
 
 ## Implementation plan
 
-No application code for this unit.
-
-This unit defines the course-completion-matching baseline only. Later backend units may implement deterministic learning-factor evaluation, explanation workflows, and tests from this design.
+1. Reuse student learning-summary data as part of deterministic readiness scoring.
+2. Reward completed and in-progress learning records without adding separate hidden signals.
+3. Surface readiness-derived strengths and gaps in matching responses.
+4. Cover the readiness contribution through backend match tests.
 
 ## Files to create or update
 
-- `aidlc-docs/construction/units/U9-2-course-completion-matching/unit-state.md`
-- `aidlc-docs/construction/units/U9-2-course-completion-matching/functional-design.md`
-- `aidlc-docs/construction/units/U9-2-course-completion-matching/nfr-requirements.md`
-- `aidlc-docs/construction/units/U9-2-course-completion-matching/nfr-design.md`
-- `aidlc-docs/construction/units/U9-2-course-completion-matching/infrastructure-design.md`
+- `backend/api/views.py`
+- `backend/api/tests.py`
 - `aidlc-docs/construction/units/U9-2-course-completion-matching/code-generation.md`
-- `aidlc-docs/aidlc-state.md`
+- `aidlc-docs/construction/units/U9-2-course-completion-matching/unit-state.md`
 
 ## Test plan
 
-- Review the unit against the requirements, security, data-model, architecture, and rule-based matching baselines.
-- Confirm the unit defines deterministic course-completion matching clearly.
-- Confirm the unit remains separate from other factors, aggregate scoring, and matched-view workflows.
-- Confirm no application code is added.
-- Run `./scripts/aidlc-check.sh`.
+- `. .venv\Scripts\Activate.ps1; cd backend; python manage.py check; python manage.py test`
+- `bash ./scripts/aidlc-check.sh` in a shell that can execute the repository validation script.
 
 ## Rollback plan
 
-Revert the documentation-only change if the course-completion-matching baseline is rejected or replaced by an approved revision.
+- Revert the learning-summary contribution inside readiness scoring and restore the prior non-matching state.
 
 ## Review checklist
 
-- Deterministic course-completion-matching flow documented
-- Explainable learning-fit expectations documented
-- Relationship to later aggregate scoring and matched-view units documented
-- Separation from other factors and aggregate scoring preserved
-- No application code introduced
+- Course completion contributes deterministically to readiness
+- In-progress coursework contributes partial credit only
+- Readiness explanations stay visible in match payloads

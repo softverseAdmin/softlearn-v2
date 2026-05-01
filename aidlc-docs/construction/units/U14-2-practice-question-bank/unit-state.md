@@ -14,11 +14,11 @@ Baseline inception version: v1
 
 ## Scope
 
-Define the baseline practice-question-bank flow so students can browse and use a protected bank of practice questions separate from official scored exam attempts.
+Implement a protected student practice-question bank with deterministic feedback and separate practice-attempt evidence.
 
 ## Out of Scope
 
-Concrete frontend or backend implementation code, Official exam submission, Adaptive AI recommendations, Heavy analytics, and Admin authoring detail.
+Official exam submission, adaptive recommendations, heavy analytics, and admin authoring beyond the existing exam-question tools.
 
 ## Dependencies
 
@@ -26,16 +26,16 @@ Depends on the requirements, security, data-model, architecture, shared authoriz
 
 ## Acceptance Criteria
 
-The unit documents practice question bank behavior, boundaries, and integrations without producing application code.
+Students can answer protected practice questions, receive deterministic feedback, and build practice history without creating official exam records.
 
 ## Risks
 
-If this unit is underspecified here, later implementation can create authorization gaps, conflicting behavior, or blurred boundaries with adjacent workflows.
+If practice flows reuse official exam history tables or reveal correctness before submission, preparation and certification boundaries blur.
 
 ## Open Questions
 
-Later implementation can refine detailed field shapes and UX behavior as long as the documented authorization, privacy, and deterministic rules remain intact.
+Richer explanations, pagination, and topic tags can be layered on later without changing the separate practice-attempt contract.
 
 ## Last Updated
 
-2026-04-29
+2026-05-01

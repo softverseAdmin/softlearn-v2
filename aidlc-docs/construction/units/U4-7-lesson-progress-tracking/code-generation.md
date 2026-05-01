@@ -2,36 +2,39 @@
 
 ## Implementation plan
 
-No application code for this unit.
-
-This unit defines the lesson-progress baseline only. Later backend and frontend units may implement protected progress reads, writes, validation, and tests from this design.
+1. Add a `LessonProgress` model linked to the enrolled course record and lesson.
+2. Add protected student progress-update APIs for starting and completing lessons with deterministic transitions.
+3. Surface lesson progress state in the student lesson page and course detail page.
+4. Cover progress updates, invalid access, and progress-state persistence with backend tests.
 
 ## Files to create or update
 
-- `aidlc-docs/construction/units/U4-7-lesson-progress-tracking/unit-state.md`
-- `aidlc-docs/construction/units/U4-7-lesson-progress-tracking/functional-design.md`
-- `aidlc-docs/construction/units/U4-7-lesson-progress-tracking/nfr-requirements.md`
-- `aidlc-docs/construction/units/U4-7-lesson-progress-tracking/nfr-design.md`
-- `aidlc-docs/construction/units/U4-7-lesson-progress-tracking/infrastructure-design.md`
+- `backend/users/models.py`
+- `backend/users/migrations/0017_lesson_lessonprogress.py`
+- `backend/users/admin.py`
+- `backend/api/views.py`
+- `backend/api/urls.py`
+- `backend/api/tests.py`
+- `frontend/src/features/profile/types.ts`
+- `frontend/src/features/profile/StudentLessonPage.tsx`
+- `frontend/src/features/profile/StudentCourseDetailPage.tsx`
 - `aidlc-docs/construction/units/U4-7-lesson-progress-tracking/code-generation.md`
-- `aidlc-docs/aidlc-state.md`
+- `aidlc-docs/construction/units/U4-7-lesson-progress-tracking/unit-state.md`
 
 ## Test plan
 
-- Review the unit against the requirements, security, data-model, RBAC, routing, and layout baselines.
-- Confirm the unit defines protected lesson progress clearly.
-- Confirm the unit remains separate from course-completion and analytics workflows.
-- Confirm no application code is added.
-- Run `./scripts/aidlc-check.sh`.
+- `.venv\Scripts\python.exe manage.py check`
+- `.venv\Scripts\python.exe manage.py test`
+- `cd frontend; npm run build; npm run lint`
+- `bash ./scripts/aidlc-check.sh` in a shell that can execute the repository validation script.
 
 ## Rollback plan
 
-Revert the documentation-only change if the lesson-progress baseline is rejected or replaced by an approved revision.
+- Revert lesson progress models, progress APIs, lesson-page progress actions, and related tests.
 
 ## Review checklist
 
-- Protected lesson-progress flow documented
-- Enrollment-linked ownership and state expectations documented
-- Duplicate-prevention and validation expectations documented
-- Separation from course-completion logic preserved
-- No application code introduced
+- Lesson progress belongs to exactly one course enrollment and one lesson
+- Only valid start and completion transitions are accepted
+- Progress updates stay student-owned and protected
+- Lesson progress is reflected consistently across lesson and course surfaces

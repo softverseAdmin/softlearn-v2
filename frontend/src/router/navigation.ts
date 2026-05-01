@@ -15,11 +15,14 @@ export const navigationItemsByRole: Record<UserRole, NavigationItem[]> = {
   student: [
     { label: 'Dashboard', to: '/student' },
     { label: 'Notifications', to: '/student/notifications' },
+    { label: 'Matches', to: '/student/matches' },
     { label: 'Jobs', to: '/student/jobs' },
     { label: 'Applications', to: '/student/applications' },
     { label: 'Profile', to: '/student/profile' },
     { label: 'Skills', to: '/student/skills' },
+    { label: 'Courses', to: '/student/courses' },
     { label: 'Learning', to: '/student/learning' },
+    { label: 'Preparation', to: '/student/preparation' },
     { label: 'Exams', to: '/student/exams' },
     { label: 'Interviews', to: '/student/interviews' },
     { label: 'Privacy', to: '/student/privacy' },
@@ -39,6 +42,8 @@ export const navigationItemsByRole: Record<UserRole, NavigationItem[]> = {
     { label: 'Notifications', to: '/admin/notifications' },
     { label: 'Users', to: '/admin/users' },
     { label: 'Companies', to: '/admin/operations' },
+    { label: 'Courses', to: '/admin/courses' },
+    { label: 'Exams', to: '/admin/exams' },
     { label: 'Vacancies', to: '/admin/vacancies' },
   ],
 }

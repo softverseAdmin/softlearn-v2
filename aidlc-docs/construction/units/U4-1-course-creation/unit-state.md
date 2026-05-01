@@ -14,28 +14,28 @@ Baseline inception version: v1
 
 ## Scope
 
-Define the baseline protected course-creation flow so authorized platform operators can create structured course records without collapsing listing, detail, lesson, or enrollment behavior into the same unit.
+Implement protected course creation through the shared `Course` domain model and admin course authoring workflows.
 
 ## Out of Scope
 
-Concrete frontend/backend implementation code, course editing, course deletion, lesson authoring, enrollment behavior, student progress, and broad admin course-management workflows.
+Student catalog browsing, course detail browsing, enrollment, lesson delivery, and progress tracking.
 
 ## Dependencies
 
-Depends on the requirements, security, data-model, authentication, RBAC, API, routing, state-management, and base-layout baselines.
+Depends on authentication, role permissions, base API structure, admin routing, and the shared course domain model.
 
 ## Acceptance Criteria
 
-The unit documents protected course creation, validation outcomes, authoring boundaries, and relationship to later learning units without producing application code.
+Admins can create shared course records through protected APIs and UI flows, and those course records are reusable by later student-facing learning units.
 
 ## Risks
 
-If course creation is left ambiguous here, later listing, detail, lesson, and admin-management units can drift into conflicting authoring, visibility, and publication behavior.
+If course creation diverges from the shared course domain, later listing, detail, enrollment, and progress units can drift into duplicate data models.
 
 ## Open Questions
 
-Exact draft-versus-published lifecycle rules, authoring roles beyond baseline admin access, and richer course metadata can be refined later as long as protected course creation remains explicit.
+Future units can expand authoring with lessons and outlines as long as they continue to build on the shared course model.
 
 ## Last Updated
 
-2026-04-29
+2026-04-30

@@ -14,28 +14,28 @@ Baseline inception version: v1
 
 ## Scope
 
-Define the baseline course-detail flow so students can inspect a single course deeply enough to decide on enrollment or later lesson participation without mixing in lesson delivery or progress behavior.
+Implement a protected student course detail route that presents the full context of one active shared course record.
 
 ## Out of Scope
 
-Concrete frontend/backend implementation code, course listing, lesson-content delivery, enrollment execution, progress tracking, and completion logic.
+Catalog filtering, enrollment submission, lesson rendering, and progress or completion mutation.
 
 ## Dependencies
 
-Depends on the requirements, data-model, API, routing, state-management, layout, course-creation, and course-listing baselines.
+Depends on the shared course model, course listing, student routing, and base API structure.
 
 ## Acceptance Criteria
 
-The unit documents course-detail behavior, single-course data expectations, and navigation boundaries without producing application code.
+Students can open a dedicated detail route for an active course, review meaningful course information, and receive a stable not-found outcome for unavailable courses.
 
 ## Risks
 
-If course detail is underspecified here, later enrollment and lesson-viewing flows can drift into inconsistent data presentation and route behavior.
+If detail access does not enforce active-course visibility, student routes can expose draft or retired course records.
 
 ## Open Questions
 
-Exact anonymous-browsing posture, related-course recommendations, and rich media presentation can be refined later as long as the course-detail baseline stays consistent with the shared course record.
+Later units can add lesson outlines or enrollment entry points if they preserve the current course-centered detail boundary.
 
 ## Last Updated
 
-2026-04-29
+2026-04-30

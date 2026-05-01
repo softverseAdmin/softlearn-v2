@@ -2,36 +2,33 @@
 
 ## Implementation plan
 
-No application code for this unit.
-
-This unit defines the performance tracking baseline only. Later frontend and backend units may implement the protected workflows, records, and tests from this design.
+1. Aggregate preparation-only metrics from practice attempts and mock attempts.
+2. Return category-level performance summaries and recent preparation activity.
+3. Render preparation metrics in the student preparation workspace.
+4. Keep preparation metrics separate from company visibility and official exam averages.
 
 ## Files to create or update
 
-- `aidlc-docs/construction/units/U14-5-performance-tracking/unit-state.md`
-- `aidlc-docs/construction/units/U14-5-performance-tracking/functional-design.md`
-- `aidlc-docs/construction/units/U14-5-performance-tracking/nfr-requirements.md`
-- `aidlc-docs/construction/units/U14-5-performance-tracking/nfr-design.md`
-- `aidlc-docs/construction/units/U14-5-performance-tracking/infrastructure-design.md`
+- `backend/api/views.py`
+- `backend/api/tests.py`
+- `frontend/src/features/profile/types.ts`
+- `frontend/src/features/profile/StudentPreparationPage.tsx`
 - `aidlc-docs/construction/units/U14-5-performance-tracking/code-generation.md`
-- `aidlc-docs/aidlc-state.md`
+- `aidlc-docs/construction/units/U14-5-performance-tracking/unit-state.md`
 
 ## Test plan
 
-- Review the unit against the requirements, security, data-model, architecture, and adjacent domain baselines.
-- Confirm the unit defines the workflow clearly.
-- Confirm the unit remains separate from adjacent out-of-scope behaviors.
-- Confirm no application code is added.
-- Run `./scripts/aidlc-check.sh`.
+- `.venv\Scripts\python.exe manage.py check`
+- `.venv\Scripts\python.exe manage.py test`
+- `cd frontend; npm run build; npm run lint`
+- `bash ./scripts/aidlc-check.sh` in a shell that can execute the repository validation script.
 
 ## Rollback plan
 
-Revert the documentation-only change if the performance tracking baseline is rejected or replaced by an approved revision.
+- Revert preparation-performance aggregation and the UI sections that expose it.
 
 ## Review checklist
 
-- Performance tracking documented
-- Authorization, privacy, and deterministic behavior boundaries documented
-- Relationship to adjacent units documented
-- Global AI-DLC state updated
-- No application code introduced
+- Preparation metrics come only from practice and mock evidence
+- Student-owned performance remains separate from official exam history
+- Category summaries remain deterministic and auditable

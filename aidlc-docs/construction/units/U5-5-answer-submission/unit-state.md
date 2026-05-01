@@ -14,28 +14,29 @@ Baseline inception version: v1
 
 ## Scope
 
-Define the baseline protected answer-submission flow so authenticated students can submit exam responses as traceable attempt data without collapsing UI rendering, scoring, or results behavior into the same unit.
+Implement protected student exam submission that records durable attempt and answer data tied to the authenticated student and shared exam context.
 
 ## Out of Scope
 
-Concrete frontend/backend implementation code, exam creation, question creation, answer-options management, exam-taking UI rendering, score calculation, pass/fail evaluation, exam history, retake policy, and company-facing result visibility.
+Draft saves, autosave recovery, non-finalized submissions, and company/admin submission control.
 
 ## Dependencies
 
-Depends on the requirements, security, data-model, architecture, authentication, RBAC, API, frontend initialization, routing, state-management, base-layout, exam-creation, question-creation, answer-options-management, and exam-taking-UI baselines.
+Depends on shared exam, question, and option records plus protected student exam-taking routes.
 
 ## Acceptance Criteria
 
-The unit documents protected answer submission, traceability expectations, validation boundaries, and relationship to later scoring and history units without producing application code.
+Students can submit one full answer set for an eligible attempt, and the platform records structured attempt data safely.
 
 ## Risks
 
-If answer submission is underspecified here, later scoring, pass/fail, and history units can drift into conflicting attempt ownership, response finalization, and audit expectations.
+If submission validation is weak, inconsistent answer payloads can produce broken scoring and history records.
 
 ## Open Questions
 
-Exact autosave-versus-final-submit behavior, interruption recovery, and late-submission handling can be refined later as long as authenticated answer submission remains explicit and traceable.
+Draft-attempt workflows can be layered later if they preserve the same final submission ownership and traceability.
 
 ## Last Updated
 
-2026-04-29
+2026-05-01
+

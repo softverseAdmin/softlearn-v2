@@ -14,11 +14,11 @@ Baseline inception version: v1
 
 ## Scope
 
-Define the baseline mock-exam flow so students can take a preparation-focused simulated exam experience that remains separate from official scored exam attempts.
+Implement protected mock-exam delivery and scoring with separate mock-attempt persistence and student-only history.
 
 ## Out of Scope
 
-Concrete frontend or backend implementation code, Official exam submission, Adaptive AI difficulty, Proctoring, and External exam delivery services.
+Official exam submission, adaptive difficulty, proctoring, and external exam-delivery providers.
 
 ## Dependencies
 
@@ -26,16 +26,16 @@ Depends on the requirements, security, data-model, architecture, shared authoriz
 
 ## Acceptance Criteria
 
-The unit documents mock exam behavior, boundaries, and integrations without producing application code.
+Students can take mock exams and review mock-only results without changing official exam pass/fail or retake state.
 
 ## Risks
 
-If this unit is underspecified here, later implementation can create authorization gaps, conflicting behavior, or blurred boundaries with adjacent workflows.
+If mock and official attempt records are mixed, students and admins cannot distinguish preparation evidence from certification evidence.
 
 ## Open Questions
 
-Later implementation can refine detailed field shapes and UX behavior as long as the documented authorization, privacy, and deterministic rules remain intact.
+Timers, partial progress, and deeper mock review screens can be added later without changing the separation contract shipped here.
 
 ## Last Updated
 
-2026-04-29
+2026-05-01

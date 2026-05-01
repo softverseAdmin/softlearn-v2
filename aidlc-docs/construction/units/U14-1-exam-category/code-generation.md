@@ -2,36 +2,39 @@
 
 ## Implementation plan
 
-No application code for this unit.
-
-This unit defines the exam category baseline only. Later frontend and backend units may implement the protected workflows, records, and tests from this design.
+1. Reuse the shared `Exam.category` field as the stable preparation category source.
+2. Add a protected preparation summary API that groups practice, mock, and study-plan evidence by category.
+3. Surface category cards in a new student preparation workspace.
+4. Keep category summaries separate from official exam pass/fail history.
 
 ## Files to create or update
 
-- `aidlc-docs/construction/units/U14-1-exam-category/unit-state.md`
-- `aidlc-docs/construction/units/U14-1-exam-category/functional-design.md`
-- `aidlc-docs/construction/units/U14-1-exam-category/nfr-requirements.md`
-- `aidlc-docs/construction/units/U14-1-exam-category/nfr-design.md`
-- `aidlc-docs/construction/units/U14-1-exam-category/infrastructure-design.md`
+- `backend/users/models.py`
+- `backend/users/migrations/0019_preparation_workspace.py`
+- `backend/api/views.py`
+- `backend/api/urls.py`
+- `backend/api/tests.py`
+- `frontend/src/features/profile/types.ts`
+- `frontend/src/features/profile/StudentPreparationPage.tsx`
+- `frontend/src/router/AppRouter.tsx`
+- `frontend/src/router/navigation.ts`
+- `frontend/src/app/PageTitle.tsx`
 - `aidlc-docs/construction/units/U14-1-exam-category/code-generation.md`
-- `aidlc-docs/aidlc-state.md`
+- `aidlc-docs/construction/units/U14-1-exam-category/unit-state.md`
 
 ## Test plan
 
-- Review the unit against the requirements, security, data-model, architecture, and adjacent domain baselines.
-- Confirm the unit defines the workflow clearly.
-- Confirm the unit remains separate from adjacent out-of-scope behaviors.
-- Confirm no application code is added.
-- Run `./scripts/aidlc-check.sh`.
+- `.venv\Scripts\python.exe manage.py check`
+- `.venv\Scripts\python.exe manage.py test`
+- `cd frontend; npm run build; npm run lint`
+- `bash ./scripts/aidlc-check.sh` in a shell that can execute the repository validation script.
 
 ## Rollback plan
 
-Revert the documentation-only change if the exam category baseline is rejected or replaced by an approved revision.
+- Revert the preparation summary routes, category serialization, and related student UI.
 
 ## Review checklist
 
-- Exam category documented
-- Authorization, privacy, and deterministic behavior boundaries documented
-- Relationship to adjacent units documented
-- Global AI-DLC state updated
-- No application code introduced
+- Category grouping is driven by stable exam metadata
+- Category summaries stay student-owned and deterministic
+- Official exam results are not rewritten by preparation category features

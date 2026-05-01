@@ -14,28 +14,28 @@ Baseline inception version: v1
 
 ## Scope
 
-Define the baseline match-score-calculation flow so the platform can aggregate deterministic factor outcomes into a stable explainable overall match result without collapsing matched-list presentation into the same unit.
+Implement the shared deterministic aggregate match score, recommendation threshold, factor breakdown payload, and human-readable match-level labels.
 
 ## Out of Scope
 
-Concrete frontend/backend implementation code, matched-student presentation, matched-job presentation, applications, and any ML or LLM-based ranking.
+Machine-learned ranking, adaptive weighting, and opaque recommendation heuristics.
 
 ## Dependencies
 
-Depends on the requirements, security, data-model, architecture, rule-based matching strategy, readiness-score-calculation, student-profile baselines, and U9-1 through U9-5 factor baselines.
+Depends on the skill, course-completion, exam-score, language-level, and location-preference matching units.
 
 ## Acceptance Criteria
 
-The unit documents deterministic aggregate match-score calculation, explainability boundaries, and relationship to later matched-list units without producing application code.
+Student and company match endpoints share one aggregate scorer, expose factor breakdowns, and return stable match-level labels derived from explicit thresholds.
 
 ## Risks
 
-If aggregate match scoring is underspecified here, later matched-list units can drift into conflicting weights, opaque ranking logic, and non-auditable recommendation behavior.
+If aggregation logic diverges between endpoints, recommendation counts and ordering will become inconsistent and unauditable.
 
 ## Open Questions
 
-Exact score-band tuning, tie-break refinements, and profile-completeness input details can be refined later as long as aggregate match scoring remains deterministic and explainable.
+Threshold and weight tuning can evolve later if updates remain explicit, deterministic, and documented.
 
 ## Last Updated
 
-2026-04-29
+2026-04-30

@@ -2,36 +2,35 @@
 
 ## Implementation plan
 
-No application code for this unit.
-
-This unit defines the exam-creation baseline only. Later backend and frontend units may implement protected exam authoring, validation flows, and tests from this design.
+1. Keep exam authoring in protected admin routes with shared exam records.
+2. Support create, update, and retire behavior plus exam-level attempt policy fields.
+3. Reuse the shared exam records across student-taking and history flows.
+4. Cover admin-only access with backend tests.
 
 ## Files to create or update
 
-- `aidlc-docs/construction/units/U5-1-exam-creation/unit-state.md`
-- `aidlc-docs/construction/units/U5-1-exam-creation/functional-design.md`
-- `aidlc-docs/construction/units/U5-1-exam-creation/nfr-requirements.md`
-- `aidlc-docs/construction/units/U5-1-exam-creation/nfr-design.md`
-- `aidlc-docs/construction/units/U5-1-exam-creation/infrastructure-design.md`
+- `backend/users/models.py`
+- `backend/api/views.py`
+- `backend/api/tests.py`
+- `frontend/src/features/admin/types.ts`
+- `frontend/src/features/admin/AdminExamsPage.tsx`
 - `aidlc-docs/construction/units/U5-1-exam-creation/code-generation.md`
-- `aidlc-docs/aidlc-state.md`
+- `aidlc-docs/construction/units/U5-1-exam-creation/unit-state.md`
 
 ## Test plan
 
-- Review the unit against the requirements, security, data-model, architecture, and exam-domain baselines.
-- Confirm the unit defines protected exam creation clearly.
-- Confirm the unit remains separate from question authoring, exam taking, scoring, and results workflows.
-- Confirm no application code is added.
-- Run `./scripts/aidlc-check.sh`.
+- `.venv\Scripts\python.exe manage.py check`
+- `.venv\Scripts\python.exe manage.py test`
+- `cd frontend; npm run build; npm run lint`
+- `bash ./scripts/aidlc-check.sh` in a shell that can execute the repository validation script.
 
 ## Rollback plan
 
-Revert the documentation-only change if the exam-creation baseline is rejected or replaced by an approved revision.
+- Revert exam authoring changes, shared exam policy fields, and related tests.
 
 ## Review checklist
 
-- Protected exam-creation flow documented
-- Authoring access, validation expectations, and integrity posture documented
-- Relationship to later question, attempt, scoring, and results units documented
-- Separation from exam-taking and outcome logic preserved
-- No application code introduced
+- Admin-only exam authoring is enforced
+- Exam policy fields stay compatible with later student-taking flows
+- Shared exam records remain the single source of truth
+

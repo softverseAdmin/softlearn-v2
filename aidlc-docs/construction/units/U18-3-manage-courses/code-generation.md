@@ -2,36 +2,42 @@
 
 ## Implementation plan
 
-No application code for this unit.
-
-This unit defines the manage courses baseline only. Later frontend and backend units may implement the protected workflows, records, and tests from this design.
+1. Add a shared `Course` domain model so admin course management uses reusable learning records instead of a management-only artifact.
+2. Add protected admin course CRUD APIs with deterministic validation and soft-retire behavior.
+3. Build an admin courses page with create, update, and deactivate workflows.
+4. Cover admin access control, CRUD behavior, and course-linked learning summary behavior with backend tests.
 
 ## Files to create or update
 
-- `aidlc-docs/construction/units/U18-3-manage-courses/unit-state.md`
-- `aidlc-docs/construction/units/U18-3-manage-courses/functional-design.md`
-- `aidlc-docs/construction/units/U18-3-manage-courses/nfr-requirements.md`
-- `aidlc-docs/construction/units/U18-3-manage-courses/nfr-design.md`
-- `aidlc-docs/construction/units/U18-3-manage-courses/infrastructure-design.md`
+- `backend/users/models.py`
+- `backend/users/admin.py`
+- `backend/users/migrations/0015_course_learningrecord_course.py`
+- `backend/api/views.py`
+- `backend/api/urls.py`
+- `backend/api/tests.py`
+- `frontend/src/features/admin/types.ts`
+- `frontend/src/features/admin/AdminCoursesPage.tsx`
+- `frontend/src/features/profile/types.ts`
+- `frontend/src/router/AppRouter.tsx`
+- `frontend/src/router/navigation.ts`
+- `frontend/src/app/PageTitle.tsx`
 - `aidlc-docs/construction/units/U18-3-manage-courses/code-generation.md`
-- `aidlc-docs/aidlc-state.md`
+- `aidlc-docs/construction/units/U18-3-manage-courses/unit-state.md`
 
 ## Test plan
 
-- Review the unit against the requirements, security, data-model, architecture, and adjacent domain baselines.
-- Confirm the unit defines the workflow clearly.
-- Confirm the unit remains separate from adjacent out-of-scope behaviors.
-- Confirm no application code is added.
-- Run `./scripts/aidlc-check.sh`.
+- `. .venv\Scripts\Activate.ps1; cd backend; python manage.py check; python manage.py test`
+- `cd frontend; npm run build; npm run lint`
+- `bash ./scripts/aidlc-check.sh` in a shell that can execute the repository validation script.
 
 ## Rollback plan
 
-Revert the documentation-only change if the manage courses baseline is rejected or replaced by an approved revision.
+- Revert the shared course model, admin course APIs, admin course page, and related tests.
+- Restore learning records to the prior standalone title/category behavior if the course-domain direction is rejected.
 
 ## Review checklist
 
-- Manage courses documented
-- Authorization, privacy, and deterministic behavior boundaries documented
-- Relationship to adjacent units documented
-- Global AI-DLC state updated
-- No application code introduced
+- Course management is admin-only
+- Shared course records are reusable by learning flows
+- Course updates and retire actions are deterministic
+- Admin UI and API contracts stay aligned

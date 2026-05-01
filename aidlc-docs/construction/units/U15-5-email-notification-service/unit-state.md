@@ -14,11 +14,11 @@ Baseline inception version: v1
 
 ## Scope
 
-Define the baseline email-notification-service flow so selected notifications can be emitted through a simulated, log-based email channel without requiring SMTP or external provider integration.
+Implement the simulated email-delivery posture by recording summary-safe email delivery entries alongside in-app notifications.
 
 ## Out of Scope
 
-Concrete frontend or backend implementation code, Real SMTP integration, External email providers, Advanced retry queues, and Marketing email campaigns.
+Real SMTP integration, external email providers, advanced retry queues, and marketing email campaigns.
 
 ## Dependencies
 
@@ -26,16 +26,16 @@ Depends on the requirements, security, data-model, architecture, shared authoriz
 
 ## Acceptance Criteria
 
-The unit documents email notification service behavior, boundaries, and integrations without producing application code.
+Notification-producing workflows create auditable simulated email delivery records without relying on external providers.
 
 ## Risks
 
-If this unit is underspecified here, later implementation can create authorization gaps, conflicting behavior, or blurred boundaries with adjacent workflows.
+If simulated email payloads include unsafe detail or drift from notification recipients, delivery logs can become a privacy problem.
 
 ## Open Questions
 
-Later implementation can refine detailed field shapes and UX behavior as long as the documented authorization, privacy, and deterministic rules remain intact.
+Future real-email integration can map onto the same delivery records if it preserves the current summary-safe posture.
 
 ## Last Updated
 
-2026-04-29
+2026-05-01

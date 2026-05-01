@@ -14,11 +14,11 @@ Baseline inception version: v1
 
 ## Scope
 
-Define the baseline student education-management flow for authenticated self-service viewing, adding, updating, and removing structured education records.
+Implement authenticated student self-service viewing, adding, updating, and removing structured education records inside the profile workspace.
 
 ## Out of Scope
 
-Concrete frontend/backend implementation code, credential verification workflows, and separate experience, resume, privacy, and company-review units.
+Credential verification workflows, company-facing education visibility, and unrelated experience, resume, privacy, or company-review units.
 
 ## Dependencies
 
@@ -26,16 +26,16 @@ Depends on the requirements, data-model, security, RBAC, frontend foundation, ro
 
 ## Acceptance Criteria
 
-The unit documents structured student education management, self-service ownership boundaries, protected-access behavior, and validation expectations without producing application code.
+Students can manage structured education records through protected backend routes and the student profile UI with timeline validation and student-only ownership.
 
 ## Risks
 
-If education records are modeled inconsistently here, later profile, privacy, resume, and company-review units will drift into conflicting ownership and validation rules.
+If education records drift from the shared student profile contract, later readiness, privacy, and company-review behavior will become inconsistent.
 
 ## Open Questions
 
-Exact field set, timeline granularity, and any future credential-proof attachments can be refined later as long as structured record ownership stays intact.
+Future credential-proof attachments can be layered on later without changing the structured education record contract shipped here.
 
 ## Last Updated
 
-2026-04-29
+2026-05-01

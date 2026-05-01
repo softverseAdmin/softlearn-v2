@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 
 import { ApiError, apiRequest } from '../../lib/api'
 import type { LearningSummary } from './types'
@@ -62,6 +63,9 @@ export function StudentLearningPage() {
           <strong>Progress snapshot</strong>
           <p className="muted">{summary.completed_courses} completed</p>
           <p className="muted">{summary.in_progress_courses} in progress</p>
+          <Link className="secondary-button inline-button" to="/student/courses">
+            Browse courses
+          </Link>
         </div>
       </div>
 
@@ -98,6 +102,11 @@ export function StudentLearningPage() {
                 <strong>{record.progress_percent}%</strong>
               </div>
               {record.completed_at ? <p className="muted">Completed: {new Date(record.completed_at).toLocaleString()}</p> : null}
+              {record.course_id ? (
+                <Link className="secondary-button inline-button" to={`/student/courses/${record.course_id}`}>
+                  View course
+                </Link>
+              ) : null}
             </article>
           ))}
         </div>

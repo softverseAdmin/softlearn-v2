@@ -14,28 +14,29 @@ Baseline inception version: v1
 
 ## Scope
 
-Define the baseline protected exam-taking UI flow so authenticated students can view and navigate an available exam experience without collapsing answer-submission, scoring, or results behavior into the same unit.
+Implement protected student exam-taking routes that present active exam questions and options with local answer state and explicit submission.
 
 ## Out of Scope
 
-Concrete frontend/backend implementation code, exam creation, question creation, answer-options management, answer submission persistence, score calculation, pass/fail evaluation, exam history, retake policy, and company-facing result visibility.
+Autosave, interruption recovery, anti-cheat controls, and non-student exam preview flows.
 
 ## Dependencies
 
-Depends on the requirements, security, data-model, architecture, authentication, RBAC, API, frontend initialization, routing, state-management, base-layout, exam-creation, question-creation, and answer-options-management baselines.
+Depends on shared exam, question, and option records plus protected student routing.
 
 ## Acceptance Criteria
 
-The unit documents protected exam-taking UI behavior, student access boundaries, navigation expectations, and relationship to later submission and scoring units without producing application code.
+Eligible students can open an exam-taking route, review questions safely, and prepare answers for submission.
 
 ## Risks
 
-If exam-taking UI behavior is underspecified here, later submission, scoring, and history units can drift into conflicting session, timing, navigation, and integrity expectations.
+If student-taking routes expose correctness metadata or unavailable exams, assessment integrity is compromised.
 
 ## Open Questions
 
-Exact timer UX, autosave behavior, fullscreen or anti-cheat affordances, and question pagination can be refined later as long as the protected student exam-taking experience remains explicit and consistent.
+Richer timer and pagination UX can be added later without changing the protected taking contract.
 
 ## Last Updated
 
-2026-04-29
+2026-05-01
+

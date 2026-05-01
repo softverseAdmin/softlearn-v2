@@ -2,35 +2,39 @@
 
 ## Implementation plan
 
-No application code for this unit.
-
-This unit defines the course-listing baseline only. Later backend and frontend units may implement listing behavior, routing, fallback states, and tests from this design.
+1. Add a protected student course catalog API that returns active shared course records.
+2. Return meaningful course summary data and readiness cues without collapsing detail or progress behavior into the listing.
+3. Build a student course catalog page and route in the learning area.
+4. Cover active-course visibility and student-only access with backend tests.
 
 ## Files to create or update
 
-- `aidlc-docs/construction/units/U4-2-course-listing/unit-state.md`
-- `aidlc-docs/construction/units/U4-2-course-listing/functional-design.md`
-- `aidlc-docs/construction/units/U4-2-course-listing/nfr-requirements.md`
-- `aidlc-docs/construction/units/U4-2-course-listing/nfr-design.md`
-- `aidlc-docs/construction/units/U4-2-course-listing/infrastructure-design.md`
+- `backend/api/views.py`
+- `backend/api/urls.py`
+- `backend/api/tests.py`
+- `frontend/src/features/profile/types.ts`
+- `frontend/src/features/profile/StudentCourseCatalogPage.tsx`
+- `frontend/src/features/profile/StudentLearningPage.tsx`
+- `frontend/src/router/AppRouter.tsx`
+- `frontend/src/router/navigation.ts`
+- `frontend/src/app/PageTitle.tsx`
+- `frontend/src/pages/DashboardPage.tsx`
 - `aidlc-docs/construction/units/U4-2-course-listing/code-generation.md`
-- `aidlc-docs/aidlc-state.md`
+- `aidlc-docs/construction/units/U4-2-course-listing/unit-state.md`
 
 ## Test plan
 
-- Review the unit against the requirements, data-model, API, routing, layout, and frontend-state baselines.
-- Confirm the unit defines course-listing behavior clearly.
-- Confirm no application code is added.
-- Run `./scripts/aidlc-check.sh`.
+- `. .venv\Scripts\Activate.ps1; cd backend; python manage.py check; python manage.py test`
+- `cd frontend; npm run build; npm run lint`
+- `bash ./scripts/aidlc-check.sh` in a shell that can execute the repository validation script.
 
 ## Rollback plan
 
-Revert the documentation-only change if the course-listing baseline is rejected or replaced by an approved revision.
+- Revert the student course catalog API, course catalog page, route wiring, and related tests.
 
 ## Review checklist
 
-- Course-listing flow documented
-- API, routing, and layout alignment documented
-- Scope kept separate from course-detail, enrollment, and lesson units
-- Fallback-state behavior documented
-- No application code introduced
+- Only active courses are listed
+- Listing stays separate from detail and enrollment logic
+- Student routing and learning-area navigation stay aligned
+- Empty, loading, and error states are covered

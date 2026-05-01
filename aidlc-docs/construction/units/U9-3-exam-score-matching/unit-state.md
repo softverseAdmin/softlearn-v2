@@ -14,28 +14,28 @@ Baseline inception version: v1
 
 ## Scope
 
-Define the baseline exam-score-matching flow so the platform can compare protected student exam evidence to vacancy context using deterministic, explainable rules without collapsing other match factors or overall match scoring into the same unit.
+Use exam-result averages as deterministic readiness evidence within the matching flow.
 
 ## Out of Scope
 
-Concrete frontend/backend implementation code, language matching, course-completion matching, location matching, aggregate match-score calculation, and matched-list presentation.
+Adaptive psychometrics, proctoring analytics, and ML-based performance prediction.
 
 ## Dependencies
 
-Depends on the requirements, security, data-model, architecture, rule-based matching strategy, exam-results summary, exam history, and readiness baselines.
+Depends on the exam-results-summary baseline, privacy controls, rule-based matching strategy, and match-score-calculation unit.
 
 ## Acceptance Criteria
 
-The unit documents deterministic exam-score matching, explainability boundaries, and relationship to later aggregate match-scoring and matched-view units without producing application code.
+Exam evidence affects readiness scoring consistently, missing exam evidence is surfaced as an explicit gap, and the effect is visible in match payloads.
 
 ## Risks
 
-If exam-score matching is underspecified here, later aggregate match scoring and matched-list units can drift into conflicting exam-evidence relevance rules and non-explainable assessment-fit outcomes.
+If exam scoring dominates readiness, students with narrow test history can be over-promoted or under-ranked.
 
 ## Open Questions
 
-Exact relevance mapping between exam evidence and vacancy context can be refined later as long as exam-score matching remains deterministic and explainable.
+Future versions can weight specific exam categories differently if the method stays transparent and deterministic.
 
 ## Last Updated
 
-2026-04-29
+2026-04-30

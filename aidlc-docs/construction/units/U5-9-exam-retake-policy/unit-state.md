@@ -14,28 +14,28 @@ Baseline inception version: v1
 
 ## Scope
 
-Define the baseline exam-retake policy flow so the platform can determine whether a student may attempt an exam again without collapsing history presentation, scoring, or company-facing visibility into the same unit.
+Implement explicit exam retake eligibility from shared exam policy, prior attempt count, and pass/fail outcome history.
 
 ## Out of Scope
 
-Concrete frontend/backend implementation code, exam creation, question creation, answer-options management, exam-taking UI rendering, answer submission persistence, score calculation internals, pass/fail rule definition, exam history presentation, and company-facing result visibility.
+Cooldown windows, admin overrides, and company-facing retake reasoning.
 
 ## Dependencies
 
-Depends on the requirements, security, data-model, architecture, authentication, RBAC, API, routing, answer-submission, score-calculation, pass-fail-logic, and exam-history baselines.
+Depends on shared exam policy fields, scored attempt history, and protected student exam routes.
 
 ## Acceptance Criteria
 
-The unit documents retake-policy rules, eligibility boundaries, and relationship to prior attempt history without producing application code.
+Students are blocked consistently after passing or after reaching the exam’s maximum attempts.
 
 ## Risks
 
-If exam retake policy is underspecified here, later student exam access, history interpretation, readiness signals, and results visibility units can drift into conflicting eligibility and fairness rules.
+If retake eligibility is evaluated differently across summary and exam detail routes, students will get contradictory access outcomes.
 
 ## Open Questions
 
-Exact cooldown periods, maximum-attempt limits, and admin exception workflows can be refined later as long as baseline retake policy remains explicit, deterministic, and attempt-history-aware.
+Cooldown or exception handling can be layered later without changing the deterministic attempt-cap baseline.
 
 ## Last Updated
 
-2026-04-29
+2026-05-01

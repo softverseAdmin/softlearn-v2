@@ -14,28 +14,29 @@ Baseline inception version: v1
 
 ## Scope
 
-Define the baseline protected question-creation flow so authorized platform operators can attach structured question records to an existing exam without collapsing answer-option, exam-taking, or scoring behavior into the same unit.
+Implement protected admin question authoring for shared exams with deterministic ordering and scoring-ready points metadata.
 
 ## Out of Scope
 
-Concrete frontend/backend implementation code, exam creation, answer-options management, exam taking, answer submission, score calculation, pass/fail evaluation, exam history, retake policy, and broad admin exam-management workflows beyond baseline question authoring.
+Student-taking behavior, answer-option correctness exposure, autosave, grading review, and non-admin question editing workflows.
 
 ## Dependencies
 
-Depends on the requirements, security, data-model, architecture, authentication, RBAC, API, routing, state-management, base-layout, and exam-creation baselines.
+Depends on shared exam records, admin routing, authentication, and RBAC.
 
 ## Acceptance Criteria
 
-The unit documents protected question creation, validation outcomes, authoring boundaries, and relationship to later exam units without producing application code.
+Admins can create, update, list, and retire structured exam questions under a shared exam.
 
 ## Risks
 
-If question creation is underspecified here, later answer-option, delivery, submission, and scoring units can drift into conflicting question structure, ordering, and integrity expectations.
+If question ordering or active-count synchronization drifts, the student exam flow can become inconsistent or incomplete.
 
 ## Open Questions
 
-Exact supported question types, richer media fields, and advanced authoring workflows can be refined later as long as protected question creation remains explicit and exam-linked.
+Additional question types can be added later without changing the protected exam-question structure.
 
 ## Last Updated
 
-2026-04-29
+2026-05-01
+

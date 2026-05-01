@@ -14,28 +14,28 @@ Baseline inception version: v1
 
 ## Scope
 
-Define the baseline course-listing flow for student discovery of course summaries before dedicated course-detail, enrollment, and lesson progress begin.
+Implement a protected student course catalog that lists active shared course records with meaningful summary information.
 
 ## Out of Scope
 
-Concrete frontend/backend implementation code, course-detail behavior, enrollment behavior, lesson rendering, progress tracking, and recommendation or filtering enhancements.
+Single-course detail behavior, enrollment, lesson entry, filtering, and student progress mutation.
 
 ## Dependencies
 
-Depends on the requirements, data-model, API, frontend foundation, routing, layout, and state-management baselines.
+Depends on the shared course model, student routing, student learning area, and base API structure.
 
 ## Acceptance Criteria
 
-The unit documents course-listing behavior, structured learning-domain alignment, and discovery boundaries without producing application code.
+Students can browse active courses through a dedicated catalog route, see meaningful course summaries, and move onward to a dedicated detail page.
 
 ## Risks
 
-If course listing is modeled inconsistently here, later course-detail, enrollment, lesson, progress, and learning-navigation units will drift into conflicting discovery behavior and route structure.
+If listing logic leaks inactive or draft courses, students can see content that is not ready for learner-facing discovery.
 
 ## Open Questions
 
-Exact filtering, sorting, personalization, and anonymous-browsing posture can be refined later as long as the listing baseline stays intact.
+Later units can add catalog filtering and sorting if they preserve the same active-course visibility posture.
 
 ## Last Updated
 
-2026-04-29
+2026-04-30

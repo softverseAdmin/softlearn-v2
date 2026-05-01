@@ -14,28 +14,28 @@ Baseline inception version: v1
 
 ## Scope
 
-Define the baseline company-facing matched-student-list flow so authorized company users can review ranked student recommendations for a vacancy using deterministic explainable match results under privacy and consent controls.
+Implement a protected company vacancy matched-students flow with privacy-safe recommendation payloads and candidate-review access contexts.
 
 ## Out of Scope
 
-Concrete frontend/backend implementation code, aggregate score calculation logic, applications, interview scheduling, and any unauthorized student-data exposure.
+Bulk outreach campaigns, recruiter notes automation, and recommendation exports.
 
 ## Dependencies
 
-Depends on the requirements, security, data-model, architecture, company authorization baselines, privacy filter for results, vacancy-list/detail baselines, and U9-1 through U9-6 matching baselines.
+Depends on access control, privacy settings, candidate review access, vacancy management, and match-score-calculation.
 
 ## Acceptance Criteria
 
-The unit documents company-facing matched-student-list behavior, privacy constraints, and relationship to upstream aggregate match scoring without producing application code.
+Company users can open vacancy-specific matched-student views, privacy-hidden students stay privacy-safe, and recommendation-quality candidates receive active match review contexts.
 
 ## Risks
 
-If company matched-student views are underspecified here, later implementation can expose protected student data, apply inconsistent ranking logic, or blur recommendation support into automated hiring decisions.
+If match contexts ignore privacy or company ownership, student data could be exposed outside approved access boundaries.
 
 ## Open Questions
 
-Exact company UI sorting, pagination defaults, and recruiter action affordances can be refined later as long as visibility, explanation, and privacy rules remain deterministic.
+Future versions can add recruiter workflow actions if they preserve current privacy and audit boundaries.
 
 ## Last Updated
 
-2026-04-29
+2026-04-30

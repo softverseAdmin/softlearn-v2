@@ -2,36 +2,36 @@
 
 ## Implementation plan
 
-No application code for this unit.
-
-This unit defines the course-enrollment baseline only. Later backend and frontend units may implement enrollment actions, validation, student-owned reads, and tests from this design.
+1. Use the shared course-linked `LearningRecord` as the student-owned enrollment record for active courses.
+2. Add a protected student enrollment API from course detail with stable duplicate-enrollment behavior.
+3. Surface enrollment state and CTA behavior in the course catalog and course detail pages.
+4. Cover creation, duplicate enrollment, and student-only access with backend tests.
 
 ## Files to create or update
 
-- `aidlc-docs/construction/units/U4-6-course-enrollment/unit-state.md`
-- `aidlc-docs/construction/units/U4-6-course-enrollment/functional-design.md`
-- `aidlc-docs/construction/units/U4-6-course-enrollment/nfr-requirements.md`
-- `aidlc-docs/construction/units/U4-6-course-enrollment/nfr-design.md`
-- `aidlc-docs/construction/units/U4-6-course-enrollment/infrastructure-design.md`
+- `backend/api/views.py`
+- `backend/api/urls.py`
+- `backend/api/tests.py`
+- `frontend/src/features/profile/types.ts`
+- `frontend/src/features/profile/StudentCourseCatalogPage.tsx`
+- `frontend/src/features/profile/StudentCourseDetailPage.tsx`
 - `aidlc-docs/construction/units/U4-6-course-enrollment/code-generation.md`
-- `aidlc-docs/aidlc-state.md`
+- `aidlc-docs/construction/units/U4-6-course-enrollment/unit-state.md`
 
 ## Test plan
 
-- Review the unit against the requirements, security, data-model, API, routing, and layout baselines.
-- Confirm the unit defines student-owned course enrollment clearly.
-- Confirm the unit remains separate from lesson-progress and completion workflows.
-- Confirm no application code is added.
-- Run `./scripts/aidlc-check.sh`.
+- `.venv\Scripts\python.exe manage.py check`
+- `.venv\Scripts\python.exe manage.py test`
+- `cd frontend; npm run build; npm run lint`
+- `bash ./scripts/aidlc-check.sh` in a shell that can execute the repository validation script.
 
 ## Rollback plan
 
-Revert the documentation-only change if the course-enrollment baseline is rejected or replaced by an approved revision.
+- Revert student enrollment APIs, course enrollment UI, and related tests.
 
 ## Review checklist
 
-- Student-owned enrollment flow documented
-- Validation and duplicate-handling expectations documented
-- Relationship to lesson access documented
-- Separation from progress and completion units preserved
-- No application code introduced
+- Enrollment is student-owned and course-scoped
+- Duplicate enrollment does not create conflicting records
+- Enrollment state is reflected in course catalog and detail flows
+- Company and admin users cannot use the student enrollment route

@@ -2,36 +2,32 @@
 
 ## Implementation plan
 
-No application code for this unit.
-
-This unit defines the email notification service baseline only. Later frontend and backend units may implement the protected workflows, records, and tests from this design.
+1. Reuse `NotificationDelivery` to create a simulated email delivery record whenever a notification is created.
+2. Record summary-safe payload text for the email channel without calling external providers.
+3. Keep email delivery backend-driven and auditable.
+4. Cover simulated email delivery through notification-producing backend tests.
 
 ## Files to create or update
 
-- `aidlc-docs/construction/units/U15-5-email-notification-service/unit-state.md`
-- `aidlc-docs/construction/units/U15-5-email-notification-service/functional-design.md`
-- `aidlc-docs/construction/units/U15-5-email-notification-service/nfr-requirements.md`
-- `aidlc-docs/construction/units/U15-5-email-notification-service/nfr-design.md`
-- `aidlc-docs/construction/units/U15-5-email-notification-service/infrastructure-design.md`
+- `backend/users/models.py`
+- `backend/users/notifications.py`
+- `backend/api/tests.py`
 - `aidlc-docs/construction/units/U15-5-email-notification-service/code-generation.md`
-- `aidlc-docs/aidlc-state.md`
+- `aidlc-docs/construction/units/U15-5-email-notification-service/unit-state.md`
 
 ## Test plan
 
-- Review the unit against the requirements, security, data-model, architecture, and adjacent domain baselines.
-- Confirm the unit defines the workflow clearly.
-- Confirm the unit remains separate from adjacent out-of-scope behaviors.
-- Confirm no application code is added.
-- Run `./scripts/aidlc-check.sh`.
+- `.venv\Scripts\python.exe manage.py check`
+- `.venv\Scripts\python.exe manage.py test`
+- `cd frontend; npm run build; npm run lint`
+- `bash ./scripts/aidlc-check.sh` in a shell that can execute the repository validation script.
 
 ## Rollback plan
 
-Revert the documentation-only change if the email notification service baseline is rejected or replaced by an approved revision.
+- Revert simulated email-delivery record creation from the shared notification factory.
 
 ## Review checklist
 
-- Email notification service documented
-- Authorization, privacy, and deterministic behavior boundaries documented
-- Relationship to adjacent units documented
-- Global AI-DLC state updated
-- No application code introduced
+- Email delivery remains simulated and backend-driven
+- Payload summaries stay safe for logs and summaries
+- Notification-producing workflows create matching delivery records

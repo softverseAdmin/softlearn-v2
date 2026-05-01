@@ -14,11 +14,11 @@ Baseline inception version: v1
 
 ## Scope
 
-Define the baseline notification-core flow so the platform has one deterministic event-driven notification model for later application, interview, and exam-result notifications.
+Implement the shared notification model, protected notification APIs, read-state behavior, and simulated delivery tracking used by later domain notification units.
 
 ## Out of Scope
 
-Concrete frontend or backend implementation code, Domain-specific trigger definitions, Push-notification delivery, External messaging providers, and Heavy analytics.
+Push-notification delivery, external messaging providers, and heavy analytics.
 
 ## Dependencies
 
@@ -26,16 +26,16 @@ Depends on the requirements, security, data-model, architecture, shared authoriz
 
 ## Acceptance Criteria
 
-The unit documents notification core behavior, boundaries, and integrations without producing application code.
+Authenticated users can retrieve their own notifications, mark them read, and rely on stable delivery records across supported notification types.
 
 ## Risks
 
-If this unit is underspecified here, later implementation can create authorization gaps, conflicting behavior, or blurred boundaries with adjacent workflows.
+If event keys or recipient routing drift, the platform can produce duplicate notifications or leak event summaries across role boundaries.
 
 ## Open Questions
 
-Later implementation can refine detailed field shapes and UX behavior as long as the documented authorization, privacy, and deterministic rules remain intact.
+Unread badges in later dashboards can consume this core safely without changing notification semantics.
 
 ## Last Updated
 
-2026-04-29
+2026-05-01

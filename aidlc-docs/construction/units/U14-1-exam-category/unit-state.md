@@ -14,11 +14,11 @@ Baseline inception version: v1
 
 ## Scope
 
-Define the baseline exam-category flow so preparation experiences can organize exams and related study assets into stable student-facing categories.
+Implement stable preparation category grouping inside the protected student preparation workspace using shared exam metadata and category summaries.
 
 ## Out of Scope
 
-Concrete frontend or backend implementation code, Practice-question answering, Mock-exam execution, Personalized recommendations, and Heavy analytics.
+Admin category management, personalized recommendations, company-facing sharing, and heavy analytics engines.
 
 ## Dependencies
 
@@ -26,16 +26,16 @@ Depends on the requirements, security, data-model, architecture, shared authoriz
 
 ## Acceptance Criteria
 
-The unit documents exam category behavior, boundaries, and integrations without producing application code.
+Students can browse preparation evidence grouped by stable categories without exposing protected answer data or changing official exam outcomes.
 
 ## Risks
 
-If this unit is underspecified here, later implementation can create authorization gaps, conflicting behavior, or blurred boundaries with adjacent workflows.
+If category grouping drifts from shared exam metadata, later practice, mock, and study-plan behavior will become inconsistent.
 
 ## Open Questions
 
-Later implementation can refine detailed field shapes and UX behavior as long as the documented authorization, privacy, and deterministic rules remain intact.
+Future admin tooling can add explicit category curation later without changing the student-facing category contract shipped here.
 
 ## Last Updated
 
-2026-04-29
+2026-05-01

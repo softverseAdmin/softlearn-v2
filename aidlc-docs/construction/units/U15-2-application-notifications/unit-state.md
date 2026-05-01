@@ -14,11 +14,11 @@ Baseline inception version: v1
 
 ## Scope
 
-Define the baseline application-notifications flow so important application lifecycle events create deterministic user notifications through the shared notification core.
+Implement deterministic notifications for application submission, withdrawal, shortlist, and rejection using application-history events and the shared notification core.
 
 ## Out of Scope
 
-Concrete frontend or backend implementation code, Interview-specific notifications, Push-delivery channels, Marketing notifications, and Custom delivery providers.
+Interview-specific notifications, push-delivery channels, marketing notifications, and custom delivery providers.
 
 ## Dependencies
 
@@ -26,16 +26,16 @@ Depends on the requirements, security, data-model, architecture, shared authoriz
 
 ## Acceptance Criteria
 
-The unit documents application notifications behavior, boundaries, and integrations without producing application code.
+Important application lifecycle changes generate summary-safe notifications for the owning student and authorized company users with simulated delivery records.
 
 ## Risks
 
-If this unit is underspecified here, later implementation can create authorization gaps, conflicting behavior, or blurred boundaries with adjacent workflows.
+If application notifications ignore company boundaries or bypass application-history events, recipients can get duplicate or misrouted updates.
 
 ## Open Questions
 
-Later implementation can refine detailed field shapes and UX behavior as long as the documented authorization, privacy, and deterministic rules remain intact.
+Later work can add under-review notifications if the status is exposed as an end-user event without changing the current lifecycle triggers.
 
 ## Last Updated
 
-2026-04-29
+2026-05-01
