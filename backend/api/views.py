@@ -1546,6 +1546,8 @@ def serialize_vacancy(vacancy: Vacancy, *, bookmarked_vacancy_ids: set[int] | No
         "work_style": vacancy.work_style,
         "work_style_label": vacancy.get_work_style_display(),
         "relocation_support": vacancy.relocation_support,
+        "min_salary": vacancy.min_salary,
+        "max_salary": vacancy.max_salary,
         "skill_requirements": [
             serialize_vacancy_skill_requirement(requirement) for requirement in skill_requirements
         ],

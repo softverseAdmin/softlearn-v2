@@ -105,6 +105,8 @@ class Vacancy(models.Model):
     location = models.CharField(max_length=100)
     work_style = models.CharField(max_length=20, choices=WorkStyle.choices, default=WorkStyle.ONSITE)
     relocation_support = models.BooleanField(default=False)
+    min_salary = models.IntegerField(null=True, blank=True)
+    max_salary = models.IntegerField(null=True, blank=True)
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.DRAFT)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -118,6 +120,9 @@ class Vacancy(models.Model):
             raise ValidationError({"created_by": ["Vacancies must be created by company users."]})
         if self.created_by.company_id != self.company_id:
             raise ValidationError({"created_by": ["Vacancy creator must belong to the same company."]})
+        if self.min_salary is not None and self.max_salary is not None:
+            if self.min_salary > self.max_salary:
+                raise ValidationError({"max_salary": ["Maximum salary must be greater than or equal to minimum salary."]})
 
     def __str__(self) -> str:
         return f"Vacancy<{self.company.name}:{self.title}>"
