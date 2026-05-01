@@ -683,7 +683,7 @@ class ApiFoundationTests(TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertIn("is_active", response.json()["error"]["details"])
 
-    def test_admin_can_create_and_update_company(self):
+    def test_admin_can_create_update_and_retire_company(self):
         admin = User.objects.create_superuser(
             email="admin@example.com",
             password="SecurePass123!",
@@ -705,6 +705,31 @@ class ApiFoundationTests(TestCase):
             HTTP_X_CSRFTOKEN=csrf_token,
         )
         company_id = create_response.json()["data"]["company_id"]
+        company = Company.objects.get(pk=company_id)
+        company_user = User.objects.create_user(
+            email="company-owner@example.com",
+            password="SecurePass123!",
+            full_name="Company Owner",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+        vacancy = Vacancy(
+            company=company,
+            created_by=company_user,
+            title="Platform Engineer",
+            description="Maintain the platform.",
+            employment_type="Full-time",
+            experience_level="Mid",
+            location="Tokyo",
+            work_style=Vacancy.WorkStyle.HYBRID,
+            relocation_support=True,
+            status=Vacancy.Status.ACTIVE,
+        )
+        vacancy.full_clean()
+        vacancy.save()
+
+        list_response = client.get("/api/v1/admin/companies")
+        detail_response = client.get(f"/api/v1/admin/companies/{company_id}")
         update_response = client.put(
             f"/api/v1/admin/companies/{company_id}",
             data=json.dumps(
@@ -717,9 +742,21 @@ class ApiFoundationTests(TestCase):
             content_type="application/json",
             HTTP_X_CSRFTOKEN=csrf_token,
         )
+        delete_response = client.delete(
+            f"/api/v1/admin/companies/{company_id}",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
 
         self.assertEqual(create_response.status_code, 201)
+        self.assertEqual(list_response.status_code, 200)
+        self.assertEqual(detail_response.status_code, 200)
         self.assertEqual(update_response.status_code, 200)
+        self.assertEqual(delete_response.status_code, 200)
+        listed_company = list_response.json()["data"]["companies"][0]
+        self.assertEqual(listed_company["user_count"], 1)
+        self.assertEqual(listed_company["vacancy_count"], 1)
+        self.assertEqual(listed_company["active_vacancy_count"], 1)
+        self.assertEqual(detail_response.json()["data"]["company_id"], company_id)
         company = Company.objects.get(pk=company_id)
         self.assertFalse(company.is_active)
         self.assertEqual(company.name, "Softverse Updated")
