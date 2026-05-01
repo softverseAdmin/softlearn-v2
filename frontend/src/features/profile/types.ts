@@ -100,6 +100,8 @@ export interface VacancyRecord {
   work_style: string
   work_style_label: string
   relocation_support: boolean
+  min_salary: number | null
+  max_salary: number | null
   skill_requirements: VacancySkillRequirement[]
   language_requirements: VacancyLanguageRequirement[]
   is_bookmarked: boolean
