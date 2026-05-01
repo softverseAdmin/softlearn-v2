@@ -110,3 +110,106 @@ export interface AdminDashboardResponse {
     description: string
   }>
 }
+
+// Analytics Dashboard Types
+export interface StudentAnalyticsDashboardData {
+  metrics: {
+    courses_in_progress: number
+    courses_completed: number
+    exams_attempted: number
+    average_exam_score: number
+    applications_submitted: number
+    applications_accepted: number
+    applications_rejected: number
+    interviews_scheduled: number
+    interviews_completed: number
+    skills_total: number
+    skills_endorsed: number
+  }
+  score_history: Array<{
+    date: string
+    score: number
+    exam: string
+  }>
+  learning_status: {
+    not_started: number
+    in_progress: number
+    completed: number
+  }
+  upcoming_interviews: Array<{
+    id: number
+    company: string
+    purpose: string
+    scheduled_start: string | null
+    status: string
+    meeting_url: string
+  }>
+  application_status: {
+    submitted: number
+    under_review: number
+    shortlisted: number
+    rejected: number
+    withdrawn: number
+  }
+  last_updated: string
+}
+
+export interface CompanyAnalyticsDashboardData {
+  metrics: {
+    open_vacancies: number
+    total_applications: number
+    interviews_scheduled: number
+    offers_made: number
+    new_applications_7days: number
+    interview_conversion_rate: number
+    average_time_to_hire_days: number
+    shortlist_ratio: number
+    recent_interviews_completed: number
+    recent_candidates_shortlisted: number
+    recent_notes_added: number
+  }
+  vacancy_performance: Array<{
+    id: number
+    title: string
+    applications: number
+    active: boolean
+  }>
+  funnel_data: Array<{
+    stage: string
+    count: number
+  }>
+  daily_activity: Record<
+    string,
+    {
+      applications: number
+      interviews: number
+    }
+  >
+  last_updated: string
+}
+
+export interface AdminAnalyticsDashboardData {
+  platform_overview: {
+    total_students: number
+    total_companies: number
+    total_admins: number
+    active_users_30d: number
+    new_signups_this_month: number
+  }
+  platform_activity: {
+    applications_created_30d: number
+    interviews_completed_30d: number
+    exams_taken_30d: number
+    courses_started_30d: number
+  }
+  content_metrics: {
+    total_courses: number
+    total_exams: number
+    total_vacancies: number
+  }
+  user_growth: Array<{
+    month: string
+    users: number
+  }>
+  last_updated: string
+}

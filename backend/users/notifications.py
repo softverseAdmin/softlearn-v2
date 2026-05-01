@@ -1,4 +1,5 @@
-from users.models import Application, ApplicationStatusHistory, ExamResult, Interview, InterviewEvent, Notification, NotificationDelivery, User
+from users.models import Application, ApplicationStatusHistory, ExamResult, Interview, InterviewEvent, Notification, NotificationDelivery, User, NotificationEvent, NotificationPreference
+from services.email import get_email_service
 
 
 def create_notification(
@@ -201,3 +202,108 @@ def emit_exam_result_notification(result: ExamResult) -> None:
         entity_id=result.id,
         event_key=event_key,
     )
+
+
+def send_notification_emails(instance) -> None:
+    """Send email notifications based on user preferences and event type."""
+    email_service = get_email_service()
+    
+    # Handle different instance types
+    if isinstance(instance, ApplicationStatusHistory):
+        application = instance.application
+        student = application.student
+        
+        # Check preferences
+        try:
+            prefs = student.notification_preference
+            if not prefs.email_on_application or prefs.unsubscribed:
+                return
+        except NotificationPreference.DoesNotExist:
+            return
+        
+        # Send email
+        email_service.send_application_received(
+            student.email,
+            application.vacancy.title,
+            application.company.name,
+        )
+    
+    elif isinstance(instance, ExamResult):
+        student = instance.student
+        
+        # Check preferences
+        try:
+            prefs = student.notification_preference
+            if not prefs.email_on_exam_result or prefs.unsubscribed:
+                return
+        except NotificationPreference.DoesNotExist:
+            return
+        
+        # Send email
+        email_service.send_exam_result(
+            student.email,
+            instance.exam_title,
+            int(instance.score_percent),
+        )
+    
+    elif isinstance(instance, InterviewEvent):
+        interview = instance.interview
+        student = interview.student
+        
+        # Check preferences
+        try:
+            prefs = student.notification_preference
+            if not prefs.email_on_interview or prefs.unsubscribed:
+                return
+        except NotificationPreference.DoesNotExist:
+            return
+        
+        # Send email for confirmed interviews
+        if instance.event_type == "confirmed":
+            meeting_link = ""
+            if interview.meeting_link:
+                meeting_link = interview.meeting_link
+            
+            email_service.send_interview_scheduled(
+                student.email,
+                str(interview.scheduled_at),
+                interview.requested_by.full_name or "Interviewer",
+                meeting_link,
+            )
+    
+    elif isinstance(instance, NotificationEvent):
+        user = instance.user
+        
+        # Check preferences
+        try:
+            prefs = user.notification_preference
+            if prefs.unsubscribed:
+                return
+        except NotificationPreference.DoesNotExist:
+            return
+        
+        # Send emails based on event type
+        if instance.event_type == NotificationEvent.EventType.EXAM_RESULT_READY:
+            if not prefs.email_on_exam_result:
+                return
+            exam_title = instance.metadata.get("exam_title", "Your Exam")
+            score = instance.metadata.get("score", 0)
+            email_service.send_exam_result(user.email, exam_title, score)
+        
+        elif instance.event_type == NotificationEvent.EventType.STUDY_PLAN_READY:
+            if not prefs.email_on_study_plan:
+                return
+            email_service.send_study_plan_ready(user.email)
+        
+        elif instance.event_type == NotificationEvent.EventType.INTERVIEW_SCHEDULED:
+            if not prefs.email_on_interview:
+                return
+            interview_date = instance.metadata.get("interview_date", "")
+            company_name = instance.metadata.get("company_name", "")
+            meeting_link = instance.metadata.get("meeting_link", "")
+            email_service.send_interview_scheduled(
+                user.email,
+                interview_date,
+                company_name,
+                meeting_link,
+            )

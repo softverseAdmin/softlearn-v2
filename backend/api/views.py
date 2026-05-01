@@ -6447,6 +6447,79 @@ def notification_read_view(request, notification_id: int):
 
 
 @api_endpoint(["GET"], authentication_required=True)
+def notification_preferences_view(request):
+    """Get user's notification preferences."""
+    from users.models import NotificationPreference
+    
+    prefs, _ = NotificationPreference.objects.get_or_create(user=request.user)
+    return success_response({
+        "email_on_application": prefs.email_on_application,
+        "email_on_interview": prefs.email_on_interview,
+        "email_on_exam_result": prefs.email_on_exam_result,
+        "email_on_study_plan": prefs.email_on_study_plan,
+        "email_on_course_completion": prefs.email_on_course_completion,
+        "email_on_skill_endorsed": prefs.email_on_skill_endorsed,
+        "app_notifications_enabled": prefs.app_notifications_enabled,
+        "daily_digest": prefs.daily_digest,
+        "digest_time": prefs.digest_time.isoformat() if prefs.digest_time else None,
+        "unsubscribed": prefs.unsubscribed,
+    })
+
+
+@api_endpoint(["PUT", "POST"], authentication_required=True)
+def notification_preferences_update_view(request):
+    """Update user's notification preferences."""
+    from users.models import NotificationPreference
+    
+    payload = parse_json_body(request)
+    
+    prefs, _ = NotificationPreference.objects.get_or_create(user=request.user)
+    
+    # Update preferences
+    if "email_on_application" in payload:
+        prefs.email_on_application = bool(payload.get("email_on_application"))
+    if "email_on_interview" in payload:
+        prefs.email_on_interview = bool(payload.get("email_on_interview"))
+    if "email_on_exam_result" in payload:
+        prefs.email_on_exam_result = bool(payload.get("email_on_exam_result"))
+    if "email_on_study_plan" in payload:
+        prefs.email_on_study_plan = bool(payload.get("email_on_study_plan"))
+    if "email_on_course_completion" in payload:
+        prefs.email_on_course_completion = bool(payload.get("email_on_course_completion"))
+    if "email_on_skill_endorsed" in payload:
+        prefs.email_on_skill_endorsed = bool(payload.get("email_on_skill_endorsed"))
+    if "app_notifications_enabled" in payload:
+        prefs.app_notifications_enabled = bool(payload.get("app_notifications_enabled"))
+    if "daily_digest" in payload:
+        prefs.daily_digest = bool(payload.get("daily_digest"))
+    if "digest_time" in payload and payload.get("digest_time"):
+        try:
+            from datetime import time
+            time_str = payload.get("digest_time")
+            time_obj = time.fromisoformat(time_str)
+            prefs.digest_time = time_obj
+        except (ValueError, TypeError):
+            pass
+    if "unsubscribed" in payload:
+        prefs.unsubscribed = bool(payload.get("unsubscribed"))
+    
+    prefs.save()
+    
+    return success_response({
+        "email_on_application": prefs.email_on_application,
+        "email_on_interview": prefs.email_on_interview,
+        "email_on_exam_result": prefs.email_on_exam_result,
+        "email_on_study_plan": prefs.email_on_study_plan,
+        "email_on_course_completion": prefs.email_on_course_completion,
+        "email_on_skill_endorsed": prefs.email_on_skill_endorsed,
+        "app_notifications_enabled": prefs.app_notifications_enabled,
+        "daily_digest": prefs.daily_digest,
+        "digest_time": prefs.digest_time.isoformat() if prefs.digest_time else None,
+        "unsubscribed": prefs.unsubscribed,
+    })
+
+
+@api_endpoint(["GET"], authentication_required=True)
 def access_me_view(request):
     return success_response(
         {
@@ -6825,3 +6898,369 @@ def student_performance_exam_view(request, exam_id):
     return success_response({
         "metrics": [serialize_performance_metric(m) for m in metrics]
     })
+
+
+@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.STUDENT])
+def student_dashboard_data_view(request):
+    """Analytics dashboard data for student - all metrics and charts"""
+    try:
+        profile = StudentProfile.objects.get(user=request.user)
+    except StudentProfile.DoesNotExist:
+        return error_response(
+            request,
+            "not_found",
+            "Student profile not found.",
+            status=404,
+        )
+    
+    from services.analytics import AnalyticsService
+    data = AnalyticsService.get_student_dashboard_data(profile)
+    return success_response(data)
+
+
+@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.STUDENT])
+def student_dashboard_learning_view(request):
+    """Analytics data for student learning progress"""
+    try:
+        profile = StudentProfile.objects.get(user=request.user)
+    except StudentProfile.DoesNotExist:
+        return error_response(
+            request,
+            "not_found",
+            "Student profile not found.",
+            status=404,
+        )
+    
+    from services.analytics import AnalyticsService
+    data = AnalyticsService.get_student_dashboard_data(profile)
+    return success_response({
+        'metrics': data['metrics'],
+        'score_history': data['score_history'],
+        'learning_status': data['learning_status'],
+    })
+
+
+@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.STUDENT])
+def student_dashboard_applications_view(request):
+    """Analytics data for student applications"""
+    try:
+        profile = StudentProfile.objects.get(user=request.user)
+    except StudentProfile.DoesNotExist:
+        return error_response(
+            request,
+            "not_found",
+            "Student profile not found.",
+            status=404,
+        )
+    
+    from services.analytics import AnalyticsService
+    data = AnalyticsService.get_student_dashboard_data(profile)
+    return success_response({
+        'metrics': {
+            'applications_submitted': data['metrics']['applications_submitted'],
+            'applications_accepted': data['metrics']['applications_accepted'],
+            'applications_rejected': data['metrics']['applications_rejected'],
+        },
+        'application_status': data['application_status'],
+        'upcoming_interviews': data['upcoming_interviews'],
+    })
+
+
+@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.COMPANY])
+def company_dashboard_data_view(request):
+    """Analytics dashboard data for company - all metrics and charts"""
+    try:
+        company = Company.objects.get(id=request.user.company_id)
+    except Company.DoesNotExist:
+        return error_response(
+            request,
+            "not_found",
+            "Company not found.",
+            status=404,
+        )
+    
+    # Check if user is authorized to view company data
+    if request.user.company_id != company.id:
+        return error_response(
+            request,
+            "forbidden",
+            "You do not have permission to view this company's data.",
+            status=403,
+        )
+    
+    from services.analytics import AnalyticsService
+    data = AnalyticsService.get_company_dashboard_data(company)
+    return success_response(data)
+
+
+@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.COMPANY])
+def company_dashboard_pipeline_view(request):
+    """Analytics data for company hiring pipeline"""
+    try:
+        company = Company.objects.get(id=request.user.company_id)
+    except Company.DoesNotExist:
+        return error_response(
+            request,
+            "not_found",
+            "Company not found.",
+            status=404,
+        )
+    
+    # Check if user is authorized to view company data
+    if request.user.company_id != company.id:
+        return error_response(
+            request,
+            "forbidden",
+            "You do not have permission to view this company's data.",
+            status=403,
+        )
+    
+    from services.analytics import AnalyticsService
+    data = AnalyticsService.get_company_dashboard_data(company)
+    return success_response({
+        'metrics': {
+            'total_applications': data['metrics']['total_applications'],
+            'interviews_scheduled': data['metrics']['interviews_scheduled'],
+            'interview_conversion_rate': data['metrics']['interview_conversion_rate'],
+            'shortlist_ratio': data['metrics']['shortlist_ratio'],
+            'average_time_to_hire_days': data['metrics']['average_time_to_hire_days'],
+        },
+        'funnel_data': data['funnel_data'],
+        'vacancy_performance': data['vacancy_performance'],
+    })
+
+
+@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.ADMIN])
+def admin_dashboard_data_view(request):
+    """Platform-wide analytics data for admin"""
+    from services.analytics import AnalyticsService
+    data = AnalyticsService.get_admin_dashboard_data()
+    return success_response(data)
+
+
+# Privacy & Consent APIs
+from api.privacy_utils import (
+    check_student_data_access,
+    log_student_data_access,
+    get_client_ip,
+    get_user_consent_for_company,
+)
+from users.models import DataConsent, StudentDataAccessLog, DataExportRequest, DataDeletionRequest
+from datetime import timedelta
+
+
+def serialize_consent(consent: DataConsent) -> dict:
+    return {
+        "id": consent.id,
+        "consent_type": consent.consent_type,
+        "given": consent.given,
+        "given_at": consent.given_at.isoformat() if consent.given_at else None,
+        "company_id": consent.company_id,
+        "company_name": consent.company.name if consent.company else None,
+        "created_at": consent.created_at.isoformat(),
+        "updated_at": consent.updated_at.isoformat(),
+    }
+
+
+def serialize_access_log(log: StudentDataAccessLog) -> dict:
+    return {
+        "id": log.id,
+        "access_type": log.access_type,
+        "accessed_by_email": log.accessed_by.email,
+        "accessed_by_name": log.accessed_by.full_name,
+        "company_name": log.accessed_by_company.name if log.accessed_by_company else None,
+        "reason": log.reason,
+        "ip_address": log.ip_address,
+        "created_at": log.created_at.isoformat(),
+    }
+
+
+def serialize_export_request(export: DataExportRequest) -> dict:
+    return {
+        "id": export.id,
+        "status": export.status,
+        "file_url": export.file_url,
+        "requested_at": export.requested_at.isoformat(),
+        "expires_at": export.expires_at.isoformat(),
+        "is_expired": export.is_expired,
+        "created_at": export.created_at.isoformat(),
+        "updated_at": export.updated_at.isoformat(),
+    }
+
+
+def serialize_deletion_request(deletion: DataDeletionRequest) -> dict:
+    return {
+        "id": deletion.id,
+        "status": deletion.status,
+        "reason": deletion.reason,
+        "requested_at": deletion.requested_at.isoformat(),
+        "completed_at": deletion.completed_at.isoformat() if deletion.completed_at else None,
+        "created_at": deletion.created_at.isoformat(),
+        "updated_at": deletion.updated_at.isoformat(),
+    }
+
+
+@api_endpoint(["GET", "PUT"], authentication_required=True, roles=[User.Role.STUDENT])
+def student_consent_view(request):
+    """Get or update student data consent preferences."""
+    if request.method == "GET":
+        # Get all consents for the student
+        consents = DataConsent.objects.filter(student=request.user)
+        
+        # Include all consent types even if not yet created
+        all_consent_types = dict(DataConsent.CONSENT_TYPES)
+        consent_data = {}
+        
+        for consent_type, description in DataConsent.CONSENT_TYPES:
+            type_consents = consents.filter(consent_type=consent_type)
+            if type_consents.exists():
+                consent_data[consent_type] = [serialize_consent(c) for c in type_consents]
+            else:
+                consent_data[consent_type] = []
+        
+        return success_response({"consents": consent_data})
+    
+    elif request.method == "PUT":
+        try:
+            payload = parse_json_body(request)
+        except Exception as e:
+            return error_response(request, "invalid_request", str(e), status=400)
+        
+        consent_type = payload.get("consent_type")
+        given = payload.get("given", False)
+        company_id = payload.get("company_id")
+        
+        if not consent_type or consent_type not in dict(DataConsent.CONSENT_TYPES):
+            return error_response(request, "invalid_request", "Invalid consent_type.", status=400)
+        
+        company = None
+        if company_id:
+            try:
+                company = Company.objects.get(id=company_id)
+            except Company.DoesNotExist:
+                return error_response(request, "not_found", "Company not found.", status=404)
+        
+        try:
+            consent, created = DataConsent.objects.update_or_create(
+                student=request.user,
+                consent_type=consent_type,
+                company=company,
+                defaults={
+                    "given": given,
+                    "given_at": timezone.now() if given else None,
+                    "ip_address": get_client_ip(request),
+                    "user_agent": request.META.get("HTTP_USER_AGENT", "")[:500],
+                }
+            )
+            consent.full_clean()
+            consent.save()
+            
+            return success_response(
+                {"consent": serialize_consent(consent)},
+                status=201 if created else 200
+            )
+        except ValidationError as e:
+            return error_response(request, "validation_error", str(e.messages), status=400)
+
+
+@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.STUDENT])
+def student_data_access_log_view(request):
+    """Get audit log of who accessed my data."""
+    logs = StudentDataAccessLog.objects.filter(student=request.user).order_by("-created_at")
+    
+    # Optional filtering by company
+    company_id = request.GET.get("company_id")
+    if company_id:
+        logs = logs.filter(accessed_by_company_id=company_id)
+    
+    # Optional filtering by access type
+    access_type = request.GET.get("access_type")
+    if access_type:
+        logs = logs.filter(access_type=access_type)
+    
+    return success_response({
+        "logs": [serialize_access_log(log) for log in logs[:100]]  # Limit to 100 most recent
+    })
+
+
+@api_endpoint(["POST"], authentication_required=True, roles=[User.Role.STUDENT])
+def student_data_export_request_view(request):
+    """Request to export all personal data."""
+    try:
+        # Create a new export request
+        expires_at = timezone.now() + timedelta(days=30)
+        export_request = DataExportRequest.objects.create(
+            student=request.user,
+            status="pending",
+            expires_at=expires_at,
+        )
+        export_request.full_clean()
+        export_request.save()
+        
+        return success_response(
+            {"export_request": serialize_export_request(export_request)},
+            status=201
+        )
+    except ValidationError as e:
+        return error_response(request, "validation_error", str(e.messages), status=400)
+
+
+@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.STUDENT])
+def student_data_export_detail_view(request, export_id):
+    """Get export request status or download link."""
+    try:
+        export_request = DataExportRequest.objects.get(id=export_id, student=request.user)
+    except DataExportRequest.DoesNotExist:
+        return error_response(request, "not_found", "Export request not found.", status=404)
+    
+    return success_response({"export_request": serialize_export_request(export_request)})
+
+
+@api_endpoint(["POST"], authentication_required=True, roles=[User.Role.STUDENT])
+def student_deletion_request_view(request):
+    """Request account deletion."""
+    try:
+        payload = parse_json_body(request)
+        reason = payload.get("reason", "")
+        
+        # Check if there's already a pending deletion request
+        existing = DataDeletionRequest.objects.filter(
+            student=request.user,
+            status__in=["pending", "processing"]
+        ).exists()
+        
+        if existing:
+            return error_response(
+                request,
+                "validation_error",
+                "You already have a pending deletion request.",
+                status=400
+            )
+        
+        deletion_request = DataDeletionRequest.objects.create(
+            student=request.user,
+            status="pending",
+            reason=reason,
+        )
+        deletion_request.full_clean()
+        deletion_request.save()
+        
+        return success_response(
+            {"deletion_request": serialize_deletion_request(deletion_request)},
+            status=201
+        )
+    except ValidationError as e:
+        return error_response(request, "validation_error", str(e.messages), status=400)
+
+
+@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.STUDENT])
+def student_deletion_status_view(request):
+    """Check deletion request status."""
+    deletion_request = DataDeletionRequest.objects.filter(
+        student=request.user
+    ).order_by("-created_at").first()
+    
+    if not deletion_request:
+        return success_response({"deletion_request": None})
+    
+    return success_response({"deletion_request": serialize_deletion_request(deletion_request)})
