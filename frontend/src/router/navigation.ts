@@ -26,6 +26,9 @@ export const navigationItemsByRole: Record<UserRole, NavigationItem[]> = {
     { label: 'Exams', to: '/student/exams' },
     { label: 'Interviews', to: '/student/interviews' },
     { label: 'Privacy', to: '/student/privacy' },
+    { label: 'Exam categories', to: '/learning/categories' },
+    { label: 'Study plan', to: '/learning/study-plan' },
+    { label: 'Performance', to: '/learning/performance' },
   ],
   company: [
     { label: 'Dashboard', to: '/company' },
