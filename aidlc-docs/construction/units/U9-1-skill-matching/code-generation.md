@@ -2,36 +2,40 @@
 
 ## Implementation plan
 
-No application code for this unit.
-
-This unit defines the skill-matching baseline only. Later backend units may implement deterministic skill-factor evaluation, explanation workflows, and tests from this design.
+1. Add deterministic vacancy-to-student skill scoring that separates required and preferred skills.
+2. Feed the skill factor into the shared match aggregation flow and explanation payloads.
+3. Surface skill-aware results in the student matched-jobs and company matched-students APIs.
+4. Cover ranked ordering and recommendation thresholds with backend tests.
 
 ## Files to create or update
 
-- `aidlc-docs/construction/units/U9-1-skill-matching/unit-state.md`
-- `aidlc-docs/construction/units/U9-1-skill-matching/functional-design.md`
-- `aidlc-docs/construction/units/U9-1-skill-matching/nfr-requirements.md`
-- `aidlc-docs/construction/units/U9-1-skill-matching/nfr-design.md`
-- `aidlc-docs/construction/units/U9-1-skill-matching/infrastructure-design.md`
+- `backend/api/views.py`
+- `backend/api/tests.py`
+- `backend/api/urls.py`
+- `frontend/src/features/profile/types.ts`
+- `frontend/src/features/profile/StudentMatchesPage.tsx`
+- `frontend/src/features/profile/CompanyVacancyMatchesPage.tsx`
+- `frontend/src/router/AppRouter.tsx`
+- `frontend/src/router/navigation.ts`
+- `frontend/src/app/PageTitle.tsx`
+- `frontend/src/features/profile/CompanyVacanciesPage.tsx`
 - `aidlc-docs/construction/units/U9-1-skill-matching/code-generation.md`
-- `aidlc-docs/aidlc-state.md`
+- `aidlc-docs/construction/units/U9-1-skill-matching/unit-state.md`
 
 ## Test plan
 
-- Review the unit against the requirements, security, data-model, architecture, and rule-based matching baselines.
-- Confirm the unit defines deterministic skill matching clearly.
-- Confirm the unit remains separate from other factors, aggregate scoring, and matched-view workflows.
-- Confirm no application code is added.
-- Run `./scripts/aidlc-check.sh`.
+- `. .venv\Scripts\Activate.ps1; cd backend; python manage.py check; python manage.py test`
+- `cd frontend; npm run build; npm run lint`
+- `bash ./scripts/aidlc-check.sh` in a shell that can execute the repository validation script.
 
 ## Rollback plan
 
-Revert the documentation-only change if the skill-matching baseline is rejected or replaced by an approved revision.
+- Revert the deterministic skill-factor scoring helpers, match endpoints, UI pages, and tests.
+- Restore the application to the prior non-matching behavior.
 
 ## Review checklist
 
-- Deterministic skill-matching flow documented
-- Explainable matched-skill and missing-skill expectations documented
-- Relationship to later aggregate scoring and matched-view units documented
-- Separation from other factors and aggregate scoring preserved
-- No application code introduced
+- Required and preferred skills are scored deterministically
+- Skill explanations remain human-readable
+- Skill scoring feeds both student and company match views consistently
+- Thresholded match ordering is covered by backend tests

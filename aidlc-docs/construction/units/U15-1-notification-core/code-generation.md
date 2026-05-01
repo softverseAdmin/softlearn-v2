@@ -2,36 +2,36 @@
 
 ## Implementation plan
 
-No application code for this unit.
-
-This unit defines the notification core baseline only. Later frontend and backend units may implement the protected workflows, records, and tests from this design.
+1. Reuse the shared `Notification` and `NotificationDelivery` models for all user-facing events.
+2. Keep notification creation backend-driven with deterministic event keys.
+3. Expose protected notification list and read-state APIs to all authenticated roles.
+4. Preserve summary-safe in-app and simulated email delivery records per notification.
 
 ## Files to create or update
 
-- `aidlc-docs/construction/units/U15-1-notification-core/unit-state.md`
-- `aidlc-docs/construction/units/U15-1-notification-core/functional-design.md`
-- `aidlc-docs/construction/units/U15-1-notification-core/nfr-requirements.md`
-- `aidlc-docs/construction/units/U15-1-notification-core/nfr-design.md`
-- `aidlc-docs/construction/units/U15-1-notification-core/infrastructure-design.md`
+- `backend/users/models.py`
+- `backend/users/notifications.py`
+- `backend/api/views.py`
+- `backend/api/urls.py`
+- `backend/api/tests.py`
+- `frontend/src/features/notifications/NotificationsPage.tsx`
+- `frontend/src/features/notifications/types.ts`
 - `aidlc-docs/construction/units/U15-1-notification-core/code-generation.md`
-- `aidlc-docs/aidlc-state.md`
+- `aidlc-docs/construction/units/U15-1-notification-core/unit-state.md`
 
 ## Test plan
 
-- Review the unit against the requirements, security, data-model, architecture, and adjacent domain baselines.
-- Confirm the unit defines the workflow clearly.
-- Confirm the unit remains separate from adjacent out-of-scope behaviors.
-- Confirm no application code is added.
-- Run `./scripts/aidlc-check.sh`.
+- `.venv\Scripts\python.exe manage.py check`
+- `.venv\Scripts\python.exe manage.py test`
+- `cd frontend; npm run build; npm run lint`
+- `bash ./scripts/aidlc-check.sh` in a shell that can execute the repository validation script.
 
 ## Rollback plan
 
-Revert the documentation-only change if the notification core baseline is rejected or replaced by an approved revision.
+- Revert notification-core model usage, protected notification APIs, and the shared notifications UI.
 
 ## Review checklist
 
-- Notification core documented
-- Authorization, privacy, and deterministic behavior boundaries documented
-- Relationship to adjacent units documented
-- Global AI-DLC state updated
-- No application code introduced
+- Notification records use deterministic event keys
+- Only recipients can view and update their notifications
+- Delivery records stay summary-safe and auditable

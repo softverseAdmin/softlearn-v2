@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
+import { Link } from 'react-router-dom'
 
 import { useAuth } from '../../auth/useAuth'
 import { ApiError, apiRequest } from '../../lib/api'
@@ -442,6 +443,11 @@ export function CompanyVacanciesPage() {
                   <button className="secondary-button inline-button" type="button" onClick={() => setSelectedVacancyId(vacancy.vacancy_id)}>
                     Edit
                   </button>
+                  {vacancy.status === 'active' ? (
+                    <Link className="secondary-button inline-button" to={`/company/vacancies/${vacancy.vacancy_id}/matches`}>
+                      View matches
+                    </Link>
+                  ) : null}
                   {vacancy.status !== 'inactive' ? (
                     <button className="danger-button inline-button" type="button" onClick={() => void handleRetire(vacancy.vacancy_id)} disabled={saving}>
                       Retire

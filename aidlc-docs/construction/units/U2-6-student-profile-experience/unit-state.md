@@ -14,11 +14,11 @@ Baseline inception version: v1
 
 ## Scope
 
-Define the baseline student experience-management flow for authenticated self-service viewing, adding, updating, and removing structured experience records.
+Implement authenticated student self-service viewing, adding, updating, and removing structured experience records inside the profile workspace.
 
 ## Out of Scope
 
-Concrete frontend/backend implementation code, verification workflows, and separate resume, privacy, and company-review units.
+Verification workflows, company-facing experience visibility, and unrelated resume, privacy, or company-review units.
 
 ## Dependencies
 
@@ -26,16 +26,16 @@ Depends on the requirements, data-model, security, RBAC, frontend foundation, ro
 
 ## Acceptance Criteria
 
-The unit documents structured student experience management, self-service ownership boundaries, protected-access behavior, and validation expectations without producing application code.
+Students can manage structured experience records through protected backend routes and the student profile UI with typed experience categories and timeline validation.
 
 ## Risks
 
-If experience records are modeled inconsistently here, later profile, privacy, resume, and company-review units will drift into conflicting ownership and validation rules.
+If experience records drift from the shared student profile contract, later readiness, privacy, and company-review behavior will become inconsistent.
 
 ## Open Questions
 
-Exact field set, timeline granularity, and any future employer-proof attachments can be refined later as long as structured record ownership stays intact.
+Future verification or proof attachments can be layered on later without changing the structured experience contract shipped here.
 
 ## Last Updated
 
-2026-04-29
+2026-05-01

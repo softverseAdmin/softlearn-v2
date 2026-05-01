@@ -2,36 +2,29 @@
 
 ## Implementation plan
 
-No application code for this unit.
-
-This unit defines the exam-score-matching baseline only. Later backend units may implement deterministic exam-factor evaluation, explanation workflows, and tests from this design.
+1. Reuse average student exam performance as deterministic readiness evidence.
+2. Blend exam evidence with learning completion inside the readiness factor.
+3. Expose exam-driven readiness strengths and gaps in match payloads.
+4. Cover exam-backed match behavior through backend tests.
 
 ## Files to create or update
 
-- `aidlc-docs/construction/units/U9-3-exam-score-matching/unit-state.md`
-- `aidlc-docs/construction/units/U9-3-exam-score-matching/functional-design.md`
-- `aidlc-docs/construction/units/U9-3-exam-score-matching/nfr-requirements.md`
-- `aidlc-docs/construction/units/U9-3-exam-score-matching/nfr-design.md`
-- `aidlc-docs/construction/units/U9-3-exam-score-matching/infrastructure-design.md`
+- `backend/api/views.py`
+- `backend/api/tests.py`
 - `aidlc-docs/construction/units/U9-3-exam-score-matching/code-generation.md`
-- `aidlc-docs/aidlc-state.md`
+- `aidlc-docs/construction/units/U9-3-exam-score-matching/unit-state.md`
 
 ## Test plan
 
-- Review the unit against the requirements, security, data-model, architecture, and rule-based matching baselines.
-- Confirm the unit defines deterministic exam-score matching clearly.
-- Confirm the unit remains separate from other factors, aggregate scoring, and matched-view workflows.
-- Confirm no application code is added.
-- Run `./scripts/aidlc-check.sh`.
+- `. .venv\Scripts\Activate.ps1; cd backend; python manage.py check; python manage.py test`
+- `bash ./scripts/aidlc-check.sh` in a shell that can execute the repository validation script.
 
 ## Rollback plan
 
-Revert the documentation-only change if the exam-score-matching baseline is rejected or replaced by an approved revision.
+- Revert the exam-result contribution inside readiness scoring and restore the prior non-matching state.
 
 ## Review checklist
 
-- Deterministic exam-score-matching flow documented
-- Explainable exam-fit expectations documented
-- Relationship to later aggregate scoring and matched-view units documented
-- Separation from other factors and aggregate scoring preserved
-- No application code introduced
+- Exam averages contribute deterministically to readiness
+- Missing exam evidence is explained without causing silent failures
+- Exam evidence and course evidence combine consistently

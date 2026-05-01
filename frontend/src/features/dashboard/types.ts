@@ -103,7 +103,7 @@ export interface AdminDashboardResponse {
     timestamp: string
   }>
   system_status: Array<{
-    id: number
+    id: string
     label: string
     value: string
     tone: 'healthy' | 'warning' | 'neutral'

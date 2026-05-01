@@ -14,28 +14,28 @@ Baseline inception version: v1
 
 ## Scope
 
-Define the baseline lesson-viewing flow so an authorized student can read lesson content inside the learning experience without mixing in enrollment execution or progress-state updates.
+Implement protected student lesson viewing for enrolled courses with stable lesson navigation and deny-by-default access.
 
 ## Out of Scope
 
-Concrete frontend/backend implementation code, lesson authoring, enrollment creation, automatic progress updates, completion logic, and advanced interactive learning tools.
+Lesson authoring, anonymous access, advanced interactive learning widgets, and non-student preview flows.
 
 ## Dependencies
 
-Depends on the requirements, security, data-model, routing, layout, course detail, lesson creation, and protected learning-access baselines.
+Depends on shared courses and lessons, student routing, enrollment state, and protected learning APIs.
 
 ## Acceptance Criteria
 
-The unit documents lesson-viewing behavior, access boundaries, and navigation expectations without producing application code.
+Enrolled students can open lesson content and navigate lesson-to-lesson within an active course, while unenrolled access is rejected clearly.
 
 ## Risks
 
-If lesson viewing is vague here, later enrollment, progress, and completion units can drift into conflicting rules for who may access lesson content and how lessons are sequenced.
+If access checks are weak, protected lesson content can leak before enrollment or after course retirement.
 
 ## Open Questions
 
-Exact authorization source, preview-versus-full-access behavior, and richer lesson interactions can be refined later as long as authorized lesson viewing remains explicit and student-facing.
+Richer lesson-body rendering and embedded media can be layered later without changing the protected route posture.
 
 ## Last Updated
 
-2026-04-29
+2026-04-30

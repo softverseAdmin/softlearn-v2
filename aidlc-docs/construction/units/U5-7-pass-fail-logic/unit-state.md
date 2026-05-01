@@ -14,28 +14,29 @@ Baseline inception version: v1
 
 ## Scope
 
-Define the baseline pass/fail evaluation flow so scored exam attempts can be classified into stable outcome states without collapsing score calculation, history, or retake behavior into the same unit.
+Implement deterministic pass/fail classification from scored attempts using explicit exam-level passing thresholds.
 
 ## Out of Scope
 
-Concrete frontend/backend implementation code, exam creation, question creation, answer-options management, exam-taking UI rendering, answer submission persistence, raw score calculation, exam history, retake policy, and company-facing result visibility.
+Multi-band grading, manual overrides, and company-facing outcome review.
 
 ## Dependencies
 
-Depends on the requirements, security, data-model, architecture, RBAC, API, exam-creation, question-creation, answer-options-management, answer-submission, and score-calculation baselines.
+Depends on shared exam records and deterministic attempt scoring.
 
 ## Acceptance Criteria
 
-The unit documents pass/fail outcome rules, classification boundaries, and relationship to later history and retake units without producing application code.
+Every scored attempt is classified consistently against the exam’s passing threshold.
 
 ## Risks
 
-If pass/fail logic is underspecified here, later result summaries, retake controls, readiness scoring, and company-visibility units can drift into conflicting outcome classifications and non-auditable decision rules.
+If pass/fail rules are split across multiple surfaces, retake and readiness flows can drift immediately.
 
 ## Open Questions
 
-Exact threshold formulas, multi-band outcomes, and exceptional review workflows can be refined later as long as baseline pass/fail logic remains explicit, deterministic, and score-linked.
+Richer grading bands can be added later without replacing the explicit pass/fail threshold baseline.
 
 ## Last Updated
 
-2026-04-29
+2026-05-01
+

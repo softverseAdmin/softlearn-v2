@@ -2,36 +2,34 @@
 
 ## Implementation plan
 
-No application code for this unit.
-
-This unit defines the application notifications baseline only. Later frontend and backend units may implement the protected workflows, records, and tests from this design.
+1. Add application-specific notification types to the shared notification model.
+2. Emit notifications from `ApplicationStatusHistory` creation so submission, withdrawal, shortlist, and rejection use the same auditable event source.
+3. Route application notifications to the owning student and active company users for the relevant company context.
+4. Reuse the existing in-app and simulated email delivery posture.
 
 ## Files to create or update
 
-- `aidlc-docs/construction/units/U15-2-application-notifications/unit-state.md`
-- `aidlc-docs/construction/units/U15-2-application-notifications/functional-design.md`
-- `aidlc-docs/construction/units/U15-2-application-notifications/nfr-requirements.md`
-- `aidlc-docs/construction/units/U15-2-application-notifications/nfr-design.md`
-- `aidlc-docs/construction/units/U15-2-application-notifications/infrastructure-design.md`
+- `backend/users/models.py`
+- `backend/users/notifications.py`
+- `backend/users/signals.py`
+- `backend/api/tests.py`
+- `frontend/src/features/notifications/NotificationsPage.tsx`
 - `aidlc-docs/construction/units/U15-2-application-notifications/code-generation.md`
-- `aidlc-docs/aidlc-state.md`
+- `aidlc-docs/construction/units/U15-2-application-notifications/unit-state.md`
 
 ## Test plan
 
-- Review the unit against the requirements, security, data-model, architecture, and adjacent domain baselines.
-- Confirm the unit defines the workflow clearly.
-- Confirm the unit remains separate from adjacent out-of-scope behaviors.
-- Confirm no application code is added.
-- Run `./scripts/aidlc-check.sh`.
+- `.venv\Scripts\python.exe manage.py check`
+- `.venv\Scripts\python.exe manage.py test`
+- `cd frontend; npm run build; npm run lint`
+- `bash ./scripts/aidlc-check.sh` in a shell that can execute the repository validation script.
 
 ## Rollback plan
 
-Revert the documentation-only change if the application notifications baseline is rejected or replaced by an approved revision.
+- Revert application notification types, application-history signal handling, and related notification assertions.
 
 ## Review checklist
 
-- Application notifications documented
-- Authorization, privacy, and deterministic behavior boundaries documented
-- Relationship to adjacent units documented
-- Global AI-DLC state updated
-- No application code introduced
+- Submission, withdrawal, shortlist, and rejection create deterministic notifications
+- Recipient routing stays inside the student/company application context
+- Application notifications reuse the shared delivery tracking model

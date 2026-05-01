@@ -14,28 +14,28 @@ Baseline inception version: v1
 
 ## Scope
 
-Define the baseline manage-exams flow so authorized admins can perform protected exam management with full CRUD-oriented control and auditability.
+Implement protected admin exam management using a shared `Exam` domain model with create, update, list, and deactivate flows.
 
 ## Out of Scope
 
-Concrete frontend or backend implementation code, Bulk-import tooling, External exam-platform synchronization, Advanced proctoring workflows, and Heavy analytics.
+Bulk-import tooling, external exam-platform synchronization, proctoring workflows, question authoring, and heavy assessment analytics.
 
 ## Dependencies
 
-Depends on the requirements, security, data-model, architecture, shared authorization/API baselines, and adjacent domain units listed in the functional design.
+Depends on authentication, role permissions, admin routing, base API structure, and the exam-results domain surfaces that reuse exam records.
 
 ## Acceptance Criteria
 
-The unit documents manage exams behavior, boundaries, and integrations without producing application code.
+Admins can manage shared exam records through protected APIs and UI routes, exam data is reusable by linked exam results, and non-admin users cannot access the management surface.
 
 ## Risks
 
-If this unit is underspecified here, later implementation can create authorization gaps, conflicting behavior, or blurred boundaries with adjacent workflows.
+If exam management diverges from the assessment domain, later question, scoring, and history units can drift into duplicate records and inconsistent result reporting.
 
 ## Open Questions
 
-Later implementation can refine detailed field shapes and UX behavior as long as the documented authorization, privacy, and deterministic rules remain intact.
+Future units can add questions, answer options, and exam delivery flows as long as they continue to reuse the shared exam model introduced here.
 
 ## Last Updated
 
-2026-04-29
+2026-04-30

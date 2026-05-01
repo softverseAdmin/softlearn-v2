@@ -2,36 +2,40 @@
 
 ## Implementation plan
 
-No application code for this unit.
-
-This unit defines the mock exam baseline only. Later frontend and backend units may implement the protected workflows, records, and tests from this design.
+1. Reuse ready active exams as mock-exam templates.
+2. Add separate `MockExamAttempt` and `MockExamAttemptAnswer` persistence.
+3. Expose protected student mock-exam detail and submission routes.
+4. Add a dedicated mock-exam page linked from the preparation workspace.
 
 ## Files to create or update
 
-- `aidlc-docs/construction/units/U14-3-mock-exam/unit-state.md`
-- `aidlc-docs/construction/units/U14-3-mock-exam/functional-design.md`
-- `aidlc-docs/construction/units/U14-3-mock-exam/nfr-requirements.md`
-- `aidlc-docs/construction/units/U14-3-mock-exam/nfr-design.md`
-- `aidlc-docs/construction/units/U14-3-mock-exam/infrastructure-design.md`
+- `backend/users/models.py`
+- `backend/users/migrations/0019_preparation_workspace.py`
+- `backend/users/admin.py`
+- `backend/api/views.py`
+- `backend/api/urls.py`
+- `backend/api/tests.py`
+- `frontend/src/features/profile/types.ts`
+- `frontend/src/features/profile/StudentPreparationPage.tsx`
+- `frontend/src/features/profile/StudentMockExamPage.tsx`
+- `frontend/src/router/AppRouter.tsx`
+- `frontend/src/app/PageTitle.tsx`
 - `aidlc-docs/construction/units/U14-3-mock-exam/code-generation.md`
-- `aidlc-docs/aidlc-state.md`
+- `aidlc-docs/construction/units/U14-3-mock-exam/unit-state.md`
 
 ## Test plan
 
-- Review the unit against the requirements, security, data-model, architecture, and adjacent domain baselines.
-- Confirm the unit defines the workflow clearly.
-- Confirm the unit remains separate from adjacent out-of-scope behaviors.
-- Confirm no application code is added.
-- Run `./scripts/aidlc-check.sh`.
+- `.venv\Scripts\python.exe manage.py check`
+- `.venv\Scripts\python.exe manage.py test`
+- `cd frontend; npm run build; npm run lint`
+- `bash ./scripts/aidlc-check.sh` in a shell that can execute the repository validation script.
 
 ## Rollback plan
 
-Revert the documentation-only change if the mock exam baseline is rejected or replaced by an approved revision.
+- Revert mock-exam attempt tables, student mock routes, and the mock-exam UI.
 
 ## Review checklist
 
-- Mock exam documented
-- Authorization, privacy, and deterministic behavior boundaries documented
-- Relationship to adjacent units documented
-- Global AI-DLC state updated
-- No application code introduced
+- Mock results never write to `ExamResult`
+- Mock scoring is deterministic and explainable
+- Mock history stays student-owned

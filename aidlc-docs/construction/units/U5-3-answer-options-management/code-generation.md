@@ -2,36 +2,38 @@
 
 ## Implementation plan
 
-No application code for this unit.
-
-This unit defines the answer-options management baseline only. Later backend and frontend units may implement protected option authoring, validation flows, and tests from this design.
+1. Add an `ExamAnswerOption` model linked to exam questions with ordering and protected correctness metadata.
+2. Add admin APIs for creating, updating, and retiring options under a question.
+3. Manage answer options from the admin question page without exposing correctness data to student flows.
+4. Cover option authoring behavior with backend tests.
 
 ## Files to create or update
 
-- `aidlc-docs/construction/units/U5-3-answer-options-management/unit-state.md`
-- `aidlc-docs/construction/units/U5-3-answer-options-management/functional-design.md`
-- `aidlc-docs/construction/units/U5-3-answer-options-management/nfr-requirements.md`
-- `aidlc-docs/construction/units/U5-3-answer-options-management/nfr-design.md`
-- `aidlc-docs/construction/units/U5-3-answer-options-management/infrastructure-design.md`
+- `backend/users/models.py`
+- `backend/users/migrations/0018_exam_questions_attempts.py`
+- `backend/users/admin.py`
+- `backend/api/views.py`
+- `backend/api/urls.py`
+- `backend/api/tests.py`
+- `frontend/src/features/admin/types.ts`
+- `frontend/src/features/admin/AdminExamQuestionsPage.tsx`
 - `aidlc-docs/construction/units/U5-3-answer-options-management/code-generation.md`
-- `aidlc-docs/aidlc-state.md`
+- `aidlc-docs/construction/units\U5-3-answer-options-management\unit-state.md`
 
 ## Test plan
 
-- Review the unit against the requirements, security, data-model, architecture, and exam-domain baselines.
-- Confirm the unit defines protected answer-options management clearly.
-- Confirm the unit remains separate from exam taking, answer submission, scoring, and results workflows.
-- Confirm no application code is added.
-- Run `./scripts/aidlc-check.sh`.
+- `.venv\Scripts\python.exe manage.py check`
+- `.venv\Scripts\python.exe manage.py test`
+- `cd frontend; npm run build; npm run lint`
+- `bash ./scripts/aidlc-check.sh` in a shell that can execute the repository validation script.
 
 ## Rollback plan
 
-Revert the documentation-only change if the answer-options management baseline is rejected or replaced by an approved revision.
+- Revert answer-option models, protected admin option APIs, option-management UI, and related tests.
 
 ## Review checklist
 
-- Protected answer-options management flow documented
-- Authoring access, validation expectations, and integrity posture documented
-- Relationship to later delivery, submission, and scoring units documented
-- Separation from exam-taking and outcome logic preserved
-- No application code introduced
+- Correctness metadata stays admin-only
+- Options are question-scoped and sequence-ordered
+- Invalid or duplicate option definitions are rejected
+

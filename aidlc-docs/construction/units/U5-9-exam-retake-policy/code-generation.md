@@ -2,36 +2,39 @@
 
 ## Implementation plan
 
-No application code for this unit.
-
-This unit defines the retake-policy baseline only. Later backend units may implement deterministic eligibility evaluation, policy workflows, and tests from this design.
+1. Add explicit exam-level `max_attempts` policy.
+2. Determine retake eligibility from prior scored results and pass/fail outcomes.
+3. Block further attempts after a pass or after the attempt cap is reached.
+4. Surface retake eligibility on student exam history and exam-taking routes.
 
 ## Files to create or update
 
-- `aidlc-docs/construction/units/U5-9-exam-retake-policy/unit-state.md`
-- `aidlc-docs/construction/units/U5-9-exam-retake-policy/functional-design.md`
-- `aidlc-docs/construction/units/U5-9-exam-retake-policy/nfr-requirements.md`
-- `aidlc-docs/construction/units/U5-9-exam-retake-policy/nfr-design.md`
-- `aidlc-docs/construction/units/U5-9-exam-retake-policy/infrastructure-design.md`
+- `backend/users/models.py`
+- `backend/users/migrations/0018_exam_questions_attempts.py`
+- `backend/api/views.py`
+- `backend/api/tests.py`
+- `frontend/src/features/profile/types.ts`
+- `frontend/src/features/profile/StudentExamResultsPage.tsx`
+- `frontend/src/features/profile/StudentExamPage.tsx`
+- `frontend/src/features/admin/AdminExamsPage.tsx`
+- `frontend/src/features/admin/types.ts`
 - `aidlc-docs/construction/units/U5-9-exam-retake-policy/code-generation.md`
-- `aidlc-docs/aidlc-state.md`
+- `aidlc-docs/construction/units/U5-9-exam-retake-policy/unit-state.md`
 
 ## Test plan
 
-- Review the unit against the requirements, security, data-model, architecture, and exam-domain baselines.
-- Confirm the unit defines deterministic retake policy clearly.
-- Confirm the unit remains separate from history presentation, score calculation, and company-facing visibility workflows.
-- Confirm no application code is added.
-- Run `./scripts/aidlc-check.sh`.
+- `.venv\Scripts\python.exe manage.py check`
+- `.venv\Scripts\python.exe manage.py test`
+- `cd frontend; npm run build; npm run lint`
+- `bash ./scripts/aidlc-check.sh` in a shell that can execute the repository validation script.
 
 ## Rollback plan
 
-Revert the documentation-only change if the retake-policy baseline is rejected or replaced by an approved revision.
+- Revert explicit retake policy fields, eligibility logic, and related tests.
 
 ## Review checklist
 
-- Deterministic retake-policy flow documented
-- Eligibility, validation, and traceability expectations documented
-- Relationship to later exam-access, results-summary, and visibility-sensitive units documented
-- Separation from history presentation and company-facing visibility logic preserved
-- No application code introduced
+- Retake rules are deterministic and exam-owned
+- Students cannot retry after passing
+- Attempt caps are enforced consistently across summary and detail routes
+

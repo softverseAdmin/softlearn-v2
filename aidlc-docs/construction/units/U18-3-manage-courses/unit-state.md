@@ -14,28 +14,28 @@ Baseline inception version: v1
 
 ## Scope
 
-Define the baseline manage-courses flow so authorized admins can perform protected course management with full CRUD-oriented control and auditability.
+Implement protected admin course management using a shared `Course` domain model with create, update, list, and deactivate flows.
 
 ## Out of Scope
 
-Concrete frontend or backend implementation code, Bulk-import tooling, External LMS synchronization, Self-service instructor workflows, and Cross-system provisioning.
+Bulk-import tooling, external LMS synchronization, lesson authoring, student enrollment workflows, and self-service instructor management.
 
 ## Dependencies
 
-Depends on the requirements, security, data-model, architecture, shared authorization/API baselines, and adjacent domain units listed in the functional design.
+Depends on authentication, role permissions, admin routing, base API structure, and the learning-summary domain surfaces that reuse course records.
 
 ## Acceptance Criteria
 
-The unit documents manage courses behavior, boundaries, and integrations without producing application code.
+Admins can manage shared course records through protected APIs and UI routes, course data is reusable by linked learning records, and non-admin users cannot access the management surface.
 
 ## Risks
 
-If this unit is underspecified here, later implementation can create authorization gaps, conflicting behavior, or blurred boundaries with adjacent workflows.
+If course management diverges from the learning domain, later lesson and enrollment units can drift into duplicate records and inconsistent progress reporting.
 
 ## Open Questions
 
-Later implementation can refine detailed field shapes and UX behavior as long as the documented authorization, privacy, and deterministic rules remain intact.
+Future units can add lessons, enrollment, and course delivery flows as long as they continue to reuse the shared course model introduced here.
 
 ## Last Updated
 
-2026-04-29
+2026-04-30

@@ -2,36 +2,29 @@
 
 ## Implementation plan
 
-No application code for this unit.
-
-This unit defines the location-preference-matching baseline only. Later backend units may implement deterministic location-factor evaluation, explanation workflows, and tests from this design.
+1. Compare student preferred work location against vacancy location and work style.
+2. Give remote and hybrid vacancies partial flexibility credit instead of binary match failure.
+3. Return location-alignment strengths and gaps in both match APIs.
+4. Cover location-driven ranking behavior in backend tests.
 
 ## Files to create or update
 
-- `aidlc-docs/construction/units/U9-5-location-preference-matching/unit-state.md`
-- `aidlc-docs/construction/units/U9-5-location-preference-matching/functional-design.md`
-- `aidlc-docs/construction/units/U9-5-location-preference-matching/nfr-requirements.md`
-- `aidlc-docs/construction/units/U9-5-location-preference-matching/nfr-design.md`
-- `aidlc-docs/construction/units/U9-5-location-preference-matching/infrastructure-design.md`
+- `backend/api/views.py`
+- `backend/api/tests.py`
 - `aidlc-docs/construction/units/U9-5-location-preference-matching/code-generation.md`
-- `aidlc-docs/aidlc-state.md`
+- `aidlc-docs/construction/units/U9-5-location-preference-matching/unit-state.md`
 
 ## Test plan
 
-- Review the unit against the requirements, security, data-model, architecture, and rule-based matching baselines.
-- Confirm the unit defines deterministic location-preference matching clearly.
-- Confirm the unit remains separate from other factors, aggregate scoring, and matched-view workflows.
-- Confirm no application code is added.
-- Run `./scripts/aidlc-check.sh`.
+- `. .venv\Scripts\Activate.ps1; cd backend; python manage.py check; python manage.py test`
+- `bash ./scripts/aidlc-check.sh` in a shell that can execute the repository validation script.
 
 ## Rollback plan
 
-Revert the documentation-only change if the location-preference-matching baseline is rejected or replaced by an approved revision.
+- Revert the location/work-style matching logic and restore the prior non-matching state.
 
 ## Review checklist
 
-- Deterministic location-preference-matching flow documented
-- Explainable location-fit expectations documented
-- Relationship to later aggregate scoring and matched-view units documented
-- Separation from other factors and aggregate scoring preserved
-- No application code introduced
+- Exact location matches are rewarded deterministically
+- Remote and hybrid roles provide explicit partial-credit behavior
+- Location explanations stay consistent across match views

@@ -2,36 +2,34 @@
 
 ## Implementation plan
 
-No application code for this unit.
-
-This unit defines the aggregate match-score baseline only. Later backend units may implement deterministic factor aggregation, ranking workflows, and tests from this design.
+1. Aggregate deterministic skill, language, location, readiness, and profile factors into a shared weighted match score.
+2. Define recommendation thresholds and match-level labels for ranked outputs.
+3. Reuse the same aggregate scorer across student and company match APIs.
+4. Cover ordering and threshold behavior with backend tests.
 
 ## Files to create or update
 
-- `aidlc-docs/construction/units/U9-6-match-score-calculation/unit-state.md`
-- `aidlc-docs/construction/units/U9-6-match-score-calculation/functional-design.md`
-- `aidlc-docs/construction/units/U9-6-match-score-calculation/nfr-requirements.md`
-- `aidlc-docs/construction/units/U9-6-match-score-calculation/nfr-design.md`
-- `aidlc-docs/construction/units/U9-6-match-score-calculation/infrastructure-design.md`
+- `backend/api/views.py`
+- `backend/api/tests.py`
+- `backend/api/urls.py`
+- `frontend/src/features/profile/types.ts`
+- `frontend/src/features/profile/StudentMatchesPage.tsx`
+- `frontend/src/features/profile/CompanyVacancyMatchesPage.tsx`
 - `aidlc-docs/construction/units/U9-6-match-score-calculation/code-generation.md`
-- `aidlc-docs/aidlc-state.md`
+- `aidlc-docs/construction/units/U9-6-match-score-calculation/unit-state.md`
 
 ## Test plan
 
-- Review the unit against the requirements, security, data-model, architecture, and rule-based matching baselines.
-- Confirm the unit defines deterministic aggregate match scoring clearly.
-- Confirm the unit remains separate from matched-list presentation and application workflows.
-- Confirm no application code is added.
-- Run `./scripts/aidlc-check.sh`.
+- `. .venv\Scripts\Activate.ps1; cd backend; python manage.py check; python manage.py test`
+- `cd frontend; npm run build; npm run lint`
+- `bash ./scripts/aidlc-check.sh` in a shell that can execute the repository validation script.
 
 ## Rollback plan
 
-Revert the documentation-only change if the aggregate match-score baseline is rejected or replaced by an approved revision.
+- Revert the aggregate scorer, thresholds, factor breakdown payloads, and dependent UI rendering.
 
 ## Review checklist
 
-- Deterministic aggregate match-score flow documented
-- Weighting, classification, and explanation expectations documented
-- Relationship to later matched-view units documented
-- Separation from matched-list presentation preserved
-- No application code introduced
+- All factor weights are applied through one shared scorer
+- Match levels and recommendation threshold are explicit
+- Factor breakdowns align with the aggregate score returned to the UI

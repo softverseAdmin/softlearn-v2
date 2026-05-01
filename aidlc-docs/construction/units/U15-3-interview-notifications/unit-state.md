@@ -14,11 +14,11 @@ Baseline inception version: v1
 
 ## Scope
 
-Define the baseline interview-notifications flow so important interview lifecycle events create deterministic notifications through the shared notification core.
+Implement deterministic interview lifecycle notifications for request, confirmation, reschedule, and cancellation through the shared notification core.
 
 ## Out of Scope
 
-Concrete frontend or backend implementation code, Push-delivery channels, Calendar invite integration, Marketing notifications, and Custom reminder engines.
+Push-delivery channels, calendar invite integration, marketing notifications, and custom reminder engines.
 
 ## Dependencies
 
@@ -26,16 +26,16 @@ Depends on the requirements, security, data-model, architecture, shared authoriz
 
 ## Acceptance Criteria
 
-The unit documents interview notifications behavior, boundaries, and integrations without producing application code.
+Interview participants receive summary-safe notifications for supported interview events with protected links back to interview views.
 
 ## Risks
 
-If this unit is underspecified here, later implementation can create authorization gaps, conflicting behavior, or blurred boundaries with adjacent workflows.
+If interview notifications include unsafe meeting detail or route to the wrong participant, interview privacy rules are weakened.
 
 ## Open Questions
 
-Later implementation can refine detailed field shapes and UX behavior as long as the documented authorization, privacy, and deterministic rules remain intact.
+Future reminder notifications can layer onto the same interview-event posture without changing the existing supported triggers.
 
 ## Last Updated
 
-2026-04-29
+2026-05-01

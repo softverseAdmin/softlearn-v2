@@ -14,28 +14,29 @@ Baseline inception version: v1
 
 ## Scope
 
-Define the baseline protected exam-history flow so students can review structured records of their own exam attempts without collapsing retake policy or company-facing result visibility into the same unit.
+Implement protected student exam history that combines available exams with prior attempt outcomes in one student-owned assessment area.
 
 ## Out of Scope
 
-Concrete frontend/backend implementation code, exam creation, question creation, answer-options management, exam-taking UI rendering, answer submission persistence, score calculation internals, pass/fail rule definition, retake policy, and company-facing result visibility.
+Company-facing result visibility, advanced analytics, and non-student history review paths.
 
 ## Dependencies
 
-Depends on the requirements, security, data-model, architecture, authentication, RBAC, API, frontend initialization, routing, state-management, base-layout, answer-submission, score-calculation, and pass-fail-logic baselines.
+Depends on shared exam records, attempt and result records, protected student routing, and pass/fail outcomes.
 
 ## Acceptance Criteria
 
-The unit documents protected exam-history behavior, student ownership boundaries, and relationship to later retake and visibility units without producing application code.
+Students can review their own available exams and prior attempt summaries without exposing protected internals.
 
 ## Risks
 
-If exam history is underspecified here, later result summaries, retake controls, privacy filters, and company-visibility units can drift into conflicting attempt-summary and access expectations.
+If history and attempt records drift apart, retake eligibility and student-facing results become confusing fast.
 
 ## Open Questions
 
-Exact history filtering, attempt-detail depth, and longitudinal analytics can be refined later as long as protected student-owned exam history remains explicit and traceable.
+Additional filters and attempt-detail depth can be added later while preserving the same student-owned history baseline.
 
 ## Last Updated
 
-2026-04-29
+2026-05-01
+

@@ -14,28 +14,28 @@ Baseline inception version: v1
 
 ## Scope
 
-Define the baseline language-level-matching flow so the platform can compare student language levels to vacancy language requirements using deterministic, explainable rules without collapsing other match factors or overall match scoring into the same unit.
+Implement deterministic language-factor matching against structured vacancy language requirements using normalized student Japanese and English levels.
 
 ## Out of Scope
 
-Concrete frontend/backend implementation code, skill matching, exam-score matching, location matching, aggregate match-score calculation, and matched-list presentation.
+Third-party certification ingestion, spoken-interview analysis, and ML-based language estimation.
 
 ## Dependencies
 
-Depends on the requirements, security, data-model, architecture, rule-based matching strategy, student-profile-language-level, and vacancy-language-requirements baselines.
+Depends on student language profiles, vacancy language requirements, rule-based matching strategy, and match-score-calculation.
 
 ## Acceptance Criteria
 
-The unit documents deterministic language-level matching, explainability boundaries, and relationship to later aggregate match-scoring and matched-view units without producing application code.
+Language requirements are compared consistently, required language baselines carry higher weight, and the resulting strengths and gaps are returned in match responses.
 
 ## Risks
 
-If language-level matching is underspecified here, later aggregate match scoring and matched-list units can drift into conflicting language-threshold logic and non-explainable fit outcomes.
+If language normalization is inconsistent, identical student profiles can receive different scores for the same vacancy requirements.
 
 ## Open Questions
 
-Exact treatment of slight-under-threshold cases and multi-language combinations can be refined later as long as language-level matching remains deterministic and explainable.
+Additional certification aliases can be added later if they continue to map to deterministic internal levels.
 
 ## Last Updated
 
-2026-04-29
+2026-04-30

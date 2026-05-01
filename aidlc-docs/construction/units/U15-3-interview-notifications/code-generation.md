@@ -2,36 +2,33 @@
 
 ## Implementation plan
 
-No application code for this unit.
-
-This unit defines the interview notifications baseline only. Later frontend and backend units may implement the protected workflows, records, and tests from this design.
+1. Emit interview notifications from shared interview-event records.
+2. Route each event to the student and company-side participant context using protected interview links.
+3. Keep interview notification content summary-safe while reusing the shared delivery tracking model.
+4. Cover interview request, confirmation, reschedule, and cancellation with backend tests.
 
 ## Files to create or update
 
-- `aidlc-docs/construction/units/U15-3-interview-notifications/unit-state.md`
-- `aidlc-docs/construction/units/U15-3-interview-notifications/functional-design.md`
-- `aidlc-docs/construction/units/U15-3-interview-notifications/nfr-requirements.md`
-- `aidlc-docs/construction/units/U15-3-interview-notifications/nfr-design.md`
-- `aidlc-docs/construction/units/U15-3-interview-notifications/infrastructure-design.md`
+- `backend/users/notifications.py`
+- `backend/api/views.py`
+- `backend/api/tests.py`
+- `frontend/src/features/notifications/NotificationsPage.tsx`
 - `aidlc-docs/construction/units/U15-3-interview-notifications/code-generation.md`
-- `aidlc-docs/aidlc-state.md`
+- `aidlc-docs/construction/units/U15-3-interview-notifications/unit-state.md`
 
 ## Test plan
 
-- Review the unit against the requirements, security, data-model, architecture, and adjacent domain baselines.
-- Confirm the unit defines the workflow clearly.
-- Confirm the unit remains separate from adjacent out-of-scope behaviors.
-- Confirm no application code is added.
-- Run `./scripts/aidlc-check.sh`.
+- `.venv\Scripts\python.exe manage.py check`
+- `.venv\Scripts\python.exe manage.py test`
+- `cd frontend; npm run build; npm run lint`
+- `bash ./scripts/aidlc-check.sh` in a shell that can execute the repository validation script.
 
 ## Rollback plan
 
-Revert the documentation-only change if the interview notifications baseline is rejected or replaced by an approved revision.
+- Revert interview notification emission and the related interview-notification assertions.
 
 ## Review checklist
 
-- Interview notifications documented
-- Authorization, privacy, and deterministic behavior boundaries documented
-- Relationship to adjacent units documented
-- Global AI-DLC state updated
-- No application code introduced
+- Interview lifecycle events create deterministic participant notifications
+- Notification links return users to protected interview views
+- Delivery tracking is preserved for in-app and simulated email channels

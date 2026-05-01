@@ -2,36 +2,33 @@
 
 ## Implementation plan
 
-No application code for this unit.
-
-This unit defines the study plan baseline only. Later frontend and backend units may implement the protected workflows, records, and tests from this design.
+1. Derive study-plan items from category coverage, course progress, practice attempt volume, and latest mock scores.
+2. Return deterministic next-step guidance from the preparation summary API.
+3. Render the study plan in the student preparation workspace.
+4. Keep the plan student-owned and separate from official exam decisions.
 
 ## Files to create or update
 
-- `aidlc-docs/construction/units/U14-4-study-plan/unit-state.md`
-- `aidlc-docs/construction/units/U14-4-study-plan/functional-design.md`
-- `aidlc-docs/construction/units/U14-4-study-plan/nfr-requirements.md`
-- `aidlc-docs/construction/units/U14-4-study-plan/nfr-design.md`
-- `aidlc-docs/construction/units/U14-4-study-plan/infrastructure-design.md`
+- `backend/api/views.py`
+- `backend/api/tests.py`
+- `frontend/src/features/profile/types.ts`
+- `frontend/src/features/profile/StudentPreparationPage.tsx`
 - `aidlc-docs/construction/units/U14-4-study-plan/code-generation.md`
-- `aidlc-docs/aidlc-state.md`
+- `aidlc-docs/construction/units/U14-4-study-plan/unit-state.md`
 
 ## Test plan
 
-- Review the unit against the requirements, security, data-model, architecture, and adjacent domain baselines.
-- Confirm the unit defines the workflow clearly.
-- Confirm the unit remains separate from adjacent out-of-scope behaviors.
-- Confirm no application code is added.
-- Run `./scripts/aidlc-check.sh`.
+- `.venv\Scripts\python.exe manage.py check`
+- `.venv\Scripts\python.exe manage.py test`
+- `cd frontend; npm run build; npm run lint`
+- `bash ./scripts/aidlc-check.sh` in a shell that can execute the repository validation script.
 
 ## Rollback plan
 
-Revert the documentation-only change if the study plan baseline is rejected or replaced by an approved revision.
+- Revert study-plan serialization and the preparation UI sections that depend on it.
 
 ## Review checklist
 
-- Study plan documented
-- Authorization, privacy, and deterministic behavior boundaries documented
-- Relationship to adjacent units documented
-- Global AI-DLC state updated
-- No application code introduced
+- Study-plan items come from deterministic evidence only
+- Study-plan summaries stay student-owned
+- Study guidance does not mutate official exam state

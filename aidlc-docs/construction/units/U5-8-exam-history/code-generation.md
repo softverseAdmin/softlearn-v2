@@ -2,36 +2,34 @@
 
 ## Implementation plan
 
-No application code for this unit.
-
-This unit defines the exam-history baseline only. Later backend and frontend units may implement protected student result-history views, retrieval flows, and tests from this design.
+1. Extend the protected student exam summary API to return available exams plus attempt history.
+2. Keep the student exam page focused on the authenticated student’s own results and attempt context.
+3. Preserve compatibility with the existing `ExamResult` summary view while linking new attempt records.
+4. Cover protected exam history behavior with backend tests.
 
 ## Files to create or update
 
-- `aidlc-docs/construction/units/U5-8-exam-history/unit-state.md`
-- `aidlc-docs/construction/units/U5-8-exam-history/functional-design.md`
-- `aidlc-docs/construction/units/U5-8-exam-history/nfr-requirements.md`
-- `aidlc-docs/construction/units/U5-8-exam-history/nfr-design.md`
-- `aidlc-docs/construction/units/U5-8-exam-history/infrastructure-design.md`
+- `backend/api/views.py`
+- `backend/api/tests.py`
+- `frontend/src/features/profile/types.ts`
+- `frontend/src/features/profile/StudentExamResultsPage.tsx`
 - `aidlc-docs/construction/units/U5-8-exam-history/code-generation.md`
-- `aidlc-docs/aidlc-state.md`
+- `aidlc-docs/construction/units/U5-8-exam-history/unit-state.md`
 
 ## Test plan
 
-- Review the unit against the requirements, security, data-model, architecture, frontend, and exam-domain baselines.
-- Confirm the unit defines protected exam history clearly.
-- Confirm the unit remains separate from retake and company-facing visibility workflows.
-- Confirm no application code is added.
-- Run `./scripts/aidlc-check.sh`.
+- `.venv\Scripts\python.exe manage.py check`
+- `.venv\Scripts\python.exe manage.py test`
+- `cd frontend; npm run build; npm run lint`
+- `bash ./scripts/aidlc-check.sh` in a shell that can execute the repository validation script.
 
 ## Rollback plan
 
-Revert the documentation-only change if the exam-history baseline is rejected or replaced by an approved revision.
+- Revert protected exam-history API and UI changes.
 
 ## Review checklist
 
-- Protected exam-history flow documented
-- Student ownership, presentation, and privacy expectations documented
-- Relationship to later retake, results-summary, and visibility-sensitive units documented
-- Separation from retake and company-facing visibility logic preserved
-- No application code introduced
+- Students can only see their own exam history
+- Available exams and prior results are shown together coherently
+- History remains privacy-safe and result-focused
+

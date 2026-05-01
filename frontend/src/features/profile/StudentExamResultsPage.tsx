@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 
 import { ApiError, apiRequest } from '../../lib/api'
 import type { ExamResultsSummary } from './types'
@@ -9,9 +10,10 @@ const emptySummary: ExamResultsSummary = {
   passed_results: 0,
   average_score: null,
   results: [],
+  available_exams: [],
 }
 
-export function StudentExamResultsPage() {
+export default function StudentExamResultsPage() {
   const [summary, setSummary] = useState<ExamResultsSummary>(emptySummary)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -61,6 +63,9 @@ export function StudentExamResultsPage() {
         <div className="card compact-card">
           <strong>Average score</strong>
           <p className="muted">{summary.average_score === null ? 'No exams yet' : `${summary.average_score}%`}</p>
+          <Link className="secondary-button inline-button" to="/student/preparation">
+            Preparation workspace
+          </Link>
         </div>
       </div>
 
@@ -75,6 +80,44 @@ export function StudentExamResultsPage() {
           <h2>Passed</h2>
           <p className="metric">{summary.passed_results}</p>
         </article>
+        <article className="card info-card">
+          <h2>Available exams</h2>
+          <p className="metric">{summary.available_exams.length}</p>
+        </article>
+      </div>
+
+      <div className="card stack-card">
+        <h2>Available exams</h2>
+        {summary.available_exams.length === 0 ? <p className="muted">No active exams are available yet.</p> : null}
+        <div className="stack-list">
+          {summary.available_exams.map((exam) => (
+            <article key={exam.exam_id} className="skill-card">
+              <div className="skill-card-header">
+                <div>
+                  <h3>{exam.title}</h3>
+                  <p className="muted">
+                    {exam.category} · {exam.duration_minutes} min · pass {exam.passing_score_percent}% · {exam.question_count} questions
+                  </p>
+                </div>
+                <span className={`status-pill ${exam.can_take ? 'status-success' : 'status-muted'}`}>
+                  {exam.can_take ? `Attempt ${exam.next_attempt_number}` : 'Locked'}
+                </span>
+              </div>
+              <p>{exam.description || 'No exam description yet.'}</p>
+              <p className="muted">{exam.retake_message}</p>
+              <div className="actions">
+                <Link className="secondary-button inline-button" to={exam.detail_href}>
+                  View exam
+                </Link>
+                {exam.can_take ? (
+                  <Link className="primary-button inline-button" to={exam.detail_href}>
+                    Start exam
+                  </Link>
+                ) : null}
+              </div>
+            </article>
+          ))}
+        </div>
       </div>
 
       <div className="card stack-card">

@@ -2,36 +2,32 @@
 
 ## Implementation plan
 
-No application code for this unit.
-
-This unit defines the score-calculation baseline only. Later backend units may implement deterministic scoring, evaluation workflows, and tests from this design.
+1. Score submitted single-choice attempts deterministically from active questions and correctness metadata.
+2. Store the score on the exam attempt and reuse the shared result summary record for downstream views.
+3. Keep scoring server-side and never expose correctness metadata in student flows.
+4. Cover scored-attempt creation with backend tests.
 
 ## Files to create or update
 
-- `aidlc-docs/construction/units/U5-6-score-calculation/unit-state.md`
-- `aidlc-docs/construction/units/U5-6-score-calculation/functional-design.md`
-- `aidlc-docs/construction/units/U5-6-score-calculation/nfr-requirements.md`
-- `aidlc-docs/construction/units/U5-6-score-calculation/nfr-design.md`
-- `aidlc-docs/construction/units/U5-6-score-calculation/infrastructure-design.md`
+- `backend/api/views.py`
+- `backend/api/tests.py`
 - `aidlc-docs/construction/units/U5-6-score-calculation/code-generation.md`
-- `aidlc-docs/aidlc-state.md`
+- `aidlc-docs/construction/units/U5-6-score-calculation/unit-state.md`
 
 ## Test plan
 
-- Review the unit against the requirements, security, data-model, architecture, and exam-domain baselines.
-- Confirm the unit defines deterministic score calculation clearly.
-- Confirm the unit remains separate from pass/fail, history, retake, and visibility workflows.
-- Confirm no application code is added.
-- Run `./scripts/aidlc-check.sh`.
+- `.venv\Scripts\python.exe manage.py check`
+- `.venv\Scripts\python.exe manage.py test`
+- `cd frontend; npm run build; npm run lint`
+- `bash ./scripts/aidlc-check.sh` in a shell that can execute the repository validation script.
 
 ## Rollback plan
 
-Revert the documentation-only change if the score-calculation baseline is rejected or replaced by an approved revision.
+- Revert exam scoring logic and related tests.
 
 ## Review checklist
 
-- Deterministic score-calculation flow documented
-- Evaluation, validation, and traceability expectations documented
-- Relationship to later pass/fail, history, retake, and readiness-sensitive units documented
-- Separation from policy and visibility logic preserved
-- No application code introduced
+- Repeated scoring of the same submission is deterministic
+- Scoring reuses structured exam and answer data
+- Correctness metadata remains protected
+

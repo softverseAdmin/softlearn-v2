@@ -89,7 +89,7 @@ export function NotificationsPage() {
         <div>
           <p className="eyebrow">{user?.role} notifications</p>
           <h1>Notifications</h1>
-          <p className="lead">Review interview and exam updates without exposing protected details outside their secure views.</p>
+          <p className="lead">Review application, interview, and exam updates without exposing protected details outside their secure views.</p>
         </div>
         <div className="card compact-card">
           <strong>Unread</strong>

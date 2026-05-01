@@ -14,11 +14,11 @@ Baseline inception version: v1
 
 ## Scope
 
-Define the baseline preparation-performance-tracking flow so students can review deterministic preparation metrics derived from practice, mock, and study-plan evidence.
+Implement deterministic preparation-performance summaries from practice and mock evidence inside the protected student preparation workspace.
 
 ## Out of Scope
 
-Concrete frontend or backend implementation code, Heavy analytics engines, AI predictions, Default company-facing sharing, and External reporting services.
+Heavy analytics engines, AI predictions, default company-facing sharing, and external reporting services.
 
 ## Dependencies
 
@@ -26,16 +26,16 @@ Depends on the requirements, security, data-model, architecture, shared authoriz
 
 ## Acceptance Criteria
 
-The unit documents performance tracking behavior, boundaries, and integrations without producing application code.
+Students can review category-level preparation metrics and recent activity without mixing them into official exam summaries.
 
 ## Risks
 
-If this unit is underspecified here, later implementation can create authorization gaps, conflicting behavior, or blurred boundaries with adjacent workflows.
+If preparation metrics are mixed with official scores or shared too broadly, student privacy and explainability are weakened.
 
 ## Open Questions
 
-Later implementation can refine detailed field shapes and UX behavior as long as the documented authorization, privacy, and deterministic rules remain intact.
+Later dashboards can reuse these preparation metrics at a higher level without changing the underlying measurement rules.
 
 ## Last Updated
 
-2026-04-29
+2026-05-01

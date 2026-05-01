@@ -2,36 +2,41 @@
 
 ## Implementation plan
 
-No application code for this unit.
-
-This unit defines the question-creation baseline only. Later backend and frontend units may implement protected question authoring, validation flows, and tests from this design.
+1. Add an `ExamQuestion` model with ordering, points, and protected authoring validation.
+2. Add admin question-management APIs scoped under an existing exam.
+3. Add an admin question-management page linked from exam management.
+4. Cover protected question authoring and exam question-count synchronization with backend tests.
 
 ## Files to create or update
 
-- `aidlc-docs/construction/units/U5-2-question-creation/unit-state.md`
-- `aidlc-docs/construction/units/U5-2-question-creation/functional-design.md`
-- `aidlc-docs/construction/units/U5-2-question-creation/nfr-requirements.md`
-- `aidlc-docs/construction/units/U5-2-question-creation/nfr-design.md`
-- `aidlc-docs/construction/units/U5-2-question-creation/infrastructure-design.md`
+- `backend/users/models.py`
+- `backend/users/migrations/0018_exam_questions_attempts.py`
+- `backend/users/admin.py`
+- `backend/api/views.py`
+- `backend/api/urls.py`
+- `backend/api/tests.py`
+- `frontend/src/features/admin/types.ts`
+- `frontend/src/features/admin/AdminExamQuestionsPage.tsx`
+- `frontend/src/features/admin/AdminExamsPage.tsx`
+- `frontend/src/router/AppRouter.tsx`
+- `frontend/src/app/PageTitle.tsx`
 - `aidlc-docs/construction/units/U5-2-question-creation/code-generation.md`
-- `aidlc-docs/aidlc-state.md`
+- `aidlc-docs/construction/units/U5-2-question-creation/unit-state.md`
 
 ## Test plan
 
-- Review the unit against the requirements, security, data-model, architecture, and exam-domain baselines.
-- Confirm the unit defines protected question creation clearly.
-- Confirm the unit remains separate from answer-options, exam taking, scoring, and results workflows.
-- Confirm no application code is added.
-- Run `./scripts/aidlc-check.sh`.
+- `.venv\Scripts\python.exe manage.py check`
+- `.venv\Scripts\python.exe manage.py test`
+- `cd frontend; npm run build; npm run lint`
+- `bash ./scripts/aidlc-check.sh` in a shell that can execute the repository validation script.
 
 ## Rollback plan
 
-Revert the documentation-only change if the question-creation baseline is rejected or replaced by an approved revision.
+- Revert question models, admin question APIs, question-management UI, and related tests.
 
 ## Review checklist
 
-- Protected question-creation flow documented
-- Authoring access, validation expectations, and integrity posture documented
-- Relationship to later answer-options, delivery, submission, and scoring units documented
-- Separation from exam-taking and outcome logic preserved
-- No application code introduced
+- Questions are exam-scoped and sequence-ordered
+- Protected question authoring is enforced
+- Exam question counts stay synchronized with active questions
+

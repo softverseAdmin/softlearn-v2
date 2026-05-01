@@ -14,11 +14,11 @@ Baseline inception version: v1
 
 ## Scope
 
-Define the baseline study-plan flow so students can organize preparation work into a structured plan based on deterministic category, practice, and mock-exam inputs.
+Implement a deterministic study-plan summary that turns category, learning, practice, and mock evidence into stable next-step guidance.
 
 ## Out of Scope
 
-Concrete frontend or backend implementation code, AI recommendations, Calendar integration, Shared coaching workflows, and Automated tutoring services.
+AI recommendations, calendar integration, shared coaching workflows, and automated tutoring services.
 
 ## Dependencies
 
@@ -26,16 +26,16 @@ Depends on the requirements, security, data-model, architecture, shared authoriz
 
 ## Acceptance Criteria
 
-The unit documents study plan behavior, boundaries, and integrations without producing application code.
+Students can review category-level study-plan items and next steps generated from deterministic preparation evidence.
 
 ## Risks
 
-If this unit is underspecified here, later implementation can create authorization gaps, conflicting behavior, or blurred boundaries with adjacent workflows.
+If study-plan logic uses opaque heuristics or non-student-visible data, the preparation flow becomes hard to explain and audit.
 
 ## Open Questions
 
-Later implementation can refine detailed field shapes and UX behavior as long as the documented authorization, privacy, and deterministic rules remain intact.
+Later work can add plan milestones or reminders without changing the deterministic evidence model shipped here.
 
 ## Last Updated
 
-2026-04-29
+2026-05-01

@@ -2,36 +2,41 @@
 
 ## Implementation plan
 
-No application code for this unit.
-
-This unit defines the protected lesson-creation baseline only. Later backend and frontend units may implement authoring routes, validation, persistence, and tests from this design.
+1. Add a shared `Lesson` model linked to `Course` with ordered sequence and protected authoring validation.
+2. Add admin lesson management APIs under course context plus retire behavior for existing lessons.
+3. Add an admin lesson-management page linked from course management so operators can create and maintain ordered lessons.
+4. Cover lesson authoring and retirement behavior with backend tests.
 
 ## Files to create or update
 
-- `aidlc-docs/construction/units/U4-4-lesson-creation/unit-state.md`
-- `aidlc-docs/construction/units/U4-4-lesson-creation/functional-design.md`
-- `aidlc-docs/construction/units/U4-4-lesson-creation/nfr-requirements.md`
-- `aidlc-docs/construction/units/U4-4-lesson-creation/nfr-design.md`
-- `aidlc-docs/construction/units/U4-4-lesson-creation/infrastructure-design.md`
+- `backend/users/models.py`
+- `backend/users/migrations/0017_lesson_lessonprogress.py`
+- `backend/users/admin.py`
+- `backend/api/views.py`
+- `backend/api/urls.py`
+- `backend/api/tests.py`
+- `frontend/src/features/admin/types.ts`
+- `frontend/src/features/admin/AdminCoursesPage.tsx`
+- `frontend/src/features/admin/AdminCourseLessonsPage.tsx`
+- `frontend/src/router/AppRouter.tsx`
+- `frontend/src/app/PageTitle.tsx`
 - `aidlc-docs/construction/units/U4-4-lesson-creation/code-generation.md`
-- `aidlc-docs/aidlc-state.md`
+- `aidlc-docs/construction/units/U4-4-lesson-creation/unit-state.md`
 
 ## Test plan
 
-- Review the unit against the requirements, security, data-model, RBAC, routing, and layout baselines.
-- Confirm the unit defines protected lesson creation clearly.
-- Confirm the unit remains separate from lesson delivery and progress workflows.
-- Confirm no application code is added.
-- Run `./scripts/aidlc-check.sh`.
+- `.venv\Scripts\python.exe manage.py check`
+- `.venv\Scripts\python.exe manage.py test`
+- `cd frontend; npm run build; npm run lint`
+- `bash ./scripts/aidlc-check.sh` in a shell that can execute the repository validation script.
 
 ## Rollback plan
 
-Revert the documentation-only change if the lesson-creation baseline is rejected or replaced by an approved revision.
+- Revert the lesson model, admin lesson endpoints, admin lesson page, and related tests.
 
 ## Review checklist
 
-- Protected lesson-authoring flow documented
-- Course-linked lesson structure documented
-- Ordering and validation expectations documented
-- Separation from lesson-viewing and progress units preserved
-- No application code introduced
+- Lessons are course-scoped and sequence-ordered
+- Admin-only lesson authoring is enforced
+- Duplicate or invalid sequence values are rejected
+- Lesson retirement preserves existing records instead of deleting them
