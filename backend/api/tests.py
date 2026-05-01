@@ -14,11 +14,17 @@ from users.models import (
     Company,
     Course,
     Exam,
+    ExamAnswerOption,
+    ExamAttempt,
+    ExamAttemptAnswer,
+    ExamQuestion,
     ExamResult,
     Interview,
     InterviewAvailability,
     InterviewEvent,
     JobBookmark,
+    Lesson,
+    LessonProgress,
     LearningRecord,
     Notification,
     NotificationDelivery,
@@ -784,6 +790,67 @@ class ApiFoundationTests(TestCase):
 
         self.assertEqual(response.status_code, 403)
 
+    def test_admin_can_create_update_and_retire_lesson(self):
+        admin = User.objects.create_superuser(
+            email="admin@example.com",
+            password="SecurePass123!",
+            full_name="Admin User",
+        )
+        course = Course.objects.create(
+            title="Backend Foundations",
+            description="Backend path",
+            category="backend",
+            difficulty_level="beginner",
+            estimated_hours=12,
+            status=Course.Status.ACTIVE,
+        )
+        client, csrf_token = self.csrf_client()
+        client.force_login(admin)
+
+        create_response = client.post(
+            f"/api/v1/admin/courses/{course.id}/lessons",
+            data=json.dumps(
+                {
+                    "title": "HTTP Basics",
+                    "summary": "Learn request fundamentals.",
+                    "content": "Lesson body",
+                    "sequence_number": 1,
+                    "status": "draft",
+                }
+            ),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+        lesson_id = create_response.json()["data"]["lesson_id"]
+        update_response = client.put(
+            f"/api/v1/admin/lessons/{lesson_id}",
+            data=json.dumps(
+                {
+                    "title": "HTTP Basics Updated",
+                    "summary": "Learn protected request fundamentals.",
+                    "content": "Updated lesson body",
+                    "sequence_number": 2,
+                    "status": "active",
+                }
+            ),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+        delete_response = client.delete(
+            f"/api/v1/admin/lessons/{lesson_id}",
+            data=json.dumps({}),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+
+        self.assertEqual(create_response.status_code, 201)
+        self.assertEqual(update_response.status_code, 200)
+        self.assertEqual(delete_response.status_code, 200)
+        lesson = Lesson.objects.get(pk=lesson_id)
+        self.assertEqual(lesson.title, "HTTP Basics Updated")
+        self.assertEqual(lesson.sequence_number, 2)
+        self.assertEqual(lesson.status, Lesson.Status.INACTIVE)
+
     def test_admin_can_create_update_and_retire_exam(self):
         admin = User.objects.create_superuser(
             email="admin@example.com",
@@ -803,6 +870,7 @@ class ApiFoundationTests(TestCase):
                     "duration_minutes": 45,
                     "passing_score_percent": 80,
                     "question_count": 20,
+                    "max_attempts": 3,
                     "status": "draft",
                 }
             ),
@@ -820,6 +888,7 @@ class ApiFoundationTests(TestCase):
                     "duration_minutes": 60,
                     "passing_score_percent": 85,
                     "question_count": 24,
+                    "max_attempts": 4,
                     "status": "active",
                 }
             ),
@@ -841,6 +910,7 @@ class ApiFoundationTests(TestCase):
         self.assertEqual(exam.duration_minutes, 60)
         self.assertEqual(exam.passing_score_percent, 85)
         self.assertEqual(exam.question_count, 24)
+        self.assertEqual(exam.max_attempts, 4)
         self.assertEqual(exam.status, Exam.Status.INACTIVE)
 
     def test_company_user_cannot_access_admin_exams(self):
@@ -859,6 +929,77 @@ class ApiFoundationTests(TestCase):
         response = client.get("/api/v1/admin/exams")
 
         self.assertEqual(response.status_code, 403)
+
+    def test_admin_can_manage_exam_questions_and_options(self):
+        admin = User.objects.create_superuser(
+            email="admin@example.com",
+            password="SecurePass123!",
+            full_name="Admin User",
+        )
+        exam = Exam.objects.create(
+            title="Backend Validation",
+            description="Backend assessment.",
+            category="backend",
+            duration_minutes=45,
+            passing_score_percent=80,
+            question_count=0,
+            max_attempts=3,
+            status=Exam.Status.ACTIVE,
+        )
+        client, csrf_token = self.csrf_client()
+        client.force_login(admin)
+
+        create_question = client.post(
+            f"/api/v1/admin/exams/{exam.id}/questions",
+            data=json.dumps(
+                {
+                    "prompt": "Which layer handles URL routing?",
+                    "instructions": "Pick one answer.",
+                    "question_type": "single_choice",
+                    "sequence_number": 1,
+                    "points": 2,
+                    "status": "active",
+                }
+            ),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+        question_id = create_question.json()["data"]["question_id"]
+        create_option = client.post(
+            f"/api/v1/admin/questions/{question_id}/options",
+            data=json.dumps(
+                {
+                    "option_text": "Router",
+                    "sequence_number": 1,
+                    "is_correct": True,
+                    "status": "active",
+                }
+            ),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+        option_id = create_option.json()["data"]["option_id"]
+        update_option = client.put(
+            f"/api/v1/admin/options/{option_id}",
+            data=json.dumps(
+                {
+                    "option_text": "Application router",
+                    "sequence_number": 1,
+                    "is_correct": True,
+                    "status": "active",
+                }
+            ),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+
+        self.assertEqual(create_question.status_code, 201)
+        self.assertEqual(create_option.status_code, 201)
+        self.assertEqual(update_option.status_code, 200)
+        exam.refresh_from_db()
+        self.assertEqual(exam.question_count, 1)
+        self.assertEqual(ExamQuestion.objects.get(pk=question_id).points, 2)
+        self.assertEqual(ExamAnswerOption.objects.get(pk=option_id).option_text, "Application router")
 
     def test_company_can_create_update_and_retire_vacancy(self):
         company = Company.objects.create(name="Softverse")
@@ -2323,6 +2464,310 @@ class ApiFoundationTests(TestCase):
         linked_record = next(item for item in body["records"] if item["course_id"] == course.id)
         self.assertEqual(linked_record["course_title"], "Backend Foundations")
 
+    def test_student_courses_list_only_shows_active_courses(self):
+        student = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        active_course = Course.objects.create(
+            title="Backend Foundations",
+            description="Backend path",
+            category="backend",
+            difficulty_level="beginner",
+            estimated_hours=12,
+            status=Course.Status.ACTIVE,
+        )
+        Course.objects.create(
+            title="Hidden Draft",
+            description="Draft path",
+            category="backend",
+            difficulty_level="advanced",
+            estimated_hours=8,
+            status=Course.Status.DRAFT,
+        )
+
+        client = Client()
+        client.force_login(student)
+        response = client.get("/api/v1/student/courses")
+
+        self.assertEqual(response.status_code, 200)
+        body = response.json()["data"]
+        self.assertEqual(body["result_count"], 1)
+        self.assertEqual(body["courses"][0]["course_id"], active_course.id)
+        self.assertEqual(body["courses"][0]["detail_href"], f"/student/courses/{active_course.id}")
+
+    def test_student_course_detail_includes_lessons_and_enrollment_state(self):
+        student = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        course = Course.objects.create(
+            title="Backend Foundations",
+            description="Backend path",
+            category="backend",
+            difficulty_level="beginner",
+            estimated_hours=12,
+            status=Course.Status.ACTIVE,
+        )
+        Lesson.objects.create(
+            course=course,
+            title="Intro",
+            summary="Start here",
+            content="Lesson content",
+            sequence_number=1,
+            status=Lesson.Status.ACTIVE,
+        )
+        Lesson.objects.create(
+            course=course,
+            title="Draft Lesson",
+            summary="Hidden",
+            content="Hidden content",
+            sequence_number=2,
+            status=Lesson.Status.DRAFT,
+        )
+
+        client = Client()
+        client.force_login(student)
+        response = client.get(f"/api/v1/student/courses/{course.id}")
+
+        self.assertEqual(response.status_code, 200)
+        body = response.json()["data"]
+        self.assertFalse(body["enrollment"]["is_enrolled"])
+        self.assertEqual(len(body["lessons"]), 1)
+        self.assertEqual(body["lessons"][0]["title"], "Intro")
+        self.assertFalse(body["lessons"][0]["is_accessible"])
+
+    def test_student_course_enrollment_creates_single_learning_record(self):
+        student = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        course = Course.objects.create(
+            title="Backend Foundations",
+            description="Backend path",
+            category="backend",
+            difficulty_level="beginner",
+            estimated_hours=12,
+            status=Course.Status.ACTIVE,
+        )
+        Lesson.objects.create(
+            course=course,
+            title="Intro",
+            summary="Start here",
+            content="Lesson content",
+            sequence_number=1,
+            status=Lesson.Status.ACTIVE,
+        )
+        client, csrf_token = self.csrf_client()
+        client.force_login(student)
+
+        first_response = client.post(
+            f"/api/v1/student/courses/{course.id}/enrollment",
+            data=json.dumps({}),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+        second_response = client.post(
+            f"/api/v1/student/courses/{course.id}/enrollment",
+            data=json.dumps({}),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+
+        self.assertEqual(first_response.status_code, 201)
+        self.assertEqual(second_response.status_code, 200)
+        self.assertTrue(first_response.json()["data"]["created"])
+        self.assertFalse(second_response.json()["data"]["created"])
+        self.assertEqual(LearningRecord.objects.filter(student=student, course=course).count(), 1)
+        self.assertEqual(LessonProgress.objects.filter(learning_record__student=student, lesson__course=course).count(), 1)
+
+    def test_student_course_detail_requires_active_course(self):
+        student = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        active_course = Course.objects.create(
+            title="Backend Foundations",
+            description="Backend path",
+            category="backend",
+            difficulty_level="beginner",
+            estimated_hours=12,
+            status=Course.Status.ACTIVE,
+        )
+        inactive_course = Course.objects.create(
+            title="Retired Course",
+            description="Retired path",
+            category="backend",
+            difficulty_level="advanced",
+            estimated_hours=6,
+            status=Course.Status.INACTIVE,
+        )
+
+        client = Client()
+        client.force_login(student)
+
+        active_response = client.get(f"/api/v1/student/courses/{active_course.id}")
+        inactive_response = client.get(f"/api/v1/student/courses/{inactive_course.id}")
+
+        self.assertEqual(active_response.status_code, 200)
+        self.assertEqual(active_response.json()["data"]["course_id"], active_course.id)
+        self.assertEqual(inactive_response.status_code, 404)
+
+    def test_student_must_enroll_before_viewing_lesson(self):
+        student = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        course = Course.objects.create(
+            title="Backend Foundations",
+            description="Backend path",
+            category="backend",
+            difficulty_level="beginner",
+            estimated_hours=12,
+            status=Course.Status.ACTIVE,
+        )
+        lesson = Lesson.objects.create(
+            course=course,
+            title="Intro",
+            summary="Start here",
+            content="Lesson content",
+            sequence_number=1,
+            status=Lesson.Status.ACTIVE,
+        )
+
+        client = Client()
+        client.force_login(student)
+        response = client.get(f"/api/v1/student/courses/{course.id}/lessons/{lesson.id}")
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_student_can_update_lesson_progress_and_complete_course(self):
+        student = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        course = Course.objects.create(
+            title="Backend Foundations",
+            description="Backend path",
+            category="backend",
+            difficulty_level="beginner",
+            estimated_hours=12,
+            status=Course.Status.ACTIVE,
+        )
+        lesson_one = Lesson.objects.create(
+            course=course,
+            title="Intro",
+            summary="Start here",
+            content="Lesson content",
+            sequence_number=1,
+            status=Lesson.Status.ACTIVE,
+        )
+        lesson_two = Lesson.objects.create(
+            course=course,
+            title="Routing",
+            summary="Keep going",
+            content="Routing content",
+            sequence_number=2,
+            status=Lesson.Status.ACTIVE,
+        )
+        learning_record = LearningRecord.objects.create(
+            student=student,
+            course=course,
+            course_title=course.title,
+            category=course.category,
+            progress_percent=0,
+            status=LearningRecord.Status.NOT_STARTED,
+        )
+        LessonProgress.objects.create(learning_record=learning_record, lesson=lesson_one)
+        LessonProgress.objects.create(learning_record=learning_record, lesson=lesson_two)
+        client, csrf_token = self.csrf_client()
+        client.force_login(student)
+
+        first_update = client.put(
+            f"/api/v1/student/courses/{course.id}/lessons/{lesson_one.id}/progress",
+            data=json.dumps({"status": "in_progress"}),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+        second_update = client.put(
+            f"/api/v1/student/courses/{course.id}/lessons/{lesson_one.id}/progress",
+            data=json.dumps({"status": "completed"}),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+        third_update = client.put(
+            f"/api/v1/student/courses/{course.id}/lessons/{lesson_two.id}/progress",
+            data=json.dumps({"status": "completed"}),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+
+        self.assertEqual(first_update.status_code, 200)
+        self.assertEqual(second_update.status_code, 200)
+        self.assertEqual(third_update.status_code, 200)
+        learning_record.refresh_from_db()
+        self.assertEqual(learning_record.status, LearningRecord.Status.COMPLETED)
+        self.assertEqual(learning_record.progress_percent, 100)
+        self.assertIsNotNone(learning_record.completed_at)
+        self.assertEqual(third_update.json()["data"]["enrollment"]["completed_lesson_count"], 2)
+
+    def test_company_user_cannot_access_student_courses(self):
+        company = Company.objects.create(name="Softverse")
+        company_user = User.objects.create_user(
+            email="company@example.com",
+            password="SecurePass123!",
+            full_name="Company User",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+
+        client = Client()
+        client.force_login(company_user)
+        response = client.get("/api/v1/student/courses")
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_company_user_cannot_enroll_in_student_course(self):
+        company = Company.objects.create(name="Softverse")
+        company_user = User.objects.create_user(
+            email="company@example.com",
+            password="SecurePass123!",
+            full_name="Company User",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+        course = Course.objects.create(
+            title="Backend Foundations",
+            description="Backend path",
+            category="backend",
+            difficulty_level="beginner",
+            estimated_hours=12,
+            status=Course.Status.ACTIVE,
+        )
+
+        client, csrf_token = self.csrf_client()
+        client.force_login(company_user)
+        response = client.post(
+            f"/api/v1/student/courses/{course.id}/enrollment",
+            data=json.dumps({}),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+
+        self.assertEqual(response.status_code, 403)
+
     def test_student_exam_results_returns_summary(self):
         user = User.objects.create_user(
             email="student@example.com",
@@ -2368,8 +2813,156 @@ class ApiFoundationTests(TestCase):
         self.assertEqual(body["total_results"], 2)
         self.assertEqual(body["passed_results"], 1)
         self.assertEqual(body["average_score"], 75.0)
+        self.assertEqual(len(body["available_exams"]), 1)
         linked_result = next(item for item in body["results"] if item["exam_id"] == exam.id)
         self.assertEqual(linked_result["exam_title"], "Python Basics Exam")
+
+    def test_student_can_load_exam_detail_and_submit_scored_attempt(self):
+        student = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        exam = Exam.objects.create(
+            title="Python Basics Exam",
+            description="Programming validation",
+            category="programming",
+            duration_minutes=30,
+            passing_score_percent=50,
+            question_count=0,
+            max_attempts=3,
+            status=Exam.Status.ACTIVE,
+        )
+        question_one = ExamQuestion.objects.create(
+            exam=exam,
+            prompt="Which keyword defines a function?",
+            instructions="Pick one answer.",
+            sequence_number=1,
+            points=1,
+            status=ExamQuestion.Status.ACTIVE,
+        )
+        question_two = ExamQuestion.objects.create(
+            exam=exam,
+            prompt="Which collection is mutable?",
+            instructions="Pick one answer.",
+            sequence_number=2,
+            points=1,
+            status=ExamQuestion.Status.ACTIVE,
+        )
+        option_one_correct = ExamAnswerOption.objects.create(
+            question=question_one,
+            option_text="def",
+            sequence_number=1,
+            is_correct=True,
+        )
+        ExamAnswerOption.objects.create(
+            question=question_one,
+            option_text="func",
+            sequence_number=2,
+            is_correct=False,
+        )
+        ExamAnswerOption.objects.create(
+            question=question_two,
+            option_text="tuple",
+            sequence_number=1,
+            is_correct=False,
+        )
+        option_two_correct = ExamAnswerOption.objects.create(
+            question=question_two,
+            option_text="list",
+            sequence_number=2,
+            is_correct=True,
+        )
+
+        client, csrf_token = self.csrf_client()
+        client.force_login(student)
+
+        detail_response = client.get(f"/api/v1/student/exams/{exam.id}")
+        submit_response = client.post(
+            f"/api/v1/student/exams/{exam.id}/submit",
+            data=json.dumps(
+                {
+                    "answers": [
+                        {"question_id": question_one.id, "selected_option_id": option_one_correct.id},
+                        {"question_id": question_two.id, "selected_option_id": option_two_correct.id},
+                    ]
+                }
+            ),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+
+        self.assertEqual(detail_response.status_code, 200)
+        self.assertEqual(detail_response.json()["data"]["question_count"], 2)
+        self.assertEqual(submit_response.status_code, 201)
+        attempt = ExamAttempt.objects.get(student=student, exam=exam)
+        result = ExamResult.objects.get(student=student, exam=exam)
+        self.assertEqual(attempt.status, ExamAttempt.Status.SCORED)
+        self.assertEqual(attempt.score_percent, 100)
+        self.assertTrue(attempt.passed)
+        self.assertEqual(result.attempt_id, attempt.id)
+        self.assertEqual(ExamAttemptAnswer.objects.filter(attempt=attempt).count(), 2)
+
+    def test_student_exam_retake_policy_blocks_after_pass(self):
+        student = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        exam = Exam.objects.create(
+            title="Python Basics Exam",
+            description="Programming validation",
+            category="programming",
+            duration_minutes=30,
+            passing_score_percent=80,
+            question_count=1,
+            max_attempts=3,
+            status=Exam.Status.ACTIVE,
+        )
+        ExamResult.objects.create(
+            student=student,
+            exam=exam,
+            exam_title=exam.title,
+            category=exam.category,
+            score_percent=92,
+            passed=True,
+            attempt_number=1,
+            taken_at=timezone.now(),
+        )
+
+        client = Client()
+        client.force_login(student)
+        response = client.get(f"/api/v1/student/exams/{exam.id}")
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_company_user_cannot_open_student_exam(self):
+        company = Company.objects.create(name="Softverse")
+        company_user = User.objects.create_user(
+            email="company@example.com",
+            password="SecurePass123!",
+            full_name="Company User",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+        exam = Exam.objects.create(
+            title="Python Basics Exam",
+            description="Programming validation",
+            category="programming",
+            duration_minutes=30,
+            passing_score_percent=80,
+            question_count=1,
+            max_attempts=3,
+            status=Exam.Status.ACTIVE,
+        )
+
+        client = Client()
+        client.force_login(company_user)
+        response = client.get(f"/api/v1/student/exams/{exam.id}")
+
+        self.assertEqual(response.status_code, 403)
 
     def test_company_candidates_list_returns_company_safe_preview_cards(self):
         company = Company.objects.create(name="Softverse")

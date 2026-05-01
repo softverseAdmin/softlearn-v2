@@ -10,11 +10,17 @@ from users.models import (
     Company,
     Course,
     Exam,
+    ExamAnswerOption,
+    ExamAttempt,
+    ExamAttemptAnswer,
+    ExamQuestion,
     ExamResult,
     Interview,
     InterviewAvailability,
     InterviewEvent,
     JobBookmark,
+    Lesson,
+    LessonProgress,
     LearningRecord,
     Notification,
     NotificationDelivery,
@@ -109,6 +115,25 @@ class CourseAdmin(admin.ModelAdmin):
     search_fields = ("title", "description", "category", "difficulty_level")
 
 
+@admin.register(Lesson)
+class LessonAdmin(admin.ModelAdmin):
+    list_display = ("id", "course", "sequence_number", "title", "status", "updated_at")
+    list_filter = ("status", "course__category")
+    search_fields = ("course__title", "title", "summary", "content")
+
+
+@admin.register(LessonProgress)
+class LessonProgressAdmin(admin.ModelAdmin):
+    list_display = ("id", "learning_record", "lesson", "status", "completed_at", "updated_at")
+    list_filter = ("status", "lesson__course__category")
+    search_fields = (
+        "learning_record__student__email",
+        "learning_record__student__full_name",
+        "lesson__course__title",
+        "lesson__title",
+    )
+
+
 @admin.register(ExamResult)
 class ExamResultAdmin(admin.ModelAdmin):
     list_display = ("id", "student", "exam", "exam_title", "category", "score_percent", "passed", "taken_at")
@@ -118,9 +143,36 @@ class ExamResultAdmin(admin.ModelAdmin):
 
 @admin.register(Exam)
 class ExamAdmin(admin.ModelAdmin):
-    list_display = ("id", "title", "category", "duration_minutes", "passing_score_percent", "question_count", "status", "updated_at")
+    list_display = ("id", "title", "category", "duration_minutes", "passing_score_percent", "question_count", "max_attempts", "status", "updated_at")
     list_filter = ("status", "category")
     search_fields = ("title", "description", "category")
+
+
+@admin.register(ExamQuestion)
+class ExamQuestionAdmin(admin.ModelAdmin):
+    list_display = ("id", "exam", "sequence_number", "question_type", "points", "status", "updated_at")
+    list_filter = ("question_type", "status")
+    search_fields = ("exam__title", "prompt", "instructions")
+
+
+@admin.register(ExamAnswerOption)
+class ExamAnswerOptionAdmin(admin.ModelAdmin):
+    list_display = ("id", "question", "sequence_number", "option_text", "is_correct", "status", "updated_at")
+    list_filter = ("is_correct", "status")
+    search_fields = ("question__exam__title", "question__prompt", "option_text")
+
+
+@admin.register(ExamAttempt)
+class ExamAttemptAdmin(admin.ModelAdmin):
+    list_display = ("id", "student", "exam", "attempt_number", "status", "score_percent", "passed", "submitted_at")
+    list_filter = ("status", "passed")
+    search_fields = ("student__email", "student__full_name", "exam__title")
+
+
+@admin.register(ExamAttemptAnswer)
+class ExamAttemptAnswerAdmin(admin.ModelAdmin):
+    list_display = ("id", "attempt", "question", "selected_option", "updated_at")
+    search_fields = ("attempt__student__email", "attempt__exam__title", "question__prompt", "selected_option__option_text")
 
 
 @admin.register(CandidateReviewAccess)
