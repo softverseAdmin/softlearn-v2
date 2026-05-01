@@ -209,6 +209,153 @@ class StudentProfile(models.Model):
         return f"StudentProfile<{self.user.email}>"
 
 
+class StudentEducation(models.Model):
+    class CompletionStatus(models.TextChoices):
+        IN_PROGRESS = "in_progress", "In progress"
+        COMPLETED = "completed", "Completed"
+        PAUSED = "paused", "Paused"
+
+    student = models.ForeignKey(
+        "User",
+        on_delete=models.CASCADE,
+        related_name="education_records",
+        limit_choices_to={"role": "student"},
+    )
+    institution = models.CharField(max_length=255)
+    field_of_study = models.CharField(max_length=255)
+    start_date = models.DateField()
+    end_date = models.DateField(null=True, blank=True)
+    completion_status = models.CharField(max_length=20, choices=CompletionStatus.choices, default=CompletionStatus.IN_PROGRESS)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-start_date", "-id"]
+
+    def clean(self) -> None:
+        super().clean()
+        if self.student.role != User.Role.STUDENT:
+            raise ValidationError({"student": ["Education records may only belong to student users."]})
+        if self.end_date and self.end_date < self.start_date:
+            raise ValidationError({"end_date": ["End date cannot be earlier than start date."]})
+
+    def __str__(self) -> str:
+        return f"{self.student.email} - {self.institution}"
+
+
+class StudentExperience(models.Model):
+    class ExperienceType(models.TextChoices):
+        WORK = "work", "Work"
+        INTERNSHIP = "internship", "Internship"
+        PROJECT = "project", "Project"
+        FREELANCE = "freelance", "Freelance"
+        VOLUNTEER = "volunteer", "Volunteer"
+
+    student = models.ForeignKey(
+        "User",
+        on_delete=models.CASCADE,
+        related_name="experience_records",
+        limit_choices_to={"role": "student"},
+    )
+    organization = models.CharField(max_length=255)
+    role_title = models.CharField(max_length=255)
+    experience_type = models.CharField(max_length=20, choices=ExperienceType.choices, default=ExperienceType.WORK)
+    start_date = models.DateField()
+    end_date = models.DateField(null=True, blank=True)
+    is_current = models.BooleanField(default=False)
+    summary = models.TextField(blank=True, default="")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-start_date", "-id"]
+
+    def clean(self) -> None:
+        super().clean()
+        if self.student.role != User.Role.STUDENT:
+            raise ValidationError({"student": ["Experience records may only belong to student users."]})
+        if self.end_date and self.end_date < self.start_date:
+            raise ValidationError({"end_date": ["End date cannot be earlier than start date."]})
+        if self.is_current and self.end_date is not None:
+            raise ValidationError({"end_date": ["Current experience cannot have an end date."]})
+
+    def __str__(self) -> str:
+        return f"{self.student.email} - {self.organization}"
+
+
+class StudentResume(models.Model):
+    class SourceType(models.TextChoices):
+        UPLOADED = "uploaded", "Uploaded"
+        EXTERNAL = "external", "External"
+        MANUAL = "manual", "Manual"
+
+    student = models.ForeignKey(
+        "User",
+        on_delete=models.CASCADE,
+        related_name="resume_records",
+        limit_choices_to={"role": "student"},
+    )
+    display_name = models.CharField(max_length=255)
+    file_name = models.CharField(max_length=255)
+    source_type = models.CharField(max_length=20, choices=SourceType.choices, default=SourceType.MANUAL)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-updated_at", "-id"]
+
+    def clean(self) -> None:
+        super().clean()
+        if self.student.role != User.Role.STUDENT:
+            raise ValidationError({"student": ["Resume records may only belong to student users."]})
+
+    def __str__(self) -> str:
+        return f"{self.student.email} - {self.display_name}"
+
+
+class StudentAvailabilityProfile(models.Model):
+    class JobSearchStatus(models.TextChoices):
+        ACTIVELY_LOOKING = "actively_looking", "Actively looking"
+        OPEN_TO_OFFERS = "open_to_offers", "Open to offers"
+        NOT_SEARCHING = "not_searching", "Not searching"
+
+    student = models.OneToOneField(
+        "User",
+        on_delete=models.CASCADE,
+        related_name="availability_profile",
+        limit_choices_to={"role": "student"},
+    )
+    job_search_status = models.CharField(max_length=30, choices=JobSearchStatus.choices, blank=True, default="")
+    earliest_start_date = models.DateField(null=True, blank=True)
+    interview_availability = models.CharField(max_length=255, blank=True, default="")
+    scheduling_notes = models.TextField(blank=True, default="")
+    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["student_id"]
+
+    @property
+    def availability_set(self) -> bool:
+        return any(
+            [
+                self.job_search_status,
+                self.earliest_start_date is not None,
+                self.interview_availability.strip(),
+                self.scheduling_notes.strip(),
+            ]
+        )
+
+    def clean(self) -> None:
+        super().clean()
+        if self.student.role != User.Role.STUDENT:
+            raise ValidationError({"student": ["Availability profiles may only belong to student users."]})
+
+    def __str__(self) -> str:
+        return f"AvailabilityProfile<{self.student.email}>"
+
+
 class Skill(models.Model):
     name = models.CharField(max_length=100, unique=True)
     slug = models.SlugField(max_length=120, unique=True, editable=False)
@@ -636,6 +783,106 @@ class ExamAttemptAnswer(models.Model):
         return f"{self.attempt} - Q{self.question.sequence_number}"
 
 
+class PracticeQuestionAttempt(models.Model):
+    student = models.ForeignKey(
+        "User",
+        on_delete=models.CASCADE,
+        related_name="practice_question_attempts",
+        limit_choices_to={"role": User.Role.STUDENT},
+    )
+    exam = models.ForeignKey(Exam, on_delete=models.CASCADE, related_name="practice_attempts")
+    question = models.ForeignKey(ExamQuestion, on_delete=models.CASCADE, related_name="practice_attempts")
+    selected_option = models.ForeignKey(
+        ExamAnswerOption,
+        on_delete=models.CASCADE,
+        related_name="practice_attempts",
+    )
+    is_correct = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at", "-id"]
+
+    def clean(self) -> None:
+        super().clean()
+        if self.student.role != User.Role.STUDENT:
+            raise ValidationError({"student": ["Practice attempts may only belong to student users."]})
+        if self.question.exam_id != self.exam_id:
+            raise ValidationError({"question": ["Practice questions must belong to the selected exam."]})
+        if self.selected_option.question_id != self.question_id:
+            raise ValidationError({"selected_option": ["Selected option must belong to the provided question."]})
+
+    def __str__(self) -> str:
+        return f"{self.student.email} - practice Q{self.question.sequence_number}"
+
+
+class MockExamAttempt(models.Model):
+    student = models.ForeignKey(
+        "User",
+        on_delete=models.CASCADE,
+        related_name="mock_exam_attempts",
+        limit_choices_to={"role": User.Role.STUDENT},
+    )
+    exam = models.ForeignKey(Exam, on_delete=models.CASCADE, related_name="mock_attempts")
+    exam_title = models.CharField(max_length=255)
+    category = models.CharField(max_length=100)
+    attempt_number = models.PositiveSmallIntegerField(default=1, validators=[MinValueValidator(1)])
+    score_percent = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+    )
+    correct_answer_count = models.PositiveSmallIntegerField(default=0, validators=[MinValueValidator(0)])
+    total_questions = models.PositiveSmallIntegerField(default=0, validators=[MinValueValidator(0)])
+    started_at = models.DateTimeField()
+    submitted_at = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-submitted_at", "-id"]
+        constraints = [
+            models.UniqueConstraint(fields=["student", "exam", "attempt_number"], name="unique_student_mock_exam_attempt"),
+        ]
+
+    def clean(self) -> None:
+        super().clean()
+        if self.student.role != User.Role.STUDENT:
+            raise ValidationError({"student": ["Mock exam attempts may only belong to student users."]})
+        if self.correct_answer_count > self.total_questions:
+            raise ValidationError({"correct_answer_count": ["Correct answers cannot exceed the total question count."]})
+
+    def __str__(self) -> str:
+        return f"{self.student.email} - mock {self.exam_title} - attempt {self.attempt_number}"
+
+
+class MockExamAttemptAnswer(models.Model):
+    attempt = models.ForeignKey(MockExamAttempt, on_delete=models.CASCADE, related_name="answers")
+    question = models.ForeignKey(ExamQuestion, on_delete=models.CASCADE, related_name="mock_attempt_answers")
+    selected_option = models.ForeignKey(
+        ExamAnswerOption,
+        on_delete=models.CASCADE,
+        related_name="selected_mock_attempt_answers",
+    )
+    is_correct = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["question__sequence_number", "id"]
+        constraints = [
+            models.UniqueConstraint(fields=["attempt", "question"], name="unique_mock_attempt_question_answer"),
+        ]
+
+    def clean(self) -> None:
+        super().clean()
+        if self.question.exam_id != self.attempt.exam_id:
+            raise ValidationError({"question": ["Mock attempt answers must belong to the same exam as the attempt."]})
+        if self.selected_option.question_id != self.question_id:
+            raise ValidationError({"selected_option": ["Selected option must belong to the provided question."]})
+
+    def __str__(self) -> str:
+        return f"{self.attempt} - Q{self.question.sequence_number}"
+
+
 class ExamResult(models.Model):
     student = models.ForeignKey(
         "User",
@@ -953,6 +1200,10 @@ class InterviewEvent(models.Model):
 
 class Notification(models.Model):
     class Type(models.TextChoices):
+        APPLICATION_SUBMITTED = "application_submitted", "Application submitted"
+        APPLICATION_WITHDRAWN = "application_withdrawn", "Application withdrawn"
+        APPLICATION_SHORTLISTED = "application_shortlisted", "Application shortlisted"
+        APPLICATION_REJECTED = "application_rejected", "Application rejected"
         INTERVIEW_REQUESTED = "interview_requested", "Interview requested"
         INTERVIEW_CONFIRMED = "interview_confirmed", "Interview confirmed"
         INTERVIEW_RESCHEDULED = "interview_rescheduled", "Interview rescheduled"

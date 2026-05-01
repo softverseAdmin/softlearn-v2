@@ -22,10 +22,17 @@ from users.models import (
     Lesson,
     LessonProgress,
     LearningRecord,
+    MockExamAttempt,
+    MockExamAttemptAnswer,
     Notification,
     NotificationDelivery,
+    PracticeQuestionAttempt,
     Skill,
     StudentProfile,
+    StudentAvailabilityProfile,
+    StudentEducation,
+    StudentExperience,
+    StudentResume,
     StudentSkill,
     StudentVisibilityEvent,
     StudentVisibilitySettings,
@@ -78,6 +85,34 @@ class StudentProfileAdmin(admin.ModelAdmin):
         "updated_at",
     )
     search_fields = ("user__email", "user__full_name", "desired_job_type", "desired_work_location")
+
+
+@admin.register(StudentEducation)
+class StudentEducationAdmin(admin.ModelAdmin):
+    list_display = ("id", "student", "institution", "field_of_study", "completion_status", "start_date", "end_date")
+    list_filter = ("completion_status",)
+    search_fields = ("student__email", "student__full_name", "institution", "field_of_study")
+
+
+@admin.register(StudentExperience)
+class StudentExperienceAdmin(admin.ModelAdmin):
+    list_display = ("id", "student", "organization", "role_title", "experience_type", "start_date", "end_date", "is_current")
+    list_filter = ("experience_type", "is_current")
+    search_fields = ("student__email", "student__full_name", "organization", "role_title", "summary")
+
+
+@admin.register(StudentResume)
+class StudentResumeAdmin(admin.ModelAdmin):
+    list_display = ("id", "student", "display_name", "file_name", "source_type", "is_active", "updated_at")
+    list_filter = ("source_type", "is_active")
+    search_fields = ("student__email", "student__full_name", "display_name", "file_name")
+
+
+@admin.register(StudentAvailabilityProfile)
+class StudentAvailabilityProfileAdmin(admin.ModelAdmin):
+    list_display = ("id", "student", "job_search_status", "earliest_start_date", "updated_at")
+    list_filter = ("job_search_status",)
+    search_fields = ("student__email", "student__full_name", "interview_availability", "scheduling_notes")
 
 
 @admin.register(Skill)
@@ -173,6 +208,27 @@ class ExamAttemptAdmin(admin.ModelAdmin):
 class ExamAttemptAnswerAdmin(admin.ModelAdmin):
     list_display = ("id", "attempt", "question", "selected_option", "updated_at")
     search_fields = ("attempt__student__email", "attempt__exam__title", "question__prompt", "selected_option__option_text")
+
+
+@admin.register(PracticeQuestionAttempt)
+class PracticeQuestionAttemptAdmin(admin.ModelAdmin):
+    list_display = ("id", "student", "exam", "question", "selected_option", "is_correct", "created_at")
+    list_filter = ("is_correct", "exam__category")
+    search_fields = ("student__email", "student__full_name", "exam__title", "question__prompt", "selected_option__option_text")
+
+
+@admin.register(MockExamAttempt)
+class MockExamAttemptAdmin(admin.ModelAdmin):
+    list_display = ("id", "student", "exam_title", "attempt_number", "score_percent", "correct_answer_count", "submitted_at")
+    list_filter = ("category",)
+    search_fields = ("student__email", "student__full_name", "exam__title", "exam_title", "category")
+
+
+@admin.register(MockExamAttemptAnswer)
+class MockExamAttemptAnswerAdmin(admin.ModelAdmin):
+    list_display = ("id", "attempt", "question", "selected_option", "is_correct", "updated_at")
+    list_filter = ("is_correct",)
+    search_fields = ("attempt__student__email", "attempt__exam_title", "question__prompt", "selected_option__option_text")
 
 
 @admin.register(CandidateReviewAccess)
