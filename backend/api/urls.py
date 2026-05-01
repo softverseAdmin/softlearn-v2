@@ -133,4 +133,10 @@ urlpatterns = [
     path("v1/admin/reports/data-access/", views.admin_report_data_access_view, name="api-admin-report-data-access"),
     path("v1/admin/reports/content-modification/", views.admin_report_content_modification_view, name="api-admin-report-content-modification"),
     path("v1/admin/reports/compliance/", views.admin_report_compliance_view, name="api-admin-report-compliance"),
+    # Phase 19: Operations Infrastructure
+    path("v1/admin/logs/", views.admin_logs_view, name="api-admin-logs"),
+    path("v1/admin/errors/", views.admin_errors_view, name="api-admin-errors"),
+    path("v1/admin/cache/", views.admin_cache_view, name="api-admin-cache"),
+    path("v1/admin/security/", views.admin_security_view, name="api-admin-security"),
+    path("v1/logs/frontend", views.frontend_logs_view, name="api-frontend-logs"),
 ]

@@ -6891,6 +6891,228 @@ def admin_access_view(request):
     return success_response({"message": "Admin access granted.", "role": request.user.role})
 
 
+# Phase 19: Operations Infrastructure
+
+@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.ADMIN])
+def admin_logs_view(request):
+    """Get application logs with filtering options."""
+    from common.models import ApplicationLogEntry
+    from datetime import timedelta
+    
+    # Get filter parameters
+    level = request.GET.get('level')
+    service = request.GET.get('service')
+    user_id = request.GET.get('user_id')
+    request_id = request.GET.get('request_id')
+    days = int(request.GET.get('days', 7))
+    
+    # Base queryset
+    logs = ApplicationLogEntry.objects.all()
+    
+    # Apply filters
+    if level:
+        logs = logs.filter(level=level)
+    if service:
+        logs = logs.filter(service=service)
+    if user_id:
+        logs = logs.filter(user_id=user_id)
+    if request_id:
+        logs = logs.filter(request_id=request_id)
+    
+    # Filter by date range
+    since = timezone.now() - timedelta(days=days)
+    logs = logs.filter(created_at__gte=since)
+    
+    # Order and paginate
+    logs = logs.order_by('-created_at')[:1000]
+    
+    return success_response({
+        "logs": [
+            {
+                "id": log.id,
+                "level": log.level,
+                "service": log.service,
+                "message": log.message,
+                "request_id": log.request_id,
+                "user_id": log.user_id,
+                "user_email": log.user.email if log.user else None,
+                "request_method": log.request_method,
+                "request_path": log.request_path,
+                "response_status": log.response_status,
+                "duration_ms": log.duration_ms,
+                "created_at": log.created_at.isoformat(),
+            }
+            for log in logs
+        ],
+        "filters": {
+            "level": level,
+            "service": service,
+            "user_id": user_id,
+            "request_id": request_id,
+            "days": days,
+        }
+    })
+
+
+@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.ADMIN])
+def admin_errors_view(request):
+    """Get error reports with filtering and statistics."""
+    from common.models import ErrorReport
+    from datetime import timedelta
+    
+    # Get filter parameters
+    error_type = request.GET.get('error_type')
+    is_resolved = request.GET.get('is_resolved')
+    days = int(request.GET.get('days', 30))
+    
+    # Base queryset
+    errors = ErrorReport.objects.all()
+    
+    # Apply filters
+    if error_type:
+        errors = errors.filter(error_type__icontains=error_type)
+    if is_resolved:
+        errors = errors.filter(is_resolved=is_resolved.lower() == 'true')
+    
+    # Filter by date range
+    since = timezone.now() - timedelta(days=days)
+    errors = errors.filter(last_occurrence__gte=since)
+    
+    # Order and paginate
+    errors = errors.order_by('-last_occurrence')[:100]
+    
+    # Get statistics
+    from django.db.models import Count, Q
+    total_errors = ErrorReport.objects.count()
+    unresolved_errors = ErrorReport.objects.filter(is_resolved=False).count()
+    errors_last_24h = ErrorReport.objects.filter(
+        last_occurrence__gte=timezone.now() - timedelta(hours=24)
+    ).count()
+    
+    return success_response({
+        "errors": [
+            {
+                "id": error.id,
+                "error_type": error.error_type,
+                "error_message": error.error_message[:200],
+                "occurrence_count": error.occurrence_count,
+                "user_id": error.user_id,
+                "user_email": error.user.email if error.user else None,
+                "is_resolved": error.is_resolved,
+                "first_occurrence": error.first_occurrence.isoformat(),
+                "last_occurrence": error.last_occurrence.isoformat(),
+            }
+            for error in errors
+        ],
+        "statistics": {
+            "total_errors": total_errors,
+            "unresolved_errors": unresolved_errors,
+            "errors_last_24h": errors_last_24h,
+        },
+        "filters": {
+            "error_type": error_type,
+            "is_resolved": is_resolved,
+            "days": days,
+        }
+    })
+
+
+@api_endpoint(["GET", "POST"], authentication_required=True, roles=[User.Role.ADMIN])
+def admin_cache_view(request):
+    """Manage cache - view stats or clear cache."""
+    from services.caching import CacheManager
+    
+    if request.method == "POST":
+        try:
+            payload = parse_json_body(request)
+        except (ValueError, ValidationError):
+            payload = {}
+        
+        if payload.get('action') == 'clear':
+            CacheManager.clear()
+            return success_response({"message": "Cache cleared successfully"})
+        elif payload.get('action') == 'invalidate' and payload.get('key'):
+            CacheManager.delete(payload.get('key'))
+            return success_response({"message": f"Cache key '{payload.get('key')}' invalidated"})
+        else:
+            return error_response(
+                request,
+                "INVALID_ACTION",
+                "Valid actions are: clear, invalidate",
+                status=400,
+            )
+    
+    # GET request - return cache statistics
+    stats = CacheManager.get_stats()
+    
+    return success_response({
+        "cache_stats": stats,
+        "cache_backends": {
+            "user_profile_ttl": f"{CacheManager.USER_PROFILE_TTL // 60} minutes",
+            "course_list_ttl": f"{CacheManager.COURSE_LIST_TTL // 60} minutes",
+            "company_jobs_ttl": f"{CacheManager.COMPANY_JOBS_TTL // 60} minutes",
+            "matching_results_ttl": f"{CacheManager.MATCHING_RESULTS_TTL // 60} minutes",
+            "dashboard_metrics_ttl": f"{CacheManager.DASHBOARD_METRICS_TTL // 60} minutes",
+        }
+    })
+
+
+@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.ADMIN])
+def admin_security_view(request):
+    """Get security metrics and configuration."""
+    from services.security import SecurityManager
+    
+    metrics = SecurityManager.get_security_metrics()
+    
+    return success_response({
+        "security_metrics": metrics,
+        "configuration": {
+            "login_attempts_limit": SecurityManager.LOGIN_LIMIT,
+            "login_attempts_window": "1 minute",
+            "api_requests_limit": SecurityManager.API_LIMIT,
+            "api_requests_window": "1 minute",
+            "signup_limit": SecurityManager.SIGNUP_LIMIT,
+            "signup_window": "1 minute per IP",
+        }
+    })
+
+
+@api_endpoint(["POST"], authentication_required=False)
+def frontend_logs_view(request):
+    """Accept frontend error logs from client."""
+    from services.logging import LogAggregationService
+    
+    try:
+        payload = parse_json_body(request)
+    except (ValueError, ValidationError):
+        return error_response(
+            request,
+            "INVALID_JSON",
+            "Invalid JSON in request body",
+            status=400,
+        )
+    
+    error_type = payload.get('error_type', 'UnknownError')
+    error_message = payload.get('error_message', '')
+    
+    # Log frontend error to database
+    LogAggregationService.error(
+        service='frontend',
+        message=f"{error_type}: {error_message}",
+        request_id=getattr(request, 'request_id', None),
+        user_id=request.user.id if request.user.is_authenticated else None,
+        metadata={
+            'error_type': error_type,
+            'stack_trace': payload.get('stack_trace'),
+            'component_stack': payload.get('component_stack'),
+            'timestamp': payload.get('timestamp'),
+            'user_agent': request.META.get('HTTP_USER_AGENT'),
+        }
+    )
+    
+    return success_response({"message": "Error logged successfully"})
+
+
 
 
 # Phase 14: Learning Enhancements
