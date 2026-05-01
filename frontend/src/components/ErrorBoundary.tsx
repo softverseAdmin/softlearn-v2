@@ -1,4 +1,4 @@
-import React, { ReactNode, ReactElement } from 'react';
+import React, { type ReactNode, type ReactElement } from 'react';
 
 interface Props {
   children: ReactNode;
@@ -59,7 +59,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
             <p className="text-gray-600 mb-4">
               We're sorry for the inconvenience. Our team has been notified of this error.
             </p>
-            {process.env.NODE_ENV === 'development' && this.state.error && (
+            {import.meta.env.DEV && this.state.error && (
               <details className="mt-4 p-4 bg-red-100 rounded text-sm">
                 <summary className="cursor-pointer font-semibold text-red-800">
                   Error Details
