@@ -1077,12 +1077,21 @@ def serialize_admin_user(user: User) -> dict:
 
 
 def serialize_admin_company(company: Company) -> dict:
+    user_count = getattr(company, "user_count", company.users.count())
+    vacancy_count = getattr(company, "vacancy_count", company.vacancies.count())
+    active_vacancy_count = getattr(
+        company,
+        "active_vacancy_count",
+        company.vacancies.filter(status=Vacancy.Status.ACTIVE).count(),
+    )
     return {
         "company_id": company.id,
         "name": company.name,
         "description": company.description,
         "is_active": company.is_active,
-        "user_count": company.users.count(),
+        "user_count": user_count,
+        "vacancy_count": vacancy_count,
+        "active_vacancy_count": active_vacancy_count,
         "created_at": company.created_at.isoformat(),
         "updated_at": company.updated_at.isoformat(),
     }
@@ -2045,6 +2054,18 @@ def validate_admin_company_payload(payload: dict) -> dict:
         "description": description,
         "is_active": raw_is_active,
     }
+
+
+def get_admin_company_queryset():
+    return Company.objects.annotate(
+        user_count=Count("users", distinct=True),
+        vacancy_count=Count("vacancies", distinct=True),
+        active_vacancy_count=Count(
+            "vacancies",
+            filter=Q(vacancies__status=Vacancy.Status.ACTIVE),
+            distinct=True,
+        ),
+    )
 
 
 def validate_admin_course_payload(payload: dict) -> dict:
@@ -5634,7 +5655,7 @@ def admin_vacancies_view(request):
             .prefetch_related("skill_requirements__skill", "language_requirements")
             .order_by("-updated_at", "-id")
         )
-        companies = list(Company.objects.order_by("name"))
+        companies = list(get_admin_company_queryset().order_by("name"))
         company_users = list(
             User.objects.filter(role=User.Role.COMPANY, company__isnull=False)
             .select_related("company")
@@ -5739,7 +5760,7 @@ def admin_vacancy_detail_view(request, vacancy_id: int):
 def admin_users_view(request):
     if request.method == "GET":
         users = list(User.objects.select_related("company").order_by("email"))
-        companies = list(Company.objects.order_by("name"))
+        companies = list(get_admin_company_queryset().order_by("name"))
         return success_response(
             {
                 "users": [serialize_admin_user(user) for user in users],
@@ -5800,7 +5821,7 @@ def admin_user_detail_view(request, user_id: int):
 @api_endpoint(["GET", "POST"], authentication_required=True, roles=[User.Role.ADMIN])
 def admin_companies_view(request):
     if request.method == "GET":
-        companies = list(Company.objects.order_by("name"))
+        companies = list(get_admin_company_queryset().order_by("name"))
         return success_response({"companies": [serialize_admin_company(company) for company in companies]})
 
     payload = validate_admin_company_payload(parse_json_body(request))
@@ -5814,9 +5835,9 @@ def admin_companies_view(request):
     return success_response(serialize_admin_company(company), status=201)
 
 
-@api_endpoint(["PUT"], authentication_required=True, roles=[User.Role.ADMIN])
+@api_endpoint(["GET", "PUT", "DELETE"], authentication_required=True, roles=[User.Role.ADMIN])
 def admin_company_detail_view(request, company_id: int):
-    company = Company.objects.filter(pk=company_id).first()
+    company = get_admin_company_queryset().filter(pk=company_id).first()
     if company is None:
         return error_response(
             request,
@@ -5825,6 +5846,15 @@ def admin_company_detail_view(request, company_id: int):
             details={"company_id": [str(company_id)]},
             status=404,
         )
+
+    if request.method == "GET":
+        return success_response(serialize_admin_company(company))
+
+    if request.method == "DELETE":
+        company.is_active = False
+        company.full_clean()
+        company.save(update_fields=["is_active", "updated_at"])
+        return success_response(serialize_admin_company(company))
 
     payload = validate_admin_company_payload(parse_json_body(request))
     company.name = payload["name"]
