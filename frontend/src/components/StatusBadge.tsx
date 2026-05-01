@@ -26,8 +26,30 @@ export function StatusBadge({ status, label }: StatusBadgeProps) {
     }
   }
 
+  const getAriaLabel = (s: string): string => {
+    const statusMap: Record<string, string> = {
+      'active': 'Status: Active',
+      'completed': 'Status: Completed',
+      'approved': 'Status: Approved',
+      'inactive': 'Status: Inactive',
+      'pending': 'Status: Pending',
+      'draft': 'Status: Draft',
+      'rejected': 'Status: Rejected',
+      'deleted': 'Status: Deleted',
+      'failed': 'Status: Failed',
+      'in_progress': 'Status: In Progress',
+      'processing': 'Status: Processing',
+    }
+    return statusMap[s.toLowerCase()] || `Status: ${s}`
+  }
+
   return (
-    <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${getStatusStyles(status)}`}>
+    <span 
+      className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${getStatusStyles(status)}`}
+      role="status"
+      aria-label={getAriaLabel(status)}
+      title={label || status}
+    >
       {label || status}
     </span>
   )

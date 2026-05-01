@@ -51,27 +51,53 @@ export class ErrorBoundary extends React.Component<Props, State> {
   render(): ReactElement {
     if (this.state.hasError) {
       return (
-        <div className="flex items-center justify-center min-h-screen bg-red-50">
+        <div 
+          className="flex items-center justify-center min-h-screen bg-red-50"
+          role="alertdialog"
+          aria-modal="true"
+          aria-labelledby="error-title"
+          aria-describedby="error-description"
+        >
           <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
-            <h1 className="text-2xl font-bold text-red-600 mb-4">
+            <h1 
+              id="error-title"
+              className="text-2xl font-bold text-red-600 mb-4"
+            >
               Oops! Something went wrong
             </h1>
-            <p className="text-gray-600 mb-4">
+            <p 
+              id="error-description"
+              className="text-gray-600 mb-4"
+              role="status"
+            >
               We're sorry for the inconvenience. Our team has been notified of this error.
             </p>
             {import.meta.env.DEV && this.state.error && (
               <details className="mt-4 p-4 bg-red-100 rounded text-sm">
-                <summary className="cursor-pointer font-semibold text-red-800">
+                <summary 
+                  className="cursor-pointer font-semibold text-red-800"
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      (e.currentTarget as HTMLElement).click();
+                    }
+                  }}
+                >
                   Error Details
                 </summary>
-                <pre className="mt-2 text-xs overflow-auto max-h-48 text-red-800">
+                <pre 
+                  className="mt-2 text-xs overflow-auto max-h-48 text-red-800"
+                  aria-label="Technical error details"
+                >
                   {this.state.error.toString()}
                 </pre>
               </details>
             )}
             <button
               onClick={() => window.location.reload()}
-              className="mt-6 w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition"
+              className="mt-6 w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              aria-label="Reload the page to recover from this error"
             >
               Reload Page
             </button>
