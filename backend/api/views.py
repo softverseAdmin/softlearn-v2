@@ -6539,6 +6539,353 @@ def company_access_view(request):
     return success_response({"message": "Company access granted.", "role": request.user.role})
 
 
+# Phase 18: Admin Features Polish
+
+@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.ADMIN])
+def admin_export_users_view(request):
+    """Export users to CSV."""
+    from services.bulk_operations import CSVExporter
+    import csv
+    
+    # Get filter parameters
+    role = request.GET.get('role')
+    status = request.GET.get('status')
+    
+    users = User.objects.all()
+    if role:
+        users = users.filter(role=role)
+    if status == 'active':
+        users = users.filter(is_active=True)
+    elif status == 'inactive':
+        users = users.filter(is_active=False)
+    
+    csv_content = CSVExporter.export_users(users)
+    
+    response = success_response({"csv": csv_content})
+    response['Content-Type'] = 'text/csv'
+    response['Content-Disposition'] = f'attachment; filename="users-{timezone.now().strftime("%Y%m%d")}.csv"'
+    return response
+
+
+@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.ADMIN])
+def admin_export_companies_view(request):
+    """Export companies to CSV."""
+    from services.bulk_operations import CSVExporter
+    
+    companies = Company.objects.all()
+    csv_content = CSVExporter.export_companies(companies)
+    
+    response = success_response({"csv": csv_content})
+    response['Content-Type'] = 'text/csv'
+    response['Content-Disposition'] = f'attachment; filename="companies-{timezone.now().strftime("%Y%m%d")}.csv"'
+    return response
+
+
+@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.ADMIN])
+def admin_export_courses_view(request):
+    """Export courses to CSV."""
+    from services.bulk_operations import CSVExporter
+    
+    courses = Course.objects.all()
+    csv_content = CSVExporter.export_courses(courses)
+    
+    response = success_response({"csv": csv_content})
+    response['Content-Type'] = 'text/csv'
+    response['Content-Disposition'] = f'attachment; filename="courses-{timezone.now().strftime("%Y%m%d")}.csv"'
+    return response
+
+
+@api_endpoint(["POST"], authentication_required=True, roles=[User.Role.ADMIN])
+def admin_import_users_view(request):
+    """Bulk import users from CSV."""
+    from services.bulk_operations import CSVImporter
+    
+    if 'file' not in request.FILES:
+        return error_response(
+            request,
+            "VALIDATION_ERROR",
+            "CSV file is required",
+            details={"file": ["This field is required."]},
+            status=400,
+        )
+    
+    csv_file = request.FILES['file']
+    try:
+        result = CSVImporter.import_users(csv_file.file)
+        return success_response(result)
+    except Exception as e:
+        return error_response(
+            request,
+            "IMPORT_ERROR",
+            f"Error importing CSV: {str(e)}",
+            status=400,
+        )
+
+
+@api_endpoint(["POST"], authentication_required=True, roles=[User.Role.ADMIN])
+def admin_import_courses_view(request):
+    """Bulk import courses from CSV."""
+    from services.bulk_operations import CSVImporter
+    
+    if 'file' not in request.FILES:
+        return error_response(
+            request,
+            "VALIDATION_ERROR",
+            "CSV file is required",
+            details={"file": ["This field is required."]},
+            status=400,
+        )
+    
+    csv_file = request.FILES['file']
+    try:
+        result = CSVImporter.import_courses(csv_file.file)
+        return success_response(result)
+    except Exception as e:
+        return error_response(
+            request,
+            "IMPORT_ERROR",
+            f"Error importing CSV: {str(e)}",
+            status=400,
+        )
+
+
+@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.ADMIN])
+def admin_import_user_template_view(request):
+    """Get CSV template for user import."""
+    from services.bulk_operations import CSVImporter
+    
+    template = CSVImporter.get_user_import_template()
+    response = success_response({"template": template})
+    response['Content-Type'] = 'text/csv'
+    response['Content-Disposition'] = 'attachment; filename="user-import-template.csv"'
+    return response
+
+
+@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.ADMIN])
+def admin_import_course_template_view(request):
+    """Get CSV template for course import."""
+    from services.bulk_operations import CSVImporter
+    
+    template = CSVImporter.get_course_import_template()
+    response = success_response({"template": template})
+    response['Content-Type'] = 'text/csv'
+    response['Content-Disposition'] = 'attachment; filename="course-import-template.csv"'
+    return response
+
+
+@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.ADMIN])
+def admin_scheduled_tasks_view(request):
+    """List all scheduled tasks."""
+    from users.models import ScheduledTask
+    
+    tasks = ScheduledTask.objects.all().order_by('task_type')
+    
+    return success_response({
+        "tasks": [
+            {
+                "id": task.id,
+                "task_type": task.task_type,
+                "task_label": task.get_task_type_display(),
+                "schedule": task.schedule,
+                "is_active": task.is_active,
+                "last_run": task.last_run.isoformat() if task.last_run else None,
+                "next_run": task.next_run.isoformat() if task.next_run else None,
+                "last_result": task.last_result,
+            }
+            for task in tasks
+        ]
+    })
+
+
+@api_endpoint(["PUT"], authentication_required=True, roles=[User.Role.ADMIN])
+def admin_scheduled_task_detail_view(request, task_id: int):
+    """Update a scheduled task."""
+    from users.models import ScheduledTask
+    
+    try:
+        task = ScheduledTask.objects.get(id=task_id)
+    except ScheduledTask.DoesNotExist:
+        return error_response(
+            request,
+            "NOT_FOUND",
+            "Scheduled task not found",
+            status=404,
+        )
+    
+    payload = parse_json_body(request)
+    
+    if 'is_active' in payload:
+        task.is_active = bool(payload.get('is_active'))
+    if 'schedule' in payload:
+        if payload.get('schedule') in ScheduledTask.Schedule.values:
+            task.schedule = payload.get('schedule')
+    
+    task.save()
+    
+    return success_response({
+        "id": task.id,
+        "task_type": task.task_type,
+        "schedule": task.schedule,
+        "is_active": task.is_active,
+        "last_run": task.last_run.isoformat() if task.last_run else None,
+        "next_run": task.next_run.isoformat() if task.next_run else None,
+    })
+
+
+@api_endpoint(["POST"], authentication_required=True, roles=[User.Role.ADMIN])
+def admin_scheduled_task_run_now_view(request, task_id: int):
+    """Manually execute a scheduled task immediately."""
+    from users.models import ScheduledTask
+    from services.scheduled_tasks import execute_scheduled_task
+    
+    try:
+        task = ScheduledTask.objects.get(id=task_id)
+    except ScheduledTask.DoesNotExist:
+        return error_response(
+            request,
+            "NOT_FOUND",
+            "Scheduled task not found",
+            status=404,
+        )
+    
+    success = execute_scheduled_task(task.task_type)
+    if success:
+        task.refresh_from_db()
+        return success_response({
+            "message": "Task executed successfully",
+            "task_id": task.id,
+            "last_run": task.last_run.isoformat() if task.last_run else None,
+            "last_result": task.last_result,
+        })
+    else:
+        return error_response(
+            request,
+            "EXECUTION_ERROR",
+            "Failed to execute scheduled task",
+            status=400,
+        )
+
+
+@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.ADMIN])
+def admin_report_user_activity_view(request):
+    """Generate user activity report."""
+    from services.reports import ReportGenerator
+    from django.utils.dateparse import parse_date
+    
+    date_from = request.GET.get('date_from')
+    date_to = request.GET.get('date_to')
+    admin_user_id = request.GET.get('admin_user_id')
+    action_type = request.GET.get('action_type')
+    
+    # Parse dates if provided
+    parsed_from = None
+    parsed_to = None
+    if date_from:
+        try:
+            parsed_from = timezone.make_aware(
+                datetime.combine(parse_date(date_from), datetime.min.time())
+            )
+        except:
+            pass
+    if date_to:
+        try:
+            parsed_to = timezone.make_aware(
+                datetime.combine(parse_date(date_to), datetime.max.time())
+            )
+        except:
+            pass
+    
+    report = ReportGenerator.generate_user_activity_report(
+        date_from=parsed_from,
+        date_to=parsed_to,
+        admin_user_id=int(admin_user_id) if admin_user_id else None,
+        action_type=action_type,
+    )
+    
+    return success_response(report)
+
+
+@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.ADMIN])
+def admin_report_data_access_view(request):
+    """Generate data access report."""
+    from services.reports import ReportGenerator
+    from django.utils.dateparse import parse_date
+    
+    date_from = request.GET.get('date_from')
+    date_to = request.GET.get('date_to')
+    student_id = request.GET.get('student_id')
+    
+    # Parse dates if provided
+    parsed_from = None
+    parsed_to = None
+    if date_from:
+        try:
+            parsed_from = timezone.make_aware(
+                datetime.combine(parse_date(date_from), datetime.min.time())
+            )
+        except:
+            pass
+    if date_to:
+        try:
+            parsed_to = timezone.make_aware(
+                datetime.combine(parse_date(date_to), datetime.max.time())
+            )
+        except:
+            pass
+    
+    report = ReportGenerator.generate_data_access_report(
+        student_id=int(student_id) if student_id else None,
+        date_from=parsed_from,
+        date_to=parsed_to,
+    )
+    
+    return success_response(report)
+
+
+@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.ADMIN])
+def admin_report_content_modification_view(request):
+    """Generate content modification report."""
+    from services.reports import ReportGenerator
+    from django.utils.dateparse import parse_date
+    
+    date_from = request.GET.get('date_from')
+    date_to = request.GET.get('date_to')
+    
+    # Parse dates if provided
+    parsed_from = None
+    parsed_to = None
+    if date_from:
+        try:
+            parsed_from = timezone.make_aware(
+                datetime.combine(parse_date(date_from), datetime.min.time())
+            )
+        except:
+            pass
+    if date_to:
+        try:
+            parsed_to = timezone.make_aware(
+                datetime.combine(parse_date(date_to), datetime.max.time())
+            )
+        except:
+            pass
+    
+    report = ReportGenerator.generate_content_modification_report(
+        date_from=parsed_from,
+        date_to=parsed_to,
+    )
+    
+    return success_response(report)
+
+
+@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.ADMIN])
+def admin_report_compliance_view(request):
+    """Generate compliance report."""
+    from services.reports import ReportGenerator
+    
+    report = ReportGenerator.generate_compliance_report()
+    return success_response(report)
+
+
 @api_endpoint(["GET"], authentication_required=True, roles=[User.Role.ADMIN])
 def admin_access_view(request):
     return success_response({"message": "Admin access granted.", "role": request.user.role})

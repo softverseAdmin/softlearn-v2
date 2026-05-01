@@ -1633,6 +1633,78 @@ class NotificationPreference(models.Model):
     
     class Meta:
         ordering = ["user_id"]
+
+
+class AuditLog(models.Model):
+    """Track all admin actions and data access for compliance."""
+    
+    class ActionType(models.TextChoices):
+        CREATE = "create", "Create"
+        UPDATE = "update", "Update"
+        DELETE = "delete", "Delete"
+        LOGIN = "login", "Login"
+        EXPORT = "export", "Export"
+        IMPORT = "import", "Import"
+        VIEW = "view", "View"
+        BULK_ACTION = "bulk_action", "Bulk Action"
+    
+    admin_user = models.ForeignKey(
+        User,
+        on_delete=models.PROTECT,
+        related_name="audit_logs_created",
+        limit_choices_to={"role": "admin"},
+    )
+    action_type = models.CharField(max_length=20, choices=ActionType.choices)
+    entity_type = models.CharField(max_length=50)  # e.g., 'user', 'course', 'exam'
+    entity_id = models.IntegerField(null=True, blank=True)
+    description = models.TextField()
+    changes = models.JSONField(default=dict, blank=True)  # Before/after values
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.TextField(blank=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["admin_user", "-created_at"]),
+            models.Index(fields=["action_type", "-created_at"]),
+            models.Index(fields=["entity_type", "entity_id"]),
+        ]
+    
+    def __str__(self) -> str:
+        return f"AuditLog<{self.admin_user.email}:{self.action_type}:{self.entity_type}:{self.entity_id}>"
+
+
+class ScheduledTask(models.Model):
+    """Configure and track scheduled administrative tasks."""
+    
+    class TaskType(models.TextChoices):
+        ARCHIVE_APPLICATIONS = "archive_applications", "Archive Old Applications"
+        SEND_DIGEST = "send_digest", "Send Weekly Digest"
+        CLEANUP_EXPORTS = "cleanup_exports", "Clean Expired Exports"
+        REFRESH_ANALYTICS = "refresh_analytics", "Refresh Analytics"
+    
+    class Schedule(models.TextChoices):
+        HOURLY = "hourly", "Hourly"
+        DAILY = "daily", "Daily"
+        WEEKLY = "weekly", "Weekly"
+        MONTHLY = "monthly", "Monthly"
+    
+    task_type = models.CharField(max_length=50, choices=TaskType.choices, unique=True)
+    schedule = models.CharField(max_length=20, choices=Schedule.choices)
+    is_active = models.BooleanField(default=True)
+    last_run = models.DateTimeField(null=True, blank=True)
+    next_run = models.DateTimeField()
+    last_result = models.CharField(max_length=500, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ["task_type"]
+    
+    def __str__(self) -> str:
+        return f"ScheduledTask<{self.task_type}:{self.schedule}>"
     
     def __str__(self) -> str:
         return f"NotificationPreference<{self.user.email}>"
