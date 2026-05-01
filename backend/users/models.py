@@ -22,6 +22,65 @@ class Company(models.Model):
         return self.name
 
 
+class CompanyHiringPreferences(models.Model):
+    class ExperienceLevel(models.TextChoices):
+        ENTRY = "entry", "Entry Level"
+        JUNIOR = "junior", "Junior"
+        MID = "mid", "Mid Level"
+        SENIOR = "senior", "Senior"
+        LEAD = "lead", "Lead"
+        DIRECTOR = "director", "Director"
+
+    company = models.OneToOneField(Company, on_delete=models.CASCADE, related_name="hiring_preferences")
+    default_experience_level = models.CharField(max_length=20, choices=ExperienceLevel.choices, blank=True, default="")
+    preferred_skills = models.JSONField(default=list, blank=True)
+    min_salary = models.IntegerField(null=True, blank=True)
+    max_salary = models.IntegerField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["company_id"]
+
+    def clean(self) -> None:
+        super().clean()
+        if self.min_salary is not None and self.max_salary is not None:
+            if self.min_salary > self.max_salary:
+                raise ValidationError({"max_salary": ["Maximum salary must be greater than or equal to minimum salary."]})
+
+    def __str__(self) -> str:
+        return f"HiringPreferences<{self.company.name}>"
+
+
+class CompanyMember(models.Model):
+    class MemberRole(models.TextChoices):
+        ADMIN = "admin", "Admin"
+        MEMBER = "member", "Member"
+        VIEWER = "viewer", "Viewer"
+
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name="members")
+    user = models.ForeignKey("User", on_delete=models.CASCADE, related_name="company_memberships")
+    role = models.CharField(max_length=20, choices=MemberRole.choices, default=MemberRole.MEMBER)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["company_id", "user_id"]
+        constraints = [
+            models.UniqueConstraint(fields=["company", "user"], name="unique_company_member"),
+        ]
+
+    def clean(self) -> None:
+        super().clean()
+        if self.user.role != User.Role.COMPANY:
+            raise ValidationError({"user": ["Only company users can be company members."]})
+        if self.user.company_id != self.company_id:
+            raise ValidationError({"user": ["Member user must belong to the same company."]})
+
+    def __str__(self) -> str:
+        return f"CompanyMember<{self.company.name}:{self.user.email}:{self.role}>"
+
+
 class Vacancy(models.Model):
     class Status(models.TextChoices):
         DRAFT = "draft", "Draft"

@@ -18,6 +18,8 @@ from users.models import (
     CandidateReviewAccess,
     CandidateShortlist,
     Company,
+    CompanyHiringPreferences,
+    CompanyMember,
     Course,
     Exam,
     ExamAnswerOption,
@@ -4255,6 +4257,158 @@ def company_profile_view(request):
     company.save(update_fields=["name", "description", "updated_at"])
 
     return success_response(serialize_company_profile(request.user))
+
+
+def serialize_company_hiring_preferences(prefs: "CompanyHiringPreferences") -> dict:
+    return {
+        "default_experience_level": prefs.default_experience_level,
+        "preferred_skills": prefs.preferred_skills or [],
+        "min_salary": prefs.min_salary,
+        "max_salary": prefs.max_salary,
+    }
+
+
+def validate_company_hiring_preferences_payload(payload: dict) -> dict:
+    if not isinstance(payload, dict):
+        raise ValidationError("Invalid payload format.")
+    
+    default_experience_level = payload.get("default_experience_level", "")
+    preferred_skills = payload.get("preferred_skills", [])
+    min_salary = payload.get("min_salary")
+    max_salary = payload.get("max_salary")
+    
+    if default_experience_level and default_experience_level not in [
+        "entry", "junior", "mid", "senior", "lead", "director"
+    ]:
+        raise ValidationError({"default_experience_level": ["Invalid experience level."]})
+    
+    if not isinstance(preferred_skills, list):
+        raise ValidationError({"preferred_skills": ["Preferred skills must be a list."]})
+    
+    if min_salary is not None:
+        if not isinstance(min_salary, int) or min_salary < 0:
+            raise ValidationError({"min_salary": ["Minimum salary must be a non-negative integer."]})
+    
+    if max_salary is not None:
+        if not isinstance(max_salary, int) or max_salary < 0:
+            raise ValidationError({"max_salary": ["Maximum salary must be a non-negative integer."]})
+    
+    if min_salary is not None and max_salary is not None and min_salary > max_salary:
+        raise ValidationError({"max_salary": ["Maximum salary must be greater than or equal to minimum salary."]})
+    
+    return {
+        "default_experience_level": default_experience_level,
+        "preferred_skills": preferred_skills,
+        "min_salary": min_salary,
+        "max_salary": max_salary,
+    }
+
+
+@api_endpoint(["GET", "PUT"], authentication_required=True, roles=[User.Role.COMPANY])
+def company_hiring_preferences_view(request):
+    company = request.user.company
+    if company is None:
+        raise ValidationError({"company": ["Company context is required for company users."]})
+    
+    prefs, _created = CompanyHiringPreferences.objects.get_or_create(company=company)
+    
+    if request.method == "GET":
+        return success_response(serialize_company_hiring_preferences(prefs))
+    
+    payload = validate_company_hiring_preferences_payload(parse_json_body(request))
+    prefs.default_experience_level = payload["default_experience_level"]
+    prefs.preferred_skills = payload["preferred_skills"]
+    prefs.min_salary = payload["min_salary"]
+    prefs.max_salary = payload["max_salary"]
+    prefs.full_clean()
+    prefs.save(update_fields=["default_experience_level", "preferred_skills", "min_salary", "max_salary", "updated_at"])
+    
+    return success_response(serialize_company_hiring_preferences(prefs))
+
+
+def serialize_company_member(member: CompanyMember) -> dict:
+    return {
+        "id": member.id,
+        "user_id": member.user.id,
+        "email": member.user.email,
+        "full_name": member.user.full_name,
+        "role": member.role,
+        "created_at": member.created_at.isoformat(),
+    }
+
+
+def validate_company_member_payload(payload: dict) -> dict:
+    if not isinstance(payload, dict):
+        raise ValidationError("Request body must be a JSON object.")
+    
+    email = payload.get("email", "").strip()
+    if not email:
+        raise ValidationError({"email": ["Email is required."]})
+    
+    role = payload.get("role", "").strip()
+    if role and role not in dict(CompanyMember.MemberRole.choices):
+        raise ValidationError({"role": [f"Role must be one of: {', '.join(dict(CompanyMember.MemberRole.choices).keys())}"]})
+    
+    return {
+        "email": email,
+        "role": role or CompanyMember.MemberRole.MEMBER,
+    }
+
+
+@api_endpoint(["GET", "POST"], authentication_required=True, roles=[User.Role.COMPANY])
+def company_members_view(request):
+    company = request.user.company
+    if company is None:
+        raise ValidationError({"company": ["Company context is required for company users."]})
+    
+    if request.method == "GET":
+        members = list(
+            CompanyMember.objects.filter(company=company)
+            .select_related("user")
+            .order_by("user_id")
+        )
+        return success_response([serialize_company_member(member) for member in members])
+    
+    payload = validate_company_member_payload(parse_json_body(request))
+    
+    try:
+        user = User.objects.get(email=payload["email"], role=User.Role.COMPANY, company=company)
+    except User.DoesNotExist:
+        raise ValidationError({"email": ["No company user found with this email in your organization."]})
+    
+    member, created = CompanyMember.objects.get_or_create(
+        company=company,
+        user=user,
+        defaults={"role": payload["role"]},
+    )
+    
+    if not created:
+        raise ValidationError({"email": ["This user is already a member of your company."]})
+    
+    return success_response(serialize_company_member(member))
+
+
+@api_endpoint(["PUT", "DELETE"], authentication_required=True, roles=[User.Role.COMPANY])
+def company_member_detail_view(request, member_id: int):
+    company = request.user.company
+    if company is None:
+        raise ValidationError({"company": ["Company context is required for company users."]})
+    
+    try:
+        member = CompanyMember.objects.get(id=member_id, company=company)
+    except CompanyMember.DoesNotExist:
+        raise ValidationError({"member": ["Member not found."]}, status_code=404)
+    
+    if request.method == "DELETE":
+        member.delete()
+        return success_response({"success": True})
+    
+    payload = validate_company_member_payload(parse_json_body(request))
+    member.role = payload["role"]
+    member.full_clean()
+    member.save(update_fields=["role", "updated_at"])
+    
+    return success_response(serialize_company_member(member))
 
 
 @api_endpoint(["GET", "POST"], authentication_required=True, roles=[User.Role.COMPANY])
