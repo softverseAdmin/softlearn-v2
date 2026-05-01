@@ -3696,3 +3696,4 @@ redis.exceptions.ConnectionError: Error 10061 connecting to 127.0.0.1:6379. No c
 [INFO] 2026-05-01 17:52:29,039 logging 23376 15444 [req_4fc40b882454] GET /api/v1/notifications
 [WARNING] 2026-05-01 17:52:29,039 log 23376 15444 Unauthorized: /api/v1/notifications
 [INFO] 2026-05-01 18:08:56,798 logging 23376 15444 [req_52f6c730e067] PUT /api/v1/notification-preferences/update
+[INFO] 2026-05-01 18:36:04,623 autoreload 23680 8156 Watching for file changes with StatReloader
