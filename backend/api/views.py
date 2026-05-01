@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Count, Q
 from django.utils import timezone
-from django.utils.dateparse import parse_datetime
+from django.utils.dateparse import parse_date, parse_datetime
 from django.middleware.csrf import get_token
 from django.views.decorators.csrf import ensure_csrf_cookie
 from urllib.parse import urlparse
@@ -32,9 +32,16 @@ from users.models import (
     Lesson,
     LessonProgress,
     LearningRecord,
+    MockExamAttempt,
+    MockExamAttemptAnswer,
     Notification,
     Skill,
+    PracticeQuestionAttempt,
+    StudentAvailabilityProfile,
+    StudentEducation,
+    StudentExperience,
     StudentProfile,
+    StudentResume,
     StudentSkill,
     StudentVisibilityEvent,
     StudentVisibilitySettings,
@@ -79,8 +86,64 @@ def get_student_profile(user: User) -> StudentProfile:
     return profile
 
 
+def get_student_availability_profile(user: User) -> StudentAvailabilityProfile:
+    profile, _ = StudentAvailabilityProfile.objects.get_or_create(student=user)
+    return profile
+
+
+def serialize_student_education(record: StudentEducation) -> dict:
+    return {
+        "id": record.id,
+        "institution": record.institution,
+        "field_of_study": record.field_of_study,
+        "start_date": record.start_date.isoformat(),
+        "end_date": record.end_date.isoformat() if record.end_date else None,
+        "completion_status": record.completion_status,
+    }
+
+
+def serialize_student_experience(record: StudentExperience) -> dict:
+    return {
+        "id": record.id,
+        "organization": record.organization,
+        "role_title": record.role_title,
+        "experience_type": record.experience_type,
+        "start_date": record.start_date.isoformat(),
+        "end_date": record.end_date.isoformat() if record.end_date else None,
+        "is_current": record.is_current,
+        "summary": record.summary,
+    }
+
+
+def serialize_student_resume(record: StudentResume) -> dict:
+    return {
+        "id": record.id,
+        "display_name": record.display_name,
+        "file_name": record.file_name,
+        "source_type": record.source_type,
+        "is_active": record.is_active,
+        "created_at": record.created_at.isoformat(),
+        "updated_at": record.updated_at.isoformat(),
+    }
+
+
+def serialize_student_availability_profile(profile: StudentAvailabilityProfile) -> dict:
+    return {
+        "job_search_status": profile.job_search_status,
+        "earliest_start_date": profile.earliest_start_date.isoformat() if profile.earliest_start_date else None,
+        "interview_availability": profile.interview_availability,
+        "scheduling_notes": profile.scheduling_notes,
+        "availability_set": profile.availability_set,
+        "updated_at": profile.updated_at.isoformat(),
+    }
+
+
 def serialize_student_profile(user: User) -> dict:
     profile = get_student_profile(user)
+    availability_profile = get_student_availability_profile(user)
+    education_records = list(StudentEducation.objects.filter(student=user))
+    experience_records = list(StudentExperience.objects.filter(student=user))
+    resumes = list(StudentResume.objects.filter(student=user))
     return {
         "student_id": user.id,
         "name": user.full_name,
@@ -89,6 +152,17 @@ def serialize_student_profile(user: User) -> dict:
         "japanese_level": profile.japanese_level,
         "english_level": profile.english_level,
         "profile_complete": profile.profile_complete,
+        "education_records": [serialize_student_education(record) for record in education_records],
+        "experience_records": [serialize_student_experience(record) for record in experience_records],
+        "resumes": [serialize_student_resume(record) for record in resumes],
+        "availability": serialize_student_availability_profile(availability_profile),
+        "profile_extension_summary": {
+            "education_count": len(education_records),
+            "experience_count": len(experience_records),
+            "resume_count": len(resumes),
+            "has_active_resume": any(record.is_active for record in resumes),
+            "availability_set": availability_profile.availability_set,
+        },
     }
 
 
@@ -643,12 +717,20 @@ def match_level_for_score(score: float) -> str:
 
 
 def build_student_profile_completion(user: User, profile: StudentProfile) -> dict:
+    has_education = StudentEducation.objects.filter(student=user).exists()
+    has_experience = StudentExperience.objects.filter(student=user).exists()
+    has_active_resume = StudentResume.objects.filter(student=user, is_active=True).exists()
+    availability_profile = get_student_availability_profile(user)
     fields = {
         "full_name": bool(user.full_name.strip()),
         "desired_job_type": bool(profile.desired_job_type.strip()),
         "desired_work_location": bool(profile.desired_work_location.strip()),
         "japanese_level": bool(profile.japanese_level.strip()),
         "english_level": bool(profile.english_level.strip()),
+        "education_record": has_education,
+        "experience_record": has_experience,
+        "active_resume": has_active_resume,
+        "availability": availability_profile.availability_set,
     }
     completed = sum(1 for filled in fields.values() if filled)
     percent = round((completed / len(fields)) * 100, 1)
@@ -1266,6 +1348,139 @@ def serialize_student_exam_detail(exam: Exam, *, student: User) -> dict:
     }
 
 
+def serialize_preparation_category_summary(category: str, *, student: User) -> dict:
+    practice_attempts = list(
+        PracticeQuestionAttempt.objects.filter(student=student, exam__category=category).select_related("question", "exam")
+    )
+    mock_attempts = list(MockExamAttempt.objects.filter(student=student, category=category).order_by("-submitted_at", "-id"))
+    active_exams = [sync_exam_question_count(exam) for exam in visible_student_exams_queryset().filter(category=category)]
+    ready_exams = [exam for exam in active_exams if exam_is_ready_for_student(exam)]
+    learning_records = list(LearningRecord.objects.filter(student=student, category=category))
+    correct_practice = sum(1 for attempt in practice_attempts if attempt.is_correct)
+    practice_accuracy = round((correct_practice / len(practice_attempts)) * 100, 1) if practice_attempts else None
+    best_mock_score = max((attempt.score_percent for attempt in mock_attempts), default=None)
+    latest_mock_score = mock_attempts[0].score_percent if mock_attempts else None
+
+    return {
+        "category": category,
+        "label": category.replace("_", " ").title(),
+        "course_count": sum(1 for record in learning_records if record.course_id),
+        "completed_courses": sum(1 for record in learning_records if record.status == LearningRecord.Status.COMPLETED),
+        "in_progress_courses": sum(
+            1 for record in learning_records if record.status in {LearningRecord.Status.NOT_STARTED, LearningRecord.Status.IN_PROGRESS}
+        ),
+        "practice_question_count": visible_practice_questions_queryset(category=category).count(),
+        "practice_attempt_count": len(practice_attempts),
+        "practice_accuracy": practice_accuracy,
+        "mock_attempt_count": len(mock_attempts),
+        "best_mock_score": best_mock_score,
+        "latest_mock_score": latest_mock_score,
+        "available_exam_count": len(ready_exams),
+    }
+
+
+def serialize_practice_question(question: ExamQuestion, *, student: User) -> dict:
+    attempts = list(
+        PracticeQuestionAttempt.objects.filter(student=student, question=question)
+        .select_related("selected_option")
+        .order_by("-created_at", "-id")[:5]
+    )
+    latest_attempt = attempts[0] if attempts else None
+    return {
+        "question_id": question.id,
+        "exam_id": question.exam_id,
+        "exam_title": question.exam.title,
+        "category": question.exam.category,
+        "prompt": question.prompt,
+        "instructions": question.instructions,
+        "sequence_number": question.sequence_number,
+        "points": question.points,
+        "options": [serialize_student_exam_option(option) for option in question.answer_options.all() if option.status == ExamAnswerOption.Status.ACTIVE],
+        "attempt_count": PracticeQuestionAttempt.objects.filter(student=student, question=question).count(),
+        "last_outcome": latest_attempt.is_correct if latest_attempt else None,
+    }
+
+
+def serialize_mock_exam_attempt(attempt: MockExamAttempt) -> dict:
+    return {
+        "attempt_id": attempt.id,
+        "exam_id": attempt.exam_id,
+        "exam_title": attempt.exam_title,
+        "category": attempt.category,
+        "attempt_number": attempt.attempt_number,
+        "score_percent": attempt.score_percent,
+        "correct_answer_count": attempt.correct_answer_count,
+        "total_questions": attempt.total_questions,
+        "submitted_at": attempt.submitted_at.isoformat(),
+    }
+
+
+def serialize_student_mock_exam(exam: Exam, *, student: User) -> dict:
+    attempts = list(MockExamAttempt.objects.filter(student=student, exam=exam).order_by("-attempt_number"))
+    best_score = max((attempt.score_percent for attempt in attempts), default=None)
+    last_score = attempts[0].score_percent if attempts else None
+    return {
+        "exam_id": exam.id,
+        "title": exam.title,
+        "description": exam.description,
+        "category": exam.category,
+        "duration_minutes": exam.duration_minutes,
+        "question_count": len(active_exam_questions(exam)),
+        "attempt_count": len(attempts),
+        "best_score": best_score,
+        "last_score": last_score,
+        "detail_href": f"/student/mock-exams/{exam.id}",
+    }
+
+
+def serialize_student_mock_exam_detail(exam: Exam, *, student: User) -> dict:
+    attempts = list(MockExamAttempt.objects.filter(student=student, exam=exam).order_by("-attempt_number"))
+    return {
+        "exam_id": exam.id,
+        "title": exam.title,
+        "description": exam.description,
+        "category": exam.category,
+        "duration_minutes": exam.duration_minutes,
+        "question_count": len(active_exam_questions(exam)),
+        "attempt_count": len(attempts),
+        "next_attempt_number": next_mock_exam_attempt_number(student, exam),
+        "best_score": max((attempt.score_percent for attempt in attempts), default=None),
+        "last_score": attempts[0].score_percent if attempts else None,
+        "questions": [serialize_student_exam_question(question) for question in active_exam_questions(exam)],
+    }
+
+
+def serialize_preparation_summary(user: User) -> dict:
+    categories = preparation_categories_for_student(user)
+    practice_attempts = list(PracticeQuestionAttempt.objects.filter(student=user).select_related("exam", "question").order_by("-created_at", "-id"))
+    mock_attempts = list(MockExamAttempt.objects.filter(student=user).order_by("-submitted_at", "-id"))
+    correct_practice = sum(1 for attempt in practice_attempts if attempt.is_correct)
+    practice_accuracy = round((correct_practice / len(practice_attempts)) * 100, 1) if practice_attempts else None
+    active_exams = [sync_exam_question_count(exam) for exam in visible_student_exams_queryset()]
+    mock_ready_exams = [exam for exam in active_exams if exam_is_ready_for_student(exam)]
+
+    return {
+        "student_id": user.id,
+        "categories": [serialize_preparation_category_summary(category, student=user) for category in categories],
+        "study_plan": {
+            "items": [build_study_plan_item(category, student=user) for category in categories],
+        },
+        "performance": {
+            "practice_attempt_count": len(practice_attempts),
+            "practice_accuracy": practice_accuracy,
+            "mock_attempt_count": len(mock_attempts),
+            "best_mock_score": max((attempt.score_percent for attempt in mock_attempts), default=None),
+            "recent_mock_score": mock_attempts[0].score_percent if mock_attempts else None,
+            "category_breakdown": [build_preparation_performance_category(category, student=user) for category in categories],
+        },
+        "mock_exams": [serialize_student_mock_exam(exam, student=user) for exam in mock_ready_exams],
+        "recent_activity": {
+            "practice_attempts": [serialize_practice_attempt_summary(attempt) for attempt in practice_attempts[:5]],
+            "mock_attempts": [serialize_mock_exam_attempt(attempt) for attempt in mock_attempts[:5]],
+        },
+    }
+
+
 def serialize_admin_company_user(user: User) -> dict:
     return {
         "user_id": user.id,
@@ -1507,6 +1722,123 @@ def validate_student_profile_payload(payload: dict) -> dict:
     if errors:
         raise ValidationError(errors)
 
+    return cleaned
+
+
+def parse_required_date(value, field_name: str, errors: dict) -> object | None:
+    cleaned_value = str(value or "").strip()
+    if not cleaned_value:
+        errors[field_name] = ["This field is required."]
+        return None
+    parsed = parse_date(cleaned_value)
+    if parsed is None:
+        errors[field_name] = ["Use ISO date format YYYY-MM-DD."]
+        return None
+    return parsed
+
+
+def parse_optional_date(value, field_name: str, errors: dict) -> object | None:
+    cleaned_value = str(value or "").strip()
+    if not cleaned_value:
+        return None
+    parsed = parse_date(cleaned_value)
+    if parsed is None:
+        errors[field_name] = ["Use ISO date format YYYY-MM-DD."]
+    return parsed
+
+
+def validate_student_education_payload(payload: dict) -> dict:
+    errors = {}
+    cleaned = {
+        "institution": str(payload.get("institution", "")).strip(),
+        "field_of_study": str(payload.get("field_of_study", "")).strip(),
+        "completion_status": str(payload.get("completion_status", "")).strip() or StudentEducation.CompletionStatus.IN_PROGRESS,
+    }
+    cleaned["start_date"] = parse_required_date(payload.get("start_date"), "start_date", errors)
+    cleaned["end_date"] = parse_optional_date(payload.get("end_date"), "end_date", errors)
+
+    if not cleaned["institution"]:
+        errors["institution"] = ["This field is required."]
+    if not cleaned["field_of_study"]:
+        errors["field_of_study"] = ["This field is required."]
+    if cleaned["completion_status"] not in StudentEducation.CompletionStatus.values:
+        errors["completion_status"] = [
+            f"Completion status must be one of: {', '.join(StudentEducation.CompletionStatus.values)}."
+        ]
+
+    if errors:
+        raise ValidationError(errors)
+    return cleaned
+
+
+def validate_student_experience_payload(payload: dict) -> dict:
+    errors = {}
+    cleaned = {
+        "organization": str(payload.get("organization", "")).strip(),
+        "role_title": str(payload.get("role_title", "")).strip(),
+        "experience_type": str(payload.get("experience_type", "")).strip() or StudentExperience.ExperienceType.WORK,
+        "summary": str(payload.get("summary", "")).strip(),
+        "is_current": bool(payload.get("is_current", False)),
+    }
+    if payload.get("is_current") not in (True, False, None):
+        errors["is_current"] = ["This field must be a boolean."]
+
+    cleaned["start_date"] = parse_required_date(payload.get("start_date"), "start_date", errors)
+    cleaned["end_date"] = parse_optional_date(payload.get("end_date"), "end_date", errors)
+
+    if not cleaned["organization"]:
+        errors["organization"] = ["This field is required."]
+    if not cleaned["role_title"]:
+        errors["role_title"] = ["This field is required."]
+    if cleaned["experience_type"] not in StudentExperience.ExperienceType.values:
+        errors["experience_type"] = [
+            f"Experience type must be one of: {', '.join(StudentExperience.ExperienceType.values)}."
+        ]
+    if cleaned["is_current"] and cleaned["end_date"] is not None:
+        errors["end_date"] = ["Current experience cannot have an end date."]
+
+    if errors:
+        raise ValidationError(errors)
+    return cleaned
+
+
+def validate_student_resume_payload(payload: dict) -> dict:
+    errors = {}
+    cleaned = {
+        "display_name": str(payload.get("display_name", "")).strip(),
+        "file_name": str(payload.get("file_name", "")).strip(),
+        "source_type": str(payload.get("source_type", "")).strip() or StudentResume.SourceType.MANUAL,
+        "is_active": payload.get("is_active", True),
+    }
+    if not cleaned["display_name"]:
+        errors["display_name"] = ["This field is required."]
+    if not cleaned["file_name"]:
+        errors["file_name"] = ["This field is required."]
+    if cleaned["source_type"] not in StudentResume.SourceType.values:
+        errors["source_type"] = [f"Source type must be one of: {', '.join(StudentResume.SourceType.values)}."]
+    if not isinstance(cleaned["is_active"], bool):
+        errors["is_active"] = ["This field must be a boolean."]
+    if errors:
+        raise ValidationError(errors)
+    return cleaned
+
+
+def validate_student_availability_payload(payload: dict) -> dict:
+    errors = {}
+    cleaned = {
+        "job_search_status": str(payload.get("job_search_status", "")).strip(),
+        "interview_availability": str(payload.get("interview_availability", "")).strip(),
+        "scheduling_notes": str(payload.get("scheduling_notes", "")).strip(),
+    }
+    cleaned["earliest_start_date"] = parse_optional_date(payload.get("earliest_start_date"), "earliest_start_date", errors)
+
+    if cleaned["job_search_status"] and cleaned["job_search_status"] not in StudentAvailabilityProfile.JobSearchStatus.values:
+        errors["job_search_status"] = [
+            f"Job search status must be one of: {', '.join(StudentAvailabilityProfile.JobSearchStatus.values)}."
+        ]
+
+    if errors:
+        raise ValidationError(errors)
     return cleaned
 
 
@@ -2577,6 +2909,21 @@ def active_exam_questions(exam: Exam) -> list[ExamQuestion]:
     )
 
 
+def exam_is_ready_for_student(exam: Exam) -> bool:
+    questions = active_exam_questions(exam)
+    if not questions:
+        return False
+
+    for question in questions:
+        active_options = [option for option in question.answer_options.all() if option.status == ExamAnswerOption.Status.ACTIVE]
+        if not active_options:
+            return False
+        if not any(option.is_correct for option in active_options):
+            return False
+
+    return True
+
+
 def visible_student_exams_queryset():
     return Exam.objects.filter(status=Exam.Status.ACTIVE).order_by("-updated_at", "-id")
 
@@ -2610,36 +2957,27 @@ def next_exam_attempt_number(student: User, exam: Exam) -> int:
     return latest_number + 1
 
 
+def next_mock_exam_attempt_number(student: User, exam: Exam) -> int:
+    latest_attempt = (
+        MockExamAttempt.objects.filter(student=student, exam=exam)
+        .order_by("-attempt_number")
+        .values_list("attempt_number", flat=True)
+        .first()
+    )
+    return (latest_attempt or 0) + 1
+
+
 def evaluate_exam_retake_eligibility(student: User, exam: Exam) -> dict:
-    questions = active_exam_questions(exam)
-    question_count = len(questions)
     attempt_count = ExamResult.objects.filter(student=student, exam=exam).count()
     has_passed = ExamResult.objects.filter(student=student, exam=exam, passed=True).exists()
 
-    if question_count == 0:
+    if not exam_is_ready_for_student(exam):
         return {
             "can_take": False,
             "message": "This exam is not ready yet.",
             "attempt_count": attempt_count,
             "next_attempt_number": None,
         }
-
-    for question in questions:
-        active_options = [option for option in question.answer_options.all() if option.status == ExamAnswerOption.Status.ACTIVE]
-        if not active_options:
-            return {
-                "can_take": False,
-                "message": "This exam is not ready yet.",
-                "attempt_count": attempt_count,
-                "next_attempt_number": None,
-            }
-        if not any(option.is_correct for option in active_options):
-            return {
-                "can_take": False,
-                "message": "This exam is not ready yet.",
-                "attempt_count": attempt_count,
-                "next_attempt_number": None,
-            }
 
     if has_passed:
         return {
@@ -2666,12 +3004,18 @@ def evaluate_exam_retake_eligibility(student: User, exam: Exam) -> dict:
 
 
 def score_exam_submission(exam: Exam, answers_by_question_id: dict[int, int]) -> tuple[int, bool]:
+    score_percent, passed, _, _ = score_exam_submission_details(exam, answers_by_question_id)
+    return score_percent, passed
+
+
+def score_exam_submission_details(exam: Exam, answers_by_question_id: dict[int, int]) -> tuple[int, bool, int, int]:
     questions = active_exam_questions(exam)
     total_points = sum(question.points for question in questions)
     if total_points == 0:
-        return 0, False
+        return 0, False, 0, 0
 
     earned_points = 0
+    correct_answer_count = 0
     for question in questions:
         selected_option_id = answers_by_question_id.get(question.id)
         if selected_option_id is None:
@@ -2686,9 +3030,114 @@ def score_exam_submission(exam: Exam, answers_by_question_id: dict[int, int]) ->
         )
         if correct_option is not None and correct_option.id == selected_option_id:
             earned_points += question.points
+            correct_answer_count += 1
 
     score_percent = round((earned_points / total_points) * 100)
-    return score_percent, score_percent >= exam.passing_score_percent
+    return score_percent, score_percent >= exam.passing_score_percent, correct_answer_count, len(questions)
+
+
+def preparation_categories_for_student(student: User) -> list[str]:
+    categories = {
+        category
+        for category in Course.objects.filter(status=Course.Status.ACTIVE).values_list("category", flat=True)
+        if category
+    }
+    categories.update(
+        category
+        for category in Exam.objects.filter(status=Exam.Status.ACTIVE).values_list("category", flat=True)
+        if category
+    )
+    categories.update(
+        category
+        for category in LearningRecord.objects.filter(student=student).values_list("category", flat=True)
+        if category
+    )
+    categories.update(
+        category
+        for category in MockExamAttempt.objects.filter(student=student).values_list("category", flat=True)
+        if category
+    )
+    categories.update(
+        category
+        for category in PracticeQuestionAttempt.objects.filter(student=student).values_list("exam__category", flat=True)
+        if category
+    )
+    return sorted(categories)
+
+
+def visible_practice_questions_queryset(*, category: str | None = None, exam_id: int | None = None):
+    queryset = (
+        ExamQuestion.objects.filter(
+            exam__status=Exam.Status.ACTIVE,
+            status=ExamQuestion.Status.ACTIVE,
+            answer_options__status=ExamAnswerOption.Status.ACTIVE,
+            answer_options__is_correct=True,
+        )
+        .select_related("exam")
+        .prefetch_related("answer_options")
+        .distinct()
+        .order_by("exam__category", "exam__title", "sequence_number", "id")
+    )
+    if category:
+        queryset = queryset.filter(exam__category=category)
+    if exam_id:
+        queryset = queryset.filter(exam_id=exam_id)
+    return queryset
+
+
+def build_study_plan_item(category: str, *, student: User) -> dict:
+    summary = serialize_preparation_category_summary(category, student=student)
+    latest_mock_score = summary["latest_mock_score"]
+    practice_target = max(3, min(summary["practice_question_count"], 10)) if summary["practice_question_count"] else 0
+    if summary["completed_courses"] == 0 and summary["in_progress_courses"] == 0:
+        status = "not_started"
+        next_step = "Start a related course or practice set."
+    elif latest_mock_score is not None and latest_mock_score >= 80:
+        status = "ready"
+        next_step = "You have strong recent mock evidence. Review weak questions and book an official exam."
+    elif summary["practice_attempt_count"] >= practice_target and practice_target > 0:
+        status = "in_progress"
+        next_step = "Take a mock exam to measure readiness in this category."
+    else:
+        status = "focus"
+        next_step = "Build more preparation evidence with targeted practice questions."
+
+    return {
+        "category": category,
+        "label": summary["label"],
+        "status": status,
+        "practice_target": practice_target,
+        "practice_completed": summary["practice_attempt_count"],
+        "latest_mock_score": latest_mock_score,
+        "next_step": next_step,
+        "cta_href": "/student/preparation",
+    }
+
+
+def build_preparation_performance_category(category: str, *, student: User) -> dict:
+    summary = serialize_preparation_category_summary(category, student=student)
+    return {
+        "category": category,
+        "label": summary["label"],
+        "practice_attempt_count": summary["practice_attempt_count"],
+        "practice_accuracy": summary["practice_accuracy"],
+        "mock_attempt_count": summary["mock_attempt_count"],
+        "best_mock_score": summary["best_mock_score"],
+        "latest_mock_score": summary["latest_mock_score"],
+    }
+
+
+def serialize_practice_attempt_summary(attempt: PracticeQuestionAttempt) -> dict:
+    return {
+        "attempt_id": attempt.id,
+        "exam_id": attempt.exam_id,
+        "exam_title": attempt.exam.title,
+        "category": attempt.exam.category,
+        "question_id": attempt.question_id,
+        "question_prompt": attempt.question.prompt,
+        "is_correct": attempt.is_correct,
+        "created_at": attempt.created_at.isoformat(),
+    }
 
 
 def sync_vacancy_skill_requirements(
@@ -3195,6 +3644,182 @@ def student_profile_view(request):
         ]
     )
 
+    return success_response(serialize_student_profile(request.user))
+
+
+@api_endpoint(["GET", "POST"], authentication_required=True, roles=[User.Role.STUDENT])
+def student_education_view(request):
+    if request.method == "GET":
+        return success_response(
+            {
+                "education_records": [
+                    serialize_student_education(record) for record in StudentEducation.objects.filter(student=request.user)
+                ],
+            }
+        )
+
+    payload = validate_student_education_payload(parse_json_body(request))
+    record = StudentEducation(student=request.user, **payload)
+    record.full_clean()
+    record.save()
+    return success_response(serialize_student_profile(request.user), status=201)
+
+
+@api_endpoint(["PUT", "DELETE"], authentication_required=True, roles=[User.Role.STUDENT])
+def student_education_detail_view(request, education_id: int):
+    record = StudentEducation.objects.filter(student=request.user, pk=education_id).first()
+    if record is None:
+        return error_response(
+            request,
+            "NOT_FOUND",
+            "The requested education record was not found.",
+            details={"education_id": [str(education_id)]},
+            status=404,
+        )
+
+    if request.method == "DELETE":
+        record.delete()
+        return success_response(serialize_student_profile(request.user))
+
+    payload = validate_student_education_payload(parse_json_body(request))
+    for field, value in payload.items():
+        setattr(record, field, value)
+    record.full_clean()
+    record.save(
+        update_fields=[
+            "institution",
+            "field_of_study",
+            "start_date",
+            "end_date",
+            "completion_status",
+            "updated_at",
+        ]
+    )
+    return success_response(serialize_student_profile(request.user))
+
+
+@api_endpoint(["GET", "POST"], authentication_required=True, roles=[User.Role.STUDENT])
+def student_experience_view(request):
+    if request.method == "GET":
+        return success_response(
+            {
+                "experience_records": [
+                    serialize_student_experience(record)
+                    for record in StudentExperience.objects.filter(student=request.user)
+                ],
+            }
+        )
+
+    payload = validate_student_experience_payload(parse_json_body(request))
+    record = StudentExperience(student=request.user, **payload)
+    record.full_clean()
+    record.save()
+    return success_response(serialize_student_profile(request.user), status=201)
+
+
+@api_endpoint(["PUT", "DELETE"], authentication_required=True, roles=[User.Role.STUDENT])
+def student_experience_detail_view(request, experience_id: int):
+    record = StudentExperience.objects.filter(student=request.user, pk=experience_id).first()
+    if record is None:
+        return error_response(
+            request,
+            "NOT_FOUND",
+            "The requested experience record was not found.",
+            details={"experience_id": [str(experience_id)]},
+            status=404,
+        )
+
+    if request.method == "DELETE":
+        record.delete()
+        return success_response(serialize_student_profile(request.user))
+
+    payload = validate_student_experience_payload(parse_json_body(request))
+    for field, value in payload.items():
+        setattr(record, field, value)
+    record.full_clean()
+    record.save(
+        update_fields=[
+            "organization",
+            "role_title",
+            "experience_type",
+            "start_date",
+            "end_date",
+            "is_current",
+            "summary",
+            "updated_at",
+        ]
+    )
+    return success_response(serialize_student_profile(request.user))
+
+
+@api_endpoint(["GET", "POST"], authentication_required=True, roles=[User.Role.STUDENT])
+def student_resumes_view(request):
+    if request.method == "GET":
+        return success_response({"resumes": [serialize_student_resume(record) for record in StudentResume.objects.filter(student=request.user)]})
+
+    payload = validate_student_resume_payload(parse_json_body(request))
+    with transaction.atomic():
+        if payload["is_active"]:
+            StudentResume.objects.filter(student=request.user, is_active=True).update(is_active=False, updated_at=timezone.now())
+        record = StudentResume(student=request.user, **payload)
+        record.full_clean()
+        record.save()
+    return success_response(serialize_student_profile(request.user), status=201)
+
+
+@api_endpoint(["PUT", "DELETE"], authentication_required=True, roles=[User.Role.STUDENT])
+def student_resume_detail_view(request, resume_id: int):
+    record = StudentResume.objects.filter(student=request.user, pk=resume_id).first()
+    if record is None:
+        return error_response(
+            request,
+            "NOT_FOUND",
+            "The requested resume record was not found.",
+            details={"resume_id": [str(resume_id)]},
+            status=404,
+        )
+
+    if request.method == "DELETE":
+        record.delete()
+        return success_response(serialize_student_profile(request.user))
+
+    payload = validate_student_resume_payload(parse_json_body(request))
+    with transaction.atomic():
+        if payload["is_active"]:
+            StudentResume.objects.filter(student=request.user, is_active=True).exclude(pk=record.pk).update(
+                is_active=False,
+                updated_at=timezone.now(),
+            )
+        record.display_name = payload["display_name"]
+        record.file_name = payload["file_name"]
+        record.source_type = payload["source_type"]
+        record.is_active = payload["is_active"]
+        record.full_clean()
+        record.save(update_fields=["display_name", "file_name", "source_type", "is_active", "updated_at"])
+    return success_response(serialize_student_profile(request.user))
+
+
+@api_endpoint(["GET", "PUT"], authentication_required=True, roles=[User.Role.STUDENT])
+def student_availability_view(request):
+    profile = get_student_availability_profile(request.user)
+    if request.method == "GET":
+        return success_response({"availability": serialize_student_availability_profile(profile)})
+
+    payload = validate_student_availability_payload(parse_json_body(request))
+    profile.job_search_status = payload["job_search_status"]
+    profile.earliest_start_date = payload["earliest_start_date"]
+    profile.interview_availability = payload["interview_availability"]
+    profile.scheduling_notes = payload["scheduling_notes"]
+    profile.full_clean()
+    profile.save(
+        update_fields=[
+            "job_search_status",
+            "earliest_start_date",
+            "interview_availability",
+            "scheduling_notes",
+            "updated_at",
+        ]
+    )
     return success_response(serialize_student_profile(request.user))
 
 
@@ -3816,6 +4441,109 @@ def student_exam_results_view(request):
 
 
 @api_endpoint(["GET"], authentication_required=True, roles=[User.Role.STUDENT])
+def student_preparation_summary_view(request):
+    return success_response(serialize_preparation_summary(request.user))
+
+
+@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.STUDENT])
+def student_practice_questions_view(request):
+    selected_category = (request.GET.get("category") or "").strip()
+    selected_exam_id = request.GET.get("exam_id")
+    exam_id = int(selected_exam_id) if selected_exam_id and selected_exam_id.isdigit() else None
+    practice_queryset = visible_practice_questions_queryset(category=selected_category or None, exam_id=exam_id)
+    questions = list(practice_queryset[:12])
+    available_exam_ids = list(
+        visible_practice_questions_queryset(category=selected_category or None)
+        .values_list("exam_id", flat=True)
+        .distinct()
+    )
+    exams_queryset = visible_student_exams_queryset().filter(id__in=available_exam_ids)
+
+    return success_response(
+        {
+            "selected_category": selected_category or None,
+            "selected_exam_id": exam_id,
+            "categories": [
+                {
+                    "value": category,
+                    "label": category.replace("_", " ").title(),
+                }
+                for category in preparation_categories_for_student(request.user)
+            ],
+            "exams": [
+                {
+                    "exam_id": exam.id,
+                    "title": exam.title,
+                    "category": exam.category,
+                }
+                for exam in exams_queryset
+            ],
+            "question_count": len(questions),
+            "questions": [serialize_practice_question(question, student=request.user) for question in questions],
+        }
+    )
+
+
+@api_endpoint(["POST"], authentication_required=True, roles=[User.Role.STUDENT])
+def student_practice_question_attempt_view(request, question_id: int):
+    question = visible_practice_questions_queryset().filter(pk=question_id).first()
+    if question is None:
+        return error_response(
+            request,
+            "NOT_FOUND",
+            "The requested practice question is not available.",
+            details={"question_id": [str(question_id)]},
+            status=404,
+        )
+
+    payload = parse_json_body(request)
+    selected_option_id = payload.get("selected_option_id")
+    if not isinstance(selected_option_id, int):
+        raise ValidationError({"selected_option_id": ["This field is required."]})
+
+    selected_option = question.answer_options.filter(pk=selected_option_id, status=ExamAnswerOption.Status.ACTIVE).first()
+    if selected_option is None:
+        raise ValidationError({"selected_option_id": ["Select an active option for this question."]})
+
+    correct_option = question.answer_options.filter(status=ExamAnswerOption.Status.ACTIVE, is_correct=True).order_by("sequence_number", "id").first()
+    if correct_option is None:
+        raise ValidationError({"question_id": ["This practice question is not ready yet."]})
+
+    attempt = PracticeQuestionAttempt(
+        student=request.user,
+        exam=question.exam,
+        question=question,
+        selected_option=selected_option,
+        is_correct=selected_option.id == correct_option.id,
+    )
+    attempt.full_clean()
+    attempt.save()
+
+    category_attempts = PracticeQuestionAttempt.objects.filter(student=request.user, exam__category=question.exam.category)
+    category_accuracy = None
+    if category_attempts.exists():
+        category_accuracy = round((category_attempts.filter(is_correct=True).count() / category_attempts.count()) * 100, 1)
+
+    return success_response(
+        {
+            "attempt_id": attempt.id,
+            "question_id": question.id,
+            "selected_option_id": selected_option.id,
+            "is_correct": attempt.is_correct,
+            "correct_option_id": correct_option.id,
+            "correct_option_text": correct_option.option_text,
+            "feedback": "Correct answer." if attempt.is_correct else "Not quite. Review the correct option and try another question.",
+            "performance_snapshot": {
+                "category": question.exam.category,
+                "practice_attempt_count": category_attempts.count(),
+                "practice_accuracy": category_accuracy,
+            },
+        },
+        status=201,
+    )
+
+
+@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.STUDENT])
 def student_exam_detail_view(request, exam_id: int):
     exam = get_visible_student_exam(exam_id)
     if exam is None:
@@ -3839,6 +4567,31 @@ def student_exam_detail_view(request, exam_id: int):
         )
 
     return success_response(serialize_student_exam_detail(exam, student=request.user))
+
+
+@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.STUDENT])
+def student_mock_exam_detail_view(request, exam_id: int):
+    exam = get_visible_student_exam(exam_id)
+    if exam is None:
+        return error_response(
+            request,
+            "NOT_FOUND",
+            "The requested mock exam is not available.",
+            details={"exam_id": [str(exam_id)]},
+            status=404,
+        )
+
+    exam = sync_exam_question_count(exam)
+    if not exam_is_ready_for_student(exam):
+        return error_response(
+            request,
+            "FORBIDDEN",
+            "This mock exam is not ready yet.",
+            details={"exam_id": [str(exam_id)]},
+            status=403,
+        )
+
+    return success_response(serialize_student_mock_exam_detail(exam, student=request.user))
 
 
 @api_endpoint(["POST"], authentication_required=True, roles=[User.Role.STUDENT])
@@ -3927,6 +4680,80 @@ def student_exam_submit_view(request, exam_id: int):
             "passing_score_percent": exam.passing_score_percent,
             "result_id": result.id,
             "history_href": "/student/exams",
+        },
+        status=201,
+    )
+
+
+@api_endpoint(["POST"], authentication_required=True, roles=[User.Role.STUDENT])
+def student_mock_exam_submit_view(request, exam_id: int):
+    exam = get_visible_student_exam(exam_id)
+    if exam is None:
+        return error_response(
+            request,
+            "NOT_FOUND",
+            "The requested mock exam is not available.",
+            details={"exam_id": [str(exam_id)]},
+            status=404,
+        )
+
+    exam = sync_exam_question_count(exam)
+    if not exam_is_ready_for_student(exam):
+        return error_response(
+            request,
+            "FORBIDDEN",
+            "This mock exam is not ready yet.",
+            details={"exam_id": [str(exam_id)]},
+            status=403,
+        )
+
+    payload = validate_exam_submission_payload(parse_json_body(request), exam=exam)
+    now = timezone.now()
+    score_percent, _, correct_answer_count, total_questions = score_exam_submission_details(exam, payload["answers_by_question_id"])
+
+    with transaction.atomic():
+        attempt = MockExamAttempt(
+            student=request.user,
+            exam=exam,
+            exam_title=exam.title,
+            category=exam.category,
+            attempt_number=next_mock_exam_attempt_number(request.user, exam),
+            score_percent=score_percent,
+            correct_answer_count=correct_answer_count,
+            total_questions=total_questions,
+            started_at=now,
+            submitted_at=now,
+        )
+        attempt.full_clean()
+        attempt.save()
+
+        for question_id, selected_option_id in payload["answers_by_question_id"].items():
+            answer = MockExamAttemptAnswer(
+                attempt=attempt,
+                question_id=question_id,
+                selected_option_id=selected_option_id,
+                is_correct=question_id in {
+                    question.id
+                    for question in active_exam_questions(exam)
+                    if any(
+                        option.id == selected_option_id and option.status == ExamAnswerOption.Status.ACTIVE and option.is_correct
+                        for option in question.answer_options.all()
+                    )
+                },
+            )
+            answer.full_clean()
+            answer.save()
+
+    return success_response(
+        {
+            "attempt_id": attempt.id,
+            "exam_id": exam.id,
+            "exam_title": exam.title,
+            "attempt_number": attempt.attempt_number,
+            "score_percent": score_percent,
+            "correct_answer_count": correct_answer_count,
+            "total_questions": total_questions,
+            "history_href": "/student/preparation",
         },
         status=201,
     )

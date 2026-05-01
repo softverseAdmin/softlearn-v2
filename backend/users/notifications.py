@@ -1,4 +1,4 @@
-from users.models import ExamResult, Interview, InterviewEvent, Notification, NotificationDelivery, User
+from users.models import Application, ApplicationStatusHistory, ExamResult, Interview, InterviewEvent, Notification, NotificationDelivery, User
 
 
 def create_notification(
@@ -47,6 +47,73 @@ def build_interview_link(recipient: User, interview: Interview) -> str:
     if recipient.role == User.Role.COMPANY:
         return f"/company/interviews/{interview.id}"
     return f"/student/interviews/{interview.id}"
+
+
+def build_application_link(recipient: User) -> str:
+    if recipient.role == User.Role.COMPANY:
+        return "/company/applications"
+    return "/student/applications"
+
+
+def application_notification_payload(history_entry: ApplicationStatusHistory) -> tuple[str, str, str] | None:
+    application = history_entry.application
+    company_name = application.company.name
+    vacancy_title = application.vacancy.title
+    payload_map = {
+        Application.Status.SUBMITTED: (
+            Notification.Type.APPLICATION_SUBMITTED,
+            "Application submitted",
+            f"Application for {vacancy_title} at {company_name} was submitted.",
+        ),
+        Application.Status.WITHDRAWN: (
+            Notification.Type.APPLICATION_WITHDRAWN,
+            "Application withdrawn",
+            f"Application for {vacancy_title} at {company_name} was withdrawn.",
+        ),
+        Application.Status.SHORTLISTED: (
+            Notification.Type.APPLICATION_SHORTLISTED,
+            "Application shortlisted",
+            f"Application for {vacancy_title} at {company_name} moved to the shortlist.",
+        ),
+        Application.Status.REJECTED: (
+            Notification.Type.APPLICATION_REJECTED,
+            "Application rejected",
+            f"Application for {vacancy_title} at {company_name} was closed.",
+        ),
+    }
+    return payload_map.get(history_entry.to_status)
+
+
+def emit_application_status_notifications(history_entry: ApplicationStatusHistory) -> None:
+    payload = application_notification_payload(history_entry)
+    if payload is None:
+        return
+
+    application = history_entry.application
+    notification_type, title, message = payload
+    recipients: dict[int, User] = {
+        application.student_id: application.student,
+    }
+    company_users = User.objects.filter(
+        company=application.company,
+        role=User.Role.COMPANY,
+        is_active=True,
+    ).order_by("id")
+    for company_user in company_users:
+        recipients[company_user.id] = company_user
+
+    for recipient in recipients.values():
+        create_notification(
+            recipient=recipient,
+            actor=history_entry.actor,
+            notification_type=notification_type,
+            title=title,
+            message=message,
+            link=build_application_link(recipient),
+            entity_type="application",
+            entity_id=application.id,
+            event_key=f"application-history-{history_entry.id}",
+        )
 
 
 def emit_interview_event_notifications(event: InterviewEvent) -> None:

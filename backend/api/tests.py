@@ -26,10 +26,17 @@ from users.models import (
     Lesson,
     LessonProgress,
     LearningRecord,
+    MockExamAttempt,
+    MockExamAttemptAnswer,
     Notification,
     NotificationDelivery,
+    PracticeQuestionAttempt,
     Skill,
+    StudentAvailabilityProfile,
+    StudentEducation,
+    StudentExperience,
     StudentProfile,
+    StudentResume,
     StudentSkill,
     StudentVisibilityEvent,
     StudentVisibilitySettings,
@@ -1736,6 +1743,23 @@ class ApiFoundationTests(TestCase):
                 is_active=True,
             ).exists()
         )
+        self.assertEqual(
+            Notification.objects.filter(
+                entity_type="application",
+                entity_id=Application.objects.get(student=student, vacancy=vacancy).id,
+                notification_type=Notification.Type.APPLICATION_SUBMITTED,
+            ).count(),
+            2,
+        )
+        self.assertEqual(
+            NotificationDelivery.objects.filter(
+                notification__entity_type="application",
+                notification__entity_id=Application.objects.get(student=student, vacancy=vacancy).id,
+                notification__notification_type=Notification.Type.APPLICATION_SUBMITTED,
+                channel=NotificationDelivery.Channel.EMAIL,
+            ).count(),
+            2,
+        )
 
     def test_student_application_rejects_duplicate_active_submission(self):
         company = Company.objects.create(name="Softverse", is_active=True)
@@ -1841,6 +1865,14 @@ class ApiFoundationTests(TestCase):
                 source=CandidateReviewAccess.Source.APPLICATION,
             ).is_active
         )
+        self.assertEqual(
+            Notification.objects.filter(
+                entity_type="application",
+                entity_id=application.id,
+                notification_type=Notification.Type.APPLICATION_WITHDRAWN,
+            ).count(),
+            2,
+        )
 
     def test_company_can_view_and_shortlist_applications(self):
         company = Company.objects.create(name="Softverse", is_active=True)
@@ -1909,6 +1941,23 @@ class ApiFoundationTests(TestCase):
             source=CandidateReviewAccess.Source.APPLICATION,
         )
         self.assertTrue(CandidateShortlist.objects.filter(candidate_access=candidate_access).exists())
+        self.assertEqual(
+            Notification.objects.filter(
+                entity_type="application",
+                entity_id=application.id,
+                notification_type=Notification.Type.APPLICATION_SHORTLISTED,
+            ).count(),
+            2,
+        )
+        self.assertEqual(
+            NotificationDelivery.objects.filter(
+                notification__entity_type="application",
+                notification__entity_id=application.id,
+                notification__notification_type=Notification.Type.APPLICATION_SHORTLISTED,
+                channel=NotificationDelivery.Channel.EMAIL,
+            ).count(),
+            2,
+        )
 
     def test_company_can_reject_application(self):
         company = Company.objects.create(name="Softverse", is_active=True)
@@ -1973,6 +2022,14 @@ class ApiFoundationTests(TestCase):
                 student=student,
                 source=CandidateReviewAccess.Source.APPLICATION,
             ).is_active
+        )
+        self.assertEqual(
+            Notification.objects.filter(
+                entity_type="application",
+                entity_id=application.id,
+                notification_type=Notification.Type.APPLICATION_REJECTED,
+            ).count(),
+            2,
         )
 
     def test_admin_can_view_vacancies(self):
@@ -2194,6 +2251,196 @@ class ApiFoundationTests(TestCase):
         self.assertEqual(user.full_name, "Updated Student")
         self.assertEqual(profile.desired_job_type, "backend")
         self.assertTrue(response.json()["data"]["profile_complete"])
+
+    def test_student_profile_get_includes_extension_sections(self):
+        user = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        StudentEducation.objects.create(
+            student=user,
+            institution="Softlearn University",
+            field_of_study="Computer Science",
+            start_date="2022-01-01",
+            completion_status=StudentEducation.CompletionStatus.IN_PROGRESS,
+        )
+        StudentExperience.objects.create(
+            student=user,
+            organization="Softverse",
+            role_title="Intern",
+            experience_type=StudentExperience.ExperienceType.INTERNSHIP,
+            start_date="2024-01-01",
+            summary="Worked on student-facing flows.",
+        )
+        StudentResume.objects.create(
+            student=user,
+            display_name="Main Resume",
+            file_name="resume.pdf",
+            source_type=StudentResume.SourceType.UPLOADED,
+            is_active=True,
+        )
+        StudentAvailabilityProfile.objects.create(
+            student=user,
+            job_search_status=StudentAvailabilityProfile.JobSearchStatus.OPEN_TO_OFFERS,
+            earliest_start_date="2025-06-01",
+            interview_availability="Weekday evenings",
+        )
+
+        client = Client()
+        client.force_login(user)
+        response = client.get("/api/v1/student/profile")
+
+        self.assertEqual(response.status_code, 200)
+        body = response.json()["data"]
+        self.assertEqual(len(body["education_records"]), 1)
+        self.assertEqual(len(body["experience_records"]), 1)
+        self.assertEqual(len(body["resumes"]), 1)
+        self.assertTrue(body["availability"]["availability_set"])
+        self.assertTrue(body["profile_extension_summary"]["has_active_resume"])
+
+    def test_student_can_create_update_and_delete_education_record(self):
+        user = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        client, csrf_token = self.csrf_client()
+        client.force_login(user)
+
+        create_response = client.post(
+            "/api/v1/student/profile/education",
+            data=json.dumps(
+                {
+                    "institution": "Softlearn University",
+                    "field_of_study": "Computer Science",
+                    "start_date": "2022-01-01",
+                    "completion_status": "in_progress",
+                }
+            ),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+        self.assertEqual(create_response.status_code, 201)
+        record = StudentEducation.objects.get(student=user)
+
+        update_response = client.put(
+            f"/api/v1/student/profile/education/{record.id}",
+            data=json.dumps(
+                {
+                    "institution": "Softlearn University",
+                    "field_of_study": "Software Engineering",
+                    "start_date": "2022-01-01",
+                    "end_date": "2025-01-01",
+                    "completion_status": "completed",
+                }
+            ),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+        self.assertEqual(update_response.status_code, 200)
+        record.refresh_from_db()
+        self.assertEqual(record.field_of_study, "Software Engineering")
+        self.assertEqual(record.completion_status, StudentEducation.CompletionStatus.COMPLETED)
+
+        delete_response = client.delete(
+            f"/api/v1/student/profile/education/{record.id}",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+        self.assertEqual(delete_response.status_code, 200)
+        self.assertFalse(StudentEducation.objects.filter(student=user).exists())
+
+    def test_student_can_manage_experience_and_availability(self):
+        user = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        client, csrf_token = self.csrf_client()
+        client.force_login(user)
+
+        experience_response = client.post(
+            "/api/v1/student/profile/experience",
+            data=json.dumps(
+                {
+                    "organization": "Softverse",
+                    "role_title": "Backend Intern",
+                    "experience_type": "internship",
+                    "start_date": "2024-01-01",
+                    "is_current": True,
+                    "summary": "Built API endpoints.",
+                }
+            ),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+        self.assertEqual(experience_response.status_code, 201)
+
+        availability_response = client.put(
+            "/api/v1/student/profile/availability",
+            data=json.dumps(
+                {
+                    "job_search_status": "actively_looking",
+                    "earliest_start_date": "2025-05-01",
+                    "interview_availability": "Weekdays after 6 PM",
+                    "scheduling_notes": "Can adjust for final rounds.",
+                }
+            ),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+        self.assertEqual(availability_response.status_code, 200)
+        availability = StudentAvailabilityProfile.objects.get(student=user)
+        self.assertEqual(availability.job_search_status, StudentAvailabilityProfile.JobSearchStatus.ACTIVELY_LOOKING)
+        self.assertTrue(availability.availability_set)
+
+    def test_student_resume_management_keeps_single_active_resume(self):
+        user = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        client, csrf_token = self.csrf_client()
+        client.force_login(user)
+
+        first_response = client.post(
+            "/api/v1/student/profile/resumes",
+            data=json.dumps(
+                {
+                    "display_name": "Primary Resume",
+                    "file_name": "resume-v1.pdf",
+                    "source_type": "uploaded",
+                    "is_active": True,
+                }
+            ),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+        self.assertEqual(first_response.status_code, 201)
+        first_resume = StudentResume.objects.get(student=user, file_name="resume-v1.pdf")
+
+        second_response = client.post(
+            "/api/v1/student/profile/resumes",
+            data=json.dumps(
+                {
+                    "display_name": "Updated Resume",
+                    "file_name": "resume-v2.pdf",
+                    "source_type": "manual",
+                    "is_active": True,
+                }
+            ),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+        self.assertEqual(second_response.status_code, 201)
+        first_resume.refresh_from_db()
+        second_resume = StudentResume.objects.get(student=user, file_name="resume-v2.pdf")
+        self.assertFalse(first_resume.is_active)
+        self.assertTrue(second_resume.is_active)
 
     def test_company_cannot_access_student_profile_endpoint(self):
         company = Company.objects.create(name="Softverse")
@@ -2963,6 +3210,194 @@ class ApiFoundationTests(TestCase):
         response = client.get(f"/api/v1/student/exams/{exam.id}")
 
         self.assertEqual(response.status_code, 403)
+
+    def test_student_preparation_summary_returns_categories_study_plan_and_performance(self):
+        student = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        course = Course.objects.create(
+            title="Python Prep",
+            description="Study fundamentals",
+            category="programming",
+            difficulty_level="beginner",
+            estimated_hours=10,
+            status=Course.Status.ACTIVE,
+        )
+        LearningRecord.objects.create(
+            student=student,
+            course=course,
+            course_title=course.title,
+            category=course.category,
+            progress_percent=50,
+            status=LearningRecord.Status.IN_PROGRESS,
+        )
+        exam = Exam.objects.create(
+            title="Python Mock",
+            description="Practice exam",
+            category="programming",
+            duration_minutes=20,
+            passing_score_percent=70,
+            question_count=0,
+            max_attempts=3,
+            status=Exam.Status.ACTIVE,
+        )
+        question = ExamQuestion.objects.create(
+            exam=exam,
+            prompt="Which keyword defines a class?",
+            instructions="Pick one answer.",
+            sequence_number=1,
+            points=1,
+            status=ExamQuestion.Status.ACTIVE,
+        )
+        correct_option = ExamAnswerOption.objects.create(
+            question=question,
+            option_text="class",
+            sequence_number=1,
+            is_correct=True,
+        )
+        PracticeQuestionAttempt.objects.create(
+            student=student,
+            exam=exam,
+            question=question,
+            selected_option=correct_option,
+            is_correct=True,
+        )
+        MockExamAttempt.objects.create(
+            student=student,
+            exam=exam,
+            exam_title=exam.title,
+            category=exam.category,
+            attempt_number=1,
+            score_percent=88,
+            correct_answer_count=1,
+            total_questions=1,
+            started_at=timezone.now() - timedelta(minutes=5),
+            submitted_at=timezone.now(),
+        )
+
+        client = Client()
+        client.force_login(student)
+        response = client.get("/api/v1/student/preparation-summary")
+
+        self.assertEqual(response.status_code, 200)
+        body = response.json()["data"]
+        self.assertEqual(body["student_id"], student.id)
+        self.assertEqual(len(body["categories"]), 1)
+        self.assertEqual(body["categories"][0]["category"], "programming")
+        self.assertEqual(body["study_plan"]["items"][0]["category"], "programming")
+        self.assertEqual(body["performance"]["practice_attempt_count"], 1)
+        self.assertEqual(body["performance"]["recent_mock_score"], 88)
+
+    def test_student_can_submit_practice_attempt_without_creating_official_exam_result(self):
+        student = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        exam = Exam.objects.create(
+            title="Networking Prep",
+            description="Question bank",
+            category="infrastructure",
+            duration_minutes=20,
+            passing_score_percent=70,
+            question_count=0,
+            max_attempts=3,
+            status=Exam.Status.ACTIVE,
+        )
+        question = ExamQuestion.objects.create(
+            exam=exam,
+            prompt="Which protocol secures web traffic?",
+            instructions="Pick one answer.",
+            sequence_number=1,
+            points=1,
+            status=ExamQuestion.Status.ACTIVE,
+        )
+        correct_option = ExamAnswerOption.objects.create(
+            question=question,
+            option_text="HTTPS",
+            sequence_number=1,
+            is_correct=True,
+        )
+        wrong_option = ExamAnswerOption.objects.create(
+            question=question,
+            option_text="FTP",
+            sequence_number=2,
+            is_correct=False,
+        )
+
+        client, csrf_token = self.csrf_client()
+        client.force_login(student)
+        response = client.post(
+            f"/api/v1/student/practice-questions/{question.id}/attempt",
+            data=json.dumps({"selected_option_id": wrong_option.id}),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(PracticeQuestionAttempt.objects.filter(student=student, question=question).count(), 1)
+        self.assertEqual(ExamResult.objects.filter(student=student, exam=exam).count(), 0)
+        self.assertFalse(response.json()["data"]["is_correct"])
+        self.assertEqual(response.json()["data"]["correct_option_id"], correct_option.id)
+
+    def test_student_can_submit_mock_exam_without_affecting_official_exam_history(self):
+        student = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        exam = Exam.objects.create(
+            title="Frontend Mock",
+            description="Mock exam",
+            category="frontend",
+            duration_minutes=25,
+            passing_score_percent=50,
+            question_count=0,
+            max_attempts=3,
+            status=Exam.Status.ACTIVE,
+        )
+        question = ExamQuestion.objects.create(
+            exam=exam,
+            prompt="Which hook manages state?",
+            instructions="Pick one answer.",
+            sequence_number=1,
+            points=1,
+            status=ExamQuestion.Status.ACTIVE,
+        )
+        correct_option = ExamAnswerOption.objects.create(
+            question=question,
+            option_text="useState",
+            sequence_number=1,
+            is_correct=True,
+        )
+        ExamAnswerOption.objects.create(
+            question=question,
+            option_text="useRoute",
+            sequence_number=2,
+            is_correct=False,
+        )
+
+        client, csrf_token = self.csrf_client()
+        client.force_login(student)
+        detail_response = client.get(f"/api/v1/student/mock-exams/{exam.id}")
+        submit_response = client.post(
+            f"/api/v1/student/mock-exams/{exam.id}/submit",
+            data=json.dumps({"answers": [{"question_id": question.id, "selected_option_id": correct_option.id}]}),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+
+        self.assertEqual(detail_response.status_code, 200)
+        self.assertEqual(submit_response.status_code, 201)
+        attempt = MockExamAttempt.objects.get(student=student, exam=exam)
+        self.assertEqual(attempt.score_percent, 100)
+        self.assertEqual(MockExamAttemptAnswer.objects.filter(attempt=attempt).count(), 1)
+        self.assertEqual(ExamResult.objects.filter(student=student, exam=exam).count(), 0)
 
     def test_company_candidates_list_returns_company_safe_preview_cards(self):
         company = Company.objects.create(name="Softverse")
