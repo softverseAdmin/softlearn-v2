@@ -34,6 +34,11 @@ import { StudentPreparationPage } from '../features/profile/StudentPreparationPa
 import { StudentPrivacySettingsPage } from '../features/profile/StudentPrivacySettingsPage'
 import { StudentProfilePage } from '../features/profile/StudentProfilePage'
 import { StudentSkillsPage } from '../features/profile/StudentSkillsPage'
+import { ExamCategoryPage } from '../features/learning/ExamCategoryPage'
+import { PracticeQuestionPage } from '../features/learning/PracticeQuestionPage'
+import { MockExamPage } from '../features/learning/MockExamPage'
+import { StudyPlanPage } from '../features/learning/StudyPlanPage'
+import { PerformancePage } from '../features/learning/PerformancePage'
 import { PublicLayout } from '../layouts/PublicLayout'
 import { DashboardPage } from '../pages/DashboardPage'
 import { LandingPage } from '../pages/LandingPage'
@@ -77,6 +82,11 @@ export function AppRouter() {
             <Route path="/student/interviews" element={<StudentInterviewsPage />} />
             <Route path="/student/interviews/:interviewId" element={<StudentInterviewDetailPage />} />
             <Route path="/student/privacy" element={<StudentPrivacySettingsPage />} />
+            <Route path="/learning/categories" element={<ExamCategoryPage />} />
+            <Route path="/learning/practice/:examId" element={<PracticeQuestionPage />} />
+            <Route path="/learning/mock-exams/:examId" element={<MockExamPage />} />
+            <Route path="/learning/study-plan" element={<StudyPlanPage />} />
+            <Route path="/learning/performance" element={<PerformancePage />} />
           </Route>
 
           <Route element={<RoleGuard role="company" />}>
