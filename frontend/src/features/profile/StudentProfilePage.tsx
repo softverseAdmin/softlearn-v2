@@ -1,4 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react'
+import { AlertCircle, CheckCircle2, GraduationCap, Briefcase, FileText, Clock, Plus, Trash2 } from 'lucide-react'
 
 import { useAuth } from '../../auth/useAuth'
 import { ApiError, apiRequest } from '../../lib/api'
@@ -9,6 +10,10 @@ import type {
   StudentProfile,
   StudentResumeRecord,
 } from './types'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 
 type EducationDraft = Omit<StudentEducationRecord, 'id'> & { end_date: string }
 type ExperienceDraft = Omit<StudentExperienceRecord, 'id'> & { end_date: string }
@@ -124,15 +129,6 @@ export function StudentProfilePage() {
   const [busyKey, setBusyKey] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
-
-  async function loadProfile() {
-    const data = await apiRequest<StudentProfile>('/student/profile')
-    setProfile(data)
-    setEducationDrafts(Object.fromEntries(data.education_records.map((record) => [record.id, toEducationDraft(record)])))
-    setExperienceDrafts(Object.fromEntries(data.experience_records.map((record) => [record.id, toExperienceDraft(record)])))
-    setResumeDrafts(Object.fromEntries(data.resumes.map((record) => [record.id, toResumeDraft(record)])))
-    setAvailabilityDraft(toAvailabilityDraft(data.availability))
-  }
 
   useEffect(() => {
     let active = true
@@ -357,502 +353,703 @@ export function StudentProfilePage() {
 
   if (loading) {
     return (
-      <section className="page">
-        <div className="card">Loading student profile…</div>
-      </section>
+      <div className="flex items-center justify-center py-12">
+        <div className="text-center">
+          <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-muted border-t-primary" />
+          <p className="mt-4 text-sm text-muted-foreground">Loading your profile…</p>
+        </div>
+      </div>
     )
   }
 
   return (
-    <section className="page">
-      <div className="page-header">
-        <div>
-          <p className="eyebrow">Student profile</p>
-          <h1>Profile and readiness</h1>
-          <p className="lead">
+    <div className="space-y-6 md:space-y-8">
+      {/* Header */}
+      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <div className="flex-1 space-y-2">
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Student profile</p>
+          <h1 className="text-3xl font-bold tracking-tight md:text-4xl">Profile and readiness</h1>
+          <p className="max-w-2xl text-base text-muted-foreground">
             Keep your hiring profile current with structured education, experience, resume metadata, and interview
             availability.
           </p>
         </div>
-        <div className="card compact-card">
-          <strong>Profile completeness</strong>
-          <p className="muted">{profile.profile_complete ? 'Complete' : 'Incomplete'}</p>
-          <p className="muted">
-            {profile.profile_extension_summary.education_count} education, {profile.profile_extension_summary.experience_count}{' '}
-            experience, {profile.profile_extension_summary.resume_count} resumes
-          </p>
+        <div className="flex flex-col gap-2 md:items-end">
+          <div className="space-y-1">
+            <p className="text-sm font-semibold">Profile completeness</p>
+            <Badge variant={profile.profile_complete ? 'default' : 'secondary'}>
+              {profile.profile_complete ? 'Complete' : 'Incomplete'}
+            </Badge>
+            <p className="text-xs text-muted-foreground">
+              {profile.profile_extension_summary.education_count} education · {profile.profile_extension_summary.experience_count} experience
+              · {profile.profile_extension_summary.resume_count} resumes
+            </p>
+          </div>
         </div>
       </div>
 
-      {error ? <div className="card"><p className="form-error">{error}</p></div> : null}
-      {success ? <div className="card"><p className="form-success">{success}</p></div> : null}
+      {/* Messages */}
+      {error ? (
+        <Card className="border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950">
+          <CardContent className="flex items-start gap-3 pt-6">
+            <AlertCircle className="h-5 w-5 flex-shrink-0 text-red-600 dark:text-red-400" />
+            <div>
+              <h3 className="font-semibold text-red-900 dark:text-red-100">Error</h3>
+              <p className="mt-1 text-sm text-red-800 dark:text-red-200">{error}</p>
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
+      {success ? (
+        <Card className="border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950">
+          <CardContent className="flex items-start gap-3 pt-6">
+            <CheckCircle2 className="h-5 w-5 flex-shrink-0 text-green-600 dark:text-green-400" />
+            <div>
+              <h3 className="font-semibold text-green-900 dark:text-green-100">Success</h3>
+              <p className="mt-1 text-sm text-green-800 dark:text-green-200">{success}</p>
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
 
-      <div className="card form-card">
-        <h2>Basic profile</h2>
-        <form className="form" onSubmit={handleProfileSubmit}>
-          <label>
-            <span>Name</span>
-            <input value={profile.name} onChange={(event) => setProfile({ ...profile, name: event.target.value })} required />
-          </label>
-          <label>
-            <span>Desired job type</span>
-            <input
-              value={profile.desired_job_type}
-              onChange={(event) => setProfile({ ...profile, desired_job_type: event.target.value })}
-              placeholder="Backend, frontend, QA, ..."
-            />
-          </label>
-          <label>
-            <span>Desired work location</span>
-            <input
-              value={profile.desired_work_location}
-              onChange={(event) => setProfile({ ...profile, desired_work_location: event.target.value })}
-              placeholder="Tokyo, remote, hybrid, ..."
-            />
-          </label>
-          <label>
-            <span>Japanese level</span>
-            <input
-              value={profile.japanese_level}
-              onChange={(event) => setProfile({ ...profile, japanese_level: event.target.value })}
-              placeholder="N3"
-            />
-          </label>
-          <label>
-            <span>English level</span>
-            <input
-              value={profile.english_level}
-              onChange={(event) => setProfile({ ...profile, english_level: event.target.value })}
-              placeholder="B2"
-            />
-          </label>
-          <button className="primary-button" type="submit" disabled={busyKey === 'profile'}>
-            {busyKey === 'profile' ? 'Saving…' : 'Save basic profile'}
-          </button>
-        </form>
-      </div>
-
-      <div className="card form-card">
-        <h2>Education</h2>
-        {profile.education_records.map((record) => {
-          const draft = educationDrafts[record.id]
-          return (
-            <form key={record.id} className="form" onSubmit={(event) => {
-              event.preventDefault()
-              void saveEducation(record.id)
-            }}>
-              <label>
-                <span>Institution</span>
-                <input
-                  value={draft?.institution ?? ''}
-                  onChange={(event) =>
-                    setEducationDrafts({ ...educationDrafts, [record.id]: { ...draft, institution: event.target.value } })
-                  }
+      {/* Basic Profile */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Basic profile</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form className="space-y-4" onSubmit={handleProfileSubmit}>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Name</label>
+                <Input
+                  value={profile.name}
+                  onChange={(event) => setProfile({ ...profile, name: event.target.value })}
                   required
                 />
-              </label>
-              <label>
-                <span>Field of study</span>
-                <input
-                  value={draft?.field_of_study ?? ''}
-                  onChange={(event) =>
-                    setEducationDrafts({ ...educationDrafts, [record.id]: { ...draft, field_of_study: event.target.value } })
-                  }
-                  required
-                />
-              </label>
-              <label>
-                <span>Start date</span>
-                <input
-                  type="date"
-                  value={draft?.start_date ?? ''}
-                  onChange={(event) =>
-                    setEducationDrafts({ ...educationDrafts, [record.id]: { ...draft, start_date: event.target.value } })
-                  }
-                  required
-                />
-              </label>
-              <label>
-                <span>End date</span>
-                <input
-                  type="date"
-                  value={draft?.end_date ?? ''}
-                  onChange={(event) =>
-                    setEducationDrafts({ ...educationDrafts, [record.id]: { ...draft, end_date: event.target.value } })
-                  }
-                />
-              </label>
-              <label>
-                <span>Status</span>
-                <select
-                  value={draft?.completion_status ?? 'in_progress'}
-                  onChange={(event) =>
-                    setEducationDrafts({
-                      ...educationDrafts,
-                      [record.id]: { ...draft, completion_status: event.target.value },
-                    })
-                  }
-                >
-                  <option value="in_progress">In progress</option>
-                  <option value="completed">Completed</option>
-                  <option value="paused">Paused</option>
-                </select>
-              </label>
-              <div className="actions-row">
-                <button className="primary-button" type="submit" disabled={busyKey === `education-${record.id}`}>
-                  {busyKey === `education-${record.id}` ? 'Saving…' : 'Save education'}
-                </button>
-                <button
-                  className="secondary-button"
-                  type="button"
-                  disabled={busyKey === `delete-education-${record.id}`}
-                  onClick={() => void deleteEducation(record.id)}
-                >
-                  Remove
-                </button>
               </div>
-            </form>
-          )
-        })}
-        <form className="form" onSubmit={createEducation}>
-          <h3>Add education</h3>
-          <label>
-            <span>Institution</span>
-            <input value={newEducation.institution} onChange={(event) => setNewEducation({ ...newEducation, institution: event.target.value })} required />
-          </label>
-          <label>
-            <span>Field of study</span>
-            <input value={newEducation.field_of_study} onChange={(event) => setNewEducation({ ...newEducation, field_of_study: event.target.value })} required />
-          </label>
-          <label>
-            <span>Start date</span>
-            <input type="date" value={newEducation.start_date} onChange={(event) => setNewEducation({ ...newEducation, start_date: event.target.value })} required />
-          </label>
-          <label>
-            <span>End date</span>
-            <input type="date" value={newEducation.end_date} onChange={(event) => setNewEducation({ ...newEducation, end_date: event.target.value })} />
-          </label>
-          <label>
-            <span>Status</span>
-            <select value={newEducation.completion_status} onChange={(event) => setNewEducation({ ...newEducation, completion_status: event.target.value })}>
-              <option value="in_progress">In progress</option>
-              <option value="completed">Completed</option>
-              <option value="paused">Paused</option>
-            </select>
-          </label>
-          <button className="primary-button" type="submit" disabled={busyKey === 'create-education'}>
-            {busyKey === 'create-education' ? 'Adding…' : 'Add education'}
-          </button>
-        </form>
-      </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Desired job type</label>
+                <Input
+                  value={profile.desired_job_type}
+                  onChange={(event) => setProfile({ ...profile, desired_job_type: event.target.value })}
+                  placeholder="Backend, frontend, QA, ..."
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Desired work location</label>
+                <Input
+                  value={profile.desired_work_location}
+                  onChange={(event) => setProfile({ ...profile, desired_work_location: event.target.value })}
+                  placeholder="Tokyo, remote, hybrid, ..."
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Japanese level</label>
+                <Input
+                  value={profile.japanese_level}
+                  onChange={(event) => setProfile({ ...profile, japanese_level: event.target.value })}
+                  placeholder="N3"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">English level</label>
+                <Input
+                  value={profile.english_level}
+                  onChange={(event) => setProfile({ ...profile, english_level: event.target.value })}
+                  placeholder="B2"
+                />
+              </div>
+            </div>
+            <div className="border-t border-border pt-4">
+              <Button type="submit" disabled={busyKey === 'profile'}>
+                {busyKey === 'profile' ? 'Saving…' : 'Save basic profile'}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
 
-      <div className="card form-card">
-        <h2>Experience</h2>
-        {profile.experience_records.map((record) => {
-          const draft = experienceDrafts[record.id]
-          return (
-            <form key={record.id} className="form" onSubmit={(event) => {
-              event.preventDefault()
-              void saveExperience(record.id)
-            }}>
-              <label>
-                <span>Organization</span>
-                <input
-                  value={draft?.organization ?? ''}
-                  onChange={(event) =>
-                    setExperienceDrafts({ ...experienceDrafts, [record.id]: { ...draft, organization: event.target.value } })
-                  }
-                  required
-                />
-              </label>
-              <label>
-                <span>Role title</span>
-                <input
-                  value={draft?.role_title ?? ''}
-                  onChange={(event) =>
-                    setExperienceDrafts({ ...experienceDrafts, [record.id]: { ...draft, role_title: event.target.value } })
-                  }
-                  required
-                />
-              </label>
-              <label>
-                <span>Experience type</span>
-                <select
-                  value={draft?.experience_type ?? 'work'}
-                  onChange={(event) =>
-                    setExperienceDrafts({ ...experienceDrafts, [record.id]: { ...draft, experience_type: event.target.value } })
-                  }
-                >
-                  <option value="work">Work</option>
-                  <option value="internship">Internship</option>
-                  <option value="project">Project</option>
-                  <option value="freelance">Freelance</option>
-                  <option value="volunteer">Volunteer</option>
-                </select>
-              </label>
-              <label>
-                <span>Start date</span>
-                <input
-                  type="date"
-                  value={draft?.start_date ?? ''}
-                  onChange={(event) =>
-                    setExperienceDrafts({ ...experienceDrafts, [record.id]: { ...draft, start_date: event.target.value } })
-                  }
-                  required
-                />
-              </label>
-              <label>
-                <span>End date</span>
-                <input
-                  type="date"
-                  value={draft?.end_date ?? ''}
-                  onChange={(event) =>
-                    setExperienceDrafts({ ...experienceDrafts, [record.id]: { ...draft, end_date: event.target.value } })
-                  }
-                  disabled={draft?.is_current}
-                />
-              </label>
-              <label className="checkbox-field">
+      {/* Education */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            <GraduationCap className="h-5 w-5" />
+            Education
+          </CardTitle>
+          <Badge variant="secondary">{profile.education_records.length}</Badge>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Existing Education Records */}
+          {profile.education_records.map((record) => {
+            const draft = educationDrafts[record.id]
+            return (
+              <form
+                key={record.id}
+                className="space-y-4 rounded-lg border border-border p-4"
+                onSubmit={(event) => {
+                  event.preventDefault()
+                  void saveEducation(record.id)
+                }}
+              >
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Institution</label>
+                    <Input
+                      value={draft?.institution ?? ''}
+                      onChange={(event) =>
+                        setEducationDrafts({ ...educationDrafts, [record.id]: { ...draft, institution: event.target.value } })
+                      }
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Field of study</label>
+                    <Input
+                      value={draft?.field_of_study ?? ''}
+                      onChange={(event) =>
+                        setEducationDrafts({ ...educationDrafts, [record.id]: { ...draft, field_of_study: event.target.value } })
+                      }
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Start date</label>
+                    <Input
+                      type="date"
+                      value={draft?.start_date ?? ''}
+                      onChange={(event) =>
+                        setEducationDrafts({ ...educationDrafts, [record.id]: { ...draft, start_date: event.target.value } })
+                      }
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">End date</label>
+                    <Input
+                      type="date"
+                      value={draft?.end_date ?? ''}
+                      onChange={(event) =>
+                        setEducationDrafts({ ...educationDrafts, [record.id]: { ...draft, end_date: event.target.value } })
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Status</label>
+                    <select
+                      value={draft?.completion_status ?? 'in_progress'}
+                      onChange={(event) =>
+                        setEducationDrafts({
+                          ...educationDrafts,
+                          [record.id]: { ...draft, completion_status: event.target.value },
+                        })
+                      }
+                      className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                    >
+                      <option value="in_progress">In progress</option>
+                      <option value="completed">Completed</option>
+                      <option value="paused">Paused</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="flex gap-2 border-t border-border pt-4">
+                  <Button type="submit" disabled={busyKey === `education-${record.id}`}>
+                    {busyKey === `education-${record.id}` ? 'Saving…' : 'Save'}
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    type="button"
+                    disabled={busyKey === `delete-education-${record.id}`}
+                    onClick={() => void deleteEducation(record.id)}
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Remove
+                  </Button>
+                </div>
+              </form>
+            )
+          })}
+
+          {/* Add New Education */}
+          <div className="rounded-lg border-2 border-dashed border-border bg-muted/50 p-4">
+            <form className="space-y-4" onSubmit={createEducation}>
+              <h3 className="font-semibold flex items-center gap-2">
+                <Plus className="h-4 w-4" />
+                Add education
+              </h3>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Institution</label>
+                  <Input
+                    value={newEducation.institution}
+                    onChange={(event) => setNewEducation({ ...newEducation, institution: event.target.value })}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Field of study</label>
+                  <Input
+                    value={newEducation.field_of_study}
+                    onChange={(event) => setNewEducation({ ...newEducation, field_of_study: event.target.value })}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Start date</label>
+                  <Input
+                    type="date"
+                    value={newEducation.start_date}
+                    onChange={(event) => setNewEducation({ ...newEducation, start_date: event.target.value })}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">End date</label>
+                  <Input
+                    type="date"
+                    value={newEducation.end_date}
+                    onChange={(event) => setNewEducation({ ...newEducation, end_date: event.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Status</label>
+                  <select
+                    value={newEducation.completion_status}
+                    onChange={(event) => setNewEducation({ ...newEducation, completion_status: event.target.value })}
+                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                  >
+                    <option value="in_progress">In progress</option>
+                    <option value="completed">Completed</option>
+                    <option value="paused">Paused</option>
+                  </select>
+                </div>
+              </div>
+              <Button type="submit" disabled={busyKey === 'create-education'}>
+                {busyKey === 'create-education' ? 'Adding…' : 'Add education'}
+              </Button>
+            </form>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Experience */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            <Briefcase className="h-5 w-5" />
+            Experience
+          </CardTitle>
+          <Badge variant="secondary">{profile.experience_records.length}</Badge>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Existing Experience Records */}
+          {profile.experience_records.map((record) => {
+            const draft = experienceDrafts[record.id]
+            return (
+              <form
+                key={record.id}
+                className="space-y-4 rounded-lg border border-border p-4"
+                onSubmit={(event) => {
+                  event.preventDefault()
+                  void saveExperience(record.id)
+                }}
+              >
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Organization</label>
+                    <Input
+                      value={draft?.organization ?? ''}
+                      onChange={(event) =>
+                        setExperienceDrafts({ ...experienceDrafts, [record.id]: { ...draft, organization: event.target.value } })
+                      }
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Role title</label>
+                    <Input
+                      value={draft?.role_title ?? ''}
+                      onChange={(event) =>
+                        setExperienceDrafts({ ...experienceDrafts, [record.id]: { ...draft, role_title: event.target.value } })
+                      }
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Experience type</label>
+                    <select
+                      value={draft?.experience_type ?? 'work'}
+                      onChange={(event) =>
+                        setExperienceDrafts({ ...experienceDrafts, [record.id]: { ...draft, experience_type: event.target.value } })
+                      }
+                      className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                    >
+                      <option value="work">Work</option>
+                      <option value="internship">Internship</option>
+                      <option value="project">Project</option>
+                      <option value="freelance">Freelance</option>
+                      <option value="volunteer">Volunteer</option>
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Start date</label>
+                    <Input
+                      type="date"
+                      value={draft?.start_date ?? ''}
+                      onChange={(event) =>
+                        setExperienceDrafts({ ...experienceDrafts, [record.id]: { ...draft, start_date: event.target.value } })
+                      }
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">End date</label>
+                    <Input
+                      type="date"
+                      value={draft?.end_date ?? ''}
+                      onChange={(event) =>
+                        setExperienceDrafts({ ...experienceDrafts, [record.id]: { ...draft, end_date: event.target.value } })
+                      }
+                      disabled={draft?.is_current}
+                    />
+                  </div>
+                </div>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={draft?.is_current ?? false}
+                    onChange={(event) =>
+                      setExperienceDrafts({
+                        ...experienceDrafts,
+                        [record.id]: {
+                          ...draft,
+                          is_current: event.target.checked,
+                          end_date: event.target.checked ? '' : draft?.end_date ?? '',
+                        },
+                      })
+                    }
+                    className="h-4 w-4 rounded border-border"
+                  />
+                  <span className="text-sm font-medium">Currently employed here</span>
+                </label>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Summary</label>
+                  <textarea
+                    rows={3}
+                    value={draft?.summary ?? ''}
+                    onChange={(event) =>
+                      setExperienceDrafts({ ...experienceDrafts, [record.id]: { ...draft, summary: event.target.value } })
+                    }
+                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                  />
+                </div>
+                <div className="flex gap-2 border-t border-border pt-4">
+                  <Button type="submit" disabled={busyKey === `experience-${record.id}`}>
+                    {busyKey === `experience-${record.id}` ? 'Saving…' : 'Save'}
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    type="button"
+                    disabled={busyKey === `delete-experience-${record.id}`}
+                    onClick={() => void deleteExperience(record.id)}
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Remove
+                  </Button>
+                </div>
+              </form>
+            )
+          })}
+
+          {/* Add New Experience */}
+          <div className="rounded-lg border-2 border-dashed border-border bg-muted/50 p-4">
+            <form className="space-y-4" onSubmit={createExperience}>
+              <h3 className="font-semibold flex items-center gap-2">
+                <Plus className="h-4 w-4" />
+                Add experience
+              </h3>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Organization</label>
+                  <Input
+                    value={newExperience.organization}
+                    onChange={(event) => setNewExperience({ ...newExperience, organization: event.target.value })}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Role title</label>
+                  <Input
+                    value={newExperience.role_title}
+                    onChange={(event) => setNewExperience({ ...newExperience, role_title: event.target.value })}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Experience type</label>
+                  <select
+                    value={newExperience.experience_type}
+                    onChange={(event) => setNewExperience({ ...newExperience, experience_type: event.target.value })}
+                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                  >
+                    <option value="work">Work</option>
+                    <option value="internship">Internship</option>
+                    <option value="project">Project</option>
+                    <option value="freelance">Freelance</option>
+                    <option value="volunteer">Volunteer</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Start date</label>
+                  <Input
+                    type="date"
+                    value={newExperience.start_date}
+                    onChange={(event) => setNewExperience({ ...newExperience, start_date: event.target.value })}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">End date</label>
+                  <Input
+                    type="date"
+                    value={newExperience.end_date}
+                    onChange={(event) => setNewExperience({ ...newExperience, end_date: event.target.value })}
+                    disabled={newExperience.is_current}
+                  />
+                </div>
+              </div>
+              <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
-                  checked={draft?.is_current ?? false}
+                  checked={newExperience.is_current}
                   onChange={(event) =>
-                    setExperienceDrafts({
-                      ...experienceDrafts,
-                      [record.id]: {
-                        ...draft,
-                        is_current: event.target.checked,
-                        end_date: event.target.checked ? '' : draft?.end_date ?? '',
-                      },
+                    setNewExperience({
+                      ...newExperience,
+                      is_current: event.target.checked,
+                      end_date: event.target.checked ? '' : newExperience.end_date,
                     })
                   }
+                  className="h-4 w-4 rounded border-border"
                 />
-                <span>Current role</span>
+                <span className="text-sm font-medium">Currently employed here</span>
               </label>
-              <label>
-                <span>Summary</span>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Summary</label>
                 <textarea
                   rows={3}
-                  value={draft?.summary ?? ''}
-                  onChange={(event) =>
-                    setExperienceDrafts({ ...experienceDrafts, [record.id]: { ...draft, summary: event.target.value } })
-                  }
+                  value={newExperience.summary}
+                  onChange={(event) => setNewExperience({ ...newExperience, summary: event.target.value })}
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                 />
-              </label>
-              <div className="actions-row">
-                <button className="primary-button" type="submit" disabled={busyKey === `experience-${record.id}`}>
-                  {busyKey === `experience-${record.id}` ? 'Saving…' : 'Save experience'}
-                </button>
-                <button
-                  className="secondary-button"
-                  type="button"
-                  disabled={busyKey === `delete-experience-${record.id}`}
-                  onClick={() => void deleteExperience(record.id)}
-                >
-                  Remove
-                </button>
               </div>
+              <Button type="submit" disabled={busyKey === 'create-experience'}>
+                {busyKey === 'create-experience' ? 'Adding…' : 'Add experience'}
+              </Button>
             </form>
-          )
-        })}
-        <form className="form" onSubmit={createExperience}>
-          <h3>Add experience</h3>
-          <label>
-            <span>Organization</span>
-            <input value={newExperience.organization} onChange={(event) => setNewExperience({ ...newExperience, organization: event.target.value })} required />
-          </label>
-          <label>
-            <span>Role title</span>
-            <input value={newExperience.role_title} onChange={(event) => setNewExperience({ ...newExperience, role_title: event.target.value })} required />
-          </label>
-          <label>
-            <span>Experience type</span>
-            <select value={newExperience.experience_type} onChange={(event) => setNewExperience({ ...newExperience, experience_type: event.target.value })}>
-              <option value="work">Work</option>
-              <option value="internship">Internship</option>
-              <option value="project">Project</option>
-              <option value="freelance">Freelance</option>
-              <option value="volunteer">Volunteer</option>
-            </select>
-          </label>
-          <label>
-            <span>Start date</span>
-            <input type="date" value={newExperience.start_date} onChange={(event) => setNewExperience({ ...newExperience, start_date: event.target.value })} required />
-          </label>
-          <label>
-            <span>End date</span>
-            <input
-              type="date"
-              value={newExperience.end_date}
-              onChange={(event) => setNewExperience({ ...newExperience, end_date: event.target.value })}
-              disabled={newExperience.is_current}
-            />
-          </label>
-          <label className="checkbox-field">
-            <input
-              type="checkbox"
-              checked={newExperience.is_current}
-              onChange={(event) =>
-                setNewExperience({
-                  ...newExperience,
-                  is_current: event.target.checked,
-                  end_date: event.target.checked ? '' : newExperience.end_date,
-                })
-              }
-            />
-            <span>Current role</span>
-          </label>
-          <label>
-            <span>Summary</span>
-            <textarea rows={3} value={newExperience.summary} onChange={(event) => setNewExperience({ ...newExperience, summary: event.target.value })} />
-          </label>
-          <button className="primary-button" type="submit" disabled={busyKey === 'create-experience'}>
-            {busyKey === 'create-experience' ? 'Adding…' : 'Add experience'}
-          </button>
-        </form>
-      </div>
+          </div>
+        </CardContent>
+      </Card>
 
-      <div className="card form-card">
-        <h2>Resume metadata</h2>
-        {profile.resumes.map((record) => {
-          const draft = resumeDrafts[record.id]
-          return (
-            <form key={record.id} className="form" onSubmit={(event) => {
-              event.preventDefault()
-              void saveResume(record.id)
-            }}>
-              <label>
-                <span>Display name</span>
-                <input
-                  value={draft?.display_name ?? ''}
-                  onChange={(event) =>
-                    setResumeDrafts({ ...resumeDrafts, [record.id]: { ...draft, display_name: event.target.value } })
-                  }
-                  required
-                />
-              </label>
-              <label>
-                <span>File name</span>
-                <input
-                  value={draft?.file_name ?? ''}
-                  onChange={(event) =>
-                    setResumeDrafts({ ...resumeDrafts, [record.id]: { ...draft, file_name: event.target.value } })
-                  }
-                  required
-                />
-              </label>
-              <label>
-                <span>Source</span>
-                <select
-                  value={draft?.source_type ?? 'manual'}
-                  onChange={(event) =>
-                    setResumeDrafts({ ...resumeDrafts, [record.id]: { ...draft, source_type: event.target.value } })
-                  }
-                >
-                  <option value="manual">Manual</option>
-                  <option value="uploaded">Uploaded</option>
-                  <option value="external">External</option>
-                </select>
-              </label>
-              <label className="checkbox-field">
+      {/* Resume Metadata */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            <FileText className="h-5 w-5" />
+            Resume metadata
+          </CardTitle>
+          <Badge variant="secondary">{profile.resumes.length}</Badge>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Existing Resumes */}
+          {profile.resumes.map((record) => {
+            const draft = resumeDrafts[record.id]
+            return (
+              <form
+                key={record.id}
+                className="space-y-4 rounded-lg border border-border p-4"
+                onSubmit={(event) => {
+                  event.preventDefault()
+                  void saveResume(record.id)
+                }}
+              >
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Display name</label>
+                    <Input
+                      value={draft?.display_name ?? ''}
+                      onChange={(event) =>
+                        setResumeDrafts({ ...resumeDrafts, [record.id]: { ...draft, display_name: event.target.value } })
+                      }
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">File name</label>
+                    <Input
+                      value={draft?.file_name ?? ''}
+                      onChange={(event) =>
+                        setResumeDrafts({ ...resumeDrafts, [record.id]: { ...draft, file_name: event.target.value } })
+                      }
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Source</label>
+                    <select
+                      value={draft?.source_type ?? 'manual'}
+                      onChange={(event) =>
+                        setResumeDrafts({ ...resumeDrafts, [record.id]: { ...draft, source_type: event.target.value } })
+                      }
+                      className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                    >
+                      <option value="manual">Manual</option>
+                      <option value="uploaded">Uploaded</option>
+                      <option value="external">External</option>
+                    </select>
+                  </div>
+                </div>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={draft?.is_active ?? false}
+                    onChange={(event) =>
+                      setResumeDrafts({ ...resumeDrafts, [record.id]: { ...draft, is_active: event.target.checked } })
+                    }
+                    className="h-4 w-4 rounded border-border"
+                  />
+                  <span className="text-sm font-medium">Active resume</span>
+                </label>
+                <div className="flex gap-2 border-t border-border pt-4">
+                  <Button type="submit" disabled={busyKey === `resume-${record.id}`}>
+                    {busyKey === `resume-${record.id}` ? 'Saving…' : 'Save'}
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    type="button"
+                    disabled={busyKey === `delete-resume-${record.id}`}
+                    onClick={() => void deleteResume(record.id)}
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Remove
+                  </Button>
+                </div>
+              </form>
+            )
+          })}
+
+          {/* Add New Resume */}
+          <div className="rounded-lg border-2 border-dashed border-border bg-muted/50 p-4">
+            <form className="space-y-4" onSubmit={createResume}>
+              <h3 className="font-semibold flex items-center gap-2">
+                <Plus className="h-4 w-4" />
+                Add resume metadata
+              </h3>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Display name</label>
+                  <Input
+                    value={newResume.display_name}
+                    onChange={(event) => setNewResume({ ...newResume, display_name: event.target.value })}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">File name</label>
+                  <Input
+                    value={newResume.file_name}
+                    onChange={(event) => setNewResume({ ...newResume, file_name: event.target.value })}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Source</label>
+                  <select
+                    value={newResume.source_type}
+                    onChange={(event) => setNewResume({ ...newResume, source_type: event.target.value })}
+                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                  >
+                    <option value="manual">Manual</option>
+                    <option value="uploaded">Uploaded</option>
+                    <option value="external">External</option>
+                  </select>
+                </div>
+              </div>
+              <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
-                  checked={draft?.is_active ?? false}
-                  onChange={(event) =>
-                    setResumeDrafts({ ...resumeDrafts, [record.id]: { ...draft, is_active: event.target.checked } })
-                  }
+                  checked={newResume.is_active}
+                  onChange={(event) => setNewResume({ ...newResume, is_active: event.target.checked })}
+                  className="h-4 w-4 rounded border-border"
                 />
-                <span>Active resume</span>
+                <span className="text-sm font-medium">Active resume</span>
               </label>
-              <div className="actions-row">
-                <button className="primary-button" type="submit" disabled={busyKey === `resume-${record.id}`}>
-                  {busyKey === `resume-${record.id}` ? 'Saving…' : 'Save resume'}
-                </button>
-                <button
-                  className="secondary-button"
-                  type="button"
-                  disabled={busyKey === `delete-resume-${record.id}`}
-                  onClick={() => void deleteResume(record.id)}
-                >
-                  Remove
-                </button>
-              </div>
+              <Button type="submit" disabled={busyKey === 'create-resume'}>
+                {busyKey === 'create-resume' ? 'Adding…' : 'Add resume metadata'}
+              </Button>
             </form>
-          )
-        })}
-        <form className="form" onSubmit={createResume}>
-          <h3>Add resume metadata</h3>
-          <label>
-            <span>Display name</span>
-            <input value={newResume.display_name} onChange={(event) => setNewResume({ ...newResume, display_name: event.target.value })} required />
-          </label>
-          <label>
-            <span>File name</span>
-            <input value={newResume.file_name} onChange={(event) => setNewResume({ ...newResume, file_name: event.target.value })} required />
-          </label>
-          <label>
-            <span>Source</span>
-            <select value={newResume.source_type} onChange={(event) => setNewResume({ ...newResume, source_type: event.target.value })}>
-              <option value="manual">Manual</option>
-              <option value="uploaded">Uploaded</option>
-              <option value="external">External</option>
-            </select>
-          </label>
-          <label className="checkbox-field">
-            <input type="checkbox" checked={newResume.is_active} onChange={(event) => setNewResume({ ...newResume, is_active: event.target.checked })} />
-            <span>Active resume</span>
-          </label>
-          <button className="primary-button" type="submit" disabled={busyKey === 'create-resume'}>
-            {busyKey === 'create-resume' ? 'Adding…' : 'Add resume metadata'}
-          </button>
-        </form>
-      </div>
+          </div>
+        </CardContent>
+      </Card>
 
-      <div className="card form-card">
-        <h2>Availability</h2>
-        <form className="form" onSubmit={saveAvailability}>
-          <label>
-            <span>Job search status</span>
-            <select
-              value={availabilityDraft.job_search_status}
-              onChange={(event) => setAvailabilityDraft({ ...availabilityDraft, job_search_status: event.target.value })}
-            >
-              <option value="">Select status</option>
-              <option value="actively_looking">Actively looking</option>
-              <option value="open_to_offers">Open to offers</option>
-              <option value="not_searching">Not searching</option>
-            </select>
-          </label>
-          <label>
-            <span>Earliest start date</span>
-            <input
-              type="date"
-              value={availabilityDraft.earliest_start_date}
-              onChange={(event) => setAvailabilityDraft({ ...availabilityDraft, earliest_start_date: event.target.value })}
-            />
-          </label>
-          <label>
-            <span>Interview availability</span>
-            <input
-              value={availabilityDraft.interview_availability}
-              onChange={(event) => setAvailabilityDraft({ ...availabilityDraft, interview_availability: event.target.value })}
-              placeholder="Weekdays after 6 PM"
-            />
-          </label>
-          <label>
-            <span>Scheduling notes</span>
-            <textarea
-              rows={3}
-              value={availabilityDraft.scheduling_notes}
-              onChange={(event) => setAvailabilityDraft({ ...availabilityDraft, scheduling_notes: event.target.value })}
-            />
-          </label>
-          <button className="primary-button" type="submit" disabled={busyKey === 'availability'}>
-            {busyKey === 'availability' ? 'Saving…' : 'Save availability'}
-          </button>
-        </form>
-      </div>
-    </section>
+      {/* Availability */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Clock className="h-5 w-5" />
+            Availability
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form className="space-y-4" onSubmit={saveAvailability}>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Job search status</label>
+                <select
+                  value={availabilityDraft.job_search_status}
+                  onChange={(event) => setAvailabilityDraft({ ...availabilityDraft, job_search_status: event.target.value })}
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                >
+                  <option value="">Select status</option>
+                  <option value="actively_looking">Actively looking</option>
+                  <option value="open_to_offers">Open to offers</option>
+                  <option value="not_searching">Not searching</option>
+                </select>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Earliest start date</label>
+                <Input
+                  type="date"
+                  value={availabilityDraft.earliest_start_date}
+                  onChange={(event) => setAvailabilityDraft({ ...availabilityDraft, earliest_start_date: event.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Interview availability</label>
+                <Input
+                  value={availabilityDraft.interview_availability}
+                  onChange={(event) => setAvailabilityDraft({ ...availabilityDraft, interview_availability: event.target.value })}
+                  placeholder="Weekdays after 6 PM"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Scheduling notes</label>
+              <textarea
+                rows={3}
+                value={availabilityDraft.scheduling_notes}
+                onChange={(event) => setAvailabilityDraft({ ...availabilityDraft, scheduling_notes: event.target.value })}
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+              />
+            </div>
+            <div className="border-t border-border pt-4">
+              <Button type="submit" disabled={busyKey === 'availability'}>
+                {busyKey === 'availability' ? 'Saving…' : 'Save availability'}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
   )
 }
 
