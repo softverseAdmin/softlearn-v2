@@ -11,41 +11,14 @@ const contentByRole = {
   student: {
     title: 'Student dashboard',
     description: 'Review learning, exams, interviews, privacy, and notification signals in one protected view.',
-    links: [
-      { title: 'Notifications', href: '/student/notifications' },
-      { title: 'Jobs', href: '/student/jobs' },
-      { title: 'Applications', href: '/student/applications' },
-      { title: 'Profile and resume', href: '/student/profile' },
-      { title: 'Skills profile', href: '/student/skills' },
-      { title: 'Course catalog', href: '/student/courses' },
-      { title: 'Learning progress', href: '/student/learning' },
-      { title: 'Exam history', href: '/student/exams' },
-      { title: 'Interview schedule', href: '/student/interviews' },
-      { title: 'Privacy controls', href: '/student/privacy' },
-    ],
   },
   company: {
     title: 'Company dashboard',
     description: 'Review hiring activity, candidate flow, interviews, and notification signals for your company.',
-    links: [
-      { title: 'Notifications', href: '/company/notifications' },
-      { title: 'Applications', href: '/company/applications' },
-      { title: 'Company profile', href: '/company/profile' },
-      { title: 'Vacancy management', href: '/company/vacancies' },
-      { title: 'Candidate review', href: '/company/candidates' },
-      { title: 'Interview workflow', href: '/company/interviews' },
-      { title: 'Shortlisted candidates', href: '/company/shortlist' },
-    ],
   },
   admin: {
     title: 'Admin dashboard',
     description: 'Review protected platform activity and high-level operational counts without browsing raw data.',
-    links: [
-      { title: 'Notifications', href: '/admin/notifications' },
-      { title: 'User management', href: '/admin/users' },
-      { title: 'Company management', href: '/admin/operations' },
-      { title: 'Vacancy management', href: '/admin/vacancies' },
-    ],
   },
 } as const
 
@@ -140,14 +113,6 @@ export function DashboardPage({ role }: DashboardPageProps) {
               {adminData.recent_activity.length === 0 ? <p className="muted">No recent activity.</p> : null}
             </div>
           </div>
-          <div className="card stack-card">
-            <h2>Quick links</h2>
-            {content.links.map((item) => (
-              <Link key={item.href} className="secondary-button inline-button" to={item.href}>
-                {item.title}
-              </Link>
-            ))}
-          </div>
         </div>
         <div className="card stack-card">
           <h2>System status</h2>
@@ -196,12 +161,12 @@ export function DashboardPage({ role }: DashboardPageProps) {
 
   return (
     <section className="page">
-        <div className="page-header">
-          <div>
+      <div className="page-header">
+        <div>
           <p className="eyebrow">{role} workspace</p>
-            <h1>{content.title}</h1>
-            <p className="lead">{content.description}</p>
-          </div>
+          <h1>{content.title}</h1>
+          <p className="lead">{content.description}</p>
+        </div>
         <div className="card compact-card">
           <strong>Session status</strong>
           <p className="muted">{user?.email}</p>
