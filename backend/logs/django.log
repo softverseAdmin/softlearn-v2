@@ -11293,3 +11293,1674 @@ redis.exceptions.ConnectionError: Error 10061 connecting to 127.0.0.1:6379. No c
 [INFO] 2026-05-10 20:56:38,965 basehttp 24040 19924 "GET /api/v1/student/courses HTTP/1.1" 200 2899
 [INFO] 2026-05-10 20:56:38,986 logging 24040 8184 [req_9aa9364ebe99] GET /api/v1/student/courses
 [INFO] 2026-05-10 20:56:38,986 basehttp 24040 8184 "GET /api/v1/student/courses HTTP/1.1" 200 2899
+[INFO] 2026-05-10 20:57:20,783 logging 24040 16472 [req_f8e72a9b25e0] GET /api/v1/auth/session
+[INFO] 2026-05-10 20:57:20,783 basehttp 24040 16472 "GET /api/v1/auth/session HTTP/1.1" 200 266
+[INFO] 2026-05-10 20:57:20,798 logging 24040 23192 [req_d8b0769e2ca3] GET /api/v1/auth/session
+[INFO] 2026-05-10 20:57:20,798 basehttp 24040 23192 "GET /api/v1/auth/session HTTP/1.1" 200 266
+[INFO] 2026-05-10 20:57:20,817 logging 24040 668 [req_6458bed7ca2f] GET /api/v1/student/courses
+[INFO] 2026-05-10 20:57:20,820 basehttp 24040 668 "GET /api/v1/student/courses HTTP/1.1" 200 2899
+[INFO] 2026-05-10 20:57:20,833 logging 24040 26332 [req_ac0436b4451d] GET /api/v1/student/courses
+[INFO] 2026-05-10 20:57:20,833 basehttp 24040 26332 "GET /api/v1/student/courses HTTP/1.1" 200 2899
+[INFO] 2026-05-10 20:57:20,892 logging 24040 1124 [req_5a465001b2d7] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 20:57:20,893 log 24040 1124 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 20:57:20,895 basehttp 24040 1124 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 20:57:20,926 logging 24040 23276 [req_6fe3c1a7ac05] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 20:57:20,926 log 24040 23276 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 20:57:20,928 basehttp 24040 23276 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 20:57:20,955 logging 24040 16428 [req_6f7296ec98d6] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 20:57:20,955 log 24040 16428 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 20:57:20,959 basehttp 24040 16428 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 20:57:21,000 logging 24040 12996 [req_b3510c808a56] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 20:57:21,000 log 24040 12996 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 20:57:21,009 basehttp 24040 12996 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 20:57:21,029 logging 24040 24112 [req_86c64dc49024] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 20:57:21,029 log 24040 24112 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 20:57:21,030 basehttp 24040 24112 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 20:57:21,049 logging 24040 24276 [req_9d0fd9e88f45] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 20:57:21,050 log 24040 24276 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 20:57:21,050 basehttp 24040 24276 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 20:57:21,074 logging 24040 3340 [req_be2b3fcfb2bb] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 20:57:21,074 log 24040 3340 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 20:57:21,078 basehttp 24040 3340 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 20:57:21,109 logging 24040 25660 [req_b76d5d09dff3] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 20:57:21,109 log 24040 25660 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 20:57:21,109 basehttp 24040 25660 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 20:57:21,127 logging 24040 6656 [req_c2f67ac22499] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 20:57:21,127 log 24040 6656 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 20:57:21,128 basehttp 24040 6656 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 20:57:21,156 logging 24040 26636 [req_f9565c2f8ad9] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 20:57:21,156 log 24040 26636 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 20:57:21,156 basehttp 24040 26636 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 20:57:21,172 logging 24040 7764 [req_de4df5ae499e] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 20:57:21,172 log 24040 7764 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 20:57:21,172 basehttp 24040 7764 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 20:57:21,176 logging 24040 21832 [req_2b2da79cc341] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 20:57:21,178 log 24040 21832 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 20:57:21,179 basehttp 24040 21832 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 20:57:21,196 logging 24040 1096 [req_5e824cbedca2] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 20:57:21,196 log 24040 1096 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 20:57:21,196 basehttp 24040 1096 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 20:57:21,229 logging 24040 12004 [req_92e2c43e3078] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 20:57:21,231 log 24040 12004 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 20:57:21,231 basehttp 24040 12004 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 20:57:21,257 logging 24040 1704 [req_ef0f8ad977f6] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 20:57:21,257 log 24040 1704 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 20:57:21,261 basehttp 24040 1704 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 20:57:21,290 logging 24040 18776 [req_a118081785a5] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 20:57:21,290 log 24040 18776 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 20:57:21,290 basehttp 24040 18776 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 20:57:21,323 logging 24040 23420 [req_ff226792b6f0] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 20:57:21,323 log 24040 23420 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 20:57:21,325 basehttp 24040 23420 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 20:57:21,349 logging 24040 20332 [req_1b70015b1089] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 20:57:21,349 log 24040 20332 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 20:57:21,350 basehttp 24040 20332 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 20:57:21,385 logging 24040 15848 [req_2bdf96429546] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 20:57:21,385 log 24040 15848 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 20:57:21,385 basehttp 24040 15848 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 20:57:21,396 logging 24040 25972 [req_12103d167be9] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 20:57:21,396 log 24040 25972 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 20:57:21,396 basehttp 24040 25972 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 20:57:21,406 logging 24040 19500 [req_220304dd1088] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 20:57:21,406 log 24040 19500 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 20:57:21,406 basehttp 24040 19500 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 20:57:21,425 logging 24040 27056 [req_a3ae1986a82d] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 20:57:21,425 log 24040 27056 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 20:57:21,425 basehttp 24040 27056 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 20:57:21,496 logging 24040 8000 [req_b1786ba52899] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 20:57:21,497 log 24040 8000 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 20:57:21,499 basehttp 24040 8000 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 20:57:21,514 logging 24040 13680 [req_9c76feb37a28] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 20:57:21,514 log 24040 13680 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 20:57:21,514 basehttp 24040 13680 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 20:57:21,581 logging 24040 3212 [req_7b5fcb688cc2] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 20:57:21,581 log 24040 3212 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 20:57:21,591 basehttp 24040 3212 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 20:57:21,591 logging 24040 27760 [req_c845386f05d3] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 20:57:21,591 log 24040 27760 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 20:57:21,607 basehttp 24040 27760 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 20:57:21,617 logging 24040 21768 [req_7f153c0dc6c1] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 20:57:21,617 log 24040 21768 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 20:57:21,617 basehttp 24040 21768 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 20:57:21,661 logging 24040 2488 [req_4d34c073cee7] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 20:57:21,661 log 24040 2488 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 20:57:21,663 basehttp 24040 2488 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 20:57:34,223 logging 24040 24164 [req_71c24513d621] GET /api/v1/student/courses
+[INFO] 2026-05-10 20:57:34,223 basehttp 24040 24164 "GET /api/v1/student/courses HTTP/1.1" 200 2899
+[INFO] 2026-05-10 20:57:34,243 logging 24040 25960 [req_6a834ceae8ac] GET /api/v1/student/skills
+[INFO] 2026-05-10 20:57:34,244 basehttp 24040 25960 "GET /api/v1/student/skills HTTP/1.1" 200 1410
+[INFO] 2026-05-10 20:57:34,295 logging 24040 25440 [req_5a9f53ffd703] GET /api/v1/student/exam-results
+[INFO] 2026-05-10 20:57:34,296 basehttp 24040 25440 "GET /api/v1/student/exam-results HTTP/1.1" 200 2713
+[INFO] 2026-05-10 20:57:34,312 logging 24040 10332 [req_19b878584ac0] GET /api/v1/student/interviews
+[INFO] 2026-05-10 20:57:34,313 basehttp 24040 10332 "GET /api/v1/student/interviews HTTP/1.1" 200 571
+[INFO] 2026-05-10 20:57:34,366 logging 24040 26160 [req_846c643012a8] GET /api/v1/student/dashboard
+[INFO] 2026-05-10 20:57:34,368 basehttp 24040 26160 "GET /api/v1/student/dashboard HTTP/1.1" 200 1499
+[INFO] 2026-05-10 20:57:34,387 logging 24040 15172 [req_e5502acfa2ae] GET /api/v1/student/courses
+[INFO] 2026-05-10 20:57:34,388 basehttp 24040 15172 "GET /api/v1/student/courses HTTP/1.1" 200 2899
+[INFO] 2026-05-10 20:57:34,406 logging 24040 17348 [req_6ce91019db16] GET /api/v1/student/skills
+[INFO] 2026-05-10 20:57:34,406 basehttp 24040 17348 "GET /api/v1/student/skills HTTP/1.1" 200 1410
+[INFO] 2026-05-10 20:57:34,459 logging 24040 21796 [req_af05381d6c75] GET /api/v1/student/exam-results
+[INFO] 2026-05-10 20:57:34,459 basehttp 24040 21796 "GET /api/v1/student/exam-results HTTP/1.1" 200 2713
+[INFO] 2026-05-10 20:57:34,481 logging 24040 15416 [req_beafb64db87d] GET /api/v1/student/interviews
+[INFO] 2026-05-10 20:57:34,481 basehttp 24040 15416 "GET /api/v1/student/interviews HTTP/1.1" 200 571
+[INFO] 2026-05-10 20:57:34,578 logging 24040 15480 [req_bdb803c86af8] GET /api/v1/student/dashboard
+[INFO] 2026-05-10 20:57:34,579 basehttp 24040 15480 "GET /api/v1/student/dashboard HTTP/1.1" 200 1499
+[INFO] 2026-05-10 20:57:43,891 logging 24040 29020 [req_9607ac2c27ae] GET /api/v1/student/learning-summary
+[INFO] 2026-05-10 20:57:43,892 basehttp 24040 29020 "GET /api/v1/student/learning-summary HTTP/1.1" 200 474
+[INFO] 2026-05-10 20:57:43,908 logging 24040 27012 [req_df3139a836b2] GET /api/v1/student/learning-summary
+[INFO] 2026-05-10 20:57:43,909 basehttp 24040 27012 "GET /api/v1/student/learning-summary HTTP/1.1" 200 474
+[INFO] 2026-05-10 20:57:45,606 logging 24040 23340 [req_9e55f6a7040f] GET /api/v1/student/courses
+[INFO] 2026-05-10 20:57:45,606 basehttp 24040 23340 "GET /api/v1/student/courses HTTP/1.1" 200 2899
+[INFO] 2026-05-10 20:57:45,622 logging 24040 6124 [req_3a781e378767] GET /api/v1/student/courses
+[INFO] 2026-05-10 20:57:45,622 basehttp 24040 6124 "GET /api/v1/student/courses HTTP/1.1" 200 2899
+[INFO] 2026-05-10 20:57:58,653 logging 24040 12728 [req_eb3523ed8756] GET /api/v1/student/exam-results
+[INFO] 2026-05-10 20:57:58,654 basehttp 24040 12728 "GET /api/v1/student/exam-results HTTP/1.1" 200 2713
+[INFO] 2026-05-10 20:57:58,708 logging 24040 29392 [req_c7a9da68d499] GET /api/v1/student/exam-results
+[INFO] 2026-05-10 20:57:58,708 basehttp 24040 29392 "GET /api/v1/student/exam-results HTTP/1.1" 200 2713
+[INFO] 2026-05-10 20:58:03,809 logging 24040 25240 [req_19c684b287f2] GET /api/v1/student/jobs
+[INFO] 2026-05-10 20:58:03,812 basehttp 24040 25240 "GET /api/v1/student/jobs HTTP/1.1" 200 11752
+[INFO] 2026-05-10 20:58:03,850 logging 24040 22712 [req_551a5626249a] GET /api/v1/student/jobs
+[INFO] 2026-05-10 20:58:03,850 basehttp 24040 22712 "GET /api/v1/student/jobs HTTP/1.1" 200 11752
+[INFO] 2026-05-10 20:58:09,833 logging 24040 25596 [req_19b0bbd646bf] GET /api/v1/student/learning-summary
+[INFO] 2026-05-10 20:58:09,834 basehttp 24040 25596 "GET /api/v1/student/learning-summary HTTP/1.1" 200 474
+[INFO] 2026-05-10 20:58:09,854 logging 24040 18652 [req_6f992f8a89b5] GET /api/v1/student/learning-summary
+[INFO] 2026-05-10 20:58:09,854 basehttp 24040 18652 "GET /api/v1/student/learning-summary HTTP/1.1" 200 474
+[INFO] 2026-05-10 20:58:14,438 logging 24040 15828 [req_72c16adba500] GET /api/v1/student/skills
+[INFO] 2026-05-10 20:58:14,438 basehttp 24040 15828 "GET /api/v1/student/skills HTTP/1.1" 200 1410
+[INFO] 2026-05-10 20:58:14,457 logging 24040 27968 [req_9a82c846f266] GET /api/v1/student/courses
+[INFO] 2026-05-10 20:58:14,457 basehttp 24040 27968 "GET /api/v1/student/courses HTTP/1.1" 200 2899
+[INFO] 2026-05-10 20:58:14,502 logging 24040 5336 [req_dd43d4ebc84c] GET /api/v1/student/interviews
+[INFO] 2026-05-10 20:58:14,504 basehttp 24040 5336 "GET /api/v1/student/interviews HTTP/1.1" 200 571
+[INFO] 2026-05-10 20:58:14,543 logging 24040 22824 [req_7e28f1ff31a1] GET /api/v1/student/exam-results
+[INFO] 2026-05-10 20:58:14,543 basehttp 24040 22824 "GET /api/v1/student/exam-results HTTP/1.1" 200 2713
+[INFO] 2026-05-10 20:58:14,569 logging 24040 24492 [req_3fa0e07a3a77] GET /api/v1/student/skills
+[INFO] 2026-05-10 20:58:14,569 basehttp 24040 24492 "GET /api/v1/student/skills HTTP/1.1" 200 1410
+[INFO] 2026-05-10 20:58:14,600 logging 24040 16904 [req_28ef7fabd47e] GET /api/v1/student/courses
+[INFO] 2026-05-10 20:58:14,601 basehttp 24040 16904 "GET /api/v1/student/courses HTTP/1.1" 200 2899
+[INFO] 2026-05-10 20:58:14,621 logging 24040 26708 [req_8a2517e73211] GET /api/v1/student/interviews
+[INFO] 2026-05-10 20:58:14,622 basehttp 24040 26708 "GET /api/v1/student/interviews HTTP/1.1" 200 571
+[INFO] 2026-05-10 20:58:14,737 logging 24040 17916 [req_5eb591fc808d] GET /api/v1/student/dashboard
+[INFO] 2026-05-10 20:58:14,737 basehttp 24040 17916 "GET /api/v1/student/dashboard HTTP/1.1" 200 1499
+[INFO] 2026-05-10 20:58:14,767 logging 24040 7340 [req_766f57229b4a] GET /api/v1/student/exam-results
+[INFO] 2026-05-10 20:58:14,768 basehttp 24040 7340 "GET /api/v1/student/exam-results HTTP/1.1" 200 2713
+[INFO] 2026-05-10 20:58:14,876 logging 24040 18980 [req_38e9e5ba3f04] GET /api/v1/student/dashboard
+[INFO] 2026-05-10 20:58:14,876 basehttp 24040 18980 "GET /api/v1/student/dashboard HTTP/1.1" 200 1499
+[INFO] 2026-05-10 20:59:34,086 logging 24040 27568 [req_a25027557a9f] GET /api/v1/student/learning-summary
+[INFO] 2026-05-10 20:59:34,086 basehttp 24040 27568 "GET /api/v1/student/learning-summary HTTP/1.1" 200 474
+[INFO] 2026-05-10 20:59:34,111 logging 24040 27556 [req_a4fbbe9ea99f] GET /api/v1/student/learning-summary
+[INFO] 2026-05-10 20:59:34,111 basehttp 24040 27556 "GET /api/v1/student/learning-summary HTTP/1.1" 200 474
+[INFO] 2026-05-10 20:59:35,399 logging 24040 22500 [req_9b731f4a4033] GET /api/v1/student/courses
+[INFO] 2026-05-10 20:59:35,400 basehttp 24040 22500 "GET /api/v1/student/courses HTTP/1.1" 200 2899
+[INFO] 2026-05-10 20:59:35,430 logging 24040 7488 [req_5953b2506a41] GET /api/v1/student/courses
+[INFO] 2026-05-10 20:59:35,432 basehttp 24040 7488 "GET /api/v1/student/courses HTTP/1.1" 200 2899
+[INFO] 2026-05-10 21:00:02,496 logging 24040 18880 [req_c25cf0fd4dcd] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:02,497 log 24040 18880 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:02,497 basehttp 24040 18880 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:00:02,525 logging 24040 9116 [req_753d0a63abea] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:02,526 log 24040 9116 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:02,526 basehttp 24040 9116 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:00:27,915 logging 24040 21168 [req_3d2d336a3c76] GET /api/v1/auth/session
+[INFO] 2026-05-10 21:00:27,919 basehttp 24040 21168 "GET /api/v1/auth/session HTTP/1.1" 200 266
+[INFO] 2026-05-10 21:00:27,927 logging 24040 19076 [req_abe89c95a2d4] GET /api/v1/auth/session
+[INFO] 2026-05-10 21:00:27,930 basehttp 24040 19076 "GET /api/v1/auth/session HTTP/1.1" 200 266
+[INFO] 2026-05-10 21:00:27,959 logging 24040 28188 [req_860d90361a8f] GET /api/v1/student/courses
+[INFO] 2026-05-10 21:00:27,959 basehttp 24040 28188 "GET /api/v1/student/courses HTTP/1.1" 200 2899
+[INFO] 2026-05-10 21:00:27,972 logging 24040 28836 [req_9f200eeec405] GET /api/v1/student/courses
+[INFO] 2026-05-10 21:00:27,972 basehttp 24040 28836 "GET /api/v1/student/courses HTTP/1.1" 200 2899
+[INFO] 2026-05-10 21:00:28,048 logging 24040 3500 [req_996b696e4d26] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:28,048 log 24040 3500 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:28,048 basehttp 24040 3500 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:00:28,073 logging 24040 15932 [req_80c5a2adf4e0] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:28,073 log 24040 15932 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:28,074 basehttp 24040 15932 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:00:28,102 logging 24040 7008 [req_db272caa3c21] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:28,104 log 24040 7008 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:28,104 basehttp 24040 7008 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:00:28,136 logging 24040 6516 [req_02849c51c7a2] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:28,136 log 24040 6516 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:28,136 basehttp 24040 6516 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:00:28,167 logging 24040 3888 [req_e71a28d658ed] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:28,167 log 24040 3888 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:28,169 basehttp 24040 3888 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:00:28,202 logging 24040 13936 [req_9553d0659a97] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:28,203 log 24040 13936 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:28,203 basehttp 24040 13936 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:00:28,207 logging 24040 9092 [req_f9a75eaa2232] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:28,207 log 24040 9092 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:28,208 basehttp 24040 9092 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:00:28,228 logging 24040 28740 [req_af10c411e448] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:28,228 log 24040 28740 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:28,231 basehttp 24040 28740 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:00:28,254 logging 24040 10668 [req_4208d78a6328] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:28,254 log 24040 10668 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:28,254 basehttp 24040 10668 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:00:28,276 logging 24040 5048 [req_4bc9c0a20c51] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:28,276 log 24040 5048 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:28,276 basehttp 24040 5048 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:00:28,282 logging 24040 12228 [req_b17a49aaf687] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:28,282 log 24040 12228 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:28,282 basehttp 24040 12228 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:00:28,298 logging 24040 1172 [req_eccaab460a6d] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:28,298 log 24040 1172 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:28,298 basehttp 24040 1172 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:00:28,314 logging 24040 23756 [req_f0228383871a] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:28,315 log 24040 23756 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:28,315 basehttp 24040 23756 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:00:28,346 logging 24040 24068 [req_edc178cea604] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:28,346 log 24040 24068 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:28,346 basehttp 24040 24068 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:00:28,370 logging 24040 28016 [req_582f469d61ad] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:28,370 log 24040 28016 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:28,371 basehttp 24040 28016 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:00:28,402 logging 24040 18260 [req_6ce6b0004a27] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:28,403 log 24040 18260 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:28,403 basehttp 24040 18260 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:00:28,442 logging 24040 13476 [req_999c29319a5c] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:28,442 log 24040 13476 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:28,448 basehttp 24040 13476 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:00:28,458 logging 24040 20280 [req_fa2de643dc8d] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:28,458 log 24040 20280 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:28,459 basehttp 24040 20280 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:00:28,481 logging 24040 14772 [req_5126769c0e5b] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:28,481 log 24040 14772 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:28,482 basehttp 24040 14772 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:00:28,503 logging 24040 13424 [req_6db21b2301f3] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:28,503 log 24040 13424 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:28,504 basehttp 24040 13424 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:00:28,533 logging 24040 24768 [req_f4e76373c96a] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:28,534 log 24040 24768 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:28,535 basehttp 24040 24768 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:00:28,558 logging 24040 16940 [req_118524d0528d] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:28,558 log 24040 16940 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:28,558 basehttp 24040 16940 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:00:28,598 logging 24040 7720 [req_625065a9299b] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:28,603 log 24040 7720 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:28,604 basehttp 24040 7720 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:00:28,629 logging 24040 27112 [req_b4edd85d5299] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:28,630 log 24040 27112 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:28,631 basehttp 24040 27112 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:00:28,654 logging 24040 27288 [req_0b2b3caab430] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:28,654 log 24040 27288 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:28,656 basehttp 24040 27288 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:00:28,672 logging 24040 16504 [req_dd9bcc4ae687] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:28,674 log 24040 16504 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:28,678 basehttp 24040 16504 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:00:28,690 logging 24040 15208 [req_4222d9da6ebe] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:28,690 log 24040 15208 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:28,695 basehttp 24040 15208 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:00:28,763 logging 24040 24904 [req_482fc316873a] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:28,773 log 24040 24904 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:28,775 basehttp 24040 24904 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:00:31,997 logging 24040 11888 [req_7143ad0e10f8] GET /api/v1/notifications
+[INFO] 2026-05-10 21:00:31,999 basehttp 24040 11888 "GET /api/v1/notifications HTTP/1.1" 200 1719
+[INFO] 2026-05-10 21:00:32,034 logging 24040 9196 [req_bdfff8b93114] GET /api/v1/notifications
+[INFO] 2026-05-10 21:00:32,040 basehttp 24040 9196 "GET /api/v1/notifications HTTP/1.1" 200 1719
+[INFO] 2026-05-10 21:00:50,572 logging 24040 7712 [req_c7211884aa2c] POST /api/v1/notifications/5/read
+[INFO] 2026-05-10 21:00:50,572 basehttp 24040 7712 "POST /api/v1/notifications/5/read HTTP/1.1" 200 366
+[INFO] 2026-05-10 21:00:53,953 logging 24040 10896 [req_22a28dd1c0b0] GET /api/v1/auth/session
+[INFO] 2026-05-10 21:00:53,953 basehttp 24040 10896 "GET /api/v1/auth/session HTTP/1.1" 200 266
+[INFO] 2026-05-10 21:00:53,963 logging 24040 29376 [req_4a423cce3ec5] GET /api/v1/auth/session
+[INFO] 2026-05-10 21:00:53,963 basehttp 24040 29376 "GET /api/v1/auth/session HTTP/1.1" 200 266
+[INFO] 2026-05-10 21:00:53,981 logging 24040 14700 [req_c085bb088056] GET /api/v1/notifications
+[INFO] 2026-05-10 21:00:53,981 basehttp 24040 14700 "GET /api/v1/notifications HTTP/1.1" 200 1748
+[INFO] 2026-05-10 21:00:53,994 logging 24040 27740 [req_31962e01fea1] GET /api/v1/notifications
+[INFO] 2026-05-10 21:00:53,995 basehttp 24040 27740 "GET /api/v1/notifications HTTP/1.1" 200 1748
+[INFO] 2026-05-10 21:00:54,077 logging 24040 28888 [req_473bd0a4ae9a] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:54,077 log 24040 28888 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:54,077 basehttp 24040 28888 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:00:54,103 logging 24040 14408 [req_59827fed389b] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:54,104 log 24040 14408 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:54,109 basehttp 24040 14408 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:00:54,156 logging 24040 22076 [req_9d9d4493f24f] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:54,158 log 24040 22076 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:54,158 basehttp 24040 22076 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:00:54,188 logging 24040 24128 [req_acef55a90a47] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:54,190 log 24040 24128 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:54,190 basehttp 24040 24128 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:00:54,203 logging 24040 6148 [req_068340ce7fad] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:54,203 log 24040 6148 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:54,203 basehttp 24040 6148 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:00:54,236 logging 24040 6104 [req_6713ccb69228] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:54,242 log 24040 6104 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:54,243 basehttp 24040 6104 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:00:54,246 logging 24040 16412 [req_5bacbdb914a4] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:54,247 log 24040 16412 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:54,247 basehttp 24040 16412 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:00:54,271 logging 24040 22952 [req_1b5df473dac0] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:54,272 log 24040 22952 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:54,273 basehttp 24040 22952 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:00:54,304 logging 24040 1864 [req_64976509eb39] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:54,304 log 24040 1864 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:54,305 basehttp 24040 1864 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:00:54,334 logging 24040 24020 [req_4b10002afa90] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:54,334 log 24040 24020 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:54,336 basehttp 24040 24020 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:00:54,358 logging 24040 25928 [req_462bd3d32120] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:54,359 log 24040 25928 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:54,359 basehttp 24040 25928 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:00:54,364 logging 24040 23112 [req_403078b9cca2] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:54,364 log 24040 23112 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:54,365 basehttp 24040 23112 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:00:54,390 logging 24040 26572 [req_2089b80c907f] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:54,390 log 24040 26572 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:54,390 basehttp 24040 26572 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:00:54,438 logging 24040 16916 [req_93922becbcad] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:54,439 log 24040 16916 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:54,441 basehttp 24040 16916 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:00:54,469 logging 24040 5964 [req_46391ec1f0c5] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:54,470 log 24040 5964 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:54,471 basehttp 24040 5964 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:00:54,502 logging 24040 26132 [req_73a92e3fbc11] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:54,502 log 24040 26132 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:54,507 basehttp 24040 26132 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:00:54,522 logging 24040 18592 [req_adac4dd59bcc] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:54,522 log 24040 18592 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:54,522 basehttp 24040 18592 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:00:54,569 logging 24040 25924 [req_ab307a34c3ee] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:54,569 log 24040 25924 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:54,569 basehttp 24040 25924 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:00:54,607 logging 24040 3304 [req_eb3cf35132fe] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:54,607 log 24040 3304 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:54,607 basehttp 24040 3304 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:00:54,619 logging 24040 7364 [req_8fe521504d0c] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:54,619 log 24040 7364 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:54,619 basehttp 24040 7364 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:00:54,650 logging 24040 29396 [req_888ad6599f12] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:54,650 log 24040 29396 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:54,659 basehttp 24040 29396 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:00:54,701 logging 24040 26424 [req_766570ea6c34] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:54,702 log 24040 26424 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:54,726 basehttp 24040 26424 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:00:54,737 logging 24040 17600 [req_f877c336d1a1] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:54,737 log 24040 17600 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:54,738 basehttp 24040 17600 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:00:54,777 logging 24040 13800 [req_833a0a54bfbe] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:54,777 log 24040 13800 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:54,781 basehttp 24040 13800 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:00:54,813 logging 24040 27936 [req_342af27f8f5f] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:54,814 log 24040 27936 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:54,814 basehttp 24040 27936 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:00:54,825 logging 24040 26008 [req_c0a0a082cbd6] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:54,825 log 24040 26008 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:54,825 basehttp 24040 26008 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:00:54,841 logging 24040 13932 [req_0ad2275bc9e5] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:54,841 log 24040 13932 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:54,842 basehttp 24040 13932 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:00:54,856 logging 24040 16076 [req_9adb5932e7f1] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:54,857 log 24040 16076 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:00:54,858 basehttp 24040 16076 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:01:50,680 logging 24040 26240 [req_819fd6e3e4f9] GET /api/v1/auth/session
+[INFO] 2026-05-10 21:01:50,683 basehttp 24040 26240 "GET /api/v1/auth/session HTTP/1.1" 200 266
+[INFO] 2026-05-10 21:01:50,693 logging 24040 22544 [req_e0aa3c61a8ed] GET /api/v1/auth/session
+[INFO] 2026-05-10 21:01:50,694 basehttp 24040 22544 "GET /api/v1/auth/session HTTP/1.1" 200 266
+[INFO] 2026-05-10 21:01:50,712 logging 24040 12192 [req_45136547a80b] GET /api/v1/notifications
+[INFO] 2026-05-10 21:01:50,712 basehttp 24040 12192 "GET /api/v1/notifications HTTP/1.1" 200 1748
+[INFO] 2026-05-10 21:01:50,725 logging 24040 28716 [req_a1d8f6486509] GET /api/v1/notifications
+[INFO] 2026-05-10 21:01:50,725 basehttp 24040 28716 "GET /api/v1/notifications HTTP/1.1" 200 1748
+[INFO] 2026-05-10 21:01:50,828 logging 24040 5768 [req_4d79c88fe8c4] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:01:50,828 log 24040 5768 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:01:50,830 basehttp 24040 5768 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:01:50,845 logging 24040 1148 [req_3cbdcedb6450] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:01:50,845 log 24040 1148 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:01:50,846 basehttp 24040 1148 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:01:50,876 logging 24040 28444 [req_f42afa2eacb9] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:01:50,876 log 24040 28444 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:01:50,878 basehttp 24040 28444 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:01:50,905 logging 24040 27300 [req_7441d410d297] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:01:50,905 log 24040 27300 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:01:50,907 basehttp 24040 27300 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:01:50,928 logging 24040 27028 [req_343ed2bd4ddf] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:01:50,929 log 24040 27028 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:01:50,930 basehttp 24040 27028 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:01:50,935 logging 24040 20276 [req_63dc706e67a6] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:01:50,935 log 24040 20276 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:01:50,935 basehttp 24040 20276 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:01:50,965 logging 24040 19016 [req_13185786b600] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:01:50,966 log 24040 19016 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:01:50,967 basehttp 24040 19016 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:01:50,989 logging 24040 23288 [req_af45818ee030] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:01:50,989 log 24040 23288 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:01:50,989 basehttp 24040 23288 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:01:51,010 logging 24040 3984 [req_b3dd16375575] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:01:51,011 log 24040 3984 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:01:51,012 basehttp 24040 3984 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:01:51,050 logging 24040 3196 [req_c820785e0e7f] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:01:51,050 log 24040 3196 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:01:51,050 basehttp 24040 3196 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:01:51,056 logging 24040 10232 [req_a62237834782] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:01:51,056 log 24040 10232 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:01:51,056 basehttp 24040 10232 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:01:51,067 logging 24040 26864 [req_39bc94b471f6] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:01:51,067 log 24040 26864 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:01:51,067 basehttp 24040 26864 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:01:51,083 logging 24040 26408 [req_d20d79d9ce4e] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:01:51,084 log 24040 26408 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:01:51,084 basehttp 24040 26408 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:01:51,088 logging 24040 15748 [req_f198a5c1749c] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:01:51,089 log 24040 15748 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:01:51,090 basehttp 24040 15748 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:01:51,102 logging 24040 21548 [req_c6bae87222d2] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:01:51,113 log 24040 21548 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:01:51,114 basehttp 24040 21548 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:01:51,131 logging 24040 26368 [req_8647cbcdb3f9] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:01:51,132 log 24040 26368 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:01:51,134 basehttp 24040 26368 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:01:51,176 logging 24040 8556 [req_cb5b4d057d30] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:01:51,192 log 24040 8556 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:01:51,196 basehttp 24040 8556 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:01:51,196 logging 24040 15864 [req_fdc0a15410d2] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:01:51,198 log 24040 15864 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:01:51,198 basehttp 24040 15864 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:01:51,215 logging 24040 3532 [req_c63c508893e3] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:01:51,215 log 24040 3532 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:01:51,218 basehttp 24040 3532 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:01:51,246 logging 24040 26108 [req_da04049107aa] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:01:51,246 log 24040 26108 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:01:51,247 basehttp 24040 26108 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:01:51,265 logging 24040 20004 [req_fd5099a45d79] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:01:51,265 log 24040 20004 Too Many Requests: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:01:51,265 basehttp 24040 20004 "POST /api/v1/metrics/web-vitals HTTP/1.1" 429 66
+[INFO] 2026-05-10 21:01:51,280 logging 24040 4052 [req_c8e9d90b397d] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:01:51,280 log 24040 4052 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:01:51,280 basehttp 24040 4052 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:01:51,302 logging 24040 6572 [req_7bf04d984763] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:01:51,302 log 24040 6572 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:01:51,302 basehttp 24040 6572 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:01:51,324 logging 24040 8328 [req_aff40672e6e3] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:01:51,324 log 24040 8328 Too Many Requests: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:01:51,329 basehttp 24040 8328 "POST /api/v1/metrics/web-vitals HTTP/1.1" 429 66
+[INFO] 2026-05-10 21:01:51,339 logging 24040 23016 [req_e9d2846d4f6d] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:01:51,340 log 24040 23016 Too Many Requests: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:01:51,341 basehttp 24040 23016 "POST /api/v1/metrics/web-vitals HTTP/1.1" 429 66
+[INFO] 2026-05-10 21:01:51,348 logging 24040 8852 [req_88476ba68fa8] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:01:51,348 log 24040 8852 Too Many Requests: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:01:51,348 basehttp 24040 8852 "POST /api/v1/metrics/web-vitals HTTP/1.1" 429 66
+[INFO] 2026-05-10 21:01:51,357 logging 24040 27756 [req_80096214d2d6] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:01:51,357 log 24040 27756 Too Many Requests: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:01:51,357 basehttp 24040 27756 "POST /api/v1/metrics/web-vitals HTTP/1.1" 429 66
+[INFO] 2026-05-10 21:01:51,382 logging 24040 24820 [req_b5f73277eeba] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:01:51,383 log 24040 24820 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:01:51,384 basehttp 24040 24820 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:01:52,913 logging 24040 2804 [req_5d5d1cb8b65d] GET /api/v1/student/courses
+[WARNING] 2026-05-10 21:01:52,913 log 24040 2804 Too Many Requests: /api/v1/student/courses
+[WARNING] 2026-05-10 21:01:52,914 basehttp 24040 2804 "GET /api/v1/student/courses HTTP/1.1" 429 66
+[INFO] 2026-05-10 21:01:52,925 logging 24040 6028 [req_01716a5f0afb] GET /api/v1/student/courses
+[WARNING] 2026-05-10 21:01:52,927 log 24040 6028 Too Many Requests: /api/v1/student/courses
+[WARNING] 2026-05-10 21:01:52,927 basehttp 24040 6028 "GET /api/v1/student/courses HTTP/1.1" 429 66
+[INFO] 2026-05-10 21:01:52,930 logging 24040 21120 [req_b38e624db0fa] GET /api/v1/student/exam-results
+[WARNING] 2026-05-10 21:01:52,931 log 24040 21120 Too Many Requests: /api/v1/student/exam-results
+[WARNING] 2026-05-10 21:01:52,931 basehttp 24040 21120 "GET /api/v1/student/exam-results HTTP/1.1" 429 66
+[INFO] 2026-05-10 21:01:52,942 logging 24040 15672 [req_e0f6ec75157f] GET /api/v1/student/exam-results
+[WARNING] 2026-05-10 21:01:52,942 log 24040 15672 Too Many Requests: /api/v1/student/exam-results
+[WARNING] 2026-05-10 21:01:52,942 basehttp 24040 15672 "GET /api/v1/student/exam-results HTTP/1.1" 429 66
+[INFO] 2026-05-10 21:01:52,962 logging 24040 9916 [req_e980791034b0] GET /api/v1/student/skills
+[WARNING] 2026-05-10 21:01:52,963 log 24040 9916 Too Many Requests: /api/v1/student/skills
+[WARNING] 2026-05-10 21:01:52,964 basehttp 24040 9916 "GET /api/v1/student/skills HTTP/1.1" 429 66
+[INFO] 2026-05-10 21:01:52,973 logging 24040 29052 [req_690a609be298] GET /api/v1/student/interviews
+[WARNING] 2026-05-10 21:01:52,973 log 24040 29052 Too Many Requests: /api/v1/student/interviews
+[WARNING] 2026-05-10 21:01:52,973 basehttp 24040 29052 "GET /api/v1/student/interviews HTTP/1.1" 429 66
+[INFO] 2026-05-10 21:01:53,000 logging 24040 21684 [req_351d89773746] GET /api/v1/student/dashboard
+[WARNING] 2026-05-10 21:01:53,001 log 24040 21684 Too Many Requests: /api/v1/student/dashboard
+[WARNING] 2026-05-10 21:01:53,002 basehttp 24040 21684 "GET /api/v1/student/dashboard HTTP/1.1" 429 66
+[INFO] 2026-05-10 21:01:53,022 logging 24040 3564 [req_02eb32386a05] GET /api/v1/student/skills
+[WARNING] 2026-05-10 21:01:53,023 log 24040 3564 Too Many Requests: /api/v1/student/skills
+[WARNING] 2026-05-10 21:01:53,023 basehttp 24040 3564 "GET /api/v1/student/skills HTTP/1.1" 429 66
+[INFO] 2026-05-10 21:01:53,047 logging 24040 3512 [req_e08573606cef] GET /api/v1/student/dashboard
+[WARNING] 2026-05-10 21:01:53,049 log 24040 3512 Too Many Requests: /api/v1/student/dashboard
+[WARNING] 2026-05-10 21:01:53,049 basehttp 24040 3512 "GET /api/v1/student/dashboard HTTP/1.1" 429 66
+[INFO] 2026-05-10 21:01:53,070 logging 24040 13020 [req_2b638e1a6e96] GET /api/v1/student/interviews
+[WARNING] 2026-05-10 21:01:53,070 log 24040 13020 Too Many Requests: /api/v1/student/interviews
+[WARNING] 2026-05-10 21:01:53,074 basehttp 24040 13020 "GET /api/v1/student/interviews HTTP/1.1" 429 66
+[INFO] 2026-05-10 21:01:55,460 logging 24040 29296 [req_822945df4fdf] GET /api/v1/notifications
+[WARNING] 2026-05-10 21:01:55,460 log 24040 29296 Too Many Requests: /api/v1/notifications
+[WARNING] 2026-05-10 21:01:55,463 basehttp 24040 29296 "GET /api/v1/notifications HTTP/1.1" 429 66
+[INFO] 2026-05-10 21:01:55,476 logging 24040 13912 [req_e703956d17a8] GET /api/v1/notifications
+[WARNING] 2026-05-10 21:01:55,476 log 24040 13912 Too Many Requests: /api/v1/notifications
+[WARNING] 2026-05-10 21:01:55,476 basehttp 24040 13912 "GET /api/v1/notifications HTTP/1.1" 429 66
+[INFO] 2026-05-10 21:01:57,693 logging 24040 16932 [req_8e71e8c63c23] GET /api/v1/student/courses
+[WARNING] 2026-05-10 21:01:57,693 log 24040 16932 Too Many Requests: /api/v1/student/courses
+[WARNING] 2026-05-10 21:01:57,693 basehttp 24040 16932 "GET /api/v1/student/courses HTTP/1.1" 429 66
+[INFO] 2026-05-10 21:01:57,715 logging 24040 21968 [req_898a4fc1b821] GET /api/v1/student/courses
+[WARNING] 2026-05-10 21:01:57,715 log 24040 21968 Too Many Requests: /api/v1/student/courses
+[WARNING] 2026-05-10 21:01:57,715 basehttp 24040 21968 "GET /api/v1/student/courses HTTP/1.1" 429 66
+[INFO] 2026-05-10 21:01:57,729 logging 24040 15380 [req_5d8b720a24a6] GET /api/v1/student/dashboard
+[WARNING] 2026-05-10 21:01:57,730 log 24040 15380 Too Many Requests: /api/v1/student/dashboard
+[WARNING] 2026-05-10 21:01:57,731 basehttp 24040 15380 "GET /api/v1/student/dashboard HTTP/1.1" 429 66
+[INFO] 2026-05-10 21:01:57,748 logging 24040 27864 [req_12dfe426c00f] GET /api/v1/student/skills
+[WARNING] 2026-05-10 21:01:57,748 log 24040 27864 Too Many Requests: /api/v1/student/skills
+[WARNING] 2026-05-10 21:01:57,748 basehttp 24040 27864 "GET /api/v1/student/skills HTTP/1.1" 429 66
+[INFO] 2026-05-10 21:01:57,764 logging 24040 22436 [req_b4fe94d03804] GET /api/v1/student/interviews
+[WARNING] 2026-05-10 21:01:57,764 log 24040 22436 Too Many Requests: /api/v1/student/interviews
+[WARNING] 2026-05-10 21:01:57,765 basehttp 24040 22436 "GET /api/v1/student/interviews HTTP/1.1" 429 66
+[INFO] 2026-05-10 21:01:57,783 logging 24040 28528 [req_3c6386f92982] GET /api/v1/student/interviews
+[WARNING] 2026-05-10 21:01:57,783 log 24040 28528 Too Many Requests: /api/v1/student/interviews
+[WARNING] 2026-05-10 21:01:57,783 basehttp 24040 28528 "GET /api/v1/student/interviews HTTP/1.1" 429 66
+[INFO] 2026-05-10 21:01:57,814 logging 24040 19852 [req_3b3b09ad854d] GET /api/v1/student/exam-results
+[WARNING] 2026-05-10 21:01:57,814 log 24040 19852 Too Many Requests: /api/v1/student/exam-results
+[WARNING] 2026-05-10 21:01:57,814 basehttp 24040 19852 "GET /api/v1/student/exam-results HTTP/1.1" 429 66
+[INFO] 2026-05-10 21:01:57,831 logging 24040 20220 [req_cc38a899d1da] GET /api/v1/student/exam-results
+[WARNING] 2026-05-10 21:01:57,832 log 24040 20220 Too Many Requests: /api/v1/student/exam-results
+[WARNING] 2026-05-10 21:01:57,832 basehttp 24040 20220 "GET /api/v1/student/exam-results HTTP/1.1" 429 66
+[INFO] 2026-05-10 21:01:57,845 logging 24040 25104 [req_f8bc9c75286d] GET /api/v1/student/skills
+[WARNING] 2026-05-10 21:01:57,845 log 24040 25104 Too Many Requests: /api/v1/student/skills
+[WARNING] 2026-05-10 21:01:57,845 basehttp 24040 25104 "GET /api/v1/student/skills HTTP/1.1" 429 66
+[INFO] 2026-05-10 21:01:57,862 logging 24040 11856 [req_8161bc7a9fae] GET /api/v1/student/dashboard
+[WARNING] 2026-05-10 21:01:57,862 log 24040 11856 Too Many Requests: /api/v1/student/dashboard
+[WARNING] 2026-05-10 21:01:57,862 basehttp 24040 11856 "GET /api/v1/student/dashboard HTTP/1.1" 429 66
+[INFO] 2026-05-10 21:02:21,835 logging 24040 5180 [req_9836fa5ddd2c] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:02:21,835 log 24040 5180 Too Many Requests: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:02:21,837 basehttp 24040 5180 "POST /api/v1/metrics/web-vitals HTTP/1.1" 429 66
+[INFO] 2026-05-10 21:02:21,849 logging 24040 21008 [req_47349c94db34] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:02:21,849 log 24040 21008 Too Many Requests: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:02:21,850 basehttp 24040 21008 "POST /api/v1/metrics/web-vitals HTTP/1.1" 429 66
+[INFO] 2026-05-10 21:02:23,873 logging 24040 2224 [req_ea12a66323ae] GET /api/v1/auth/session
+[WARNING] 2026-05-10 21:02:23,880 log 24040 2224 Too Many Requests: /api/v1/auth/session
+[WARNING] 2026-05-10 21:02:23,881 basehttp 24040 2224 "GET /api/v1/auth/session HTTP/1.1" 429 66
+[INFO] 2026-05-10 21:02:23,894 logging 24040 18600 [req_27a99e06123e] GET /api/v1/auth/session
+[WARNING] 2026-05-10 21:02:23,895 log 24040 18600 Too Many Requests: /api/v1/auth/session
+[WARNING] 2026-05-10 21:02:23,895 basehttp 24040 18600 "GET /api/v1/auth/session HTTP/1.1" 429 66
+[INFO] 2026-05-10 21:02:24,012 logging 24040 22416 [req_02f2694c2f8c] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:02:24,014 log 24040 22416 Too Many Requests: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:02:24,014 basehttp 24040 22416 "POST /api/v1/metrics/web-vitals HTTP/1.1" 429 66
+[INFO] 2026-05-10 21:02:24,028 logging 24040 16796 [req_c648532d06ae] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:02:24,028 log 24040 16796 Too Many Requests: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:02:24,028 basehttp 24040 16796 "POST /api/v1/metrics/web-vitals HTTP/1.1" 429 66
+[INFO] 2026-05-10 21:02:24,038 logging 24040 14828 [req_6327e63dfdbc] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:02:24,038 log 24040 14828 Too Many Requests: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:02:24,038 basehttp 24040 14828 "POST /api/v1/metrics/web-vitals HTTP/1.1" 429 66
+[INFO] 2026-05-10 21:02:24,049 logging 24040 15136 [req_8f990fc21354] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:02:24,050 log 24040 15136 Too Many Requests: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:02:24,050 basehttp 24040 15136 "POST /api/v1/metrics/web-vitals HTTP/1.1" 429 66
+[INFO] 2026-05-10 21:02:26,766 logging 24040 14624 [req_d0306f161bf2] GET /api/v1/auth/csrf
+[WARNING] 2026-05-10 21:02:26,766 log 24040 14624 Too Many Requests: /api/v1/auth/csrf
+[WARNING] 2026-05-10 21:02:26,766 basehttp 24040 14624 "GET /api/v1/auth/csrf HTTP/1.1" 429 66
+[INFO] 2026-05-10 21:02:33,311 logging 24040 17040 [req_b0ed7ff39bdc] GET /api/v1/auth/csrf
+[WARNING] 2026-05-10 21:02:33,311 log 24040 17040 Too Many Requests: /api/v1/auth/csrf
+[WARNING] 2026-05-10 21:02:33,311 basehttp 24040 17040 "GET /api/v1/auth/csrf HTTP/1.1" 429 66
+[INFO] 2026-05-10 21:03:12,247 logging 24040 6148 [req_2029712ee873] GET /api/v1/auth/session
+[INFO] 2026-05-10 21:03:12,248 basehttp 24040 6148 "GET /api/v1/auth/session HTTP/1.1" 200 266
+[INFO] 2026-05-10 21:03:12,258 logging 24040 6104 [req_a6592ee94e4b] GET /api/v1/auth/session
+[INFO] 2026-05-10 21:03:12,258 basehttp 24040 6104 "GET /api/v1/auth/session HTTP/1.1" 200 266
+[INFO] 2026-05-10 21:03:12,314 logging 24040 16412 [req_5eb85e669625] GET /api/v1/student/courses
+[INFO] 2026-05-10 21:03:12,314 basehttp 24040 16412 "GET /api/v1/student/courses HTTP/1.1" 200 2899
+[INFO] 2026-05-10 21:03:12,346 logging 24040 22952 [req_f7b4dd462668] GET /api/v1/student/skills
+[INFO] 2026-05-10 21:03:12,347 basehttp 24040 22952 "GET /api/v1/student/skills HTTP/1.1" 200 1410
+[INFO] 2026-05-10 21:03:12,375 logging 24040 24020 [req_20debde100ef] GET /api/v1/student/interviews
+[INFO] 2026-05-10 21:03:12,375 basehttp 24040 24020 "GET /api/v1/student/interviews HTTP/1.1" 200 571
+[INFO] 2026-05-10 21:03:12,440 logging 24040 26572 [req_83bbdb99e642] GET /api/v1/student/interviews
+[INFO] 2026-05-10 21:03:12,441 basehttp 24040 26572 "GET /api/v1/student/interviews HTTP/1.1" 200 571
+[INFO] 2026-05-10 21:03:12,471 logging 24040 8656 [req_ffbeb99f78f6] GET /api/v1/student/courses
+[INFO] 2026-05-10 21:03:12,472 basehttp 24040 8656 "GET /api/v1/student/courses HTTP/1.1" 200 2899
+[INFO] 2026-05-10 21:03:12,493 logging 24040 23112 [req_7946ff8b53c8] GET /api/v1/student/skills
+[INFO] 2026-05-10 21:03:12,493 basehttp 24040 23112 "GET /api/v1/student/skills HTTP/1.1" 200 1410
+[INFO] 2026-05-10 21:03:12,565 logging 24040 16916 [req_286e646e9506] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:03:12,566 log 24040 16916 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:03:12,571 basehttp 24040 16916 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:03:12,577 logging 24040 5964 [req_abe3c5665d13] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:03:12,577 log 24040 5964 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:03:12,578 basehttp 24040 5964 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:03:12,589 logging 24040 1864 [req_7f3441e25301] GET /api/v1/student/exam-results
+[INFO] 2026-05-10 21:03:12,606 basehttp 24040 1864 "GET /api/v1/student/exam-results HTTP/1.1" 200 2713
+[INFO] 2026-05-10 21:03:12,617 logging 24040 26132 [req_22eddcd52934] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:03:12,617 log 24040 26132 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:03:12,617 basehttp 24040 26132 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:03:12,672 logging 24040 7364 [req_39752aafea6d] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:03:12,672 log 24040 7364 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:03:12,672 basehttp 24040 7364 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:03:12,701 logging 24040 3304 [req_14591ae19627] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:03:12,701 log 24040 3304 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:03:12,701 basehttp 24040 3304 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:03:12,735 logging 24040 18592 [req_299655e2103b] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:03:12,735 log 24040 18592 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:03:12,737 basehttp 24040 18592 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:03:12,742 logging 24040 26424 [req_9aca3dde7db3] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:03:12,742 log 24040 26424 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:03:12,745 basehttp 24040 26424 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:03:12,814 logging 24040 29396 [req_187f4c52acc8] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:03:12,815 log 24040 29396 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:03:12,820 basehttp 24040 29396 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:03:12,849 logging 24040 17600 [req_fd3d8febfeb4] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:03:12,849 log 24040 17600 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:03:12,850 basehttp 24040 17600 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:03:12,882 logging 24040 25928 [req_6b5813968caa] GET /api/v1/student/dashboard
+[INFO] 2026-05-10 21:03:12,884 basehttp 24040 25928 "GET /api/v1/student/dashboard HTTP/1.1" 200 1499
+[INFO] 2026-05-10 21:03:12,888 logging 24040 27936 [req_1439401f7f47] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:03:12,889 log 24040 27936 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:03:12,889 basehttp 24040 27936 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:03:12,946 logging 24040 13800 [req_ca70c5f5b0c6] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:03:12,947 log 24040 13800 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:03:12,947 basehttp 24040 13800 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:03:12,983 logging 24040 16076 [req_e2cfaf2070cf] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:03:12,983 log 24040 16076 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:03:12,984 basehttp 24040 16076 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:03:13,031 logging 24040 26008 [req_dd5d3db27605] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:03:13,032 log 24040 26008 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:03:13,032 basehttp 24040 26008 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:03:13,065 logging 24040 20252 [req_eeb32a0e1297] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:03:13,065 log 24040 20252 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:03:13,075 basehttp 24040 20252 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:03:13,078 logging 24040 29560 [req_7bfad00ce85f] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:03:13,079 log 24040 29560 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:03:13,079 basehttp 24040 29560 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:03:13,099 logging 24040 18688 [req_99fe4adb29ea] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:03:13,100 log 24040 18688 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:03:13,100 basehttp 24040 18688 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:03:13,124 logging 24040 12772 [req_22472aa03c46] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:03:13,124 log 24040 12772 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:03:13,124 basehttp 24040 12772 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:03:13,135 logging 24040 8080 [req_2986225cccb6] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:03:13,135 log 24040 8080 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:03:13,135 basehttp 24040 8080 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:03:13,187 logging 24040 22348 [req_0402eb292b40] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:03:13,197 log 24040 22348 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:03:13,197 basehttp 24040 22348 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:03:13,218 logging 24040 25924 [req_5019e2a0d201] GET /api/v1/student/exam-results
+[INFO] 2026-05-10 21:03:13,220 basehttp 24040 25924 "GET /api/v1/student/exam-results HTTP/1.1" 200 2713
+[INFO] 2026-05-10 21:03:13,247 logging 24040 19872 [req_bec9a055ed80] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:03:13,247 log 24040 19872 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:03:13,249 basehttp 24040 19872 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:03:13,292 logging 24040 12744 [req_91bab5445ccd] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:03:13,292 log 24040 12744 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:03:13,294 basehttp 24040 12744 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:03:13,333 logging 24040 13436 [req_7edf1ccdb8e0] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:03:13,334 log 24040 13436 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:03:13,334 basehttp 24040 13436 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:03:13,349 logging 24040 27004 [req_6244c889bb8e] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:03:13,350 log 24040 27004 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:03:13,350 basehttp 24040 27004 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:03:13,361 logging 24040 2504 [req_327f03190a6c] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:03:13,361 log 24040 2504 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:03:13,363 basehttp 24040 2504 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:03:13,394 logging 24040 9340 [req_0f80b098e401] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:03:13,394 log 24040 9340 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:03:13,395 basehttp 24040 9340 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:03:13,437 logging 24040 19608 [req_dda1f0872029] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:03:13,438 log 24040 19608 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:03:13,440 basehttp 24040 19608 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:03:13,456 logging 24040 18696 [req_0ee96b4d752d] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:03:13,470 log 24040 18696 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:03:13,470 basehttp 24040 18696 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:03:13,481 logging 24040 5772 [req_b5e90bbd2745] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:03:13,481 log 24040 5772 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:03:13,481 basehttp 24040 5772 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:03:13,509 logging 24040 13932 [req_ea8a38c0aaeb] GET /api/v1/student/dashboard
+[INFO] 2026-05-10 21:03:13,509 basehttp 24040 13932 "GET /api/v1/student/dashboard HTTP/1.1" 200 1499
+[INFO] 2026-05-10 21:03:14,228 logging 24040 11668 [req_59d42a736071] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:03:14,228 log 24040 11668 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:03:14,229 basehttp 24040 11668 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:03:14,246 logging 24040 11244 [req_f98916af4850] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:03:14,246 log 24040 11244 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:03:14,246 basehttp 24040 11244 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:03:16,319 logging 24040 17900 [req_0752bada66a3] GET /api/v1/notifications
+[INFO] 2026-05-10 21:03:16,319 basehttp 24040 17900 "GET /api/v1/notifications HTTP/1.1" 200 1748
+[INFO] 2026-05-10 21:03:16,334 logging 24040 20968 [req_e8ca8a424ca3] GET /api/v1/notifications
+[INFO] 2026-05-10 21:03:16,336 basehttp 24040 20968 "GET /api/v1/notifications HTTP/1.1" 200 1748
+[INFO] 2026-05-10 21:03:18,323 logging 24040 6384 [req_cce4fa5cdeda] POST /api/v1/notifications/7/read
+[INFO] 2026-05-10 21:03:18,323 basehttp 24040 6384 "POST /api/v1/notifications/7/read HTTP/1.1" 200 366
+[INFO] 2026-05-10 21:03:20,089 logging 24040 17368 [req_b7218d8af877] GET /api/v1/student/applications
+[INFO] 2026-05-10 21:03:20,089 basehttp 24040 17368 "GET /api/v1/student/applications HTTP/1.1" 200 1467
+[INFO] 2026-05-10 21:03:20,111 logging 24040 26080 [req_699213b57ffb] GET /api/v1/student/applications
+[INFO] 2026-05-10 21:03:20,112 basehttp 24040 26080 "GET /api/v1/student/applications HTTP/1.1" 200 1467
+[INFO] 2026-05-10 21:03:22,187 autoreload 24040 12528 C:\Users\khadk\Desktop\softlearn\softlearn-v2\backend\config\settings.py changed, reloading.
+[INFO] 2026-05-10 21:03:22,698 autoreload 26808 22216 Watching for file changes with StatReloader
+[WARNING] 2026-05-10 21:03:22,884 error_tracking 26808 27012 SENTRY_DSN not configured, error tracking disabled
+[INFO] 2026-05-10 21:03:26,121 logging 26808 27920 [req_3d4c7d016198] GET /api/v1/student/courses
+[INFO] 2026-05-10 21:03:26,123 basehttp 26808 27920 "GET /api/v1/student/courses HTTP/1.1" 200 2899
+[INFO] 2026-05-10 21:03:26,143 logging 26808 22816 [req_524a4a12c71d] GET /api/v1/student/skills
+[INFO] 2026-05-10 21:03:26,144 basehttp 26808 22816 "GET /api/v1/student/skills HTTP/1.1" 200 1410
+[INFO] 2026-05-10 21:03:26,220 logging 26808 22808 [req_ab05e32081c1] GET /api/v1/student/exam-results
+[INFO] 2026-05-10 21:03:26,221 basehttp 26808 22808 "GET /api/v1/student/exam-results HTTP/1.1" 200 2713
+[INFO] 2026-05-10 21:03:26,244 logging 26808 22236 [req_43f0c6d3c961] GET /api/v1/student/interviews
+[INFO] 2026-05-10 21:03:26,245 basehttp 26808 22236 "GET /api/v1/student/interviews HTTP/1.1" 200 571
+[INFO] 2026-05-10 21:03:26,303 logging 26808 14244 [req_9f9624a27e68] GET /api/v1/student/dashboard
+[INFO] 2026-05-10 21:03:26,303 basehttp 26808 14244 "GET /api/v1/student/dashboard HTTP/1.1" 200 1499
+[INFO] 2026-05-10 21:03:26,322 logging 26808 23808 [req_9450d25b9830] GET /api/v1/student/courses
+[INFO] 2026-05-10 21:03:26,323 basehttp 26808 23808 "GET /api/v1/student/courses HTTP/1.1" 200 2899
+[INFO] 2026-05-10 21:03:26,336 logging 26808 29476 [req_bfd53956af57] GET /api/v1/student/skills
+[INFO] 2026-05-10 21:03:26,336 basehttp 26808 29476 "GET /api/v1/student/skills HTTP/1.1" 200 1410
+[INFO] 2026-05-10 21:03:26,375 logging 26808 4760 [req_959214b480d5] GET /api/v1/student/exam-results
+[INFO] 2026-05-10 21:03:26,376 basehttp 26808 4760 "GET /api/v1/student/exam-results HTTP/1.1" 200 2713
+[INFO] 2026-05-10 21:03:26,393 logging 26808 27948 [req_b07388dc3657] GET /api/v1/student/interviews
+[INFO] 2026-05-10 21:03:26,394 basehttp 26808 27948 "GET /api/v1/student/interviews HTTP/1.1" 200 571
+[INFO] 2026-05-10 21:03:26,474 logging 26808 17076 [req_529843cd4b1a] GET /api/v1/student/dashboard
+[INFO] 2026-05-10 21:03:26,474 basehttp 26808 17076 "GET /api/v1/student/dashboard HTTP/1.1" 200 1499
+[INFO] 2026-05-10 21:03:29,103 logging 26808 16232 [req_cbde77369680] GET /api/v1/student/profile
+[INFO] 2026-05-10 21:03:29,104 basehttp 26808 16232 "GET /api/v1/student/profile HTTP/1.1" 200 942
+[INFO] 2026-05-10 21:03:29,121 logging 26808 29008 [req_429d5dc03864] GET /api/v1/student/profile
+[INFO] 2026-05-10 21:03:29,122 basehttp 26808 29008 "GET /api/v1/student/profile HTTP/1.1" 200 942
+[INFO] 2026-05-10 21:03:38,586 logging 26808 3512 [req_05ec5d1d261b] GET /api/v1/auth/session
+[INFO] 2026-05-10 21:03:38,586 basehttp 26808 3512 "GET /api/v1/auth/session HTTP/1.1" 200 266
+[INFO] 2026-05-10 21:03:38,596 logging 26808 13020 [req_2286b8b5c08d] GET /api/v1/auth/session
+[INFO] 2026-05-10 21:03:38,596 basehttp 26808 13020 "GET /api/v1/auth/session HTTP/1.1" 200 266
+[INFO] 2026-05-10 21:03:38,634 logging 26808 29296 [req_1cfd6f633ebf] GET /api/v1/student/profile
+[INFO] 2026-05-10 21:03:38,634 basehttp 26808 29296 "GET /api/v1/student/profile HTTP/1.1" 200 942
+[INFO] 2026-05-10 21:03:38,650 logging 26808 16932 [req_6bc433059211] GET /api/v1/student/profile
+[INFO] 2026-05-10 21:03:38,650 basehttp 26808 16932 "GET /api/v1/student/profile HTTP/1.1" 200 942
+[INFO] 2026-05-10 21:03:40,693 logging 26808 28528 [req_aa5fd79b3b20] GET /api/v1/student/interviews
+[INFO] 2026-05-10 21:03:40,693 basehttp 26808 28528 "GET /api/v1/student/interviews HTTP/1.1" 200 571
+[INFO] 2026-05-10 21:03:40,728 logging 26808 15380 [req_51d7e019c173] GET /api/v1/student/courses
+[INFO] 2026-05-10 21:03:40,729 basehttp 26808 15380 "GET /api/v1/student/courses HTTP/1.1" 200 2899
+[INFO] 2026-05-10 21:03:40,757 logging 26808 20220 [req_dbfbbb7c2127] GET /api/v1/student/interviews
+[INFO] 2026-05-10 21:03:40,758 basehttp 26808 20220 "GET /api/v1/student/interviews HTTP/1.1" 200 571
+[INFO] 2026-05-10 21:03:40,774 logging 26808 27864 [req_310658cc549f] GET /api/v1/student/skills
+[INFO] 2026-05-10 21:03:40,776 basehttp 26808 27864 "GET /api/v1/student/skills HTTP/1.1" 200 1410
+[INFO] 2026-05-10 21:03:40,820 logging 26808 25104 [req_0e0064233a65] GET /api/v1/student/courses
+[INFO] 2026-05-10 21:03:40,822 basehttp 26808 25104 "GET /api/v1/student/courses HTTP/1.1" 200 2899
+[INFO] 2026-05-10 21:03:40,854 logging 26808 11856 [req_b2c39cc1d8ff] GET /api/v1/student/skills
+[INFO] 2026-05-10 21:03:40,854 basehttp 26808 11856 "GET /api/v1/student/skills HTTP/1.1" 200 1410
+[INFO] 2026-05-10 21:03:40,904 logging 26808 22436 [req_bced068b6bd3] GET /api/v1/student/exam-results
+[INFO] 2026-05-10 21:03:40,904 basehttp 26808 22436 "GET /api/v1/student/exam-results HTTP/1.1" 200 2713
+[INFO] 2026-05-10 21:03:40,935 logging 26808 19852 [req_f1aa128cc593] GET /api/v1/student/dashboard
+[INFO] 2026-05-10 21:03:40,936 basehttp 26808 19852 "GET /api/v1/student/dashboard HTTP/1.1" 200 1499
+[INFO] 2026-05-10 21:03:41,043 logging 26808 28164 [req_7d30686dfa18] GET /api/v1/student/exam-results
+[INFO] 2026-05-10 21:03:41,043 basehttp 26808 28164 "GET /api/v1/student/exam-results HTTP/1.1" 200 2713
+[INFO] 2026-05-10 21:03:41,077 logging 26808 12604 [req_b2814fb0f555] GET /api/v1/student/dashboard
+[INFO] 2026-05-10 21:03:41,079 basehttp 26808 12604 "GET /api/v1/student/dashboard HTTP/1.1" 200 1499
+[INFO] 2026-05-10 21:04:51,215 logging 26808 29556 [req_9589036d16f9] GET /api/v1/auth/session
+[INFO] 2026-05-10 21:04:51,217 basehttp 26808 29556 "GET /api/v1/auth/session HTTP/1.1" 200 266
+[INFO] 2026-05-10 21:04:51,228 logging 26808 17700 [req_e50dc8ce717d] GET /api/v1/auth/session
+[INFO] 2026-05-10 21:04:51,229 basehttp 26808 17700 "GET /api/v1/auth/session HTTP/1.1" 200 266
+[INFO] 2026-05-10 21:04:51,285 logging 26808 20208 [req_53ca7783a813] GET /api/v1/student/courses
+[INFO] 2026-05-10 21:04:51,285 basehttp 26808 20208 "GET /api/v1/student/courses HTTP/1.1" 200 2899
+[INFO] 2026-05-10 21:04:51,290 logging 26808 28036 [req_007c64038bd3] GET /api/v1/student/skills
+[INFO] 2026-05-10 21:04:51,290 basehttp 26808 28036 "GET /api/v1/student/skills HTTP/1.1" 200 1410
+[INFO] 2026-05-10 21:04:51,307 logging 26808 8268 [req_cd7215afcf76] GET /api/v1/student/interviews
+[INFO] 2026-05-10 21:04:51,308 basehttp 26808 8268 "GET /api/v1/student/interviews HTTP/1.1" 200 571
+[INFO] 2026-05-10 21:04:51,352 logging 26808 25172 [req_559269a64878] GET /api/v1/student/courses
+[INFO] 2026-05-10 21:04:51,359 basehttp 26808 25172 "GET /api/v1/student/courses HTTP/1.1" 200 2899
+[INFO] 2026-05-10 21:04:51,439 logging 26808 15732 [req_e66b5be57d63] GET /api/v1/student/skills
+[INFO] 2026-05-10 21:04:51,439 basehttp 26808 15732 "GET /api/v1/student/skills HTTP/1.1" 200 1410
+[INFO] 2026-05-10 21:04:51,465 logging 26808 13764 [req_e7e2bd5448d0] GET /api/v1/student/exam-results
+[INFO] 2026-05-10 21:04:51,465 basehttp 26808 13764 "GET /api/v1/student/exam-results HTTP/1.1" 200 2713
+[INFO] 2026-05-10 21:04:51,556 logging 26808 29564 [req_08d9673dca09] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:04:51,559 log 26808 29564 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:04:51,561 basehttp 26808 29564 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:04:51,572 logging 26808 26628 [req_c18eecc5815a] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:04:51,572 log 26808 26628 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:04:51,574 basehttp 26808 26628 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:04:51,600 logging 26808 19720 [req_ad1e37a1bc75] GET /api/v1/student/interviews
+[INFO] 2026-05-10 21:04:51,601 basehttp 26808 19720 "GET /api/v1/student/interviews HTTP/1.1" 200 571
+[INFO] 2026-05-10 21:04:51,643 logging 26808 16884 [req_d03846ebcaaf] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:04:51,644 log 26808 16884 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:04:51,644 basehttp 26808 16884 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:04:51,657 logging 26808 11848 [req_b35ef1bd43c6] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:04:51,658 log 26808 11848 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:04:51,658 basehttp 26808 11848 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:04:51,682 logging 26808 26576 [req_b418b9ec6670] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:04:51,682 log 26808 26576 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:04:51,682 basehttp 26808 26576 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:04:51,707 logging 26808 15660 [req_8017fc250f95] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:04:51,707 log 26808 15660 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:04:51,707 basehttp 26808 15660 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:04:51,771 logging 26808 18968 [req_3b47b416e8c5] GET /api/v1/student/dashboard
+[INFO] 2026-05-10 21:04:51,774 basehttp 26808 18968 "GET /api/v1/student/dashboard HTTP/1.1" 200 1499
+[INFO] 2026-05-10 21:04:51,780 logging 26808 25276 [req_db9ed54495f7] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:04:51,780 log 26808 25276 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:04:51,783 basehttp 26808 25276 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:04:51,791 logging 26808 27152 [req_4fdeb7536f05] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:04:51,791 log 26808 27152 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:04:51,791 basehttp 26808 27152 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:04:51,832 logging 26808 24788 [req_007bea76270d] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:04:51,832 log 26808 24788 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:04:51,832 basehttp 26808 24788 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:04:51,855 logging 26808 25764 [req_1ef9d278c2fd] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:04:51,855 log 26808 25764 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:04:51,856 basehttp 26808 25764 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:04:51,890 logging 26808 26544 [req_08c491329361] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:04:51,891 log 26808 26544 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:04:51,891 basehttp 26808 26544 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:04:51,896 logging 26808 7296 [req_4ecacbc00e2a] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:04:51,896 log 26808 7296 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:04:51,899 basehttp 26808 7296 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:04:51,928 logging 26808 16360 [req_1e5de8061b2a] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:04:51,929 log 26808 16360 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:04:51,929 basehttp 26808 16360 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:04:51,948 logging 26808 27604 [req_9cbbc4cb8cf3] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:04:51,948 log 26808 27604 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:04:51,948 basehttp 26808 27604 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:04:51,984 logging 26808 28628 [req_87b6a951920c] GET /api/v1/student/exam-results
+[INFO] 2026-05-10 21:04:51,986 basehttp 26808 28628 "GET /api/v1/student/exam-results HTTP/1.1" 200 2713
+[INFO] 2026-05-10 21:04:52,017 logging 26808 13492 [req_8d5502bf9757] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:04:52,018 log 26808 13492 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:04:52,018 basehttp 26808 13492 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:04:52,034 logging 26808 24256 [req_097c8f1ad3b7] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:04:52,034 log 26808 24256 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:04:52,034 basehttp 26808 24256 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:04:52,041 logging 26808 9360 [req_3fd26da2dc84] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:04:52,041 log 26808 9360 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:04:52,041 basehttp 26808 9360 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:04:52,081 logging 26808 6496 [req_4c5917909372] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:04:52,081 log 26808 6496 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:04:52,081 basehttp 26808 6496 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:04:52,124 logging 26808 19124 [req_2dec34e72e67] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:04:52,124 log 26808 19124 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:04:52,127 basehttp 26808 19124 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:04:52,131 logging 26808 20932 [req_e5ccdf9a9cc0] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:04:52,131 log 26808 20932 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:04:52,131 basehttp 26808 20932 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:04:52,163 logging 26808 18256 [req_dd2fa420c0e7] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:04:52,166 log 26808 18256 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:04:52,166 basehttp 26808 18256 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:04:52,173 logging 26808 28260 [req_aed8b0bf730d] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:04:52,174 log 26808 28260 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:04:52,174 basehttp 26808 28260 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:04:52,206 logging 26808 27124 [req_ab6dbb67ad57] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:04:52,206 log 26808 27124 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:04:52,212 basehttp 26808 27124 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:04:52,215 logging 26808 21724 [req_a2876ab5aa33] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:04:52,215 log 26808 21724 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:04:52,218 basehttp 26808 21724 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:04:52,236 logging 26808 29172 [req_c00712b2f2c8] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:04:52,237 log 26808 29172 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:04:52,237 basehttp 26808 29172 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:04:52,272 logging 26808 688 [req_f1769f061b6f] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:04:52,273 log 26808 688 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:04:52,273 basehttp 26808 688 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:04:52,297 logging 26808 4904 [req_a9525e8c2cb6] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:04:52,298 log 26808 4904 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:04:52,298 basehttp 26808 4904 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:04:52,322 logging 26808 29612 [req_1f35cbd44c78] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:04:52,322 log 26808 29612 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:04:52,322 basehttp 26808 29612 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:04:52,338 logging 26808 27772 [req_9be57345621a] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:04:52,338 log 26808 27772 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:04:52,338 basehttp 26808 27772 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:04:52,371 logging 26808 21564 [req_db4aa8047dfc] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:04:52,371 log 26808 21564 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:04:52,372 basehttp 26808 21564 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:04:52,399 logging 26808 18144 [req_5f95e9420766] GET /api/v1/student/dashboard
+[INFO] 2026-05-10 21:04:52,400 basehttp 26808 18144 "GET /api/v1/student/dashboard HTTP/1.1" 200 1499
+[INFO] 2026-05-10 21:04:53,144 logging 26808 1556 [req_98cf1fccb13c] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:04:53,144 log 26808 1556 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:04:53,144 basehttp 26808 1556 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:04:53,158 logging 26808 29148 [req_f9d111025314] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:04:53,158 log 26808 29148 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:04:53,158 basehttp 26808 29148 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:05:18,358 logging 26808 21992 [req_e9378f7fb739] GET /api/v1/student/skills
+[INFO] 2026-05-10 21:05:18,358 basehttp 26808 21992 "GET /api/v1/student/skills HTTP/1.1" 200 1410
+[INFO] 2026-05-10 21:05:18,370 logging 26808 12132 [req_8b0c9c5c5537] GET /api/v1/student/courses
+[INFO] 2026-05-10 21:05:18,370 basehttp 26808 12132 "GET /api/v1/student/courses HTTP/1.1" 200 2899
+[INFO] 2026-05-10 21:05:18,394 logging 26808 8012 [req_f71a6525d2e8] GET /api/v1/student/interviews
+[INFO] 2026-05-10 21:05:18,394 basehttp 26808 8012 "GET /api/v1/student/interviews HTTP/1.1" 200 571
+[INFO] 2026-05-10 21:05:18,437 logging 26808 1692 [req_dccba29ccf56] GET /api/v1/notifications
+[INFO] 2026-05-10 21:05:18,438 basehttp 26808 1692 "GET /api/v1/notifications HTTP/1.1" 200 1777
+[INFO] 2026-05-10 21:05:18,456 logging 26808 9788 [req_f620c7ce205a] GET /api/v1/student/exam-results
+[INFO] 2026-05-10 21:05:18,456 basehttp 26808 9788 "GET /api/v1/student/exam-results HTTP/1.1" 200 2713
+[INFO] 2026-05-10 21:05:18,477 logging 26808 13392 [req_5ade741c02c9] GET /api/v1/student/skills
+[INFO] 2026-05-10 21:05:18,477 basehttp 26808 13392 "GET /api/v1/student/skills HTTP/1.1" 200 1410
+[INFO] 2026-05-10 21:05:18,487 logging 26808 9828 [req_2012eb5b2b18] GET /api/v1/student/courses
+[INFO] 2026-05-10 21:05:18,488 basehttp 26808 9828 "GET /api/v1/student/courses HTTP/1.1" 200 2899
+[INFO] 2026-05-10 21:05:18,516 logging 26808 29368 [req_2326343a164f] GET /api/v1/student/interviews
+[INFO] 2026-05-10 21:05:18,517 basehttp 26808 29368 "GET /api/v1/student/interviews HTTP/1.1" 200 571
+[INFO] 2026-05-10 21:05:18,556 logging 26808 5552 [req_30c8e6b4505e] GET /api/v1/notifications
+[INFO] 2026-05-10 21:05:18,558 basehttp 26808 5552 "GET /api/v1/notifications HTTP/1.1" 200 1777
+[INFO] 2026-05-10 21:05:18,597 logging 26808 28276 [req_6bb4f3ace913] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:18,597 log 26808 28276 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:18,597 basehttp 26808 28276 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:05:18,619 logging 26808 7972 [req_d31b3eb07e83] GET /api/v1/student/dashboard
+[INFO] 2026-05-10 21:05:18,620 basehttp 26808 7972 "GET /api/v1/student/dashboard HTTP/1.1" 200 1499
+[INFO] 2026-05-10 21:05:18,662 logging 26808 5808 [req_5528b91d8212] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:18,662 log 26808 5808 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:18,663 basehttp 26808 5808 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:05:18,717 logging 26808 24176 [req_ab11fe70c87d] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:18,717 log 26808 24176 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:18,718 basehttp 26808 24176 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:05:18,755 logging 26808 6796 [req_45f1a7284e2a] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:18,755 log 26808 6796 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:18,755 basehttp 26808 6796 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:05:18,794 logging 26808 29504 [req_3cca92d88f22] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:18,794 log 26808 29504 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:18,796 basehttp 26808 29504 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:05:18,806 logging 26808 13328 [req_280284b273ad] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:18,806 log 26808 13328 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:18,806 basehttp 26808 13328 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:05:18,834 logging 26808 13196 [req_6c60932d66a0] GET /api/v1/student/exam-results
+[INFO] 2026-05-10 21:05:18,836 basehttp 26808 13196 "GET /api/v1/student/exam-results HTTP/1.1" 200 2713
+[INFO] 2026-05-10 21:05:18,867 logging 26808 3468 [req_9f40da568dac] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:18,869 log 26808 3468 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:18,870 basehttp 26808 3468 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:05:18,886 logging 26808 9904 [req_389485285bfe] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:18,886 log 26808 9904 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:18,889 basehttp 26808 9904 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:05:18,902 logging 26808 7520 [req_6c2b9a0d80e6] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:18,904 log 26808 7520 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:18,904 basehttp 26808 7520 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:05:18,921 logging 26808 24364 [req_7f7d6a8885fa] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:18,921 log 26808 24364 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:18,921 basehttp 26808 24364 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:05:18,927 logging 26808 24052 [req_85d43d459639] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:18,927 log 26808 24052 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:18,927 basehttp 26808 24052 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:05:18,982 logging 26808 25856 [req_365ed3ea0b59] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:18,982 log 26808 25856 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:18,983 basehttp 26808 25856 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:05:19,015 logging 26808 27448 [req_1e6838b989e9] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:19,015 log 26808 27448 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:19,017 basehttp 26808 27448 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:05:19,041 logging 26808 10384 [req_3cb0399e8035] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:19,042 log 26808 10384 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:19,044 basehttp 26808 10384 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:05:19,069 logging 26808 25916 [req_ae0882ef3e22] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:19,070 log 26808 25916 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:19,070 basehttp 26808 25916 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:05:19,123 logging 26808 17212 [req_1c5301c149a1] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:19,124 log 26808 17212 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:19,124 basehttp 26808 17212 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:05:19,169 logging 26808 22268 [req_64b31c1d4ecb] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:19,172 log 26808 22268 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:19,179 basehttp 26808 22268 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:05:19,201 logging 26808 9792 [req_5d115bc1145c] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:19,213 log 26808 9792 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:19,218 basehttp 26808 9792 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:05:19,232 logging 26808 25332 [req_2dd2151fceed] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:19,232 log 26808 25332 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:19,234 basehttp 26808 25332 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:05:19,272 logging 26808 25572 [req_76d3aa7d486a] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:19,275 log 26808 25572 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:19,275 basehttp 26808 25572 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:05:19,303 logging 26808 19740 [req_79082a505ca4] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:19,303 log 26808 19740 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:19,303 basehttp 26808 19740 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:05:19,337 logging 26808 29656 [req_ed910a75a86d] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:19,363 log 26808 29656 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:19,370 basehttp 26808 29656 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:05:19,371 logging 26808 26276 [req_f8cd1146c757] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:19,372 log 26808 26276 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:19,373 basehttp 26808 26276 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:05:19,387 logging 26808 23148 [req_27776051cd20] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:19,387 log 26808 23148 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:19,387 basehttp 26808 23148 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:05:19,410 logging 26808 14980 [req_20537d445e2b] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:19,410 log 26808 14980 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:19,410 basehttp 26808 14980 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:05:19,474 logging 26808 29176 [req_6f298a235bfd] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:19,479 log 26808 29176 Not Found: /api/v1/metrics/web-vitals
+[INFO] 2026-05-10 21:05:19,491 logging 26808 28128 [req_b6e624b65911] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:19,499 basehttp 26808 29176 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[WARNING] 2026-05-10 21:05:19,500 log 26808 28128 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:19,503 basehttp 26808 28128 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:05:19,518 logging 26808 18780 [req_f96bb7b878f0] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:19,519 log 26808 18780 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:19,519 basehttp 26808 18780 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:05:19,555 logging 26808 26780 [req_ff9e01faaaff] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:19,556 log 26808 26780 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:19,556 basehttp 26808 26780 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:05:19,567 logging 26808 23944 [req_90a291ef3817] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:19,569 log 26808 23944 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:19,571 basehttp 26808 23944 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:05:19,580 logging 26808 15384 [req_bd1c9437df8e] GET /api/v1/student/dashboard
+[INFO] 2026-05-10 21:05:19,582 basehttp 26808 15384 "GET /api/v1/student/dashboard HTTP/1.1" 200 1499
+[INFO] 2026-05-10 21:05:24,299 logging 26808 20060 [req_5332de5e3772] GET /api/v1/notifications
+[INFO] 2026-05-10 21:05:24,302 basehttp 26808 20060 "GET /api/v1/notifications HTTP/1.1" 200 1777
+[INFO] 2026-05-10 21:05:24,319 logging 26808 14808 [req_b7b66cc4a120] GET /api/v1/notifications
+[INFO] 2026-05-10 21:05:24,319 basehttp 26808 14808 "GET /api/v1/notifications HTTP/1.1" 200 1777
+[INFO] 2026-05-10 21:05:26,960 logging 26808 4308 [req_ac0917609725] POST /api/v1/notifications/38/read
+[INFO] 2026-05-10 21:05:26,960 basehttp 26808 4308 "POST /api/v1/notifications/38/read HTTP/1.1" 200 354
+[INFO] 2026-05-10 21:05:28,201 logging 26808 12232 [req_f572e4c720b7] GET /api/v1/notifications
+[INFO] 2026-05-10 21:05:28,204 basehttp 26808 12232 "GET /api/v1/notifications HTTP/1.1" 200 1806
+[INFO] 2026-05-10 21:05:30,239 logging 26808 6368 [req_78cb7e9b088a] GET /api/v1/student/profile
+[INFO] 2026-05-10 21:05:30,240 basehttp 26808 6368 "GET /api/v1/student/profile HTTP/1.1" 200 942
+[INFO] 2026-05-10 21:05:30,256 logging 26808 9236 [req_0864c65d0b6d] GET /api/v1/student/profile
+[INFO] 2026-05-10 21:05:30,257 basehttp 26808 9236 "GET /api/v1/student/profile HTTP/1.1" 200 942
+[INFO] 2026-05-10 21:05:37,579 logging 26808 19684 [req_ea23203a78ca] GET /api/v1/auth/session
+[INFO] 2026-05-10 21:05:37,580 basehttp 26808 19684 "GET /api/v1/auth/session HTTP/1.1" 200 266
+[INFO] 2026-05-10 21:05:37,590 logging 26808 24140 [req_b03979c3912c] GET /api/v1/auth/session
+[INFO] 2026-05-10 21:05:37,590 basehttp 26808 24140 "GET /api/v1/auth/session HTTP/1.1" 200 266
+[INFO] 2026-05-10 21:05:37,635 logging 26808 29068 [req_ae76fbf2097c] GET /api/v1/notifications
+[INFO] 2026-05-10 21:05:37,636 basehttp 26808 29068 "GET /api/v1/notifications HTTP/1.1" 200 1806
+[INFO] 2026-05-10 21:05:37,650 logging 26808 20696 [req_38fb921ca3c1] GET /api/v1/notifications
+[INFO] 2026-05-10 21:05:37,651 basehttp 26808 20696 "GET /api/v1/notifications HTTP/1.1" 200 1806
+[INFO] 2026-05-10 21:05:37,705 logging 26808 24252 [req_341c42e8add2] GET /api/v1/student/profile
+[INFO] 2026-05-10 21:05:37,706 basehttp 26808 24252 "GET /api/v1/student/profile HTTP/1.1" 200 942
+[INFO] 2026-05-10 21:05:37,714 logging 26808 5500 [req_b14d5942bd7a] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:37,716 log 26808 5500 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:37,718 basehttp 26808 5500 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:05:37,752 logging 26808 5972 [req_a15a13093bed] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:37,752 log 26808 5972 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:37,753 basehttp 26808 5972 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:05:37,778 logging 26808 25252 [req_e7cbf918e482] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:37,779 log 26808 25252 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:37,779 basehttp 26808 25252 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:05:37,818 logging 26808 27388 [req_a083e5c817dc] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:37,819 log 26808 27388 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:37,820 basehttp 26808 27388 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:05:37,852 logging 26808 27688 [req_24de59e66614] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:37,855 log 26808 27688 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:37,855 basehttp 26808 27688 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:05:37,876 logging 26808 24504 [req_758071dd0647] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:37,876 log 26808 24504 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:37,878 basehttp 26808 24504 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:05:37,897 logging 26808 22584 [req_265ff79dc389] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:37,897 log 26808 22584 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:37,897 basehttp 26808 22584 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:05:37,919 logging 26808 26824 [req_9770892d07e6] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:37,919 log 26808 26824 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:37,920 basehttp 26808 26824 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:05:37,953 logging 26808 18832 [req_1d070aa072bb] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:37,958 log 26808 18832 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:37,958 basehttp 26808 18832 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:05:37,962 logging 26808 27132 [req_1cf3c773bc92] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:37,962 log 26808 27132 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:37,974 basehttp 26808 27132 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:05:37,980 logging 26808 16412 [req_0b8f5313eb17] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:37,980 log 26808 16412 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:37,980 basehttp 26808 16412 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:05:38,019 logging 26808 6148 [req_84aae17ba72e] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:38,019 log 26808 6148 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:38,021 basehttp 26808 6148 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:05:38,025 logging 26808 6104 [req_b2a66f6af641] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:38,025 log 26808 6104 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:38,026 basehttp 26808 6104 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:05:38,046 logging 26808 22952 [req_c594c0f4d495] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:38,047 log 26808 22952 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:38,047 basehttp 26808 22952 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:05:38,055 logging 26808 8656 [req_1f008c1c6ad0] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:38,055 log 26808 8656 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:38,055 basehttp 26808 8656 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:05:38,078 logging 26808 26572 [req_b94bf35d7261] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:38,078 log 26808 26572 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:38,079 basehttp 26808 26572 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:05:38,125 logging 26808 5964 [req_33e87f67a0f0] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:38,125 log 26808 5964 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:38,128 basehttp 26808 5964 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:05:38,131 logging 26808 23112 [req_aa2811eac165] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:38,131 log 26808 23112 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:38,132 basehttp 26808 23112 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:05:38,144 logging 26808 1864 [req_47af828c1175] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:38,144 log 26808 1864 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:38,144 basehttp 26808 1864 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:05:38,171 logging 26808 7932 [req_a9a57336414d] GET /api/v1/student/profile
+[INFO] 2026-05-10 21:05:38,182 basehttp 26808 7932 "GET /api/v1/student/profile HTTP/1.1" 200 942
+[INFO] 2026-05-10 21:05:38,186 logging 26808 24020 [req_1e91e90c1478] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:38,187 log 26808 24020 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:38,188 basehttp 26808 24020 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:05:38,215 logging 26808 7364 [req_b69f53580cdc] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:38,215 log 26808 7364 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:38,215 basehttp 26808 7364 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:05:38,230 logging 26808 16916 [req_6d21fe49d66f] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:38,231 log 26808 16916 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:38,231 basehttp 26808 16916 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:05:38,252 logging 26808 3304 [req_8d6f8e27292d] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:38,253 log 26808 3304 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:38,253 basehttp 26808 3304 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:05:38,278 logging 26808 26132 [req_60dcba0afcb6] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:38,278 log 26808 26132 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:38,281 basehttp 26808 26132 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:05:38,285 logging 26808 18292 [req_cc713abb5146] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:38,285 log 26808 18292 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:38,285 basehttp 26808 18292 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:05:38,305 logging 26808 29396 [req_7b2fcf8707ec] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:38,306 log 26808 29396 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:38,306 basehttp 26808 29396 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:05:38,309 logging 26808 27936 [req_56b9bb2af015] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:38,309 log 26808 27936 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:38,309 basehttp 26808 27936 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:05:38,333 logging 26808 25928 [req_2a61b2c42b67] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:38,333 log 26808 25928 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:38,334 basehttp 26808 25928 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:05:38,363 logging 26808 13800 [req_dd9b6259afa5] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:38,363 log 26808 13800 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:38,363 basehttp 26808 13800 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:05:38,379 logging 26808 17600 [req_a67f212c2738] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:38,379 log 26808 17600 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:38,380 basehttp 26808 17600 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:05:38,382 logging 26808 18592 [req_9881b0433023] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:38,382 log 26808 18592 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:38,382 basehttp 26808 18592 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:05:38,420 logging 26808 26424 [req_90b433fa2c29] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:38,422 log 26808 26424 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:38,422 basehttp 26808 26424 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:05:39,705 logging 26808 26652 [req_60c3108f3bd7] GET /api/v1/student/interviews
+[INFO] 2026-05-10 21:05:39,706 basehttp 26808 26652 "GET /api/v1/student/interviews HTTP/1.1" 200 571
+[INFO] 2026-05-10 21:05:39,726 logging 26808 9716 [req_0f56f971a480] GET /api/v1/student/skills
+[INFO] 2026-05-10 21:05:39,726 basehttp 26808 9716 "GET /api/v1/student/skills HTTP/1.1" 200 1410
+[INFO] 2026-05-10 21:05:39,742 logging 26808 28488 [req_edd676ce4901] GET /api/v1/student/skills
+[INFO] 2026-05-10 21:05:39,742 basehttp 26808 28488 "GET /api/v1/student/skills HTTP/1.1" 200 1410
+[INFO] 2026-05-10 21:05:39,776 logging 26808 28168 [req_4bcc028da7c3] GET /api/v1/student/courses
+[INFO] 2026-05-10 21:05:39,776 basehttp 26808 28168 "GET /api/v1/student/courses HTTP/1.1" 200 2899
+[INFO] 2026-05-10 21:05:39,806 logging 26808 5876 [req_20656e0e6842] GET /api/v1/student/interviews
+[INFO] 2026-05-10 21:05:39,806 basehttp 26808 5876 "GET /api/v1/student/interviews HTTP/1.1" 200 571
+[INFO] 2026-05-10 21:05:39,884 logging 26808 3144 [req_e4a0148b0b79] GET /api/v1/student/courses
+[INFO] 2026-05-10 21:05:39,884 basehttp 26808 3144 "GET /api/v1/student/courses HTTP/1.1" 200 2899
+[INFO] 2026-05-10 21:05:39,957 logging 26808 14640 [req_3320c0de4b81] GET /api/v1/student/exam-results
+[INFO] 2026-05-10 21:05:39,959 basehttp 26808 14640 "GET /api/v1/student/exam-results HTTP/1.1" 200 2713
+[INFO] 2026-05-10 21:05:39,994 logging 26808 8808 [req_6fa75f85b3b1] GET /api/v1/student/dashboard
+[INFO] 2026-05-10 21:05:39,996 basehttp 26808 8808 "GET /api/v1/student/dashboard HTTP/1.1" 200 1499
+[INFO] 2026-05-10 21:05:40,068 logging 26808 27800 [req_2ec5d094bbb7] GET /api/v1/student/exam-results
+[INFO] 2026-05-10 21:05:40,069 basehttp 26808 27800 "GET /api/v1/student/exam-results HTTP/1.1" 200 2713
+[INFO] 2026-05-10 21:05:40,143 logging 26808 22400 [req_5a31e42f5655] GET /api/v1/student/dashboard
+[INFO] 2026-05-10 21:05:40,144 basehttp 26808 22400 "GET /api/v1/student/dashboard HTTP/1.1" 200 1499
+[INFO] 2026-05-10 21:05:52,099 logging 26808 18032 [req_7bf24b078182] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:52,099 log 26808 18032 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:52,100 basehttp 26808 18032 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:05:52,107 logging 26808 4112 [req_385fb7afe551] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:52,107 log 26808 4112 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:05:52,107 basehttp 26808 4112 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:06:04,507 logging 26808 3728 [req_92900d421d95] GET /api/v1/auth/session
+[INFO] 2026-05-10 21:06:04,509 basehttp 26808 3728 "GET /api/v1/auth/session HTTP/1.1" 200 266
+[INFO] 2026-05-10 21:06:04,520 logging 26808 25728 [req_c0f6ea799412] GET /api/v1/auth/session
+[INFO] 2026-05-10 21:06:04,520 basehttp 26808 25728 "GET /api/v1/auth/session HTTP/1.1" 200 266
+[INFO] 2026-05-10 21:06:04,569 logging 26808 26396 [req_9f90a91f341d] GET /api/v1/student/interviews
+[INFO] 2026-05-10 21:06:04,569 basehttp 26808 26396 "GET /api/v1/student/interviews HTTP/1.1" 200 571
+[INFO] 2026-05-10 21:06:04,600 logging 26808 23660 [req_cb3b7b62d701] GET /api/v1/student/courses
+[INFO] 2026-05-10 21:06:04,600 basehttp 26808 23660 "GET /api/v1/student/courses HTTP/1.1" 200 2899
+[INFO] 2026-05-10 21:06:04,623 logging 26808 29520 [req_275eb36b7363] GET /api/v1/student/interviews
+[INFO] 2026-05-10 21:06:04,623 basehttp 26808 29520 "GET /api/v1/student/interviews HTTP/1.1" 200 571
+[INFO] 2026-05-10 21:06:04,659 logging 26808 18912 [req_c43cf128c533] GET /api/v1/student/courses
+[INFO] 2026-05-10 21:06:04,659 basehttp 26808 18912 "GET /api/v1/student/courses HTTP/1.1" 200 2899
+[INFO] 2026-05-10 21:06:04,687 logging 26808 22720 [req_9704aeddf6d4] GET /api/v1/notifications
+[INFO] 2026-05-10 21:06:04,687 basehttp 26808 22720 "GET /api/v1/notifications HTTP/1.1" 200 1806
+[INFO] 2026-05-10 21:06:04,715 logging 26808 6476 [req_cda24f9bcec0] GET /api/v1/student/skills
+[INFO] 2026-05-10 21:06:04,716 basehttp 26808 6476 "GET /api/v1/student/skills HTTP/1.1" 200 1410
+[INFO] 2026-05-10 21:06:04,743 logging 26808 28592 [req_44ef68319628] GET /api/v1/student/skills
+[INFO] 2026-05-10 21:06:04,744 basehttp 26808 28592 "GET /api/v1/student/skills HTTP/1.1" 200 1410
+[INFO] 2026-05-10 21:06:04,779 logging 26808 5444 [req_ea87bbc2bff1] GET /api/v1/notifications
+[INFO] 2026-05-10 21:06:04,779 basehttp 26808 5444 "GET /api/v1/notifications HTTP/1.1" 200 1806
+[INFO] 2026-05-10 21:06:04,804 logging 26808 29392 [req_537a712a1cdb] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:04,804 log 26808 29392 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:04,804 basehttp 26808 29392 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:06:04,826 logging 26808 3432 [req_dd82d977abf4] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:04,826 log 26808 3432 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:04,833 basehttp 26808 3432 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:06:04,844 logging 26808 28348 [req_95b216204cf4] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:04,845 log 26808 28348 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:04,845 basehttp 26808 28348 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:06:04,870 logging 26808 6340 [req_c20b8eae782c] GET /api/v1/student/exam-results
+[INFO] 2026-05-10 21:06:04,871 basehttp 26808 6340 "GET /api/v1/student/exam-results HTTP/1.1" 200 2713
+[INFO] 2026-05-10 21:06:04,962 logging 26808 21356 [req_cf6b629e2c90] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:04,962 log 26808 21356 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:04,964 basehttp 26808 21356 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:06:04,993 logging 26808 12728 [req_dd5929b81952] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:04,996 log 26808 12728 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:05,004 basehttp 26808 12728 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:06:05,025 logging 26808 25240 [req_d74d7c5e3fe2] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:05,025 log 26808 25240 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:05,025 basehttp 26808 25240 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:06:05,046 logging 26808 25796 [req_f60bdc35ff0d] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:05,047 log 26808 25796 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:05,047 basehttp 26808 25796 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:06:05,121 logging 26808 9736 [req_1cdeb99ae834] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:05,122 log 26808 9736 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:05,123 basehttp 26808 9736 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:06:05,127 logging 26808 14700 [req_d31abca9e610] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:05,128 log 26808 14700 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:05,128 basehttp 26808 14700 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:06:05,152 logging 26808 29292 [req_ba8320128236] GET /api/v1/student/dashboard
+[INFO] 2026-05-10 21:06:05,153 basehttp 26808 29292 "GET /api/v1/student/dashboard HTTP/1.1" 200 1499
+[INFO] 2026-05-10 21:06:05,206 logging 26808 29324 [req_24622cd5bb88] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:05,206 log 26808 29324 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:05,206 basehttp 26808 29324 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:06:05,232 logging 26808 19700 [req_2e04d5760553] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:05,232 log 26808 19700 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:05,232 basehttp 26808 19700 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:06:05,263 logging 26808 25616 [req_ad56201462c7] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:05,263 log 26808 25616 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:05,263 basehttp 26808 25616 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:06:05,285 logging 26808 27968 [req_a6e575c973a7] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:05,286 log 26808 27968 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:05,286 basehttp 26808 27968 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:06:05,334 logging 26808 5336 [req_3b98bf73553c] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:05,335 log 26808 5336 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:05,335 basehttp 26808 5336 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:06:05,371 logging 26808 21176 [req_558f17c8ef6c] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:05,371 log 26808 21176 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:05,371 basehttp 26808 21176 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:06:05,382 logging 26808 3536 [req_702f58d1ebd5] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:05,382 log 26808 3536 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:05,382 basehttp 26808 3536 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:06:05,413 logging 26808 10536 [req_eb1a38023062] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:05,414 log 26808 10536 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:05,414 basehttp 26808 10536 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:06:05,453 logging 26808 3096 [req_0ad1871dbd67] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:05,453 log 26808 3096 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:05,453 basehttp 26808 3096 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:06:05,507 logging 26808 18652 [req_cbce6044d55c] GET /api/v1/student/exam-results
+[INFO] 2026-05-10 21:06:05,507 basehttp 26808 18652 "GET /api/v1/student/exam-results HTTP/1.1" 200 2713
+[INFO] 2026-05-10 21:06:05,531 logging 26808 17572 [req_e2992086a96f] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:05,533 log 26808 17572 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:05,533 basehttp 26808 17572 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:06:05,549 logging 26808 15512 [req_cd4296635be9] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:05,550 log 26808 15512 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:05,550 basehttp 26808 15512 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:06:05,574 logging 26808 23380 [req_d247754ac7ce] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:05,574 log 26808 23380 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:05,574 basehttp 26808 23380 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:06:05,598 logging 26808 23252 [req_ec0009bdede6] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:05,598 log 26808 23252 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:05,600 basehttp 26808 23252 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:06:05,646 logging 26808 15796 [req_7551a6e898fb] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:05,646 log 26808 15796 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:05,651 basehttp 26808 15796 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:06:05,677 logging 26808 25384 [req_0b0c2c6ee99d] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:05,677 log 26808 25384 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:05,677 basehttp 26808 25384 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:06:05,702 logging 26808 1104 [req_aad39e47ddd5] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:05,703 log 26808 1104 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:05,703 basehttp 26808 1104 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:06:05,737 logging 26808 2676 [req_e21c639ab207] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:05,738 log 26808 2676 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:05,739 basehttp 26808 2676 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:06:05,764 logging 26808 18268 [req_eb343c0ce0d6] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:05,764 log 26808 18268 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:05,768 basehttp 26808 18268 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:06:05,788 logging 26808 18960 [req_87f2eeee6c2a] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:05,788 log 26808 18960 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:05,788 basehttp 26808 18960 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:06:05,820 logging 26808 4004 [req_1292fb80fa1d] GET /api/v1/student/dashboard
+[INFO] 2026-05-10 21:06:05,821 basehttp 26808 4004 "GET /api/v1/student/dashboard HTTP/1.1" 200 1499
+[INFO] 2026-05-10 21:06:06,524 logging 26808 5012 [req_7f9b460feda1] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:06,524 log 26808 5012 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:06,526 basehttp 26808 5012 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:06:06,537 logging 26808 20992 [req_eedf9c4fb735] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:06,537 log 26808 20992 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:06,538 basehttp 26808 20992 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:06:32,193 logging 26808 23964 [req_1843c7078229] GET /api/v1/auth/session
+[INFO] 2026-05-10 21:06:32,195 basehttp 26808 23964 "GET /api/v1/auth/session HTTP/1.1" 200 266
+[INFO] 2026-05-10 21:06:32,212 logging 26808 23608 [req_5f052ef801db] GET /api/v1/auth/session
+[INFO] 2026-05-10 21:06:32,213 basehttp 26808 23608 "GET /api/v1/auth/session HTTP/1.1" 200 266
+[INFO] 2026-05-10 21:06:32,241 logging 26808 22684 [req_bfbe72674b3f] GET /api/v1/student/skills
+[INFO] 2026-05-10 21:06:32,241 basehttp 26808 22684 "GET /api/v1/student/skills HTTP/1.1" 200 1410
+[INFO] 2026-05-10 21:06:32,259 logging 26808 6292 [req_f570822905fb] GET /api/v1/student/courses
+[INFO] 2026-05-10 21:06:32,259 basehttp 26808 6292 "GET /api/v1/student/courses HTTP/1.1" 200 2899
+[INFO] 2026-05-10 21:06:32,319 logging 26808 3176 [req_a3f3da6bbce0] GET /api/v1/student/interviews
+[INFO] 2026-05-10 21:06:32,319 basehttp 26808 3176 "GET /api/v1/student/interviews HTTP/1.1" 200 571
+[INFO] 2026-05-10 21:06:32,367 logging 26808 6504 [req_f2d8af6ed4a9] GET /api/v1/notifications
+[INFO] 2026-05-10 21:06:32,368 basehttp 26808 6504 "GET /api/v1/notifications HTTP/1.1" 200 1806
+[INFO] 2026-05-10 21:06:32,394 logging 26808 29400 [req_e82c3856cebf] GET /api/v1/student/exam-results
+[INFO] 2026-05-10 21:06:32,394 basehttp 26808 29400 "GET /api/v1/student/exam-results HTTP/1.1" 200 2713
+[INFO] 2026-05-10 21:06:32,427 logging 26808 21316 [req_b5ee788c0b4f] GET /api/v1/student/interviews
+[INFO] 2026-05-10 21:06:32,428 basehttp 26808 21316 "GET /api/v1/student/interviews HTTP/1.1" 200 571
+[INFO] 2026-05-10 21:06:32,469 logging 26808 27120 [req_6e02cf2ebb28] GET /api/v1/student/skills
+[INFO] 2026-05-10 21:06:32,470 basehttp 26808 27120 "GET /api/v1/student/skills HTTP/1.1" 200 1410
+[INFO] 2026-05-10 21:06:32,509 logging 26808 24560 [req_f48adfe1c616] GET /api/v1/notifications
+[INFO] 2026-05-10 21:06:32,512 basehttp 26808 24560 "GET /api/v1/notifications HTTP/1.1" 200 1806
+[INFO] 2026-05-10 21:06:32,518 logging 26808 15540 [req_7aa3a13e00b2] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:32,518 log 26808 15540 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:32,518 basehttp 26808 15540 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:06:32,542 logging 26808 14840 [req_a59c63844c50] GET /api/v1/student/courses
+[INFO] 2026-05-10 21:06:32,542 basehttp 26808 14840 "GET /api/v1/student/courses HTTP/1.1" 200 2899
+[INFO] 2026-05-10 21:06:32,608 logging 26808 26844 [req_fc4b5f562b3d] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:32,608 log 26808 26844 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:32,611 basehttp 26808 26844 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:06:32,636 logging 26808 15636 [req_6877bde36d9c] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:32,637 log 26808 15636 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:32,640 basehttp 26808 15636 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:06:32,668 logging 26808 9180 [req_3b1ab947d15d] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:32,691 log 26808 9180 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:32,699 basehttp 26808 9180 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:06:32,713 logging 26808 21440 [req_fe24123de1aa] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:32,714 log 26808 21440 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:32,715 basehttp 26808 21440 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:06:32,738 logging 26808 1968 [req_807196cb0153] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:32,739 log 26808 1968 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:32,740 basehttp 26808 1968 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:06:32,818 logging 26808 20284 [req_e8aec7805ba7] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:32,819 log 26808 20284 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:32,819 basehttp 26808 20284 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:06:32,850 logging 26808 24144 [req_497c1817a470] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:32,851 log 26808 24144 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:32,852 basehttp 26808 24144 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:06:32,876 logging 26808 11100 [req_8b3413d3e29b] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:32,877 log 26808 11100 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:32,878 basehttp 26808 11100 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:06:32,902 logging 26808 23052 [req_510026cc52ea] GET /api/v1/student/exam-results
+[INFO] 2026-05-10 21:06:32,905 basehttp 26808 23052 "GET /api/v1/student/exam-results HTTP/1.1" 200 2713
+[INFO] 2026-05-10 21:06:32,910 logging 26808 18132 [req_e42f3807311a] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:32,910 log 26808 18132 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:32,912 basehttp 26808 18132 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:06:32,938 logging 26808 16928 [req_9bb0686c5b3c] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:32,938 log 26808 16928 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:32,941 basehttp 26808 16928 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:06:32,971 logging 26808 3224 [req_0b046ac0de7d] GET /api/v1/student/dashboard
+[INFO] 2026-05-10 21:06:32,971 basehttp 26808 3224 "GET /api/v1/student/dashboard HTTP/1.1" 200 1499
+[INFO] 2026-05-10 21:06:33,019 logging 26808 24032 [req_003f8ae3ee79] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:33,024 log 26808 24032 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:33,045 basehttp 26808 24032 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:06:33,055 logging 26808 27000 [req_6361cb7375c8] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:33,055 log 26808 27000 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:33,057 basehttp 26808 27000 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:06:33,085 logging 26808 9072 [req_16a4fee0bd9e] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:33,085 log 26808 9072 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:33,089 basehttp 26808 9072 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:06:33,182 logging 26808 26772 [req_dbe8c38c9a89] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:33,182 log 26808 26772 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:33,185 basehttp 26808 26772 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:06:33,205 logging 26808 12012 [req_b3d25762ef74] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:33,207 log 26808 12012 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:33,208 basehttp 26808 12012 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:06:33,234 logging 26808 29672 [req_a0fa0b000c58] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:33,235 log 26808 29672 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:33,235 basehttp 26808 29672 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:06:33,272 logging 26808 25768 [req_393e7a694fd6] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:33,275 log 26808 25768 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:33,275 basehttp 26808 25768 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:06:33,305 logging 26808 15468 [req_8924bd0dd0b0] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:33,306 log 26808 15468 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:33,306 basehttp 26808 15468 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:06:33,341 logging 26808 24352 [req_90374512f1f7] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:33,341 log 26808 24352 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:33,342 basehttp 26808 24352 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:06:33,370 logging 26808 26420 [req_3bc4a48735d0] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:33,372 log 26808 26420 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:33,374 basehttp 26808 26420 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:06:33,407 logging 26808 7652 [req_75212ab1573a] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:33,407 log 26808 7652 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:33,411 basehttp 26808 7652 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:06:33,416 logging 26808 9812 [req_a83a6aa7c5bf] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:33,417 log 26808 9812 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:33,417 basehttp 26808 9812 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:06:33,446 logging 26808 24064 [req_1206c25b7222] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:33,453 log 26808 24064 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:33,457 basehttp 26808 24064 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:06:33,473 logging 26808 3856 [req_9fe146b90672] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:33,474 log 26808 3856 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:33,474 basehttp 26808 3856 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:06:33,499 logging 26808 11164 [req_a49e16b2253c] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:33,501 log 26808 11164 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:06:33,506 basehttp 26808 11164 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:06:33,543 logging 26808 2252 [req_0e5fbcda39c1] GET /api/v1/student/dashboard
+[INFO] 2026-05-10 21:06:33,544 basehttp 26808 2252 "GET /api/v1/student/dashboard HTTP/1.1" 200 1499
+[INFO] 2026-05-10 21:08:07,013 logging 26808 9400 [req_6011aecfd772] GET /api/v1/auth/session
+[INFO] 2026-05-10 21:08:07,013 basehttp 26808 9400 "GET /api/v1/auth/session HTTP/1.1" 200 266
+[INFO] 2026-05-10 21:08:07,047 logging 26808 5112 [req_f49798a29b10] GET /api/v1/auth/session
+[INFO] 2026-05-10 21:08:07,047 basehttp 26808 5112 "GET /api/v1/auth/session HTTP/1.1" 200 266
+[INFO] 2026-05-10 21:08:07,073 logging 26808 23836 [req_bfec53417759] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:07,073 log 26808 23836 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:07,073 basehttp 26808 23836 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:08:07,091 logging 26808 23864 [req_34aceb7b94a8] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:07,093 log 26808 23864 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:07,096 basehttp 26808 23864 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:08:07,108 logging 26808 17192 [req_52acf12811d9] GET /api/v1/student/courses
+[INFO] 2026-05-10 21:08:07,109 basehttp 26808 17192 "GET /api/v1/student/courses HTTP/1.1" 200 2899
+[INFO] 2026-05-10 21:08:07,148 logging 26808 25988 [req_f8f6643ec46b] GET /api/v1/student/courses
+[INFO] 2026-05-10 21:08:07,148 basehttp 26808 25988 "GET /api/v1/student/courses HTTP/1.1" 200 2899
+[INFO] 2026-05-10 21:08:07,181 logging 26808 14264 [req_e4c018a518eb] GET /api/v1/student/skills
+[INFO] 2026-05-10 21:08:07,181 basehttp 26808 14264 "GET /api/v1/student/skills HTTP/1.1" 200 1410
+[INFO] 2026-05-10 21:08:07,213 logging 26808 8968 [req_12c8fecd9b94] GET /api/v1/student/interviews
+[INFO] 2026-05-10 21:08:07,213 basehttp 26808 8968 "GET /api/v1/student/interviews HTTP/1.1" 200 571
+[INFO] 2026-05-10 21:08:07,262 logging 26808 27060 [req_091070311205] GET /api/v1/notifications
+[INFO] 2026-05-10 21:08:07,262 basehttp 26808 27060 "GET /api/v1/notifications HTTP/1.1" 200 1806
+[INFO] 2026-05-10 21:08:07,292 logging 26808 27108 [req_f5f4a954325a] GET /api/v1/student/interviews
+[INFO] 2026-05-10 21:08:07,292 basehttp 26808 27108 "GET /api/v1/student/interviews HTTP/1.1" 200 571
+[INFO] 2026-05-10 21:08:07,330 logging 26808 24232 [req_5d6a8a81722b] GET /api/v1/notifications
+[INFO] 2026-05-10 21:08:07,331 basehttp 26808 24232 "GET /api/v1/notifications HTTP/1.1" 200 1806
+[INFO] 2026-05-10 21:08:07,361 logging 26808 16352 [req_96082964a3ab] GET /api/v1/student/skills
+[INFO] 2026-05-10 21:08:07,362 basehttp 26808 16352 "GET /api/v1/student/skills HTTP/1.1" 200 1410
+[INFO] 2026-05-10 21:08:07,442 logging 26808 13768 [req_073d6fc9712b] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:07,442 log 26808 13768 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:07,442 basehttp 26808 13768 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:08:07,459 logging 26808 21384 [req_aa0f4741d5bd] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:07,460 log 26808 21384 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:07,460 basehttp 26808 21384 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:08:07,516 logging 26808 25812 [req_578c4b6130dc] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:07,516 log 26808 25812 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:07,518 basehttp 26808 25812 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:08:07,548 logging 26808 21464 [req_7ff830bc93fe] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:07,548 log 26808 21464 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:07,548 basehttp 26808 21464 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:08:07,573 logging 26808 21784 [req_33695b4d8a6a] GET /api/v1/student/exam-results
+[INFO] 2026-05-10 21:08:07,574 basehttp 26808 21784 "GET /api/v1/student/exam-results HTTP/1.1" 200 2713
+[INFO] 2026-05-10 21:08:07,595 logging 26808 29224 [req_9b0830724d46] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:07,603 log 26808 29224 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:07,604 basehttp 26808 29224 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:08:07,620 logging 26808 18360 [req_dfc1bdd8b2e1] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:07,620 log 26808 18360 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:07,620 basehttp 26808 18360 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:08:07,800 logging 26808 20336 [req_d4eacbe0e587] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:07,800 log 26808 20336 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:07,800 basehttp 26808 20336 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:08:07,820 logging 26808 23616 [req_5289f4740241] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:07,823 log 26808 23616 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:07,824 basehttp 26808 23616 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:08:07,858 logging 26808 12568 [req_b630dd9ad94e] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:07,858 log 26808 12568 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:07,858 basehttp 26808 12568 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:08:07,891 logging 26808 18400 [req_2805425a7cb5] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:07,891 log 26808 18400 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:07,891 basehttp 26808 18400 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:08:07,926 logging 26808 29312 [req_17ca607d4e07] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:07,926 log 26808 29312 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:07,929 basehttp 26808 29312 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:08:07,933 logging 26808 14816 [req_bac731abaad4] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:07,933 log 26808 14816 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:07,933 basehttp 26808 14816 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:08:07,952 logging 26808 15332 [req_fff912c6d5db] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:07,952 log 26808 15332 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:07,954 basehttp 26808 15332 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:08:07,981 logging 26808 26872 [req_015e8f9d64a6] GET /api/v1/student/dashboard
+[INFO] 2026-05-10 21:08:07,981 basehttp 26808 26872 "GET /api/v1/student/dashboard HTTP/1.1" 200 1499
+[INFO] 2026-05-10 21:08:08,033 logging 26808 27600 [req_42e975d87708] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:08,033 log 26808 27600 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:08,040 basehttp 26808 27600 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:08:08,070 logging 26808 16604 [req_0aad0892ed5b] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:08,070 log 26808 16604 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:08,070 basehttp 26808 16604 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:08:08,091 logging 26808 23456 [req_4d240372d91f] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:08,091 log 26808 23456 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:08,091 basehttp 26808 23456 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:08:08,125 logging 26808 25548 [req_a044bd2162be] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:08,125 log 26808 25548 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:08,126 basehttp 26808 25548 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:08:08,156 logging 26808 16276 [req_4f660cbd4738] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:08,156 log 26808 16276 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:08,156 basehttp 26808 16276 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:08:08,195 logging 26808 24792 [req_d3159a4da968] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:08,196 log 26808 24792 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:08,198 basehttp 26808 24792 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:08:08,211 logging 26808 2544 [req_5b38bc3cdfda] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:08,211 log 26808 2544 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:08,211 basehttp 26808 2544 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:08:08,234 logging 26808 11972 [req_2365d00a0600] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:08,234 log 26808 11972 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:08,234 basehttp 26808 11972 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:08:08,279 logging 26808 7880 [req_a64b0aa882bd] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:08,284 log 26808 7880 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:08,306 basehttp 26808 7880 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:08:08,306 logging 26808 5792 [req_a19aff3e8e6b] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:08,306 log 26808 5792 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:08,315 basehttp 26808 5792 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:08:08,318 logging 26808 29496 [req_7879f9dd797f] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:08,318 log 26808 29496 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:08,320 basehttp 26808 29496 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:08:08,359 logging 26808 9288 [req_06d1fac9ea4b] GET /api/v1/student/exam-results
+[INFO] 2026-05-10 21:08:08,376 basehttp 26808 9288 "GET /api/v1/student/exam-results HTTP/1.1" 200 2713
+[INFO] 2026-05-10 21:08:08,385 logging 26808 26268 [req_1cc8a068cd51] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:08,385 log 26808 26268 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:08,387 basehttp 26808 26268 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:08:08,427 logging 26808 27092 [req_06e5efa92a31] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:08,427 log 26808 27092 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:08,429 basehttp 26808 27092 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:08:08,476 logging 26808 24236 [req_624a68b6c4b0] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:08,476 log 26808 24236 Not Found: /api/v1/metrics/web-vitals
+[INFO] 2026-05-10 21:08:08,493 logging 26808 23308 [req_7382a2980996] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:08,499 basehttp 26808 24236 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[WARNING] 2026-05-10 21:08:08,499 log 26808 23308 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:08,506 basehttp 26808 23308 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:08:08,510 logging 26808 25760 [req_4f726796eb4f] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:08,510 log 26808 25760 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:08,510 basehttp 26808 25760 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:08:08,543 logging 26808 29308 [req_93cbb8aa50f7] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:08,543 log 26808 29308 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:08,545 basehttp 26808 29308 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:08:08,589 logging 26808 18764 [req_84bb5b18d1ba] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:08,595 log 26808 18764 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:08,608 basehttp 26808 18764 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:08:08,619 logging 26808 25232 [req_4a509cc3a281] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:08,621 log 26808 25232 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:08,622 basehttp 26808 25232 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:08:08,662 logging 26808 29212 [req_1fe6d769e7a8] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:08,663 log 26808 29212 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:08,663 basehttp 26808 29212 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:08:08,684 logging 26808 15524 [req_15bcc0485bf9] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:08,684 log 26808 15524 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:08,684 basehttp 26808 15524 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:08:08,707 logging 26808 15016 [req_298c0c597d54] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:08,708 log 26808 15016 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:08,708 basehttp 26808 15016 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:08:08,727 logging 26808 6356 [req_8119c6bed781] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:08,728 log 26808 6356 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:08,728 basehttp 26808 6356 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:08:08,771 logging 26808 27268 [req_2d14de4b77ec] GET /api/v1/student/dashboard
+[INFO] 2026-05-10 21:08:08,774 basehttp 26808 27268 "GET /api/v1/student/dashboard HTTP/1.1" 200 1499
+[INFO] 2026-05-10 21:08:09,513 logging 26808 28104 [req_29d8c5faa606] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:09,514 log 26808 28104 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:09,514 basehttp 26808 28104 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:08:09,525 logging 26808 22664 [req_fcef406b6ba2] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:09,526 log 26808 22664 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:08:09,526 basehttp 26808 22664 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:08:15,815 logging 26808 28088 [req_72f23286245f] GET /api/v1/student/courses/4
+[INFO] 2026-05-10 21:08:15,815 basehttp 26808 28088 "GET /api/v1/student/courses/4 HTTP/1.1" 200 1535
+[INFO] 2026-05-10 21:08:15,833 logging 26808 18664 [req_cae72956c697] GET /api/v1/student/courses/4
+[INFO] 2026-05-10 21:08:15,834 basehttp 26808 18664 "GET /api/v1/student/courses/4 HTTP/1.1" 200 1535
+[INFO] 2026-05-10 21:08:27,045 logging 26808 8176 [req_31a12c87e6a7] POST /api/v1/student/courses/4/enrollment
+[INFO] 2026-05-10 21:08:27,046 basehttp 26808 8176 "POST /api/v1/student/courses/4/enrollment HTTP/1.1" 201 314
+[INFO] 2026-05-10 21:08:27,074 logging 26808 24720 [req_71ac881212bd] GET /api/v1/student/courses/4
+[INFO] 2026-05-10 21:08:27,077 basehttp 26808 24720 "GET /api/v1/student/courses/4 HTTP/1.1" 200 1656
+[INFO] 2026-05-10 21:08:47,460 logging 26808 7816 [req_6122785b0ee9] GET /api/v1/student/courses
+[INFO] 2026-05-10 21:08:47,460 basehttp 26808 7816 "GET /api/v1/student/courses HTTP/1.1" 200 2917
+[INFO] 2026-05-10 21:08:47,477 logging 26808 6516 [req_59aaa0161425] GET /api/v1/student/skills
+[INFO] 2026-05-10 21:08:47,479 basehttp 26808 6516 "GET /api/v1/student/skills HTTP/1.1" 200 1410
+[INFO] 2026-05-10 21:08:47,541 logging 26808 3888 [req_dd0a17055395] GET /api/v1/student/exam-results
+[INFO] 2026-05-10 21:08:47,542 basehttp 26808 3888 "GET /api/v1/student/exam-results HTTP/1.1" 200 2713
+[INFO] 2026-05-10 21:08:47,560 logging 26808 24584 [req_d6a0ce73dcc6] GET /api/v1/student/interviews
+[INFO] 2026-05-10 21:08:47,560 basehttp 26808 24584 "GET /api/v1/student/interviews HTTP/1.1" 200 571
+[INFO] 2026-05-10 21:08:47,641 logging 26808 9092 [req_30116a75ae94] GET /api/v1/student/dashboard
+[INFO] 2026-05-10 21:08:47,643 basehttp 26808 9092 "GET /api/v1/student/dashboard HTTP/1.1" 200 1702
+[INFO] 2026-05-10 21:08:47,668 logging 26808 2184 [req_f3720e1f265b] GET /api/v1/student/courses
+[INFO] 2026-05-10 21:08:47,668 basehttp 26808 2184 "GET /api/v1/student/courses HTTP/1.1" 200 2917
+[INFO] 2026-05-10 21:08:47,693 logging 26808 19484 [req_d09b2d9a4542] GET /api/v1/student/skills
+[INFO] 2026-05-10 21:08:47,693 basehttp 26808 19484 "GET /api/v1/student/skills HTTP/1.1" 200 1410
+[INFO] 2026-05-10 21:08:47,787 logging 26808 27224 [req_c010fa3cf98b] GET /api/v1/student/exam-results
+[INFO] 2026-05-10 21:08:47,788 basehttp 26808 27224 "GET /api/v1/student/exam-results HTTP/1.1" 200 2713
+[INFO] 2026-05-10 21:08:47,821 logging 26808 8624 [req_9cf9f31a65b8] GET /api/v1/student/interviews
+[INFO] 2026-05-10 21:08:47,821 basehttp 26808 8624 "GET /api/v1/student/interviews HTTP/1.1" 200 571
+[INFO] 2026-05-10 21:08:47,899 logging 26808 11564 [req_240906aa87b3] GET /api/v1/student/dashboard
+[INFO] 2026-05-10 21:08:47,899 basehttp 26808 11564 "GET /api/v1/student/dashboard HTTP/1.1" 200 1702
+[INFO] 2026-05-10 21:08:50,004 logging 26808 12744 [req_6290bc1627ab] GET /api/v1/student/courses
+[INFO] 2026-05-10 21:08:50,013 basehttp 26808 12744 "GET /api/v1/student/courses HTTP/1.1" 200 2917
+[INFO] 2026-05-10 21:08:50,041 logging 26808 24128 [req_3b2d3b2d2f17] GET /api/v1/student/courses
+[INFO] 2026-05-10 21:08:50,041 basehttp 26808 24128 "GET /api/v1/student/courses HTTP/1.1" 200 2917
+[INFO] 2026-05-10 21:08:51,274 logging 26808 13436 [req_fff0fcabed86] GET /api/v1/student/skills
+[INFO] 2026-05-10 21:08:51,274 basehttp 26808 13436 "GET /api/v1/student/skills HTTP/1.1" 200 1410
+[INFO] 2026-05-10 21:08:51,300 logging 26808 27004 [req_c00bace64398] GET /api/v1/student/interviews
+[INFO] 2026-05-10 21:08:51,300 basehttp 26808 27004 "GET /api/v1/student/interviews HTTP/1.1" 200 571
+[INFO] 2026-05-10 21:08:51,332 logging 26808 29560 [req_76767d34bcd4] GET /api/v1/student/interviews
+[INFO] 2026-05-10 21:08:51,333 basehttp 26808 29560 "GET /api/v1/student/interviews HTTP/1.1" 200 571
+[INFO] 2026-05-10 21:08:51,364 logging 26808 19872 [req_31136a7acb3b] GET /api/v1/student/skills
+[INFO] 2026-05-10 21:08:51,365 basehttp 26808 19872 "GET /api/v1/student/skills HTTP/1.1" 200 1410
+[INFO] 2026-05-10 21:08:51,422 logging 26808 2504 [req_ff49d6fd61ed] GET /api/v1/student/courses
+[INFO] 2026-05-10 21:08:51,425 basehttp 26808 2504 "GET /api/v1/student/courses HTTP/1.1" 200 2917
+[INFO] 2026-05-10 21:08:51,537 logging 26808 22348 [req_4b3be31b9f5e] GET /api/v1/student/courses
+[INFO] 2026-05-10 21:08:51,539 basehttp 26808 22348 "GET /api/v1/student/courses HTTP/1.1" 200 2917
+[INFO] 2026-05-10 21:08:51,586 logging 26808 26008 [req_1c6ed62cd6cf] GET /api/v1/student/exam-results
+[INFO] 2026-05-10 21:08:51,589 basehttp 26808 26008 "GET /api/v1/student/exam-results HTTP/1.1" 200 2713
+[INFO] 2026-05-10 21:08:51,631 logging 26808 12772 [req_238d3e5f62ca] GET /api/v1/student/dashboard
+[INFO] 2026-05-10 21:08:51,631 basehttp 26808 12772 "GET /api/v1/student/dashboard HTTP/1.1" 200 1702
+[INFO] 2026-05-10 21:08:51,697 logging 26808 28640 [req_c697eb10bb0f] GET /api/v1/student/exam-results
+[INFO] 2026-05-10 21:08:51,699 basehttp 26808 28640 "GET /api/v1/student/exam-results HTTP/1.1" 200 2713
+[INFO] 2026-05-10 21:08:51,739 logging 26808 18688 [req_15ff52575135] GET /api/v1/student/dashboard
+[INFO] 2026-05-10 21:08:51,739 basehttp 26808 18688 "GET /api/v1/student/dashboard HTTP/1.1" 200 1702
+[INFO] 2026-05-10 21:08:58,710 logging 26808 28540 [req_a4c974c70074] POST /api/v1/auth/logout
+[INFO] 2026-05-10 21:08:58,710 basehttp 26808 28540 "POST /api/v1/auth/logout HTTP/1.1" 200 49
+[INFO] 2026-05-10 21:08:58,746 logging 26808 16076 [req_dd952cc449c7] GET /api/v1/auth/csrf
+[INFO] 2026-05-10 21:08:58,747 basehttp 26808 16076 "GET /api/v1/auth/csrf HTTP/1.1" 200 92
+[INFO] 2026-05-10 21:09:03,469 logging 26808 8380 [req_c93b2d1c2215] POST /api/v1/auth/login
+[INFO] 2026-05-10 21:09:03,477 basehttp 26808 8380 "POST /api/v1/auth/login HTTP/1.1" 200 233
+[INFO] 2026-05-10 21:09:03,551 logging 26808 29192 [req_e6e46aa45d36] GET /api/v1/student/skills
+[INFO] 2026-05-10 21:09:03,552 basehttp 26808 29192 "GET /api/v1/student/skills HTTP/1.1" 200 1410
+[INFO] 2026-05-10 21:09:03,565 logging 26808 21864 [req_95966a714b04] GET /api/v1/student/courses
+[INFO] 2026-05-10 21:09:03,565 basehttp 26808 21864 "GET /api/v1/student/courses HTTP/1.1" 200 2917
+[INFO] 2026-05-10 21:09:03,594 logging 26808 14824 [req_b719d249fb90] GET /api/v1/student/interviews
+[INFO] 2026-05-10 21:09:03,595 basehttp 26808 14824 "GET /api/v1/student/interviews HTTP/1.1" 200 571
+[INFO] 2026-05-10 21:09:03,723 logging 26808 28680 [req_8b5eb49ba2b5] GET /api/v1/student/exam-results
+[INFO] 2026-05-10 21:09:03,723 basehttp 26808 28680 "GET /api/v1/student/exam-results HTTP/1.1" 200 2713
+[INFO] 2026-05-10 21:09:03,753 logging 26808 2260 [req_a20c85050948] GET /api/v1/student/dashboard
+[INFO] 2026-05-10 21:09:03,754 basehttp 26808 2260 "GET /api/v1/student/dashboard HTTP/1.1" 200 1702
+[INFO] 2026-05-10 21:09:03,782 logging 26808 18748 [req_3f3188a9c7c2] GET /api/v1/notifications
+[INFO] 2026-05-10 21:09:03,783 basehttp 26808 18748 "GET /api/v1/notifications HTTP/1.1" 200 1806
+[INFO] 2026-05-10 21:09:03,808 logging 26808 28256 [req_4a775c623c7f] GET /api/v1/student/skills
+[INFO] 2026-05-10 21:09:03,808 basehttp 26808 28256 "GET /api/v1/student/skills HTTP/1.1" 200 1410
+[INFO] 2026-05-10 21:09:03,894 logging 26808 12880 [req_5a75acbe50e6] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:09:03,895 log 26808 12880 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:09:03,897 basehttp 26808 12880 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:09:03,939 logging 26808 5588 [req_cf617b47c1d0] GET /api/v1/student/interviews
+[INFO] 2026-05-10 21:09:03,939 basehttp 26808 5588 "GET /api/v1/student/interviews HTTP/1.1" 200 571
+[INFO] 2026-05-10 21:09:03,976 logging 26808 10416 [req_89d67e7011d3] GET /api/v1/student/courses
+[INFO] 2026-05-10 21:09:03,981 basehttp 26808 10416 "GET /api/v1/student/courses HTTP/1.1" 200 2917
+[INFO] 2026-05-10 21:09:04,000 logging 26808 27748 [req_d9d136245501] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:09:04,000 log 26808 27748 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:09:04,000 basehttp 26808 27748 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:09:04,033 logging 26808 26856 [req_71c410f8be9a] GET /api/v1/notifications
+[INFO] 2026-05-10 21:09:04,049 basehttp 26808 26856 "GET /api/v1/notifications HTTP/1.1" 200 1806
+[INFO] 2026-05-10 21:09:04,094 logging 26808 27128 [req_8f2964295423] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:09:04,095 log 26808 27128 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:09:04,096 basehttp 26808 27128 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:09:04,115 logging 26808 24460 [req_1055ddabfbd0] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:09:04,115 log 26808 24460 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:09:04,115 basehttp 26808 24460 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:09:04,133 logging 26808 5884 [req_bd9f50e76053] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:09:04,133 log 26808 5884 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:09:04,133 basehttp 26808 5884 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:09:04,225 logging 26808 6096 [req_942997c976fd] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:09:04,229 log 26808 6096 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:09:04,236 basehttp 26808 6096 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:09:04,248 logging 26808 9716 [req_17ea2b41a728] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:09:04,249 log 26808 9716 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:09:04,250 basehttp 26808 9716 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:09:04,292 logging 26808 16964 [req_c39a06380ec8] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:09:04,292 log 26808 16964 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:09:04,299 basehttp 26808 16964 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:09:04,348 logging 26808 26652 [req_e6dd65d55100] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:09:04,348 log 26808 26652 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:09:04,348 basehttp 26808 26652 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:09:04,414 logging 26808 28488 [req_b20d8058432f] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:09:04,416 log 26808 28488 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:09:04,417 basehttp 26808 28488 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:09:04,463 logging 26808 28168 [req_298cb8c6879c] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:09:04,463 log 26808 28168 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:09:04,463 basehttp 26808 28168 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:09:04,496 logging 26808 5876 [req_2df84e666ab8] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:09:04,497 log 26808 5876 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:09:04,497 basehttp 26808 5876 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:09:04,517 logging 26808 3144 [req_512c7cfdec41] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:09:04,518 log 26808 3144 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:09:04,518 basehttp 26808 3144 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:09:04,542 logging 26808 8808 [req_4ea67bb346f3] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:09:04,543 log 26808 8808 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:09:04,543 basehttp 26808 8808 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:09:04,599 logging 26808 27800 [req_9ecd0bca4955] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:09:04,599 log 26808 27800 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:09:04,600 basehttp 26808 27800 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:09:04,632 logging 26808 19988 [req_0138e49b6e25] GET /api/v1/student/exam-results
+[INFO] 2026-05-10 21:09:04,637 basehttp 26808 19988 "GET /api/v1/student/exam-results HTTP/1.1" 200 2713
+[INFO] 2026-05-10 21:09:04,643 logging 26808 7208 [req_127f6f426ddc] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:09:04,643 log 26808 7208 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:09:04,646 basehttp 26808 7208 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:09:04,675 logging 26808 22400 [req_03c950e7f147] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:09:04,676 log 26808 22400 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:09:04,676 basehttp 26808 22400 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:09:04,699 logging 26808 14640 [req_2a3a00e764ff] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:09:04,722 log 26808 14640 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:09:04,726 basehttp 26808 14640 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:09:04,763 logging 26808 8924 [req_9874416dd18c] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:09:04,766 log 26808 8924 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:09:04,767 basehttp 26808 8924 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:09:04,790 logging 26808 25168 [req_f88fe8ca3308] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:09:04,791 log 26808 25168 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:09:04,792 basehttp 26808 25168 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:09:04,830 logging 26808 2468 [req_cde70e604643] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:09:04,831 log 26808 2468 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:09:04,843 basehttp 26808 2468 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:09:04,863 logging 26808 22320 [req_95ef5987896c] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:09:04,863 log 26808 22320 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:09:04,863 basehttp 26808 22320 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:09:04,915 logging 26808 20764 [req_004e2566b0f9] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:09:04,915 log 26808 20764 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:09:04,946 basehttp 26808 20764 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:09:04,974 logging 26808 5688 [req_f4e018966652] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:09:04,974 log 26808 5688 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:09:04,974 basehttp 26808 5688 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:09:04,996 logging 26808 8920 [req_ef353c57cc8c] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:09:04,996 log 26808 8920 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:09:04,996 basehttp 26808 8920 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:09:05,048 logging 26808 16344 [req_427261bfee50] GET /api/v1/student/dashboard
+[INFO] 2026-05-10 21:09:05,048 basehttp 26808 16344 "GET /api/v1/student/dashboard HTTP/1.1" 200 1702
+[INFO] 2026-05-10 21:09:05,096 logging 26808 15424 [req_a40fbc4969a0] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:09:05,096 log 26808 15424 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:09:05,096 basehttp 26808 15424 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:09:05,107 logging 26808 1976 [req_f72f990d110f] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:09:05,107 log 26808 1976 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:09:05,108 basehttp 26808 1976 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:09:05,114 logging 26808 9100 [req_2cf4ce0c5d04] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:09:05,114 log 26808 9100 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:09:05,114 basehttp 26808 9100 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:09:05,133 logging 26808 24648 [req_566bc1ab459b] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:09:05,134 log 26808 24648 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:09:05,134 basehttp 26808 24648 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:09:05,187 logging 26808 4840 [req_b5cca7c3242b] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:09:05,187 log 26808 4840 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-10 21:09:05,187 basehttp 26808 4840 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 41948
+[INFO] 2026-05-10 21:09:18,435 logging 26808 6760 [req_35b10cbab5e3] GET /api/v1/student/applications
+[INFO] 2026-05-10 21:09:18,436 basehttp 26808 6760 "GET /api/v1/student/applications HTTP/1.1" 200 1467
+[INFO] 2026-05-10 21:09:18,457 logging 26808 10792 [req_36896bf0d1f5] GET /api/v1/student/applications
+[INFO] 2026-05-10 21:09:18,460 basehttp 26808 10792 "GET /api/v1/student/applications HTTP/1.1" 200 1467
+[INFO] 2026-05-10 21:09:24,695 logging 26808 28428 [req_ae96f4861de0] GET /api/v1/student/courses
+[INFO] 2026-05-10 21:09:24,695 basehttp 26808 28428 "GET /api/v1/student/courses HTTP/1.1" 200 2917
+[INFO] 2026-05-10 21:09:24,714 logging 26808 7312 [req_63fdd663ad58] GET /api/v1/student/skills
+[INFO] 2026-05-10 21:09:24,714 basehttp 26808 7312 "GET /api/v1/student/skills HTTP/1.1" 200 1410
+[INFO] 2026-05-10 21:09:24,778 logging 26808 19332 [req_cf7a8515422a] GET /api/v1/student/exam-results
+[INFO] 2026-05-10 21:09:24,785 basehttp 26808 19332 "GET /api/v1/student/exam-results HTTP/1.1" 200 2713
+[INFO] 2026-05-10 21:09:24,806 logging 26808 28812 [req_37c9f39bd178] GET /api/v1/student/interviews
+[INFO] 2026-05-10 21:09:24,807 basehttp 26808 28812 "GET /api/v1/student/interviews HTTP/1.1" 200 571
+[INFO] 2026-05-10 21:09:24,913 logging 26808 28696 [req_70cd7672386b] GET /api/v1/student/dashboard
+[INFO] 2026-05-10 21:09:24,915 basehttp 26808 28696 "GET /api/v1/student/dashboard HTTP/1.1" 200 1702
+[INFO] 2026-05-10 21:09:24,940 logging 26808 16816 [req_eabee64c9db9] GET /api/v1/student/courses
+[INFO] 2026-05-10 21:09:24,941 basehttp 26808 16816 "GET /api/v1/student/courses HTTP/1.1" 200 2917
+[INFO] 2026-05-10 21:09:24,957 logging 26808 14364 [req_e8425bcd04fb] GET /api/v1/student/skills
+[INFO] 2026-05-10 21:09:24,957 basehttp 26808 14364 "GET /api/v1/student/skills HTTP/1.1" 200 1410
+[INFO] 2026-05-10 21:09:25,046 logging 26808 17008 [req_476d5734943a] GET /api/v1/student/interviews
+[INFO] 2026-05-10 21:09:25,046 basehttp 26808 17008 "GET /api/v1/student/interviews HTTP/1.1" 200 571
+[INFO] 2026-05-10 21:09:25,112 logging 26808 16316 [req_b869ee6ca3b5] GET /api/v1/student/exam-results
+[INFO] 2026-05-10 21:09:25,113 basehttp 26808 16316 "GET /api/v1/student/exam-results HTTP/1.1" 200 2713
+[INFO] 2026-05-10 21:09:25,143 logging 26808 22040 [req_6bd8bdb6fa90] GET /api/v1/student/dashboard
+[INFO] 2026-05-10 21:09:25,143 basehttp 26808 22040 "GET /api/v1/student/dashboard HTTP/1.1" 200 1702
