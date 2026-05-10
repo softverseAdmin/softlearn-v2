@@ -260,14 +260,12 @@ def send_notification_emails(instance) -> None:
         
         # Send email for confirmed interviews
         if instance.event_type == "confirmed":
-            meeting_link = ""
-            if interview.meeting_link:
-                meeting_link = interview.meeting_link
-            
+            meeting_link = interview.meeting_url or ""
+             
             email_service.send_interview_scheduled(
                 student.email,
-                str(interview.scheduled_at),
-                interview.requested_by.full_name or "Interviewer",
+                interview.scheduled_start.isoformat() if interview.scheduled_start else "",
+                interview.company.name,
                 meeting_link,
             )
     
