@@ -8,7 +8,6 @@ import { AdminExamQuestionsPage } from '../features/admin/AdminExamQuestionsPage
 import { AdminVacanciesPage } from '../features/admin/AdminVacanciesPage'
 import { AdminUsersPage } from '../features/admin/AdminUsersPage'
 import { NotificationsPage } from '../features/notifications/NotificationsPage'
-import { AppLayout } from '../layouts/AppLayout'
 import { CompanyApplicationsPage } from '../features/profile/CompanyApplicationsPage'
 import { CompanyCandidateDetailPage } from '../features/profile/CompanyCandidateDetailPage'
 import { CompanyCandidatesPage } from '../features/profile/CompanyCandidatesPage'
@@ -47,6 +46,7 @@ import { NotFoundPage } from '../pages/NotFoundPage'
 import { SignupPage } from '../pages/SignupPage'
 import { UnauthorizedPage } from '../pages/UnauthorizedPage'
 import { ProtectedGuard, PublicOnlyGuard, RoleGuard } from './guards'
+import { AppLayoutWrapper } from './AppLayoutWrapper'
 
 export function AppRouter() {
   return (
@@ -62,7 +62,7 @@ export function AppRouter() {
       <Route path="/unauthorized" element={<UnauthorizedPage />} />
 
       <Route element={<ProtectedGuard />}>
-        <Route element={<AppLayout />}>
+        <Route element={<AppLayoutWrapper />}>
           <Route element={<RoleGuard role="student" />}>
             <Route path="/student" element={<DashboardPage role="student" />} />
             <Route path="/student/notifications" element={<NotificationsPage />} />

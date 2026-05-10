@@ -1,9 +1,15 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
+import path from 'path'
 
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    },
+  },
+  plugins: [react()],
   server: {
     port: 5173,
     proxy: {
@@ -11,6 +17,18 @@ export default defineConfig({
         target: process.env.VITE_BACKEND_ORIGIN ?? 'http://127.0.0.1:8000',
         changeOrigin: true,
       },
+    },
+    // Disable caching in dev server
+    middlewareMode: false,
+    // Ensure hot reload works properly
+    hmr: {
+      protocol: 'ws',
+      host: 'localhost',
+      port: 5173,
+    },
+    // Force refresh on module change
+    watch: {
+      usePolling: true,
     },
   },
   build: {
@@ -53,6 +71,8 @@ export default defineConfig({
       'react-dom',
       'react-router-dom',
       'recharts',
+      'framer-motion',
+      'lucide-react',
     ],
     exclude: ['@vite/preload-helper'],
   },

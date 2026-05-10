@@ -1,9 +1,15 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import { AlertCircle, CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react'
+import { motion } from 'framer-motion'
 
 import { useAuth } from '../../auth/useAuth'
 import { ApiError, apiRequest } from '../../lib/api'
 import type { LessonDetailResponse, LessonProgressUpdateResponse } from './types'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { containerVariants, itemVariants } from '../../lib/animations'
 
 const emptyLesson: LessonDetailResponse = {
   lesson_id: 0,
@@ -90,73 +96,145 @@ export function StudentLessonPage() {
   }
 
   if (loading) {
-    return <section className="page"><div className="card">Loading lesson…</div></section>
+    return (
+      <div className="space-y-6 md:space-y-8">
+        <Card>
+          <CardContent className="flex items-center justify-center py-12">
+            <div className="text-center">
+              <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-muted border-t-primary" />
+              <p className="mt-4 text-sm text-muted-foreground">Loading lesson…</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
   }
 
   return (
-    <section className="page">
-      <div className="page-header">
-        <div>
-          <p className="eyebrow">Lesson {data.sequence_number} of {data.total_lessons}</p>
-          <h1>{data.title || 'Lesson'}</h1>
-          <p className="lead">{data.summary || 'Continue the structured course path and keep your progress up to date.'}</p>
+    <div className="space-y-6 md:space-y-8">
+      {/* Header */}
+      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <div className="flex-1 space-y-2">
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+            Lesson {data.sequence_number} of {data.total_lessons}
+          </p>
+          <h1 className="text-3xl font-bold tracking-tight md:text-4xl">{data.title || 'Lesson'}</h1>
+          <p className="max-w-2xl text-base text-muted-foreground">
+            {data.summary || 'Continue the structured course path and keep your progress up to date.'}
+          </p>
         </div>
-        <div className="card compact-card">
-          <strong>{data.course_title}</strong>
-          <p className="muted">Status: {data.progress.status.replace('_', ' ')}</p>
-        </div>
+        <Card className="w-full md:w-auto md:flex-shrink-0">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg">{data.course_title}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              Status: <span className="font-medium capitalize">{data.progress.status.replace('_', ' ')}</span>
+            </p>
+          </CardContent>
+        </Card>
       </div>
 
-      {error ? <div className="card form-error">{error}</div> : null}
-      {success ? <div className="card form-success">{success}</div> : null}
+      {/* Error State */}
+      {error ? (
+        <Card className="border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950">
+          <CardContent className="flex items-start gap-3 pt-6">
+            <AlertCircle className="h-5 w-5 flex-shrink-0 text-red-600 dark:text-red-400" />
+            <div>
+              <h3 className="font-semibold text-red-900 dark:text-red-100">Unable to update progress</h3>
+              <p className="mt-1 text-sm text-red-800 dark:text-red-200">{error}</p>
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
 
-      <div className="card stack-card">
-        <h2>Lesson content</h2>
-        <p>{data.content || 'No lesson content yet.'}</p>
-      </div>
+      {/* Success State */}
+      {success ? (
+        <Card className="border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950">
+          <CardContent className="flex items-start gap-3 pt-6">
+            <CheckCircle2 className="h-5 w-5 flex-shrink-0 text-green-600 dark:text-green-400" />
+            <div>
+              <h3 className="font-semibold text-green-900 dark:text-green-100">Success</h3>
+              <p className="mt-1 text-sm text-green-800 dark:text-green-200">{success}</p>
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
 
-      <div className="page-split">
-        <div className="card stack-card">
-          <h2>Progress actions</h2>
-          <div className="actions">
-            <button
-              className="secondary-button inline-button"
-              type="button"
-              onClick={() => void updateProgress('in_progress')}
-              disabled={saving || data.progress.status === 'in_progress' || data.progress.status === 'completed'}
-            >
-              {saving ? 'Saving…' : 'Mark in progress'}
-            </button>
-            <button
-              className="primary-button inline-button"
-              type="button"
-              onClick={() => void updateProgress('completed')}
-              disabled={saving || data.progress.status === 'completed'}
-            >
-              {saving ? 'Saving…' : 'Mark completed'}
-            </button>
-          </div>
-        </div>
+      {/* Lesson Content */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Lesson content</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-base text-muted-foreground">{data.content || 'No lesson content yet.'}</p>
+        </CardContent>
+      </Card>
 
-        <div className="card stack-card">
-          <h2>Navigation</h2>
-          <div className="actions">
-            <Link className="secondary-button inline-button" to={data.course_href || `/student/courses/${data.course_id}`}>
-              Back to course
-            </Link>
-            {data.previous_lesson_href ? (
-              <Link className="secondary-button inline-button" to={data.previous_lesson_href}>
-                Previous lesson
-              </Link>
-            ) : null}
-            {data.next_lesson_href ? (
-              <Link className="primary-button inline-button" to={data.next_lesson_href}>
-                Next lesson
-              </Link>
-            ) : null}
-          </div>
-        </div>
-      </div>
-    </section>
+      {/* Progress Actions & Navigation */}
+      <motion.div
+        className="grid gap-6 lg:grid-cols-2"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        <motion.div variants={itemVariants}>
+          <Card>
+            <CardHeader>
+              <CardTitle>Progress actions</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => void updateProgress('in_progress')}
+                disabled={saving || data.progress.status === 'in_progress' || data.progress.status === 'completed'}
+              >
+                {saving ? 'Saving…' : 'Mark in progress'}
+              </Button>
+              <Button
+                className="w-full"
+                onClick={() => void updateProgress('completed')}
+                disabled={saving || data.progress.status === 'completed'}
+              >
+                {saving ? 'Saving…' : 'Mark completed'}
+              </Button>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        <motion.div variants={itemVariants}>
+          <Card>
+            <CardHeader>
+              <CardTitle>Navigation</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Button variant="outline" className="w-full justify-between" asChild>
+                <Link to={data.course_href || `/student/courses/${data.course_id}`}>
+                  <ChevronLeft className="h-4 w-4" />
+                  Back to course
+                </Link>
+              </Button>
+              {data.previous_lesson_href ? (
+                <Button variant="outline" className="w-full justify-between" asChild>
+                  <Link to={data.previous_lesson_href}>
+                    <ChevronLeft className="h-4 w-4" />
+                    Previous lesson
+                  </Link>
+                </Button>
+              ) : null}
+              {data.next_lesson_href ? (
+                <Button className="w-full justify-between" asChild>
+                  <Link to={data.next_lesson_href}>
+                    Next lesson
+                    <ChevronRight className="h-4 w-4" />
+                  </Link>
+                </Button>
+              ) : null}
+            </CardContent>
+          </Card>
+        </motion.div>
+      </motion.div>
+    </div>
   )
 }

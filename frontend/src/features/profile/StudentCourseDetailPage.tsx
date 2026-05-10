@@ -1,9 +1,15 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import { AlertCircle, CheckCircle2, BookOpen, Lock } from 'lucide-react'
+import { motion } from 'framer-motion'
 
 import { useAuth } from '../../auth/useAuth'
 import { ApiError, apiRequest } from '../../lib/api'
 import type { CourseDetailResponse, StudentCourseEnrollmentResponse } from './types'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { containerVariants, itemVariants } from '../../lib/animations'
 
 const emptyDetail: CourseDetailResponse = {
   course_id: 0,
@@ -99,120 +105,233 @@ export function StudentCourseDetailPage() {
   }
 
   if (loading) {
-    return <section className="page"><div className="card">Loading course details…</div></section>
+    return (
+      <div className="space-y-6 md:space-y-8">
+        <Card>
+          <CardContent className="flex items-center justify-center py-12">
+            <div className="text-center">
+              <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-muted border-t-primary" />
+              <p className="mt-4 text-sm text-muted-foreground">Loading course details…</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
   }
 
   return (
-    <section className="page">
-      <div className="page-header">
-        <div>
-          <p className="eyebrow">Course detail</p>
-          <h1>{data.title || 'Course detail'}</h1>
-          <p className="lead">Review the full course context, enroll, and continue through the lesson path from one place.</p>
-        </div>
-        <div className="card compact-card">
-          <strong>Course summary</strong>
-          <p className="muted">
-            {data.category}
-            {data.difficulty_level ? ` · ${data.difficulty_level}` : ''}
-            {data.estimated_hours > 0 ? ` · ${data.estimated_hours}h` : ''}
-            {data.lesson_count > 0 ? ` · ${data.lesson_count} lessons` : ''}
+    <div className="space-y-6 md:space-y-8">
+      {/* Header */}
+      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <div className="flex-1 space-y-2">
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Course detail</p>
+          <h1 className="text-3xl font-bold tracking-tight md:text-4xl">{data.title || 'Course detail'}</h1>
+          <p className="max-w-2xl text-base text-muted-foreground">
+            Review the full course context, enroll, and continue through the lesson path from one place.
           </p>
-          {data.enrollment.progress_percent !== null ? <p className="muted">Progress: {data.enrollment.progress_percent}%</p> : null}
         </div>
+        <Card className="w-full md:w-auto md:flex-shrink-0">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg">Course summary</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <p className="text-sm text-muted-foreground">
+              {data.category}
+              {data.difficulty_level ? ` · ${data.difficulty_level}` : ''}
+              {data.estimated_hours > 0 ? ` · ${data.estimated_hours}h` : ''}
+              {data.lesson_count > 0 ? ` · ${data.lesson_count} lessons` : ''}
+            </p>
+            {data.enrollment.progress_percent !== null ? (
+              <p className="text-sm text-muted-foreground">Progress: {data.enrollment.progress_percent}%</p>
+            ) : null}
+          </CardContent>
+        </Card>
       </div>
 
-      {error ? <div className="card form-error">{error}</div> : null}
-      {success ? <div className="card form-success">{success}</div> : null}
+      {/* Error State */}
+      {error ? (
+        <Card className="border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950">
+          <CardContent className="flex items-start gap-3 pt-6">
+            <AlertCircle className="h-5 w-5 flex-shrink-0 text-red-600 dark:text-red-400" />
+            <div>
+              <h3 className="font-semibold text-red-900 dark:text-red-100">Unable to load course</h3>
+              <p className="mt-1 text-sm text-red-800 dark:text-red-200">{error}</p>
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {/* Success State */}
+      {success ? (
+        <Card className="border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950">
+          <CardContent className="flex items-start gap-3 pt-6">
+            <CheckCircle2 className="h-5 w-5 flex-shrink-0 text-green-600 dark:text-green-400" />
+            <div>
+              <h3 className="font-semibold text-green-900 dark:text-green-100">Success</h3>
+              <p className="mt-1 text-sm text-green-800 dark:text-green-200">{success}</p>
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
 
       {!error ? (
         <>
-          <div className="card stack-card">
-            <h2>Overview</h2>
-            <p>{data.description || 'No course description yet.'}</p>
-            {data.readiness_cues.length > 0 ? (
-              <ul className="feature-list">
-                {data.readiness_cues.map((cue) => (
-                  <li key={cue}>{cue}</li>
-                ))}
-              </ul>
-            ) : null}
-          </div>
-
-          <div className="page-split">
-            <div className="card stack-card">
-              <h2>Enrollment</h2>
-              {data.enrollment.is_enrolled ? (
-                <>
-                  <p className="muted">
-                    {data.enrollment.completed_lesson_count} of {data.enrollment.lesson_count} lessons completed
-                  </p>
-                  <p className="muted">Status: {data.enrollment.status?.replace('_', ' ')}</p>
-                  <div className="actions">
-                    <Link className="primary-button inline-button" to={data.next_step_href}>
-                      {data.next_step_label}
-                    </Link>
-                    <Link className="secondary-button inline-button" to="/student/learning">
-                      View learning summary
-                    </Link>
+          {/* Overview */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Overview</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-base text-muted-foreground">{data.description || 'No course description yet.'}</p>
+              {data.readiness_cues.length > 0 ? (
+                <div className="space-y-2">
+                  <p className="text-sm font-medium">What you'll be ready for:</p>
+                  <div className="space-y-2">
+                    {data.readiness_cues.map((cue) => (
+                      <div key={cue} className="flex items-start gap-2">
+                        <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-green-600 dark:text-green-400" />
+                        <p className="text-sm text-muted-foreground">{cue}</p>
+                      </div>
+                    ))}
                   </div>
-                </>
-              ) : (
-                <>
-                  <p className="muted">Enrollment unlocks lesson access and creates the progress record used in your learning summary.</p>
-                  <button className="primary-button inline-button" type="button" onClick={() => void handleEnroll()} disabled={saving}>
-                    {saving ? 'Enrolling…' : 'Enroll in course'}
-                  </button>
-                </>
-              )}
-            </div>
+                </div>
+              ) : null}
+            </CardContent>
+          </Card>
 
-            <div className="card stack-card">
-              <h2>What to expect</h2>
-              {data.learning_outcomes.length === 0 ? <p className="muted">No additional course outcomes yet.</p> : null}
-              <div className="stack-list">
-                {data.learning_outcomes.map((item) => (
-                  <article key={item} className="skill-card">
-                    <p>{item}</p>
-                  </article>
-                ))}
-              </div>
-            </div>
-          </div>
+          {/* Enrollment & Learning Outcomes */}
+          <motion.div
+            className="grid gap-6 lg:grid-cols-2"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+          >
+            <motion.div variants={itemVariants}>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Enrollment</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {data.enrollment.is_enrolled ? (
+                    <>
+                      <div className="space-y-2">
+                        <p className="text-sm text-muted-foreground">
+                          {data.enrollment.completed_lesson_count} of {data.enrollment.lesson_count} lessons completed
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          Status: <span className="font-medium capitalize">{data.enrollment.status?.replace('_', ' ')}</span>
+                        </p>
+                      </div>
+                      <div className="space-y-3">
+                        <Button className="w-full" asChild>
+                          <Link to={data.next_step_href}>{data.next_step_label}</Link>
+                        </Button>
+                        <Button variant="outline" className="w-full" asChild>
+                          <Link to="/student/learning">View learning summary</Link>
+                        </Button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-sm text-muted-foreground">
+                        Enrollment unlocks lesson access and creates the progress record used in your learning summary.
+                      </p>
+                      <Button
+                        className="w-full"
+                        onClick={() => void handleEnroll()}
+                        disabled={saving}
+                      >
+                        {saving ? 'Enrolling…' : 'Enroll in course'}
+                      </Button>
+                    </>
+                  )}
+                </CardContent>
+              </Card>
+            </motion.div>
 
-          <div className="card stack-card">
-            <h2>Lessons</h2>
-            {data.lessons.length === 0 ? <p className="muted">No active lessons are available yet.</p> : null}
-            <div className="stack-list">
-              {data.lessons.map((lesson) => (
-                <article key={lesson.lesson_id} className="skill-card">
-                  <div className="skill-card-header">
-                    <div>
-                      <h3>{lesson.sequence_number}. {lesson.title}</h3>
-                      <p className="muted">{lesson.status ? lesson.status.replace('_', ' ') : 'Locked until enrolled'}</p>
+            <motion.div variants={itemVariants}>
+              <Card>
+                <CardHeader>
+                  <CardTitle>What to expect</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {data.learning_outcomes.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">No additional course outcomes yet.</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {data.learning_outcomes.map((item) => (
+                        <div
+                          key={item}
+                          className="flex items-start gap-2 rounded-lg border border-border p-3 dark:border-border"
+                        >
+                          <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-green-600 dark:text-green-400" />
+                          <p className="text-sm text-muted-foreground">{item}</p>
+                        </div>
+                      ))}
                     </div>
-                    <span className={`status-pill ${lesson.is_accessible ? 'status-success' : 'status-muted'}`}>
-                      {lesson.is_accessible ? 'Open' : 'Locked'}
-                    </span>
-                  </div>
-                  <p>{lesson.summary || 'No lesson summary yet.'}</p>
-                  {lesson.detail_href ? (
-                    <Link className="secondary-button inline-button" to={lesson.detail_href}>
-                      Open lesson
-                    </Link>
-                  ) : null}
-                </article>
-              ))}
-            </div>
-          </div>
+                  )}
+                </CardContent>
+              </Card>
+            </motion.div>
+          </motion.div>
 
-          <div className="actions">
-            <Link className="secondary-button inline-button" to="/student/courses">
-              Back to catalog
-            </Link>
+          {/* Lessons */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Lessons</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {data.lessons.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No active lessons are available yet.</p>
+              ) : (
+                <motion.div
+                  className="space-y-4"
+                  variants={containerVariants}
+                  initial="hidden"
+                  animate="visible"
+                >
+                  {data.lessons.map((lesson) => (
+                    <motion.div key={lesson.lesson_id} variants={itemVariants}>
+                      <div className="space-y-3 rounded-lg border border-border p-4 dark:border-border">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1">
+                            <h3 className="font-semibold">
+                              {lesson.sequence_number}. {lesson.title}
+                            </h3>
+                            <p className="mt-1 text-sm text-muted-foreground">
+                              {lesson.status ? lesson.status.replace('_', ' ') : 'Locked until enrolled'}
+                            </p>
+                          </div>
+                          {lesson.is_accessible ? (
+                            <Badge variant="default">Open</Badge>
+                          ) : (
+                            <Badge variant="secondary">Locked</Badge>
+                          )}
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          {lesson.summary || 'No lesson summary yet.'}
+                        </p>
+                        {lesson.detail_href ? (
+                          <Button variant="outline" size="sm" className="mt-2" asChild>
+                            <Link to={lesson.detail_href}>Open lesson</Link>
+                          </Button>
+                        ) : null}
+                      </div>
+                    </motion.div>
+                  ))}
+                </motion.div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Footer Actions */}
+          <div className="flex justify-center">
+            <Button variant="outline" asChild>
+              <Link to="/student/courses">Back to catalog</Link>
+            </Button>
           </div>
         </>
       ) : null}
-    </section>
+    </div>
   )
 }
