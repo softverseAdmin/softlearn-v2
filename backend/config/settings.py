@@ -55,7 +55,9 @@ MIDDLEWARE = [
 ]
 
 # Add rate limiting only in non-test environments
-if not TESTING:
+ENABLE_RATE_LIMITING = env_bool("DJANGO_ENABLE_RATE_LIMITING", not DEBUG and not TESTING)
+
+if ENABLE_RATE_LIMITING:
     MIDDLEWARE.append("services.security.RateLimitingMiddleware")
 
 ROOT_URLCONF = "config.urls"
