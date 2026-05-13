@@ -49,8 +49,8 @@ export function DataExportPage() {
     try {
       setLoading(true);
       const [exportRes, deletionRes] = await Promise.all([
-        apiClient.get('/v1/student/data-export-request'),
-        apiClient.get('/v1/student/deletion-status'),
+        apiClient.get<{ exports: ExportRequest[] }>('/v1/student/data-export-request'),
+        apiClient.get<{ deletion_request: DeletionRequest | null }>('/v1/student/deletion-status'),
       ]);
       
       if (exportRes.data && Array.isArray(exportRes.data.exports)) {
@@ -73,7 +73,7 @@ export function DataExportPage() {
   const handleRequestExport = async () => {
     try {
       setExporting(true);
-      const response = await apiClient.post('/v1/student/data-export-request', {});
+      const response = await apiClient.post<{ export_request: ExportRequest }>('/v1/student/data-export-request', {});
       setExportRequests([response.data.export_request, ...exportRequests]);
       setError('');
     } catch (err) {
@@ -87,7 +87,7 @@ export function DataExportPage() {
   const handleRequestDeletion = async () => {
     try {
       setDeleting(true);
-      const response = await apiClient.post('/v1/student/deletion-request', {
+      const response = await apiClient.post<{ deletion_request: DeletionRequest }>('/v1/student/deletion-request', {
         reason: deleteReason,
       });
       setDeletionRequest(response.data.deletion_request);

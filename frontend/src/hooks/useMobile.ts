@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { getViewportSize, getDeviceType, isPortraitOrientation, type getDeviceType as getDeviceTypeType } from '../lib/mobile'
+import { getViewportSize, getDeviceType, isPortraitOrientation, setupTouchGestures } from '../lib/mobile'
 
 /**
  * Hook for responsive design
@@ -48,12 +48,12 @@ export function useTouch() {
 
   useEffect(() => {
     const hasTouchSupport = () => {
-      return (
-        ('ontouchstart' in window) ||
-        (navigator.maxTouchPoints > 0) ||
-        (navigator.msMaxTouchPoints > 0)
-      )
-    }
+        return (
+          ('ontouchstart' in window) ||
+          (navigator.maxTouchPoints > 0) ||
+          (navigator.maxTouchPoints > 0)
+        )
+      }
 
     setIsTouchDevice(hasTouchSupport())
   }, [])
@@ -104,8 +104,6 @@ export function useTouchGestures(callbacks: {
   onLongPress?: () => void
 }) {
   useEffect(() => {
-    const { setupTouchGestures } = require('../lib/mobile')
-    
     const cleanup = setupTouchGestures(document.body, {
       threshold: 50,
       ...callbacks,

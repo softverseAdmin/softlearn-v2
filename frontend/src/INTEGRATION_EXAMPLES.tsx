@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * INTEGRATION GUIDE: How to Use the New Modern UI Components
  *

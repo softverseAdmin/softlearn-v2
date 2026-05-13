@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   BarChart,
   Bar,
@@ -121,7 +121,7 @@ export function CompanyAnalyticsDashboard({ companyName }: CompanyAnalyticsDashb
                 data={data.funnel_data}
                 fill="#3b82f6"
               >
-                {data.funnel_data.map((entry, index) => (
+                {data.funnel_data.map((_entry, index) => (
                   <Cell key={`cell-${index}`} fill={FUNNEL_COLORS[index % FUNNEL_COLORS.length]} />
                 ))}
               </Funnel>

@@ -1,12 +1,15 @@
 import { useState } from 'react'
 import { useAuth } from '../../auth/useAuth'
-import { ApiError, apiRequest } from '../../lib/api'
 
 export function BulkOperationsPage() {
   const { csrfToken } = useAuth()
   const [activeTab, setActiveTab] = useState<'import' | 'export'>('import')
   const [importing, setImporting] = useState(false)
-  const [importSuccess, setImportSuccess] = useState<any>(null)
+  const [importSuccess, setImportSuccess] = useState<{
+    created: number
+    skipped: number
+    errors: string[]
+  } | null>(null)
   const [importError, setImportError] = useState<string | null>(null)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [importType, setImportType] = useState<'users' | 'courses'>('users')
@@ -32,7 +35,7 @@ export function BulkOperationsPage() {
       a.click()
       window.URL.revokeObjectURL(url)
       document.body.removeChild(a)
-    } catch (err) {
+    } catch {
       setImportError(`Failed to download ${type} template`)
     }
   }

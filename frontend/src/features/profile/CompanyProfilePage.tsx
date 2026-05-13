@@ -200,7 +200,8 @@ export function CompanyProfilePage() {
         csrfToken,
       })
       setMembers(members.filter((m) => m.id !== memberId))
-      const { [memberId]: _removed, ...remaining } = memberRoleInput
+      const { [memberId]: removedRole, ...remaining } = memberRoleInput
+      void removedRole
       setMemberRoleInput(remaining)
       setSuccess('Team member removed successfully.')
     } catch (saveError) {

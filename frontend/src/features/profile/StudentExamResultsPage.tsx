@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { AlertCircle, CheckCircle2, Clock, Lock } from 'lucide-react'
+import { AlertCircle, CheckCircle2 } from 'lucide-react'
 import { motion } from 'framer-motion'
 
 import { ApiError, apiRequest } from '../../lib/api'
 import type { ExamResultsSummary } from './types'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { containerVariants, itemVariants } from '../../lib/animations'

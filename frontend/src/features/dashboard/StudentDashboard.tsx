@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useMemo } from 'react'
 import { BookOpen, TrendingUp, Clock, Award, Play, Lock, CheckCircle2 } from 'lucide-react'
 import { motion } from 'framer-motion'

@@ -6,14 +6,6 @@ import { useTheme, type Theme } from '../auth/ThemeContext'
 export function DarkModeToggle() {
   const { theme, setTheme, isDark } = useTheme()
 
-  const handleToggle = () => {
-    if (theme === 'system') {
-      setTheme(isDark ? 'light' : 'dark')
-    } else {
-      setTheme(isDark ? 'light' : 'dark')
-    }
-  }
-
   const cycleTheme = () => {
     const themes: Theme[] = ['light', 'dark', 'system']
     const currentIndex = themes.indexOf(theme)

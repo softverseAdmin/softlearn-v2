@@ -8,6 +8,7 @@ export interface AppLayoutProps {
   children: React.ReactNode
   sidebarItems: NavItem[]
   sidebarLogo?: React.ReactNode
+  sidebarBottomContent?: React.ReactNode
   sidebarCollapsible?: boolean
   navbarProps?: NavbarProps
   className?: string
@@ -17,6 +18,7 @@ function AppLayoutContent({
   children,
   sidebarItems,
   sidebarLogo,
+  sidebarBottomContent,
   sidebarCollapsible,
   navbarProps,
   className,
@@ -24,23 +26,35 @@ function AppLayoutContent({
   const { isDark } = useTheme()
 
   return (
-    <div className={cn('flex h-screen flex-col md:flex-row bg-background text-foreground')}>
-      {/* Sidebar */}
-      <Sidebar items={sidebarItems} logo={sidebarLogo} collapsible={sidebarCollapsible} />
+    <div
+      className={cn(
+        'flex min-h-screen flex-col md:flex-row',
+        'bg-[radial-gradient(circle_at_top_left,rgba(37,99,255,0.10),transparent_28%),radial-gradient(circle_at_top_right,rgba(124,58,237,0.08),transparent_24%),linear-gradient(180deg,#f8fbff_0%,#f4f7fb_100%)]',
+        'text-foreground'
+      )}
+    >
+      <Sidebar
+        items={sidebarItems}
+        logo={sidebarLogo}
+        bottomContent={sidebarBottomContent}
+        collapsible={sidebarCollapsible}
+      />
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0 md:ml-0">
-        {/* Navbar */}
+      <div className="relative flex min-h-screen min-w-0 flex-1 flex-col">
+        <div
+          className={cn(
+            'pointer-events-none absolute inset-x-0 top-0 h-64',
+            isDark
+              ? 'bg-[radial-gradient(circle_at_top,rgba(96,165,250,0.12),transparent_58%)]'
+              : 'bg-[radial-gradient(circle_at_top,rgba(37,99,255,0.12),transparent_55%)]'
+          )}
+        />
         <Navbar {...navbarProps} />
 
-        {/* Page Content */}
         <main
           className={cn(
-            'flex-1 overflow-y-auto',
-            'bg-gradient-to-br',
-            isDark
-              ? 'from-background via-background/95 to-background/90'
-              : 'from-background via-background/99 to-secondary/5',
+            'relative flex-1 overflow-y-auto',
+            isDark ? 'bg-transparent' : 'bg-transparent',
             className
           )}
         >
@@ -57,9 +71,4 @@ export function AppLayout(props: AppLayoutProps) {
       <AppLayoutContent {...props} />
     </ThemeProvider>
   )
-}
-
-export function useAppLayout() {
-  const { isDark } = useTheme()
-  return { isDark }
 }

@@ -33,7 +33,7 @@ export function ConsentPage() {
   const fetchConsents = async () => {
     try {
       setLoading(true);
-      const response = await apiClient.get('/v1/student/consent');
+      const response = await apiClient.get<{ consents: Record<string, Consent[]> }>('/v1/student/consent');
       setConsents(response.data.consents);
       setError('');
     } catch (err) {
