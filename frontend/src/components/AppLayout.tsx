@@ -53,7 +53,7 @@ function AppLayoutContent({
 
         <main
           className={cn(
-            'relative flex-1 overflow-y-auto',
+            'relative flex-1 overflow-y-auto pb-24 md:pb-0',
             isDark ? 'bg-transparent' : 'bg-transparent',
             className
           )}
