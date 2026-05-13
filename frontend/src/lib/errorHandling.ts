@@ -63,7 +63,8 @@ export function formatErrorMessage(error: AppError | Error | string): string {
 
   if (error instanceof Error) {
     if ('userMessage' in error) {
-      return (error as AppError).userMessage || error.message
+      const userMessage = (error as Error & { userMessage?: unknown }).userMessage
+      return typeof userMessage === 'string' ? userMessage : error.message
     }
     return error.message
   }
@@ -90,8 +91,22 @@ export async function handleAsync<T>(
  * Normalize various error types to AppError
  */
 export function normalizeError(error: unknown): AppError {
-  if (error instanceof AppError || ('code' in (error as object) && 'message' in (error as object))) {
-    return error as AppError
+  if (
+    typeof error === 'object' &&
+    error !== null &&
+    'code' in error &&
+    'message' in error &&
+    typeof (error as { code: unknown }).code === 'string' &&
+    typeof (error as { message: unknown }).message === 'string'
+  ) {
+    const appError = error as Partial<AppError> & { code: string; message: string }
+    return {
+      code: appError.code,
+      message: appError.message,
+      details: appError.details,
+      timestamp: appError.timestamp instanceof Date ? appError.timestamp : new Date(),
+      userMessage: typeof appError.userMessage === 'string' ? appError.userMessage : appError.message,
+    }
   }
 
   if (error instanceof Error) {

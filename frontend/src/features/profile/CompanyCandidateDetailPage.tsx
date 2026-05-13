@@ -46,6 +46,7 @@ const emptyExams: CompanyCandidateRecordResponse<ExamResultsSummary> = {
     passed_results: 0,
     average_score: null,
     results: [],
+    available_exams: [],
   },
   restrictions: [],
 }

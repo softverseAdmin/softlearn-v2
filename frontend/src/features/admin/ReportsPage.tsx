@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { useAuth } from '../../auth/useAuth'
 import { apiRequest, ApiError } from '../../lib/api'
 
 interface AuditLog {
@@ -30,7 +29,13 @@ interface ReportData {
 }
 
 export function ReportsPage() {
-  const { csrfToken } = useAuth()
+  const reportOptions: Array<{ id: 'activity' | 'access' | 'content' | 'compliance'; label: string; icon: string }> = [
+    { id: 'activity', label: '📊 User Activity', icon: '📊' },
+    { id: 'access', label: '🔍 Data Access', icon: '🔍' },
+    { id: 'content', label: '📝 Content Changes', icon: '📝' },
+    { id: 'compliance', label: '✓ Compliance', icon: '✓' },
+  ]
+
   const [activeReport, setActiveReport] = useState<'activity' | 'access' | 'content' | 'compliance'>(
     'activity'
   )
@@ -106,16 +111,11 @@ export function ReportsPage() {
 
       {/* Report Type Selector */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        {[
-          { id: 'activity', label: '📊 User Activity', icon: '📊' },
-          { id: 'access', label: '🔍 Data Access', icon: '🔍' },
-          { id: 'content', label: '📝 Content Changes', icon: '📝' },
-          { id: 'compliance', label: '✓ Compliance', icon: '✓' },
-        ].map(report => (
+        {reportOptions.map(report => (
           <button
             key={report.id}
             onClick={() => {
-              setActiveReport(report.id as any)
+              setActiveReport(report.id)
               setReportData(null)
             }}
             className={`p-4 rounded-lg border-2 transition ${

@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useOutletContext } from 'react-router-dom'
 
 import { useAuth } from '../../auth/useAuth'
 import { ApiError, apiRequest } from '../../lib/api'
 import type { NotificationItem, NotificationsResponse } from './types'
+import type { AppLayoutOutletContext } from '@/router/AppLayoutWrapper'
 
 export function NotificationsPage() {
   const { csrfToken, user } = useAuth()
+  const { setUnreadNotificationCount } = useOutletContext<AppLayoutOutletContext>()
   const [data, setData] = useState<NotificationsResponse>({ unread_count: 0, notifications: [] })
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState<number | 'all' | null>(null)
@@ -20,6 +22,7 @@ export function NotificationsPage() {
         const response = await apiRequest<NotificationsResponse>('/notifications')
         if (active) {
           setData(response)
+          setUnreadNotificationCount(response.unread_count)
         }
       } catch (loadError) {
         if (active) {
@@ -49,15 +52,19 @@ export function NotificationsPage() {
         body: {},
         csrfToken,
       })
-      setData((current) => ({
-        unread_count: Math.max(
+      setData((current) => {
+        const nextUnreadCount = Math.max(
           0,
           current.notifications.some((item) => item.id === notificationId && !item.is_read)
             ? current.unread_count - 1
             : current.unread_count,
-        ),
-        notifications: current.notifications.map((item) => (item.id === notificationId ? updated : item)),
-      }))
+        )
+        setUnreadNotificationCount(nextUnreadCount)
+        return {
+          unread_count: nextUnreadCount,
+          notifications: current.notifications.map((item) => (item.id === notificationId ? updated : item)),
+        }
+      })
     } catch (saveError) {
       setError(saveError instanceof ApiError ? saveError.message : 'Unable to update notification.')
     } finally {
@@ -76,6 +83,7 @@ export function NotificationsPage() {
         csrfToken,
       })
       setData(response)
+      setUnreadNotificationCount(response.unread_count)
     } catch (saveError) {
       setError(saveError instanceof ApiError ? saveError.message : 'Unable to update notifications.')
     } finally {

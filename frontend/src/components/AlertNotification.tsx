@@ -163,13 +163,13 @@ export function useAlerts(maxAlerts = 10) {
     addAlert,
     dismissAlert,
     clearAll,
-    info: (title: string, message: string, opts?: Parameters<typeof addAlert>[2]) =>
+    info: (title: string, message: string, opts?: Parameters<typeof addAlert>[3]) =>
       addAlert('info', title, message, opts),
-    warning: (title: string, message: string, opts?: Parameters<typeof addAlert>[2]) =>
+    warning: (title: string, message: string, opts?: Parameters<typeof addAlert>[3]) =>
       addAlert('warning', title, message, opts),
-    error: (title: string, message: string, opts?: Parameters<typeof addAlert>[2]) =>
+    error: (title: string, message: string, opts?: Parameters<typeof addAlert>[3]) =>
       addAlert('error', title, message, opts),
-    success: (title: string, message: string, opts?: Parameters<typeof addAlert>[2]) =>
+    success: (title: string, message: string, opts?: Parameters<typeof addAlert>[3]) =>
       addAlert('success', title, message, opts),
   }
 }

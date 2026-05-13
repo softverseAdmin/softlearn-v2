@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { generateId } from '../lib/accessibility'
 
 export interface FilterPreset {
   name: string

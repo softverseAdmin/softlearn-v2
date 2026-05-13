@@ -1,5 +1,3 @@
-import type { NotificationItem } from '../notifications/types'
-
 export type RoadmapNodeState = 'not_started' | 'in_progress' | 'completed' | 'exam_required' | 'locked'
 
 export interface StudentDashboardResponse {

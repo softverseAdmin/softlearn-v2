@@ -1,7 +1,9 @@
 import React, { useState } from 'react'
-import { Bell, Moon, Sun, Search, LogOut } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { Bell, ChevronDown, Mail, Menu, Moon, Sun, Search, LogOut } from 'lucide-react'
 import { useTheme } from '@/components/ui/ThemeProvider'
 import { Avatar } from '@/components/ui/components'
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import {
   DropdownMenu,
@@ -11,15 +13,21 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 
-interface NavbarProps {
+export interface NavbarProps {
   searchPlaceholder?: string
   onSearch?: (query: string) => void
   showNotifications?: boolean
   notificationCount?: number
+  showThemeToggle?: boolean
+  notificationsHref?: string
+  messagesHref?: string
   userMenu?: {
     name: string
     email?: string
     avatar?: string
+    roleLabel?: string
+    profileHref?: string
+    settingsHref?: string
     onLogout?: () => void
   }
 }
@@ -29,6 +37,9 @@ export function Navbar({
   onSearch,
   showNotifications = true,
   notificationCount = 0,
+  showThemeToggle = true,
+  notificationsHref,
+  messagesHref,
   userMenu,
 }: NavbarProps) {
   const [searchQuery, setSearchQuery] = useState('')
@@ -41,86 +52,138 @@ export function Navbar({
   }
 
   return (
-    <nav className="sticky top-0 z-30 border-b border-border bg-card/50 backdrop-blur-xl">
-      <div className="flex h-16 items-center justify-between gap-4 px-6">
-        {/* Search Bar */}
-        <div className="hidden md:flex flex-1 max-w-md">
-          <div className="relative w-full">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <input
-              type="text"
-              placeholder={searchPlaceholder}
-              value={searchQuery}
-              onChange={handleSearchChange}
-              className={cn(
-                'w-full rounded-lg border border-border bg-secondary/10 py-2 pl-10 pr-4 text-sm',
-                'placeholder:text-muted-foreground transition-all duration-200',
-                'focus:border-primary/50 focus:outline-none focus:ring-1 focus:ring-primary/20'
-              )}
-            />
+    <nav className="sticky top-0 z-30 px-4 pt-4 md:px-6 lg:px-8">
+      <div className="flex min-h-18 items-center justify-between gap-4 rounded-[28px] border border-white/70 bg-white/88 px-4 py-3 shadow-[0_18px_50px_rgba(15,23,42,0.06)] backdrop-blur-xl md:px-6">
+        <div className="flex min-w-0 flex-1 items-center gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            size="icon-lg"
+            className="rounded-2xl border-slate-200 bg-slate-50 text-slate-500 hover:border-primary/20 hover:bg-primary/5 hover:text-primary"
+            aria-label="Open navigation"
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
+
+          <div className="hidden max-w-2xl flex-1 md:flex">
+            <div className="relative w-full">
+              <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                placeholder={searchPlaceholder}
+                value={searchQuery}
+                onChange={handleSearchChange}
+                className={cn(
+                  'h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/90 py-2 pl-11 pr-20 text-sm shadow-inner',
+                  'placeholder:text-slate-400 transition-all duration-200',
+                  'focus:border-primary/30 focus:bg-white focus:outline-none focus:ring-4 focus:ring-primary/10'
+                )}
+              />
+              <span className="absolute right-3 top-1/2 hidden -translate-y-1/2 rounded-xl border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-medium text-slate-400 lg:inline-flex">
+                Ctrl + K
+              </span>
+            </div>
           </div>
         </div>
 
-        {/* Right Actions */}
-        <div className="flex items-center gap-4">
-          {/* Notifications */}
+        <div className="flex items-center gap-2 md:gap-3">
           {showNotifications && (
-            <button
-              className={cn(
-                'relative p-2 rounded-lg transition-all duration-200',
-                'hover:bg-secondary/10 hover:text-primary'
-              )}
+            <Button
+              asChild={Boolean(notificationsHref)}
+              type="button"
+              variant="ghost"
+              size="icon-lg"
+              className="relative rounded-2xl border border-slate-200 bg-slate-50 text-slate-600 hover:border-primary/20 hover:bg-primary/5 hover:text-primary"
+              aria-label="Notifications"
             >
-              <Bell className="h-5 w-5" />
-              {notificationCount > 0 && (
-                <span className="absolute top-0 right-0 inline-flex items-center justify-center h-5 w-5 rounded-full bg-destructive text-destructive-foreground text-xs font-bold">
-                  {notificationCount > 9 ? '9+' : notificationCount}
-                </span>
+              {notificationsHref ? (
+                <Link to={notificationsHref}>
+                  <Bell className="h-5 w-5" />
+                  {notificationCount > 0 && (
+                    <span className="absolute top-0 right-0 inline-flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-xs font-bold text-destructive-foreground">
+                      {notificationCount > 9 ? '9+' : notificationCount}
+                    </span>
+                  )}
+                </Link>
+              ) : (
+                <>
+                  <Bell className="h-5 w-5" />
+                  {notificationCount > 0 && (
+                    <span className="absolute top-0 right-0 inline-flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-xs font-bold text-destructive-foreground">
+                      {notificationCount > 9 ? '9+' : notificationCount}
+                    </span>
+                  )}
+                </>
               )}
-            </button>
+            </Button>
           )}
 
-          {/* Theme Toggle */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className="p-2 rounded-lg transition-all duration-200 hover:bg-secondary/10">
-                {theme === 'light' ? (
-                  <Moon className="h-5 w-5" />
-                ) : theme === 'dark' ? (
-                  <Sun className="h-5 w-5" />
-                ) : (
-                  <Sun className="h-5 w-5" />
-                )}
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-40">
-              <DropdownMenuItem onClick={() => setTheme('light')} className="cursor-pointer">
-                <Sun className="h-4 w-4 mr-2" />
-                Light
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setTheme('dark')} className="cursor-pointer">
-                <Moon className="h-4 w-4 mr-2" />
-                Dark
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setTheme('system')} className="cursor-pointer">
-                <div className="h-4 w-4 mr-2 rounded border border-foreground/20" />
-                System
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <Button
+            asChild={Boolean(messagesHref)}
+            type="button"
+            variant="ghost"
+            size="icon-lg"
+            className="rounded-2xl border border-slate-200 bg-slate-50 text-slate-600 hover:border-primary/20 hover:bg-primary/5 hover:text-primary"
+            aria-label="Messages"
+          >
+            {messagesHref ? (
+              <Link to={messagesHref}>
+                <Mail className="h-5 w-5" />
+              </Link>
+            ) : (
+              <Mail className="h-5 w-5" />
+            )}
+          </Button>
 
-          {/* User Menu */}
-          {userMenu && (
+          {showThemeToggle ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-2 p-1 rounded-lg transition-all duration-200 hover:bg-secondary/10">
-                  <Avatar
-                    size="sm"
-                    src={userMenu.avatar}
-                    fallback={userMenu.name.charAt(0)}
-                    alt={userMenu.name}
-                  />
-                </button>
+                <Button type="button" variant="ghost" size="icon-lg" className="rounded-2xl border border-slate-200 bg-slate-50">
+                  {theme === 'light' ? (
+                    <Moon className="h-5 w-5" />
+                  ) : theme === 'dark' ? (
+                    <Sun className="h-5 w-5" />
+                  ) : (
+                    <Sun className="h-5 w-5" />
+                  )}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-40">
+                <DropdownMenuItem onClick={() => setTheme('light')} className="cursor-pointer">
+                  <Sun className="h-4 w-4 mr-2" />
+                  Light
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTheme('dark')} className="cursor-pointer">
+                  <Moon className="h-4 w-4 mr-2" />
+                  Dark
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTheme('system')} className="cursor-pointer">
+                  <div className="h-4 w-4 mr-2 rounded border border-foreground/20" />
+                  System
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : null}
+
+          {userMenu && (
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                className="inline-flex h-auto items-center gap-3 rounded-2xl border border-slate-200 bg-white px-2 py-1.5 text-inherit outline-none transition-colors hover:border-primary/20 hover:bg-primary/5 hover:text-inherit focus-visible:ring-2 focus-visible:ring-ring/50"
+                aria-label="Open user menu"
+              >
+                <Avatar
+                  size="sm"
+                  src={userMenu.avatar}
+                  fallback={userMenu.name.charAt(0)}
+                  alt={userMenu.name}
+                />
+                <div className="hidden text-left md:block">
+                  <p className="text-sm font-semibold leading-none text-slate-900">{userMenu.name}</p>
+                  {userMenu.roleLabel ? (
+                    <p className="mt-1 text-xs text-slate-500">{userMenu.roleLabel}</p>
+                  ) : null}
+                </div>
+                <ChevronDown className="h-4 w-4 text-slate-400" />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 <div className="px-2 py-1.5">
@@ -128,17 +191,21 @@ export function Navbar({
                   {userMenu.email && <p className="text-xs text-muted-foreground">{userMenu.email}</p>}
                 </div>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <a href="/profile" className="cursor-pointer">
-                    Profile
-                  </a>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <a href="/settings" className="cursor-pointer">
-                    Settings
-                  </a>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
+                {userMenu.profileHref ? (
+                  <DropdownMenuItem asChild>
+                    <Link to={userMenu.profileHref} className="cursor-pointer">
+                      Profile
+                    </Link>
+                  </DropdownMenuItem>
+                ) : null}
+                {userMenu.settingsHref ? (
+                  <DropdownMenuItem asChild>
+                    <Link to={userMenu.settingsHref} className="cursor-pointer">
+                      Settings
+                    </Link>
+                  </DropdownMenuItem>
+                ) : null}
+                {userMenu.profileHref || userMenu.settingsHref ? <DropdownMenuSeparator /> : null}
                 <DropdownMenuItem
                   onClick={userMenu.onLogout}
                   className="cursor-pointer text-destructive"

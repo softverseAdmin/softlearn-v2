@@ -1,5 +1,5 @@
-import { type ReactNode } from 'react'
-import { useAccessibility } from '../hooks/useAccessibility'
+import { useState, type ReactNode } from 'react'
+import { useFocusTrap } from '../hooks/useAccessibility'
 
 export interface ConfirmationModalProps {
   isOpen: boolean
@@ -27,7 +27,7 @@ export function ConfirmationModal({
   onCancel,
   isLoading = false,
 }: ConfirmationModalProps) {
-  const { focusTrapRef } = useAccessibility()
+  const focusTrapRef = useFocusTrap(isOpen)
 
   if (!isOpen) return null
 
@@ -150,7 +150,5 @@ export function useConfirmationModal() {
     ),
   }
 }
-
-import { useState } from 'react'
 
 export default ConfirmationModal

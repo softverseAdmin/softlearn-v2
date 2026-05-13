@@ -82,7 +82,7 @@ export function BulkUploadProgress({
           <>
             {onPause && (
               <button
-                onClick={onPause}
+                onClick={isPaused && onResume ? onResume : onPause}
                 className="px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500"
               >
                 {isPaused ? 'Resume' : 'Pause'}

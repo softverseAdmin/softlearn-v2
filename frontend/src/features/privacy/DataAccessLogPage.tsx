@@ -37,7 +37,7 @@ export function DataAccessLogPage() {
       if (filterType) {
         params.append('access_type', filterType);
       }
-      const response = await apiClient.get(`/v1/student/data-access-log?${params}`);
+      const response = await apiClient.get<{ logs: AccessLog[] }>(`/v1/student/data-access-log?${params}`);
       setLogs(response.data.logs);
       setError('');
     } catch (err) {

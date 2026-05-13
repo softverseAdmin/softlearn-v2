@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   LineChart,
   Line,
@@ -166,7 +166,7 @@ export function StudentAnalyticsDashboard({ userName }: StudentAnalyticsDashboar
                   fill="#8884d8"
                   dataKey="value"
                 >
-                  {learningStatusData.map((entry, index) => (
+                  {learningStatusData.map((_entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
@@ -195,7 +195,7 @@ export function StudentAnalyticsDashboard({ userName }: StudentAnalyticsDashboar
                   fill="#8884d8"
                   dataKey="value"
                 >
-                  {applicationStatusData.map((entry, index) => (
+                  {applicationStatusData.map((_entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>

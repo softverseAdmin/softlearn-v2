@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import { useAuth } from '../../auth/useAuth'
 import { apiRequest, ApiError } from '../../lib/api'
 import { ConfirmationDialog } from '../../components/ConfirmationDialog'
 
@@ -15,7 +14,6 @@ interface ScheduledTask {
 }
 
 export function ScheduledTasksPage() {
-  const { csrfToken } = useAuth()
   const [tasks, setTasks] = useState<ScheduledTask[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)

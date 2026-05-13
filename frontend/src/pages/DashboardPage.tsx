@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
 
 import type { AdminDashboardResponse, CompanyDashboardResponse, StudentDashboardResponse } from '../features/dashboard/types'
 import { CompanyDashboardRedesign } from '../features/dashboard/CompanyDashboardRedesign'
