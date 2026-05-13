@@ -14,21 +14,6 @@ export const roleHomePaths: Record<UserRole, string> = {
 export const navigationItemsByRole: Record<UserRole, NavigationItem[]> = {
   student: [
     { label: 'Dashboard', to: '/student' },
-    { label: 'Notifications', to: '/student/notifications' },
-    { label: 'Matches', to: '/student/matches' },
-    { label: 'Jobs', to: '/student/jobs' },
-    { label: 'Applications', to: '/student/applications' },
-    { label: 'Profile', to: '/student/profile' },
-    { label: 'Skills', to: '/student/skills' },
-    { label: 'Courses', to: '/student/courses' },
-    { label: 'Learning', to: '/student/learning' },
-    { label: 'Preparation', to: '/student/preparation' },
-    { label: 'Exams', to: '/student/exams' },
-    { label: 'Interviews', to: '/student/interviews' },
-    { label: 'Privacy', to: '/student/privacy' },
-    { label: 'Exam categories', to: '/learning/categories' },
-    { label: 'Study plan', to: '/learning/study-plan' },
-    { label: 'Performance', to: '/learning/performance' },
   ],
   company: [
     { label: 'Dashboard', to: '/company' },

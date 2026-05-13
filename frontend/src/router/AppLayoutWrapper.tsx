@@ -3,7 +3,6 @@ import { Outlet, useNavigate } from 'react-router-dom'
 import {
   Award,
   BarChart3,
-  Bell,
   BookMarked,
   BookOpen,
   BriefcaseBusiness,
@@ -16,7 +15,6 @@ import {
   Settings,
   ShieldCheck,
   Sparkles,
-  Video,
   Users,
 } from 'lucide-react'
 
@@ -25,6 +23,7 @@ import { ApiError, apiRequest } from '@/lib/api'
 import { AppLayout } from '@/components/AppLayout'
 import { Button } from '@/components/ui/button'
 import type { NavItem } from '@/components/Sidebar'
+import { navigationItemsByRole } from '@/router/navigation'
 
 export type AppLayoutOutletContext = {
   unreadNotificationCount: number
@@ -77,160 +76,35 @@ export function AppLayoutWrapper() {
     </div>
   )
 
+  const getNavIcon = (href: string) => {
+    if (href.endsWith('/notifications')) return <Sparkles className="h-5 w-5" />
+    if (href.endsWith('/matches')) return <Sparkles className="h-5 w-5" />
+    if (href.endsWith('/jobs') || href.endsWith('/vacancies') || href.endsWith('/operations')) {
+      return <BriefcaseBusiness className="h-5 w-5" />
+    }
+    if (href.endsWith('/applications')) return <ClipboardCheck className="h-5 w-5" />
+    if (href.endsWith('/profile') || href.endsWith('/privacy')) return <Settings className="h-5 w-5" />
+    if (href.endsWith('/skills')) return <ShieldCheck className="h-5 w-5" />
+    if (href.endsWith('/courses') || href.endsWith('/study-plan')) return <BookOpen className="h-5 w-5" />
+    if (href.endsWith('/learning')) return <GraduationCap className="h-5 w-5" />
+    if (href.endsWith('/exams')) return <FileBadge2 className="h-5 w-5" />
+    if (href.endsWith('/interviews')) return <Users className="h-5 w-5" />
+    if (href.endsWith('/performance')) return <BarChart3 className="h-5 w-5" />
+    if (href.endsWith('/users')) return <Users className="h-5 w-5" />
+    if (href.endsWith('/companies')) return <Users className="h-5 w-5" />
+    if (href.endsWith('/resume')) return <FileText className="h-5 w-5" />
+    if (href.endsWith('/documents')) return <Files className="h-5 w-5" />
+    if (href.endsWith('/certificates')) return <BookMarked className="h-5 w-5" />
+
+    return <LayoutDashboard className="h-5 w-5" />
+  }
+
   const getNavItems = (): NavItem[] => {
-    if (user.role === 'student') {
-      return [
-        {
-          label: 'Dashboard',
-          icon: <LayoutDashboard className="h-5 w-5" />,
-          href: '/student',
-        },
-        {
-          label: 'My Learning',
-          icon: <GraduationCap className="h-5 w-5" />,
-          href: '/student/learning',
-        },
-        {
-          label: 'Courses',
-          icon: <BookOpen className="h-5 w-5" />,
-          href: '/student/courses',
-        },
-        {
-          label: 'Exams',
-          icon: <FileBadge2 className="h-5 w-5" />,
-          href: '/student/exams',
-        },
-        {
-          label: 'Mock Interviews',
-          icon: <Video className="h-5 w-5" />,
-          href: '/student/mock-interviews',
-        },
-        {
-          label: 'Jobs',
-          icon: <BriefcaseBusiness className="h-5 w-5" />,
-          href: '/student/jobs',
-        },
-        {
-          label: 'Applications',
-          icon: <ClipboardCheck className="h-5 w-5" />,
-          href: '/student/applications',
-        },
-        {
-          label: 'Matches',
-          icon: <Sparkles className="h-5 w-5" />,
-          href: '/student/matches',
-        },
-        {
-          label: 'Skills',
-          icon: <ShieldCheck className="h-5 w-5" />,
-          href: '/student/skills',
-        },
-        {
-          label: 'Study Plan',
-          icon: <BookOpen className="h-5 w-5" />,
-          href: '/learning/study-plan',
-        },
-        {
-          label: 'Performance',
-          icon: <BarChart3 className="h-5 w-5" />,
-          href: '/learning/performance',
-        },
-        {
-          label: 'Community',
-          icon: <Users className="h-5 w-5" />,
-          href: '/student/community',
-        },
-        {
-          label: 'Resume',
-          icon: <FileText className="h-5 w-5" />,
-          href: '/student/resume',
-        },
-        {
-          label: 'Work History',
-          icon: <BriefcaseBusiness className="h-5 w-5" />,
-          href: '/student/work-history',
-        },
-        {
-          label: 'Documents',
-          icon: <Files className="h-5 w-5" />,
-          href: '/student/documents',
-        },
-        {
-          label: 'Certificates',
-          icon: <BookMarked className="h-5 w-5" />,
-          href: '/student/certificates',
-        },
-        {
-          label: 'Settings',
-          icon: <Settings className="h-5 w-5" />,
-          href: '/student/privacy',
-        },
-      ]
-    }
-
-    if (user.role === 'company') {
-      return [
-        {
-          label: 'Dashboard',
-          icon: <LayoutDashboard className="h-5 w-5" />,
-          href: '/company',
-        },
-        {
-          label: 'Candidates',
-          icon: <Users className="h-5 w-5" />,
-          href: '/company/candidates',
-        },
-        {
-          label: 'Vacancies',
-          icon: <BookOpen className="h-5 w-5" />,
-          href: '/company/vacancies',
-        },
-        {
-          label: 'Interviews',
-          icon: <Bell className="h-5 w-5" />,
-          href: '/company/interviews',
-        },
-        {
-          label: 'Shortlist',
-          icon: <Sparkles className="h-5 w-5" />,
-          href: '/company/shortlist',
-        },
-        {
-          label: 'Profile',
-          icon: <Settings className="h-5 w-5" />,
-          href: '/company/profile',
-        },
-      ]
-    }
-
-    return [
-        {
-          label: 'Dashboard',
-          icon: <LayoutDashboard className="h-5 w-5" />,
-          href: '/admin',
-        },
-        {
-          label: 'Users',
-          icon: <Users className="h-5 w-5" />,
-          href: '/admin/users',
-        },
-        {
-          label: 'Management',
-          icon: <BookOpen className="h-5 w-5" />,
-           href: '/admin/operations',
-           submenu: [
-             { label: 'Companies', icon: <Users className="h-4 w-4" />, href: '/admin/operations' },
-             { label: 'Courses', icon: <BookOpen className="h-4 w-4" />, href: '/admin/courses' },
-             { label: 'Exams', icon: <FileBadge2 className="h-4 w-4" />, href: '/admin/exams' },
-             { label: 'Vacancies', icon: <BriefcaseBusiness className="h-4 w-4" />, href: '/admin/vacancies' },
-           ],
-         },
-        {
-          label: 'Settings',
-          icon: <Settings className="h-5 w-5" />,
-          href: '/admin/settings',
-        },
-      ]
+    return navigationItemsByRole[user.role].map((item) => ({
+      label: item.label,
+      href: item.to,
+      icon: getNavIcon(item.to),
+    }))
   }
 
   const handleLogout = async () => {
