@@ -14,6 +14,7 @@ export const roleHomePaths: Record<UserRole, string> = {
 export const navigationItemsByRole: Record<UserRole, NavigationItem[]> = {
   student: [
     { label: 'Dashboard', to: '/student' },
+    { label: 'Courses', to: '/student/courses' },
   ],
   company: [
     { label: 'Dashboard', to: '/company' },

@@ -12,6 +12,14 @@ export interface StudentDashboardResponse {
     cta_label: string
     cta_href: string
   }
+  current_lesson: {
+    lesson_id: number
+    title: string
+    course_title: string
+    sequence_number: number
+    href: string
+    status: 'not_started' | 'in_progress' | 'completed'
+  } | null
   next_action: {
     action_type: 'start_learning' | 'start_topic' | 'complete_topic' | 'take_exam' | 'continue_roadmap'
     title: string
@@ -149,6 +157,7 @@ export interface StudentAnalyticsDashboardData {
     rejected: number
     withdrawn: number
   }
+  study_streak_days: number
   last_updated: string
 }
 

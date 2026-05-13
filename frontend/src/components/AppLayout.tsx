@@ -28,7 +28,7 @@ function AppLayoutContent({
   return (
     <div
       className={cn(
-        'flex min-h-screen flex-col md:flex-row',
+        'flex min-h-screen flex-col md:h-screen md:flex-row md:overflow-hidden',
         'bg-[radial-gradient(circle_at_top_left,rgba(37,99,255,0.10),transparent_28%),radial-gradient(circle_at_top_right,rgba(124,58,237,0.08),transparent_24%),linear-gradient(180deg,#f8fbff_0%,#f4f7fb_100%)]',
         'text-foreground'
       )}
@@ -40,7 +40,7 @@ function AppLayoutContent({
         collapsible={sidebarCollapsible}
       />
 
-      <div className="relative flex min-h-screen min-w-0 flex-1 flex-col">
+      <div className="relative flex min-h-screen min-w-0 flex-1 flex-col md:h-screen md:min-h-0">
         <div
           className={cn(
             'pointer-events-none absolute inset-x-0 top-0 h-64',

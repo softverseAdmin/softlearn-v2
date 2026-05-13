@@ -61,7 +61,7 @@ export function Sidebar({ items, logo, bottomContent, collapsible = true, onNavi
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
         className={cn(
           'flex flex-col overflow-hidden bg-white/92 shadow-[0_24px_60px_rgba(15,23,42,0.06)] backdrop-blur-xl md:overflow-visible',
-          'fixed inset-y-0 left-0 z-40 md:relative md:inset-auto md:z-20',
+          'fixed inset-y-0 left-0 z-40 md:sticky md:top-0 md:h-screen md:self-start md:inset-auto md:z-20',
           'md:translate-x-0 md:opacity-100 md:w-auto',
           'after:pointer-events-none after:absolute after:inset-x-4 after:top-0 after:h-24 after:rounded-b-[32px] after:bg-[radial-gradient(circle_at_top,rgba(37,99,255,0.10),transparent_68%)] after:content-[""]',
           'hidden md:flex'
