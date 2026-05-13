@@ -1,5 +1,6 @@
 import { BrowserRouter } from 'react-router-dom'
 import { useEffect } from 'react'
+import { Toaster } from 'sonner'
 
 import { AuthProvider } from '../auth/AuthContext'
 import { ThemeProvider } from '../auth/ThemeContext'
@@ -26,6 +27,7 @@ function AppContent() {
   return (
     <>
       <PageTitle />
+      <Toaster position="bottom-center" richColors duration={3000} />
       <AppRouter />
     </>
   )

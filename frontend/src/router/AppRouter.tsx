@@ -24,6 +24,7 @@ import { StudentExamPage } from '../features/profile/StudentExamPage'
 import StudentExamResultsPage from '../features/profile/StudentExamResultsPage'
 import { StudentInterviewDetailPage } from '../features/profile/StudentInterviewDetailPage'
 import { StudentInterviewsPage } from '../features/profile/StudentInterviewsPage'
+import { StudentJobDetailPage } from '../features/profile/StudentJobDetailPage'
 import { StudentJobsPage } from '../features/profile/StudentJobsPage'
 import { StudentLessonPage } from '../features/profile/StudentLessonPage'
 import { StudentLearningPage } from '../features/profile/StudentLearningPage'
@@ -76,6 +77,7 @@ export function AppRouter() {
             <Route path="/student/courses/:courseId" element={<StudentCourseDetailPage />} />
             <Route path="/student/courses/:courseId/lessons/:lessonId" element={<StudentLessonPage />} />
             <Route path="/student/jobs" element={<StudentJobsPage />} />
+            <Route path="/student/jobs/:vacancyId" element={<StudentJobDetailPage />} />
             <Route path="/student/learning" element={<StudentLearningPage />} />
             <Route path="/student/preparation" element={<StudentPreparationPage />} />
             <Route path="/student/exams" element={<StudentExamResultsPage />} />

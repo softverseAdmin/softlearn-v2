@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useEffect, useMemo, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import {
   Bookmark,
   BookmarkCheck,
@@ -13,7 +13,9 @@ import {
   SlidersHorizontal,
 } from 'lucide-react'
 
-import type { StudentJobsResponse, VacancyLanguageRequirement, VacancyRecord, VacancySkillRequirement } from './types'
+import { useAuth } from '../../auth/useAuth'
+import { ApiError, apiRequest } from '../../lib/api'
+import type { StudentJobsResponse, VacancyRecord } from './types'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -22,436 +24,8 @@ import { Input } from '@/components/ui/input'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { cn } from '@/lib/utils'
 
-function buildSkillRequirement(
-  id: number,
-  skillId: number,
-  skillName: string,
-  skillSlug: string,
-  requirementType = 'preferred'
-): VacancySkillRequirement {
-  return {
-    id,
-    skill_id: skillId,
-    skill_name: skillName,
-    skill_slug: skillSlug,
-    requirement_type: requirementType,
-  }
-}
-
-function buildLanguageRequirement(
-  id: number,
-  language: string,
-  languageLabel: string,
-  minimumLevel: string,
-  minimumLevelLabel: string,
-  requirementType = 'required'
-): VacancyLanguageRequirement {
-  return {
-    id,
-    language,
-    language_label: languageLabel,
-    minimum_level: minimumLevel,
-    minimum_level_label: minimumLevelLabel,
-    requirement_type: requirementType,
-  }
-}
-
-const mockJobsResponse: StudentJobsResponse = {
-  vacancies: [
-    {
-      vacancy_id: 101,
-      company_id: 1,
-      company_name: 'LinkedBridge Labs',
-      title: 'Frontend Engineer Intern',
-      description:
-        'Join a product squad building student-facing career tools. You will collaborate on polished React screens, reusable UI components, and accessibility-focused interactions.',
-      employment_type: 'Internship',
-      experience_level: 'Entry level',
-      location: 'Tokyo',
-      work_style: 'hybrid',
-      work_style_label: 'Hybrid',
-      relocation_support: false,
-      min_salary: 180000,
-      max_salary: 240000,
-      skill_requirements: [
-        buildSkillRequirement(1, 1, 'React', 'react', 'required'),
-        buildSkillRequirement(2, 2, 'TypeScript', 'typescript', 'required'),
-        buildSkillRequirement(3, 3, 'Tailwind CSS', 'tailwind-css'),
-      ],
-      language_requirements: [
-        buildLanguageRequirement(1, 'english', 'English', 'b2', 'B2'),
-        buildLanguageRequirement(2, 'japanese', 'Japanese', 'n3', 'JLPT N3', 'preferred'),
-      ],
-      is_bookmarked: true,
-      status: 'open',
-      created_by_name: 'Recruiting Team',
-      created_at: '2026-05-08T10:00:00Z',
-      updated_at: '2026-05-13T09:15:00Z',
-    },
-    {
-      vacancy_id: 102,
-      company_id: 2,
-      company_name: 'Northstar Commerce',
-      title: 'UI/UX Product Design Trainee',
-      description:
-        'Support the growth team with high-converting landing pages, design system updates, and rapid prototype work for marketplace experiences.',
-      employment_type: 'Full-time',
-      experience_level: 'Junior',
-      location: 'Osaka',
-      work_style: 'remote',
-      work_style_label: 'Remote',
-      relocation_support: true,
-      min_salary: 260000,
-      max_salary: 340000,
-      skill_requirements: [
-        buildSkillRequirement(4, 4, 'Figma', 'figma', 'required'),
-        buildSkillRequirement(5, 5, 'Product Design', 'product-design', 'required'),
-        buildSkillRequirement(6, 6, 'Design Systems', 'design-systems'),
-      ],
-      language_requirements: [buildLanguageRequirement(3, 'english', 'English', 'c1', 'C1')],
-      is_bookmarked: false,
-      status: 'open',
-      created_by_name: 'Hiring Manager',
-      created_at: '2026-05-09T08:30:00Z',
-      updated_at: '2026-05-12T07:45:00Z',
-    },
-    {
-      vacancy_id: 103,
-      company_id: 3,
-      company_name: 'Apex Data Works',
-      title: 'Backend Developer Associate',
-      description:
-        'Help build scalable APIs for learning analytics and hiring workflows. You will work across Django services, relational data models, and secure integrations.',
-      employment_type: 'Full-time',
-      experience_level: 'Associate',
-      location: 'Yokohama',
-      work_style: 'onsite',
-      work_style_label: 'On-site',
-      relocation_support: false,
-      min_salary: 320000,
-      max_salary: 420000,
-      skill_requirements: [
-        buildSkillRequirement(7, 7, 'Python', 'python', 'required'),
-        buildSkillRequirement(8, 8, 'Django', 'django', 'required'),
-        buildSkillRequirement(9, 9, 'PostgreSQL', 'postgresql'),
-      ],
-      language_requirements: [
-        buildLanguageRequirement(4, 'japanese', 'Japanese', 'n2', 'JLPT N2'),
-        buildLanguageRequirement(5, 'english', 'English', 'b2', 'B2', 'preferred'),
-      ],
-      is_bookmarked: true,
-      status: 'open',
-      created_by_name: 'Platform Lead',
-      created_at: '2026-05-07T12:00:00Z',
-      updated_at: '2026-05-11T11:10:00Z',
-    },
-    {
-      vacancy_id: 104,
-      company_id: 4,
-      company_name: 'BrightPath AI',
-      title: 'AI Product Operations Intern',
-      description:
-        'Coordinate annotation workflows, improve AI feature QA, and support explainable matching operations with crisp stakeholder communication.',
-      employment_type: 'Internship',
-      experience_level: 'Entry level',
-      location: 'Tokyo',
-      work_style: 'hybrid',
-      work_style_label: 'Hybrid',
-      relocation_support: false,
-      min_salary: 170000,
-      max_salary: 220000,
-      skill_requirements: [
-        buildSkillRequirement(10, 10, 'SQL', 'sql', 'required'),
-        buildSkillRequirement(11, 11, 'Operations', 'operations'),
-        buildSkillRequirement(12, 12, 'Documentation', 'documentation'),
-      ],
-      language_requirements: [buildLanguageRequirement(6, 'english', 'English', 'b2', 'B2')],
-      is_bookmarked: false,
-      status: 'open',
-      created_by_name: 'Talent Partner',
-      created_at: '2026-05-06T09:30:00Z',
-      updated_at: '2026-05-10T13:50:00Z',
-    },
-    {
-      vacancy_id: 105,
-      company_id: 5,
-      company_name: 'Orbit Fintech',
-      title: 'Data Analyst Graduate Role',
-      description:
-        'Work with finance and product teams to turn operational data into dashboards, decision-ready insights, and weekly reporting narratives.',
-      employment_type: 'Full-time',
-      experience_level: 'Graduate',
-      location: 'Kyoto',
-      work_style: 'remote',
-      work_style_label: 'Remote',
-      relocation_support: true,
-      min_salary: 300000,
-      max_salary: 390000,
-      skill_requirements: [
-        buildSkillRequirement(13, 13, 'Excel', 'excel', 'required'),
-        buildSkillRequirement(14, 10, 'SQL', 'sql', 'required'),
-        buildSkillRequirement(15, 14, 'Data Analysis', 'data-analysis'),
-      ],
-      language_requirements: [
-        buildLanguageRequirement(7, 'english', 'English', 'b2', 'B2'),
-        buildLanguageRequirement(8, 'japanese', 'Japanese', 'n3', 'JLPT N3', 'preferred'),
-      ],
-      is_bookmarked: false,
-      status: 'open',
-      created_by_name: 'Finance Operations',
-      created_at: '2026-05-05T05:00:00Z',
-      updated_at: '2026-05-09T16:20:00Z',
-    },
-    {
-      vacancy_id: 106,
-      company_id: 6,
-      company_name: 'CloudNest Systems',
-      title: 'Junior Full Stack Developer',
-      description:
-        'Build internal dashboards and customer-facing workflows with React, Django, and shared design patterns.',
-      employment_type: 'Full-time',
-      experience_level: 'Junior',
-      location: 'Tokyo',
-      work_style: 'hybrid',
-      work_style_label: 'Hybrid',
-      relocation_support: false,
-      min_salary: 280000,
-      max_salary: 360000,
-      skill_requirements: [
-        buildSkillRequirement(16, 1, 'React', 'react', 'required'),
-        buildSkillRequirement(17, 8, 'Django', 'django', 'required'),
-        buildSkillRequirement(18, 2, 'TypeScript', 'typescript'),
-      ],
-      language_requirements: [buildLanguageRequirement(9, 'english', 'English', 'b2', 'B2')],
-      is_bookmarked: false,
-      status: 'open',
-      created_by_name: 'Engineering Manager',
-      created_at: '2026-05-08T04:00:00Z',
-      updated_at: '2026-05-13T05:30:00Z',
-    },
-    {
-      vacancy_id: 107,
-      company_id: 7,
-      company_name: 'PixelForge Studio',
-      title: 'Visual Designer',
-      description:
-        'Create marketing assets, product illustrations, and polished interface visuals across web and mobile.',
-      employment_type: 'Full-time',
-      experience_level: 'Associate',
-      location: 'Osaka',
-      work_style: 'remote',
-      work_style_label: 'Remote',
-      relocation_support: false,
-      min_salary: 240000,
-      max_salary: 320000,
-      skill_requirements: [
-        buildSkillRequirement(19, 4, 'Figma', 'figma', 'required'),
-        buildSkillRequirement(20, 5, 'Product Design', 'product-design'),
-        buildSkillRequirement(21, 6, 'Design Systems', 'design-systems'),
-      ],
-      language_requirements: [buildLanguageRequirement(10, 'english', 'English', 'b2', 'B2')],
-      is_bookmarked: true,
-      status: 'open',
-      created_by_name: 'Creative Lead',
-      created_at: '2026-05-07T08:00:00Z',
-      updated_at: '2026-05-12T15:00:00Z',
-    },
-    {
-      vacancy_id: 108,
-      company_id: 8,
-      company_name: 'Nexa Retail',
-      title: 'Business Analyst Trainee',
-      description:
-        'Support retail planning, document requirements, and turn operational reporting into product backlog insights.',
-      employment_type: 'Internship',
-      experience_level: 'Entry level',
-      location: 'Kyoto',
-      work_style: 'onsite',
-      work_style_label: 'On-site',
-      relocation_support: false,
-      min_salary: 160000,
-      max_salary: 210000,
-      skill_requirements: [
-        buildSkillRequirement(22, 13, 'Excel', 'excel', 'required'),
-        buildSkillRequirement(23, 14, 'Data Analysis', 'data-analysis'),
-        buildSkillRequirement(24, 12, 'Documentation', 'documentation'),
-      ],
-      language_requirements: [buildLanguageRequirement(11, 'japanese', 'Japanese', 'n2', 'JLPT N2')],
-      is_bookmarked: false,
-      status: 'open',
-      created_by_name: 'Business Team',
-      created_at: '2026-05-04T11:00:00Z',
-      updated_at: '2026-05-11T02:15:00Z',
-    },
-    {
-      vacancy_id: 109,
-      company_id: 9,
-      company_name: 'DataPulse Health',
-      title: 'Data Engineer Associate',
-      description:
-        'Work on warehouse pipelines, reporting models, and analytics infrastructure for healthcare operations.',
-      employment_type: 'Full-time',
-      experience_level: 'Associate',
-      location: 'Yokohama',
-      work_style: 'hybrid',
-      work_style_label: 'Hybrid',
-      relocation_support: true,
-      min_salary: 340000,
-      max_salary: 450000,
-      skill_requirements: [
-        buildSkillRequirement(25, 10, 'SQL', 'sql', 'required'),
-        buildSkillRequirement(26, 7, 'Python', 'python', 'required'),
-        buildSkillRequirement(27, 9, 'PostgreSQL', 'postgresql'),
-      ],
-      language_requirements: [
-        buildLanguageRequirement(12, 'english', 'English', 'b2', 'B2'),
-        buildLanguageRequirement(13, 'japanese', 'Japanese', 'n3', 'JLPT N3', 'preferred'),
-      ],
-      is_bookmarked: false,
-      status: 'open',
-      created_by_name: 'Platform Operations',
-      created_at: '2026-05-03T14:20:00Z',
-      updated_at: '2026-05-10T06:10:00Z',
-    },
-    {
-      vacancy_id: 110,
-      company_id: 10,
-      company_name: 'LaunchLoop',
-      title: 'Product Marketing Coordinator',
-      description:
-        'Help launch new product stories, manage campaign execution, and coordinate cross-functional release content.',
-      employment_type: 'Full-time',
-      experience_level: 'Graduate',
-      location: 'Tokyo',
-      work_style: 'remote',
-      work_style_label: 'Remote',
-      relocation_support: false,
-      min_salary: 250000,
-      max_salary: 310000,
-      skill_requirements: [
-        buildSkillRequirement(28, 12, 'Documentation', 'documentation', 'required'),
-        buildSkillRequirement(29, 11, 'Operations', 'operations'),
-        buildSkillRequirement(30, 14, 'Data Analysis', 'data-analysis'),
-      ],
-      language_requirements: [buildLanguageRequirement(14, 'english', 'English', 'c1', 'C1')],
-      is_bookmarked: false,
-      status: 'open',
-      created_by_name: 'Marketing Director',
-      created_at: '2026-05-02T06:45:00Z',
-      updated_at: '2026-05-08T18:30:00Z',
-    },
-    {
-      vacancy_id: 111,
-      company_id: 11,
-      company_name: 'SecureStack',
-      title: 'Junior QA Engineer',
-      description:
-        'Validate release quality, automate regression checks, and document bug reports for secure enterprise products.',
-      employment_type: 'Full-time',
-      experience_level: 'Junior',
-      location: 'Osaka',
-      work_style: 'hybrid',
-      work_style_label: 'Hybrid',
-      relocation_support: false,
-      min_salary: 230000,
-      max_salary: 300000,
-      skill_requirements: [
-        buildSkillRequirement(31, 2, 'TypeScript', 'typescript'),
-        buildSkillRequirement(32, 12, 'Documentation', 'documentation', 'required'),
-        buildSkillRequirement(33, 11, 'Operations', 'operations'),
-      ],
-      language_requirements: [buildLanguageRequirement(15, 'english', 'English', 'b2', 'B2')],
-      is_bookmarked: true,
-      status: 'open',
-      created_by_name: 'QA Lead',
-      created_at: '2026-05-01T10:15:00Z',
-      updated_at: '2026-05-07T12:40:00Z',
-    },
-    {
-      vacancy_id: 112,
-      company_id: 12,
-      company_name: 'GreenGrid Energy',
-      title: 'Software Engineer Graduate Program',
-      description:
-        'Rotate through platform, frontend, and data teams while building production-ready features and dashboards.',
-      employment_type: 'Full-time',
-      experience_level: 'Graduate',
-      location: 'Kyoto',
-      work_style: 'onsite',
-      work_style_label: 'On-site',
-      relocation_support: true,
-      min_salary: 290000,
-      max_salary: 370000,
-      skill_requirements: [
-        buildSkillRequirement(34, 7, 'Python', 'python', 'required'),
-        buildSkillRequirement(35, 1, 'React', 'react'),
-        buildSkillRequirement(36, 10, 'SQL', 'sql'),
-      ],
-      language_requirements: [
-        buildLanguageRequirement(16, 'english', 'English', 'b2', 'B2'),
-        buildLanguageRequirement(17, 'japanese', 'Japanese', 'n2', 'JLPT N2'),
-      ],
-      is_bookmarked: false,
-      status: 'open',
-      created_by_name: 'University Programs',
-      created_at: '2026-04-30T07:20:00Z',
-      updated_at: '2026-05-06T09:05:00Z',
-    },
-    ...Array.from({ length: 18 }, (_, index) => {
-      const vacancyId = 113 + index
-      const companyId = 13 + index
-      const locations = ['Tokyo', 'Osaka', 'Yokohama', 'Kyoto']
-      const workStyles = [
-        { value: 'hybrid', label: 'Hybrid' },
-        { value: 'remote', label: 'Remote' },
-        { value: 'onsite', label: 'On-site' },
-      ] as const
-      const titles = [
-        'Frontend Developer',
-        'Operations Analyst',
-        'Product Designer',
-        'Backend Engineer',
-        'Data Analyst',
-        'QA Engineer',
-      ] as const
-      const companyPrefixes = ['Nova', 'Blue', 'Peak', 'Urban', 'Clear', 'Bright'] as const
-      const companySuffixes = ['Labs', 'Systems', 'Works', 'Studio', 'Tech', 'Cloud'] as const
-      const workStyle = workStyles[index % workStyles.length]
-      const location = locations[index % locations.length]
-      const title = `${titles[index % titles.length]} ${index + 1}`
-      const companyName = `${companyPrefixes[index % companyPrefixes.length]}${companySuffixes[index % companySuffixes.length]}`
-
-      return {
-        vacancy_id: vacancyId,
-        company_id: companyId,
-        company_name: companyName,
-        title,
-        description: `Mock UI vacancy ${index + 1} for pagination preview and jobs list styling.`,
-        employment_type: index % 3 === 0 ? 'Internship' : 'Full-time',
-        experience_level: index % 4 === 0 ? 'Entry level' : index % 4 === 1 ? 'Junior' : index % 4 === 2 ? 'Associate' : 'Graduate',
-        location,
-        work_style: workStyle.value,
-        work_style_label: workStyle.label,
-        relocation_support: index % 5 === 0,
-        min_salary: 180000 + index * 10000,
-        max_salary: 260000 + index * 12000,
-        skill_requirements: [
-          buildSkillRequirement(37 + index * 3, 1 + (index % 5), ['React', 'TypeScript', 'Python', 'SQL', 'Figma'][index % 5], ['react', 'typescript', 'python', 'sql', 'figma'][index % 5], 'required'),
-          buildSkillRequirement(38 + index * 3, 8 + (index % 4), ['Django', 'PostgreSQL', 'Operations', 'Documentation'][index % 4], ['django', 'postgresql', 'operations', 'documentation'][index % 4]),
-          buildSkillRequirement(39 + index * 3, 13 + (index % 2), ['Excel', 'Data Analysis'][index % 2], ['excel', 'data-analysis'][index % 2]),
-        ],
-        language_requirements: [
-          buildLanguageRequirement(18 + index * 2, index % 2 === 0 ? 'english' : 'japanese', index % 2 === 0 ? 'English' : 'Japanese', index % 2 === 0 ? 'b2' : 'n3', index % 2 === 0 ? 'B2' : 'JLPT N3'),
-          buildLanguageRequirement(19 + index * 2, index % 2 === 0 ? 'japanese' : 'english', index % 2 === 0 ? 'Japanese' : 'English', index % 2 === 0 ? 'n4' : 'b2', index % 2 === 0 ? 'JLPT N4' : 'B2', 'preferred'),
-        ],
-        is_bookmarked: index % 4 === 0,
-        status: 'open',
-        created_by_name: `${title} Team`,
-        created_at: `2026-04-${String(29 - (index % 20)).padStart(2, '0')}T08:00:00Z`,
-        updated_at: `2026-05-${String(5 + (index % 9)).padStart(2, '0')}T09:00:00Z`,
-      } satisfies VacancyRecord
-    }),
-  ],
+const emptyJobsResponse: StudentJobsResponse = {
+  vacancies: [],
   query: '',
   filters: {
     skills: [],
@@ -459,34 +33,12 @@ const mockJobsResponse: StudentJobsResponse = {
     locations: [],
     work_styles: [],
   },
-  result_count: 30,
-  bookmark_count: 9,
-  available_skills: [
-    { id: 1, name: 'React', slug: 'react' },
-    { id: 2, name: 'TypeScript', slug: 'typescript' },
-    { id: 3, name: 'Tailwind CSS', slug: 'tailwind-css' },
-    { id: 4, name: 'Figma', slug: 'figma' },
-    { id: 5, name: 'Product Design', slug: 'product-design' },
-    { id: 6, name: 'Design Systems', slug: 'design-systems' },
-    { id: 7, name: 'Python', slug: 'python' },
-    { id: 8, name: 'Django', slug: 'django' },
-    { id: 9, name: 'PostgreSQL', slug: 'postgresql' },
-    { id: 10, name: 'SQL', slug: 'sql' },
-    { id: 11, name: 'Operations', slug: 'operations' },
-    { id: 12, name: 'Documentation', slug: 'documentation' },
-    { id: 13, name: 'Excel', slug: 'excel' },
-    { id: 14, name: 'Data Analysis', slug: 'data-analysis' },
-  ],
-  available_languages: [
-    { value: 'english', label: 'English' },
-    { value: 'japanese', label: 'Japanese' },
-  ],
-  available_locations: ['Tokyo', 'Osaka', 'Yokohama', 'Kyoto'],
-  available_work_styles: [
-    { value: 'remote', label: 'Remote' },
-    { value: 'hybrid', label: 'Hybrid' },
-    { value: 'onsite', label: 'On-site' },
-  ],
+  result_count: 0,
+  bookmark_count: 0,
+  available_skills: [],
+  available_languages: [],
+  available_locations: [],
+  available_work_styles: [],
 }
 
 function formatSalary(minSalary: number | null, maxSalary: number | null) {
@@ -563,8 +115,12 @@ function getPaginationItems(currentPage: number, totalPages: number) {
 }
 
 export function StudentJobsPage() {
-  const jobs = mockJobsResponse
+  const navigate = useNavigate()
+  const { csrfToken } = useAuth()
   const jobsPerPage = 5
+  const [jobs, setJobs] = useState<StudentJobsResponse>(emptyJobsResponse)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [skill, setSkill] = useState('All Skills')
   const [language, setLanguage] = useState('All Languages')
@@ -572,9 +128,38 @@ export function StudentJobsPage() {
   const [workStyle, setWorkStyle] = useState('All Work Styles')
   const [sortBy, setSortBy] = useState('Newest')
   const [page, setPage] = useState(1)
-  const [savedVacancyIds, setSavedVacancyIds] = useState<number[]>(
-    jobs.vacancies.filter((vacancy) => vacancy.is_bookmarked).map((vacancy) => vacancy.vacancy_id)
-  )
+  const [bookmarkingVacancyId, setBookmarkingVacancyId] = useState<number | null>(null)
+
+  useEffect(() => {
+    let active = true
+
+    async function loadJobs() {
+      try {
+        const response = await apiRequest<StudentJobsResponse>('/student/jobs')
+        if (!active) {
+          return
+        }
+
+        setJobs(response)
+        setSearchQuery(response.query)
+        setError(null)
+      } catch (loadError) {
+        if (active) {
+          setError(loadError instanceof ApiError ? loadError.message : 'Unable to load jobs.')
+        }
+      } finally {
+        if (active) {
+          setLoading(false)
+        }
+      }
+    }
+
+    void loadJobs()
+
+    return () => {
+      active = false
+    }
+  }, [])
 
   const skillOptions = useMemo(
     () => ['All Skills', ...jobs.available_skills.map((option) => option.slug)],
@@ -608,19 +193,10 @@ export function StudentJobsPage() {
     [jobs.available_work_styles]
   )
 
-  const displayVacancies = useMemo(
-    () =>
-      jobs.vacancies.map((vacancy) => ({
-        ...vacancy,
-        is_bookmarked: savedVacancyIds.includes(vacancy.vacancy_id),
-      })),
-    [jobs.vacancies, savedVacancyIds]
-  )
-
   const filteredJobs = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase()
 
-    const filtered = displayVacancies.filter((vacancy) => {
+    const filtered = jobs.vacancies.filter((vacancy) => {
       const matchesQuery =
         !normalizedQuery ||
         [vacancy.title, vacancy.description, vacancy.company_name, vacancy.location]
@@ -656,14 +232,14 @@ export function StudentJobsPage() {
 
       return new Date(right.updated_at).getTime() - new Date(left.updated_at).getTime()
     })
-  }, [displayVacancies, language, location, searchQuery, skill, sortBy, workStyle])
+  }, [jobs.vacancies, language, location, searchQuery, skill, sortBy, workStyle])
 
   const totalPages = Math.max(1, Math.ceil(filteredJobs.length / jobsPerPage))
   const currentPage = Math.min(page, totalPages)
   const paginatedJobs = useMemo(() => {
     const startIndex = (currentPage - 1) * jobsPerPage
     return filteredJobs.slice(startIndex, startIndex + jobsPerPage)
-  }, [currentPage, filteredJobs, jobsPerPage])
+  }, [currentPage, filteredJobs])
   const paginationItems = useMemo(
     () => getPaginationItems(currentPage, totalPages),
     [currentPage, totalPages]
@@ -679,9 +255,44 @@ export function StudentJobsPage() {
     setPage(1)
   }
 
-  function toggleSaved(vacancyId: number) {
-    setSavedVacancyIds((current) =>
-      current.includes(vacancyId) ? current.filter((currentId) => currentId !== vacancyId) : [...current, vacancyId]
+  async function handleBookmarkToggle(vacancy: VacancyRecord) {
+    setBookmarkingVacancyId(vacancy.vacancy_id)
+
+    try {
+      await apiRequest(`/student/jobs/${vacancy.vacancy_id}/bookmark`, {
+        method: vacancy.is_bookmarked ? 'DELETE' : 'POST',
+        csrfToken,
+      })
+
+      setJobs((current) => ({
+        ...current,
+        bookmark_count: vacancy.is_bookmarked ? Math.max(0, current.bookmark_count - 1) : current.bookmark_count + 1,
+        vacancies: current.vacancies.map((currentVacancy) =>
+          currentVacancy.vacancy_id === vacancy.vacancy_id
+            ? { ...currentVacancy, is_bookmarked: !currentVacancy.is_bookmarked }
+            : currentVacancy
+        ),
+      }))
+    } catch (saveError) {
+      setError(saveError instanceof ApiError ? saveError.message : 'Unable to update bookmark.')
+    } finally {
+      setBookmarkingVacancyId(null)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="space-y-6 px-4 py-6 md:px-6 lg:px-8">
+        <div className="space-y-3">
+          <div className="h-5 w-32 animate-pulse rounded bg-muted" />
+          <div className="h-10 w-56 animate-pulse rounded bg-muted" />
+        </div>
+        <div className="space-y-4">
+          {Array.from({ length: 5 }).map((_, index) => (
+            <div key={index} className="h-36 animate-pulse rounded-[24px] border border-border bg-muted/20" />
+          ))}
+        </div>
+      </div>
     )
   }
 
@@ -698,9 +309,15 @@ export function StudentJobsPage() {
       <div className="space-y-2">
         <h1 className="text-3xl font-bold tracking-tight md:text-4xl">Jobs</h1>
         <p className="text-base text-muted-foreground">
-          LinkedIn-style mock job listings for UI review. You can swap this mock dataset back to original API data later.
+          Browse open roles, review the key requirements quickly, and open a detailed job page when something fits.
         </p>
       </div>
+
+      {error ? (
+        <Card className="border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950">
+          <CardContent className="px-6 py-4 text-sm text-red-800 dark:text-red-200">{error}</CardContent>
+        </Card>
+      ) : null}
 
       <div className="flex gap-3 md:hidden">
         <div className="relative flex-1">
@@ -951,7 +568,16 @@ export function StudentJobsPage() {
             return (
               <Card
                 key={vacancy.vacancy_id}
-                className="rounded-[24px] border border-slate-200/80 bg-white shadow-sm transition-all hover:border-slate-300 hover:shadow-md"
+                className="cursor-pointer rounded-[24px] border border-slate-200/80 bg-white shadow-sm transition-all hover:border-slate-300 hover:shadow-md"
+                onClick={() => navigate(`/student/jobs/${vacancy.vacancy_id}`)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault()
+                    navigate(`/student/jobs/${vacancy.vacancy_id}`)
+                  }
+                }}
+                role="link"
+                tabIndex={0}
               >
                 <CardContent className="px-4 py-4 sm:px-6 sm:py-5">
                   <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -995,14 +621,19 @@ export function StudentJobsPage() {
                       <div className="flex items-center gap-2 text-slate-500">
                         <button
                           type="button"
-                          onClick={() => toggleSaved(vacancy.vacancy_id)}
-                          className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white transition hover:border-primary/20 hover:bg-primary/5 hover:text-primary"
+                          onClick={(event) => {
+                            event.stopPropagation()
+                            void handleBookmarkToggle(vacancy)
+                          }}
+                          disabled={bookmarkingVacancyId === vacancy.vacancy_id}
+                          className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white transition hover:border-primary/20 hover:bg-primary/5 hover:text-primary disabled:opacity-60"
                           aria-label={isSaved ? 'Remove saved job' : 'Save job'}
                         >
                           {isSaved ? <BookmarkCheck className="h-5 w-5 text-primary" /> : <Bookmark className="h-5 w-5" />}
                         </button>
                         <button
                           type="button"
+                          onClick={(event) => event.stopPropagation()}
                           className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white transition hover:border-slate-300 hover:text-slate-700"
                           aria-label="More actions"
                         >
@@ -1014,7 +645,7 @@ export function StudentJobsPage() {
                         <Badge className="border-transparent bg-blue-100 text-blue-700 hover:bg-blue-100">Easy Apply</Badge>
                         {vacancy.relocation_support ? (
                           <Badge variant="outline" className="bg-white">
-                            Promoted
+                            Relocation support
                           </Badge>
                         ) : null}
                       </div>
@@ -1027,14 +658,19 @@ export function StudentJobsPage() {
                       <div className="flex items-center gap-2 text-slate-500">
                         <button
                           type="button"
-                          onClick={() => toggleSaved(vacancy.vacancy_id)}
-                          className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white transition hover:border-primary/20 hover:bg-primary/5 hover:text-primary"
+                          onClick={(event) => {
+                            event.stopPropagation()
+                            void handleBookmarkToggle(vacancy)
+                          }}
+                          disabled={bookmarkingVacancyId === vacancy.vacancy_id}
+                          className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white transition hover:border-primary/20 hover:bg-primary/5 hover:text-primary disabled:opacity-60"
                           aria-label={isSaved ? 'Remove saved job' : 'Save job'}
                         >
                           {isSaved ? <BookmarkCheck className="h-5 w-5 text-primary" /> : <Bookmark className="h-5 w-5" />}
                         </button>
                         <button
                           type="button"
+                          onClick={(event) => event.stopPropagation()}
                           className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white transition hover:border-slate-300 hover:text-slate-700"
                           aria-label="More actions"
                         >
@@ -1047,7 +683,7 @@ export function StudentJobsPage() {
                       <Badge className="border-transparent bg-blue-100 text-blue-700 hover:bg-blue-100">Easy Apply</Badge>
                       {vacancy.relocation_support ? (
                         <Badge variant="outline" className="bg-white">
-                          Promoted
+                          Relocation support
                         </Badge>
                       ) : null}
                     </div>

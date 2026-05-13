@@ -101,6 +101,10 @@ export const Avatar = React.forwardRef<HTMLImageElement, AvatarProps>(
   ({ className, size, variant, src, fallback, alt = 'Avatar', ...props }, ref) => {
     const [imageError, setImageError] = React.useState(!src)
 
+    React.useEffect(() => {
+      setImageError(!src)
+    }, [src])
+
     if (imageError || !src) {
       const initials = fallback || alt.charAt(0).toUpperCase()
       return (
