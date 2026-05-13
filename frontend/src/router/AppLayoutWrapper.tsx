@@ -20,6 +20,7 @@ import {
 
 import { useAuth } from '@/auth/useAuth'
 import { ApiError, apiRequest } from '@/lib/api'
+import { getStoredProfileImages, PROFILE_IMAGES_UPDATED_EVENT } from '@/lib/profileImages'
 import { AppLayout } from '@/components/AppLayout'
 import { Button } from '@/components/ui/button'
 import type { NavItem } from '@/components/Sidebar'
@@ -35,6 +36,7 @@ export function AppLayoutWrapper() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const [unreadNotificationCount, setUnreadNotificationCount] = useState(0)
+  const [profileAvatar, setProfileAvatar] = useState<string | undefined>(undefined)
 
   async function refreshUnreadNotificationCount() {
     try {
@@ -53,6 +55,42 @@ export function AppLayoutWrapper() {
     }
     void refreshUnreadNotificationCount()
   }, [user.user_id])
+
+  useEffect(() => {
+    if (user.role !== 'student') {
+      setProfileAvatar(undefined)
+      return
+    }
+
+    const syncAvatar = () => {
+      const storedImages = getStoredProfileImages(user.user_id)
+      setProfileAvatar(storedImages.profileImage ?? undefined)
+    }
+
+    const handleProfileImagesUpdated = (event: Event) => {
+      const customEvent = event as CustomEvent<{ userId?: number }>
+      if (customEvent.detail?.userId !== user.user_id) {
+        return
+      }
+      syncAvatar()
+    }
+
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key && event.key !== `student-profile-images:${user.user_id}`) {
+        return
+      }
+      syncAvatar()
+    }
+
+    syncAvatar()
+    window.addEventListener(PROFILE_IMAGES_UPDATED_EVENT, handleProfileImagesUpdated)
+    window.addEventListener('storage', handleStorage)
+
+    return () => {
+      window.removeEventListener(PROFILE_IMAGES_UPDATED_EVENT, handleProfileImagesUpdated)
+      window.removeEventListener('storage', handleStorage)
+    }
+  }, [user.role, user.user_id])
 
   if (!user) return null
 
@@ -151,6 +189,7 @@ export function AppLayoutWrapper() {
         userMenu: {
           name: user.name || 'User',
           email: user.email,
+          avatar: profileAvatar,
           roleLabel,
           profileHref:
             user.role === 'student'
