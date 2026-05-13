@@ -2893,6 +2893,21 @@ def get_learning_record_resume_href(learning_record: LearningRecord | None) -> s
     return "/student/learning"
 
 
+def serialize_current_learning_lesson(learning_record: LearningRecord | None) -> dict | None:
+    lesson, progress = get_next_lesson_for_learning_record(learning_record)
+    if lesson is None:
+        return None
+
+    return {
+        "lesson_id": lesson.id,
+        "title": lesson.title,
+        "course_title": lesson.course.title,
+        "sequence_number": lesson.sequence_number,
+        "href": student_lesson_href(lesson.course_id, lesson.id),
+        "status": progress.status if progress is not None else LessonProgress.Status.NOT_STARTED,
+    }
+
+
 def serialize_student_lesson_detail(
     lesson: Lesson,
     *,
@@ -5612,6 +5627,7 @@ def student_dashboard_view(request):
             "student_name": request.user.full_name,
             "header_message": "Continue your roadmap and unlock your next skill.",
             "continue_learning": continue_learning,
+            "current_lesson": serialize_current_learning_lesson(current_learning),
             "next_action": next_action,
             "progress_overview": {
                 "completed_topics": completed_courses,

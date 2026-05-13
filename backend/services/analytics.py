@@ -8,6 +8,7 @@ from users.models import (
     StudentDashboardMetric,
     CompanyDashboardMetric,
     LearningRecord,
+    LessonProgress,
     ExamResult,
     Application,
     Interview,
@@ -19,6 +20,35 @@ from users.models import (
 
 class AnalyticsService:
     """Service for calculating and aggregating analytics metrics"""
+
+    @staticmethod
+    def calculate_student_study_streak(student_profile: StudentProfile) -> int:
+        """Calculate the current consecutive-day study streak from lesson progress activity."""
+
+        activity_dates = {
+            timezone.localtime(updated_at).date()
+            for updated_at in LessonProgress.objects.filter(
+                learning_record__student=student_profile.user
+            )
+            .exclude(status=LessonProgress.Status.NOT_STARTED)
+            .values_list("updated_at", flat=True)
+            if updated_at is not None
+        }
+
+        if not activity_dates:
+            return 0
+
+        today = timezone.localdate()
+        anchor = today if today in activity_dates else today - timedelta(days=1)
+        if anchor not in activity_dates:
+            return 0
+
+        streak_days = 0
+        while anchor in activity_dates:
+            streak_days += 1
+            anchor -= timedelta(days=1)
+
+        return streak_days
     
     @staticmethod
     def calculate_student_metrics(student_profile: StudentProfile) -> StudentDashboardMetric:
@@ -184,6 +214,7 @@ class AnalyticsService:
         """Aggregate all data for student dashboard - includes current metrics and historical data"""
         
         metric = AnalyticsService.calculate_student_metrics(student_profile)
+        study_streak_days = AnalyticsService.calculate_student_study_streak(student_profile)
         student_user = student_profile.user
         
         # Get exam score history for chart data
@@ -252,6 +283,7 @@ class AnalyticsService:
             'learning_status': learning_status,
             'upcoming_interviews': interviews_data,
             'application_status': application_status,
+            'study_streak_days': study_streak_days,
             'last_updated': metric.updated_at.isoformat(),
         }
     

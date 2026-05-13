@@ -408,6 +408,7 @@ class ApiFoundationTests(TestCase):
         self.assertEqual(body["student_name"], "Student User")
         self.assertEqual(body["continue_learning"]["topic_title"], "API Integration")
         self.assertEqual(body["continue_learning"]["progress_percent"], 45)
+        self.assertIsNone(body["current_lesson"])
         self.assertEqual(body["next_action"]["action_type"], "complete_topic")
         self.assertEqual(body["progress_overview"]["completed_topics"], 1)
         self.assertEqual(body["progress_overview"]["exam_average"], 88.0)

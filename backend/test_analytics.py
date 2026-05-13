@@ -6,7 +6,10 @@ from users.models import (
     User,
     Company,
     StudentProfile,
+    Course,
+    Lesson,
     LearningRecord,
+    LessonProgress,
     ExamResult,
     Application,
     Interview,
@@ -76,7 +79,65 @@ class AnalyticsServiceTestCase(TestCase):
         self.assertIn('learning_status', data)
         self.assertIn('upcoming_interviews', data)
         self.assertIn('application_status', data)
+        self.assertIn('study_streak_days', data)
         self.assertIn('last_updated', data)
+
+    def test_get_student_dashboard_data_includes_study_streak(self):
+        """Test study streak calculation from consecutive lesson activity."""
+        course = Course.objects.create(
+            title='Backend Foundations',
+            description='Backend path',
+            category='backend',
+            difficulty_level='beginner',
+            estimated_hours=12,
+            status=Course.Status.ACTIVE,
+        )
+        lesson_one = Lesson.objects.create(
+            course=course,
+            title='Intro',
+            summary='Start here',
+            content='Lesson content',
+            sequence_number=1,
+            status=Lesson.Status.ACTIVE,
+        )
+        lesson_two = Lesson.objects.create(
+            course=course,
+            title='Routing',
+            summary='Keep going',
+            content='Routing content',
+            sequence_number=2,
+            status=Lesson.Status.ACTIVE,
+        )
+        learning_record = LearningRecord.objects.create(
+            student=self.student_user,
+            course=course,
+            course_title=course.title,
+            category=course.category,
+            progress_percent=50,
+            status=LearningRecord.Status.IN_PROGRESS,
+        )
+        yesterday = timezone.now() - timedelta(days=1)
+        today = timezone.now()
+
+        first_progress = LessonProgress.objects.create(
+            learning_record=learning_record,
+            lesson=lesson_one,
+            status=LessonProgress.Status.COMPLETED,
+            started_at=yesterday,
+            completed_at=yesterday,
+        )
+        second_progress = LessonProgress.objects.create(
+            learning_record=learning_record,
+            lesson=lesson_two,
+            status=LessonProgress.Status.IN_PROGRESS,
+            started_at=today,
+        )
+        LessonProgress.objects.filter(id=first_progress.id).update(updated_at=yesterday)
+        LessonProgress.objects.filter(id=second_progress.id).update(updated_at=today)
+
+        data = AnalyticsService.get_student_dashboard_data(self.student_profile)
+
+        self.assertEqual(data['study_streak_days'], 2)
 
     def test_get_company_dashboard_data(self):
         """Test getting complete company dashboard data"""

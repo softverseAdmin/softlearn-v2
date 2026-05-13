@@ -52,7 +52,7 @@ export function Navbar({
   }
 
   return (
-    <nav className="sticky top-0">
+    <nav className="sticky top-0 z-10">
       <div className="flex min-h-18 items-center justify-between gap-4 border border-white/70 bg-white/88 px-4 py-3 shadow-[0_18px_50px_rgba(15,23,42,0.06)] backdrop-blur-xl md:px-6">
         <div className="flex min-w-0 flex-1 items-center gap-3">
           <div className="hidden max-w-2xl flex-1 md:flex">

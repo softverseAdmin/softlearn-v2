@@ -42,9 +42,8 @@ export function DashboardPage({ role }: DashboardPageProps) {
     async function loadDashboard() {
       try {
         if (role === 'student') {
-          const response = await apiRequest<StudentDashboardResponse>(dashboardPathByRole(role))
           if (active) {
-            setData(response)
+            setLoading(false)
           }
           return
         }
@@ -137,14 +136,7 @@ export function DashboardPage({ role }: DashboardPageProps) {
   }
 
   if (role === 'student') {
-    return (
-      <StudentDashboard
-        userName={user?.name ?? 'Student'}
-        loading={loading}
-        error={error}
-        data={(data as StudentDashboardResponse | null) ?? null}
-      />
-    )
+    return <StudentDashboard userName={user?.name ?? 'Student'} />
   }
 
   if (role === 'company') {
