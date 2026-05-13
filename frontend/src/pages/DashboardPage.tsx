@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 
 import type { AdminDashboardResponse, CompanyDashboardResponse, StudentDashboardResponse } from '../features/dashboard/types'
 import { CompanyDashboardRedesign } from '../features/dashboard/CompanyDashboardRedesign'
-import { StudentDashboardRedesign } from '../features/dashboard/StudentDashboardRedesign'
+import { StudentDashboard } from '../features/dashboard/StudentDashboard'
 import { useAuth } from '../auth/useAuth'
 import { ApiError, apiRequest } from '../lib/api'
 
@@ -138,7 +138,7 @@ export function DashboardPage({ role }: DashboardPageProps) {
 
   if (role === 'student') {
     return (
-      <StudentDashboardRedesign
+      <StudentDashboard
         userName={user?.name ?? 'Student'}
         loading={loading}
         error={error}
