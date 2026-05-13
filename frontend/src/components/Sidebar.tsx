@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { ChevronLeft, Menu, ChevronDown } from 'lucide-react'
+import { ChevronDown, ChevronLeft, MoreHorizontal, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { motion, AnimatePresence } from 'framer-motion'
 
@@ -21,10 +21,13 @@ interface SidebarProps {
 }
 
 export function Sidebar({ items, logo, bottomContent, collapsible = true, onNavigate }: SidebarProps) {
-  const [isOpen, setIsOpen] = useState(true)
   const [isCollapsed, setIsCollapsed] = useState(false) // Desktop collapsed state
   const [openSubmenus, setOpenSubmenus] = useState<string[]>([])
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const location = useLocation()
+  const mobilePrimaryItems = items.slice(0, 4)
+  const mobileOverflowItems = items.slice(4)
+  const hasMobileMoreMenu = mobileOverflowItems.length > 0 || Boolean(bottomContent)
 
   const toggleSubmenu = (label: string) => {
     setOpenSubmenus((prev) =>
@@ -42,9 +45,7 @@ export function Sidebar({ items, logo, bottomContent, collapsible = true, onNavi
 
   const handleNavigate = () => {
     onNavigate?.()
-    if (window.innerWidth < 768) {
-      setIsOpen(false)
-    }
+    setIsMobileMenuOpen(false)
   }
 
   const sidebarVariants = {
@@ -54,32 +55,6 @@ export function Sidebar({ items, logo, bottomContent, collapsible = true, onNavi
 
   return (
     <>
-      <AnimatePresence>
-        {!isOpen && (
-          <motion.button
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
-            onClick={() => setIsOpen(true)}
-            className="fixed bottom-6 right-6 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-[0_18px_36px_rgba(37,99,255,0.26)] transition-all hover:shadow-[0_22px_42px_rgba(37,99,255,0.30)] md:hidden"
-          >
-            <Menu className="h-6 w-6" />
-          </motion.button>
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setIsOpen(false)}
-            className="fixed inset-0 z-40 bg-slate-950/20 backdrop-blur-sm md:hidden"
-          />
-        )}
-      </AnimatePresence>
-
       <motion.aside
         variants={sidebarVariants}
         animate={isCollapsed ? 'collapse' : 'expand'}
@@ -89,7 +64,7 @@ export function Sidebar({ items, logo, bottomContent, collapsible = true, onNavi
           'fixed inset-y-0 left-0 z-40 md:relative md:inset-auto md:z-20',
           'md:translate-x-0 md:opacity-100 md:w-auto',
           'after:pointer-events-none after:absolute after:inset-x-4 after:top-0 after:h-24 after:rounded-b-[32px] after:bg-[radial-gradient(circle_at_top,rgba(37,99,255,0.10),transparent_68%)] after:content-[""]',
-          !isOpen && 'hidden md:flex'
+          'hidden md:flex'
         )}
       >
         {logo && (
@@ -168,7 +143,188 @@ export function Sidebar({ items, logo, bottomContent, collapsible = true, onNavi
         ) : null}
 
       </motion.aside>
+
+      <div
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200/80 bg-white/95 px-2 pt-2 shadow-[0_-18px_40px_rgba(15,23,42,0.10)] backdrop-blur-xl dark:border-slate-800 dark:bg-slate-950/95 md:hidden"
+        style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 0.5rem)' }}
+      >
+        <div
+          className="mx-auto grid max-w-lg gap-1"
+          style={{ gridTemplateColumns: `repeat(${mobilePrimaryItems.length + (hasMobileMoreMenu ? 1 : 0)}, minmax(0, 1fr))` }}
+        >
+          {mobilePrimaryItems.map((item) => (
+            <MobileFooterNavLink
+              key={item.label}
+              item={item}
+              isActive={isActive(item.href)}
+              onClick={handleNavigate}
+            />
+          ))}
+
+          {hasMobileMoreMenu ? (
+            <button
+              type="button"
+              onClick={() => setIsMobileMenuOpen(true)}
+              className={cn(
+                'flex min-w-0 flex-col items-center gap-1 rounded-[20px] px-2 py-2 text-[11px] font-medium transition-colors',
+                mobileOverflowItems.some((item) => isActive(item.href))
+                  ? 'text-primary'
+                  : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100'
+              )}
+              aria-label="Open more navigation items"
+            >
+              <span
+                className={cn(
+                  'flex h-11 w-11 items-center justify-center rounded-2xl transition-colors',
+                  mobileOverflowItems.some((item) => isActive(item.href))
+                    ? 'bg-primary text-primary-foreground shadow-[0_14px_28px_rgba(37,99,255,0.24)]'
+                    : 'bg-slate-100 text-slate-500 dark:bg-slate-900 dark:text-slate-300'
+                )}
+              >
+                <MoreHorizontal className="h-5 w-5" />
+              </span>
+              <span className="truncate">More</span>
+            </button>
+          ) : null}
+        </div>
+      </div>
+
+      <AnimatePresence>
+        {isMobileMenuOpen ? (
+          <>
+            <motion.button
+              type="button"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="fixed inset-0 z-40 bg-slate-950/40 backdrop-blur-sm md:hidden"
+              aria-label="Close more navigation items"
+            />
+
+            <motion.div
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', stiffness: 320, damping: 32 }}
+              className="fixed inset-x-0 bottom-0 z-50 rounded-t-[32px] border border-b-0 border-slate-200/80 bg-white px-4 pb-6 pt-4 shadow-[0_-24px_60px_rgba(15,23,42,0.16)] dark:border-slate-800 dark:bg-slate-950 md:hidden"
+              style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 1.5rem)' }}
+            >
+              <div className="mx-auto max-w-lg">
+                <div className="mb-4 flex items-center justify-end gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 text-slate-500 transition-colors hover:border-primary/20 hover:bg-primary/5 hover:text-primary dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300"
+                    aria-label="Close more navigation items"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
+
+                <div className="space-y-2">
+                  {items.map((item) => (
+                    <MobileDrawerNavLink
+                      key={item.label}
+                      item={item}
+                      isActive={isActive(item.href)}
+                      onClick={handleNavigate}
+                    />
+                  ))}
+                </div>
+
+                {bottomContent ? (
+                  <div className="mt-4 border-t border-slate-200/80 pt-4 dark:border-slate-800">
+                    {bottomContent}
+                  </div>
+                ) : null}
+              </div>
+            </motion.div>
+          </>
+        ) : null}
+      </AnimatePresence>
     </>
+  )
+}
+
+function MobileFooterNavLink({
+  item,
+  isActive,
+  onClick,
+}: {
+  item: NavItem
+  isActive?: boolean
+  onClick?: () => void
+}) {
+  return (
+    <Link
+      to={item.href}
+      onClick={onClick}
+      className={cn(
+        'flex min-w-0 flex-col items-center gap-1 rounded-[20px] px-2 py-2 text-[11px] font-medium transition-colors',
+        isActive ? 'text-primary' : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100'
+      )}
+      title={item.label}
+    >
+      <span
+        className={cn(
+          'relative flex h-11 w-11 items-center justify-center rounded-2xl transition-colors',
+          isActive
+            ? 'bg-primary text-primary-foreground shadow-[0_14px_28px_rgba(37,99,255,0.24)]'
+            : 'bg-slate-100 text-slate-500 dark:bg-slate-900 dark:text-slate-300'
+        )}
+      >
+        {item.icon}
+        {item.badge ? (
+          <span className="absolute -right-1 -top-1 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
+            {item.badge}
+          </span>
+        ) : null}
+      </span>
+      <span className="w-full truncate text-center">{item.label}</span>
+    </Link>
+  )
+}
+
+function MobileDrawerNavLink({
+  item,
+  isActive,
+  onClick,
+}: {
+  item: NavItem
+  isActive?: boolean
+  onClick?: () => void
+}) {
+  return (
+    <Link
+      to={item.href}
+      onClick={onClick}
+      className={cn(
+        'flex items-center justify-between gap-3 rounded-2xl border px-4 py-3 transition-colors',
+        isActive
+          ? 'border-primary/20 bg-primary/5 text-primary'
+          : 'border-slate-200 bg-slate-50/80 text-slate-700 hover:border-primary/20 hover:bg-primary/5 hover:text-primary dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-200'
+      )}
+    >
+      <span className="flex min-w-0 items-center gap-3">
+        <span
+          className={cn(
+            'flex h-10 w-10 items-center justify-center rounded-2xl',
+            isActive
+              ? 'bg-primary text-primary-foreground'
+              : 'bg-white text-slate-500 shadow-sm dark:bg-slate-950 dark:text-slate-300'
+          )}
+        >
+          {item.icon}
+        </span>
+        <span className="truncate font-medium">{item.label}</span>
+      </span>
+      {item.badge ? (
+        <span className="inline-flex min-h-6 min-w-6 items-center justify-center rounded-full bg-primary/10 px-2 text-xs font-semibold text-primary">
+          {item.badge}
+        </span>
+      ) : null}
+    </Link>
   )
 }
 

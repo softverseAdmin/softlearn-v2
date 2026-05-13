@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Bell, ChevronDown, Mail, Menu, Moon, Sun, Search, LogOut } from 'lucide-react'
+import { Bell, Mail, Moon, Sun, Search, LogOut } from 'lucide-react'
 import { useTheme } from '@/components/ui/ThemeProvider'
 import { Avatar } from '@/components/ui/components'
 import { Button } from '@/components/ui/button'
@@ -52,19 +52,9 @@ export function Navbar({
   }
 
   return (
-    <nav className="sticky top-0 z-30 px-4 pt-4 md:px-6 lg:px-8">
-      <div className="flex min-h-18 items-center justify-between gap-4 rounded-[28px] border border-white/70 bg-white/88 px-4 py-3 shadow-[0_18px_50px_rgba(15,23,42,0.06)] backdrop-blur-xl md:px-6">
+    <nav className="sticky top-0">
+      <div className="flex min-h-18 items-center justify-between gap-4 border border-white/70 bg-white/88 px-4 py-3 shadow-[0_18px_50px_rgba(15,23,42,0.06)] backdrop-blur-xl md:px-6">
         <div className="flex min-w-0 flex-1 items-center gap-3">
-          <Button
-            type="button"
-            variant="outline"
-            size="icon-lg"
-            className="rounded-2xl border-slate-200 bg-slate-50 text-slate-500 hover:border-primary/20 hover:bg-primary/5 hover:text-primary"
-            aria-label="Open navigation"
-          >
-            <Menu className="h-5 w-5" />
-          </Button>
-
           <div className="hidden max-w-2xl flex-1 md:flex">
             <div className="relative w-full">
               <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
@@ -168,7 +158,7 @@ export function Navbar({
           {userMenu && (
             <DropdownMenu>
               <DropdownMenuTrigger
-                className="inline-flex h-auto items-center gap-3 rounded-2xl border border-slate-200 bg-white px-2 py-1.5 text-inherit outline-none transition-colors hover:border-primary/20 hover:bg-primary/5 hover:text-inherit focus-visible:ring-2 focus-visible:ring-ring/50"
+                className="inline-flex h-auto items-center bg-transparent px-0 py-0 text-inherit outline-none transition-colors hover:text-inherit focus-visible:ring-2 focus-visible:ring-ring/50"
                 aria-label="Open user menu"
               >
                 <Avatar
@@ -177,17 +167,11 @@ export function Navbar({
                   fallback={userMenu.name.charAt(0)}
                   alt={userMenu.name}
                 />
-                <div className="hidden text-left md:block">
-                  <p className="text-sm font-semibold leading-none text-slate-900">{userMenu.name}</p>
-                  {userMenu.roleLabel ? (
-                    <p className="mt-1 text-xs text-slate-500">{userMenu.roleLabel}</p>
-                  ) : null}
-                </div>
-                <ChevronDown className="h-4 w-4 text-slate-400" />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 <div className="px-2 py-1.5">
                   <p className="text-sm font-semibold">{userMenu.name}</p>
+                  {userMenu.roleLabel ? <p className="text-xs text-slate-500">{userMenu.roleLabel}</p> : null}
                   {userMenu.email && <p className="text-xs text-muted-foreground">{userMenu.email}</p>}
                 </div>
                 <DropdownMenuSeparator />
