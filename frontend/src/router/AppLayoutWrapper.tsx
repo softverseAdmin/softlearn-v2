@@ -20,7 +20,7 @@ import {
 
 import { useAuth } from '@/auth/useAuth'
 import { ApiError, apiRequest } from '@/lib/api'
-import { getStoredProfileImages, PROFILE_IMAGES_UPDATED_EVENT } from '@/lib/profileImages'
+import { PROFILE_IMAGES_UPDATED_EVENT, type StoredProfileImages } from '@/lib/profileImages'
 import { AppLayout } from '@/components/AppLayout'
 import { Button } from '@/components/ui/button'
 import type { NavItem } from '@/components/Sidebar'
@@ -62,33 +62,30 @@ export function AppLayoutWrapper() {
       return
     }
 
-    const syncAvatar = () => {
-      const storedImages = getStoredProfileImages(user.user_id)
-      setProfileAvatar(storedImages.profileImage ?? undefined)
+    const syncAvatar = async () => {
+      try {
+        const profile = await apiRequest<{ profile_image: string | null }>('/student/profile')
+        setProfileAvatar(profile.profile_image ?? undefined)
+      } catch (error) {
+        if (!(error instanceof ApiError)) {
+          console.error('Unable to refresh student profile avatar', error)
+        }
+      }
     }
 
     const handleProfileImagesUpdated = (event: Event) => {
-      const customEvent = event as CustomEvent<{ userId?: number }>
+      const customEvent = event as CustomEvent<{ userId?: number; images?: StoredProfileImages }>
       if (customEvent.detail?.userId !== user.user_id) {
         return
       }
-      syncAvatar()
+      setProfileAvatar(customEvent.detail.images?.profileImage ?? undefined)
     }
 
-    const handleStorage = (event: StorageEvent) => {
-      if (event.key && event.key !== `student-profile-images:${user.user_id}`) {
-        return
-      }
-      syncAvatar()
-    }
-
-    syncAvatar()
+    void syncAvatar()
     window.addEventListener(PROFILE_IMAGES_UPDATED_EVENT, handleProfileImagesUpdated)
-    window.addEventListener('storage', handleStorage)
 
     return () => {
       window.removeEventListener(PROFILE_IMAGES_UPDATED_EVENT, handleProfileImagesUpdated)
-      window.removeEventListener('storage', handleStorage)
     }
   }, [user.role, user.user_id])
 
@@ -182,7 +179,7 @@ export function AppLayoutWrapper() {
               : '/admin/notifications',
         messagesHref:
           user.role === 'student'
-            ? '/student/notifications'
+            ? '/student/messages'
             : user.role === 'company'
               ? '/company/notifications'
               : '/admin/notifications',

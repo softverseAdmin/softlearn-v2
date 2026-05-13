@@ -10,9 +10,13 @@ export interface StudentProfile {
   desired_work_location: string
   japanese_level: string
   english_level: string
+  about_me: string
+  profile_image: string | null
+  cover_image: string | null
   profile_complete: boolean
   education_records: StudentEducationRecord[]
   experience_records: StudentExperienceRecord[]
+  certificates: StudentCertificateRecord[]
   resumes: StudentResumeRecord[]
   availability: StudentAvailabilityProfile
   profile_extension_summary: StudentProfileExtensionSummary
@@ -25,6 +29,10 @@ export interface StudentEducationRecord {
   start_date: string
   end_date: string | null
   completion_status: string
+  grade: string
+  activities: string
+  description: string
+  skill_ids: number[]
 }
 
 export interface StudentExperienceRecord {
@@ -36,6 +44,19 @@ export interface StudentExperienceRecord {
   end_date: string | null
   is_current: boolean
   summary: string
+  skill_ids: number[]
+}
+
+export interface StudentCertificateRecord {
+  id: number
+  name: string
+  issuer: string
+  issue_date: string
+  expiry_date: string | null
+  credential_id: string
+  credential_url: string
+  description: string
+  skill_ids: number[]
 }
 
 export interface StudentResumeRecord {
