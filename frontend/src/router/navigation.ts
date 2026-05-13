@@ -15,6 +15,7 @@ export const navigationItemsByRole: Record<UserRole, NavigationItem[]> = {
   student: [
     { label: 'Dashboard', to: '/student' },
     { label: 'Courses', to: '/student/courses' },
+    { label: 'Jobs', to: '/student/jobs' },
   ],
   company: [
     { label: 'Dashboard', to: '/company' },

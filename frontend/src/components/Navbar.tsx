@@ -53,30 +53,28 @@ export function Navbar({
 
   return (
     <nav className="sticky top-0 z-10">
-      <div className="flex min-h-18 items-center justify-between gap-4 border border-white/70 bg-white/88 px-4 py-3 shadow-[0_18px_50px_rgba(15,23,42,0.06)] backdrop-blur-xl md:px-6">
-        <div className="flex min-w-0 flex-1 items-center gap-3">
-          <div className="hidden max-w-2xl flex-1 md:flex">
-            <div className="relative w-full">
-              <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-              <input
-                type="text"
-                placeholder={searchPlaceholder}
-                value={searchQuery}
-                onChange={handleSearchChange}
-                className={cn(
-                  'h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/90 py-2 pl-11 pr-20 text-sm shadow-inner',
-                  'placeholder:text-slate-400 transition-all duration-200',
-                  'focus:border-primary/30 focus:bg-white focus:outline-none focus:ring-4 focus:ring-primary/10'
-                )}
-              />
-              <span className="absolute right-3 top-1/2 hidden -translate-y-1/2 rounded-xl border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-medium text-slate-400 lg:inline-flex">
-                Ctrl + K
-              </span>
-            </div>
+      <div className="flex min-h-18 items-center justify-end gap-2 border border-white/70 bg-white/88 px-4 py-3 shadow-[0_18px_50px_rgba(15,23,42,0.06)] backdrop-blur-xl md:gap-3 md:px-6">
+        <div className="ml-auto min-w-0 flex-1 basis-0 sm:flex-[1.15] md:flex-[1.35] lg:flex-[1.55] xl:flex-[1.75]">
+          <div className="relative w-full">
+            <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              placeholder={searchPlaceholder}
+              value={searchQuery}
+              onChange={handleSearchChange}
+              className={cn(
+                'h-12 w-full rounded-2xl border border-slate-200 bg-slate-50/90 py-2 pl-11 pr-4 text-sm shadow-inner sm:pr-20',
+                'placeholder:text-slate-400 transition-all duration-200',
+                'focus:border-primary/30 focus:bg-white focus:outline-none focus:ring-4 focus:ring-primary/10'
+              )}
+            />
+            <span className="absolute right-3 top-1/2 hidden -translate-y-1/2 rounded-xl border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-medium text-slate-400 lg:inline-flex">
+              Ctrl + K
+            </span>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 md:gap-3">
+        <div className="shrink-0 flex items-center gap-2 md:gap-3">
           {showNotifications && (
             <Button
               asChild={Boolean(notificationsHref)}
