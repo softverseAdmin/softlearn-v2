@@ -1,8 +1,14 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useState, type FormEvent } from 'react'
+import { BookOpen, ChevronRight, Eye, FileText, History, Lock, ShieldCheck, type LucideIcon } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { toast } from 'sonner'
 
 import { useAuth } from '../../auth/useAuth'
 import { ApiError, apiRequest } from '../../lib/api'
 import type { StudentPrivacySettings } from './types'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 const emptySettings: StudentPrivacySettings = {
   student_id: 0,
@@ -12,13 +18,63 @@ const emptySettings: StudentPrivacySettings = {
   history: [],
 }
 
+type PrivacyToggleKey = 'share_profile_preview' | 'share_learning_record' | 'share_exam_results'
+
+type PrivacyOption = {
+  key: PrivacyToggleKey
+  title: string
+  description: string
+  icon: LucideIcon
+  enabledLabel: string
+  disabledLabel: string
+}
+
+const privacyOptions: PrivacyOption[] = [
+  {
+    key: 'share_profile_preview',
+    title: 'Share profile preview',
+    description: 'Let approved companies review your core profile, headline strengths, and visible skills during candidate review.',
+    icon: Eye,
+    enabledLabel: 'Profile shared',
+    disabledLabel: 'Profile hidden',
+  },
+  {
+    key: 'share_learning_record',
+    title: 'Share learning record',
+    description: 'Allow approved companies to see course progress, completed learning paths, and study momentum signals.',
+    icon: BookOpen,
+    enabledLabel: 'Learning shared',
+    disabledLabel: 'Learning hidden',
+  },
+  {
+    key: 'share_exam_results',
+    title: 'Share exam results',
+    description: 'Only enable this when you want approved companies to review exam outcomes and assessment summaries.',
+    icon: FileText,
+    enabledLabel: 'Exams shared',
+    disabledLabel: 'Exams hidden',
+  },
+]
+
+function formatVisibilityTimestamp(value: string) {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) {
+    return value
+  }
+
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(date)
+}
+
 export function StudentPrivacySettingsPage() {
   const { csrfToken } = useAuth()
   const [settings, setSettings] = useState<StudentPrivacySettings>(emptySettings)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
+  const [showAllConsentHistory, setShowAllConsentHistory] = useState(false)
 
   useEffect(() => {
     let active = true
@@ -50,7 +106,6 @@ export function StudentPrivacySettingsPage() {
     event.preventDefault()
     setSaving(true)
     setError(null)
-    setSuccess(null)
 
     try {
       const response = await apiRequest<StudentPrivacySettings>('/student/privacy-settings', {
@@ -63,7 +118,7 @@ export function StudentPrivacySettingsPage() {
         csrfToken,
       })
       setSettings(response)
-      setSuccess('Privacy settings updated successfully.')
+      toast.success('Privacy settings updated successfully.')
     } catch (saveError) {
       setError(saveError instanceof ApiError ? saveError.message : 'Unable to update privacy settings.')
     } finally {
@@ -71,90 +126,232 @@ export function StudentPrivacySettingsPage() {
     }
   }
 
+  const sortedHistory = useMemo(
+    () =>
+      [...settings.history].sort((left, right) => new Date(right.created_at).getTime() - new Date(left.created_at).getTime()),
+    [settings.history]
+  )
+  const visibleConsentHistory = showAllConsentHistory ? sortedHistory : sortedHistory.slice(0, 3)
+
+  const visibleCount = privacyOptions.reduce((count, option) => count + (settings[option.key] ? 1 : 0), 0)
+
   if (loading) {
     return (
-      <section className="page">
-        <div className="card">Loading privacy settings…</div>
-      </section>
+      <div className="space-y-6 px-4 py-6 md:px-6 lg:px-8">
+        <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+          <Link to="/student" className="transition-colors hover:text-foreground">
+            Dashboard
+          </Link>
+          <ChevronRight className="h-4 w-4" />
+          <span className="font-medium text-foreground">Privacy</span>
+        </div>
+
+        <div className="space-y-2">
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Student privacy</p>
+          <h1 className="text-3xl font-bold tracking-tight md:text-4xl">Privacy settings</h1>
+          <p className="max-w-2xl text-base text-muted-foreground">
+            Choose what approved companies may review while keeping consent changes clear and auditable.
+          </p>
+        </div>
+
+        <Card>
+          <CardContent className="flex items-center justify-center py-12">
+            <div className="text-center">
+              <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-muted border-t-primary" />
+              <p className="mt-4 text-sm text-muted-foreground">Loading privacy settings…</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     )
   }
 
   return (
-    <section className="page">
-      <div className="page-header">
-        <div>
-          <p className="eyebrow">Student privacy</p>
-          <h1>Privacy settings</h1>
-          <p className="lead">Choose what companies may see during approved candidate review. Exam results remain off until you explicitly enable them.</p>
-        </div>
+    <div className="space-y-6 px-4 py-6 md:px-6 lg:px-8">
+      <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+        <Link to="/student" className="transition-colors hover:text-foreground">
+          Dashboard
+        </Link>
+        <ChevronRight className="h-4 w-4" />
+        <span className="font-medium text-foreground">Privacy</span>
       </div>
 
-      <div className="page-split">
-        <div className="card form-card">
-          <form className="form" onSubmit={handleSubmit}>
-            <label className="toggle-field">
-              <span>
-                <strong>Share profile preview</strong>
-                <span className="muted">Allows companies to see your core profile and skills in approved review contexts.</span>
-              </span>
-              <input
-                type="checkbox"
-                checked={settings.share_profile_preview}
-                onChange={(event) => setSettings({ ...settings, share_profile_preview: event.target.checked })}
-              />
-            </label>
-            <label className="toggle-field">
-              <span>
-                <strong>Share learning record</strong>
-                <span className="muted">Allows companies to review course progress and completion summaries.</span>
-              </span>
-              <input
-                type="checkbox"
-                checked={settings.share_learning_record}
-                onChange={(event) => setSettings({ ...settings, share_learning_record: event.target.checked })}
-              />
-            </label>
-            <label className="toggle-field">
-              <span>
-                <strong>Share exam results</strong>
-                <span className="muted">Allows companies to review your exam result summaries only when you explicitly opt in.</span>
-              </span>
-              <input
-                type="checkbox"
-                checked={settings.share_exam_results}
-                onChange={(event) => setSettings({ ...settings, share_exam_results: event.target.checked })}
-              />
-            </label>
-            {error ? <p className="form-error">{error}</p> : null}
-            {success ? <p className="form-success">{success}</p> : null}
-            <button className="primary-button" type="submit" disabled={saving}>
-              {saving ? 'Saving…' : 'Save privacy settings'}
-            </button>
-          </form>
-        </div>
-
-        <aside className="card stack-card">
-          <h2>Recent consent history</h2>
-          <div className="stack-list">
-            {settings.history.map((event) => (
-              <article key={event.id} className="skill-card">
-                <p className="muted">{new Date(event.created_at).toLocaleString()}</p>
-                <div className="visibility-row">
-                  <span className={`status-pill ${event.share_profile_preview ? 'status-success' : 'status-muted'}`}>
-                    Profile {event.share_profile_preview ? 'shared' : 'hidden'}
-                  </span>
-                  <span className={`status-pill ${event.share_learning_record ? 'status-success' : 'status-muted'}`}>
-                    Learning {event.share_learning_record ? 'shared' : 'hidden'}
-                  </span>
-                  <span className={`status-pill ${event.share_exam_results ? 'status-success' : 'status-muted'}`}>
-                    Exams {event.share_exam_results ? 'shared' : 'hidden'}
-                  </span>
-                </div>
-              </article>
-            ))}
-          </div>
-        </aside>
+      <div className="space-y-2">
+        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Student privacy</p>
+        <h1 className="text-3xl font-bold tracking-tight md:text-4xl">Privacy settings</h1>
+        <p className="max-w-2xl text-base text-muted-foreground">
+          Choose what companies may see during approved candidate review. Exam results remain private until you explicitly enable them.
+        </p>
       </div>
-    </section>
+
+      {error ? (
+        <Card className="border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950">
+          <CardContent className="px-6 py-4 text-sm text-red-800 dark:text-red-200">{error}</CardContent>
+        </Card>
+      ) : null}
+
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
+        <Card>
+          <CardHeader className="border-b">
+            <CardTitle>Visibility controls</CardTitle>
+            <CardDescription>Manage what approved companies can review when they have permission-controlled access to your profile.</CardDescription>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <form className="space-y-4" onSubmit={handleSubmit}>
+              {privacyOptions.map((option) => {
+                const Icon = option.icon
+                const enabled = settings[option.key]
+
+                return (
+                  <label
+                    key={option.key}
+                    className="flex cursor-pointer items-start gap-4 rounded-2xl border border-border p-4 transition hover:border-primary/30 hover:bg-muted/30"
+                  >
+                    <div className="rounded-xl bg-primary/10 p-2 text-primary">
+                      <Icon className="h-5 w-5" />
+                    </div>
+                    <div className="min-w-0 flex-1 space-y-2">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h2 className="font-semibold">{option.title}</h2>
+                        <Badge variant={enabled ? 'default' : 'outline'} className={enabled ? '' : 'text-muted-foreground'}>
+                          {enabled ? option.enabledLabel : option.disabledLabel}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground">{option.description}</p>
+                    </div>
+                    <div className="flex flex-col items-end gap-2">
+                      <input
+                        type="checkbox"
+                        className="peer sr-only"
+                        checked={enabled}
+                        onChange={(event) => setSettings({ ...settings, [option.key]: event.target.checked })}
+                      />
+                      <span className="relative inline-flex h-6 w-11 rounded-full bg-muted transition peer-checked:bg-primary after:absolute after:top-0.5 after:left-0.5 after:h-5 after:w-5 after:rounded-full after:bg-background after:shadow-sm after:transition-transform after:content-[''] peer-checked:after:translate-x-5" />
+                    </div>
+                  </label>
+                )
+              })}
+
+              <div className="flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
+                <p className="max-w-2xl text-sm text-muted-foreground">
+                  Changes affect future approved review sessions and are recorded in your consent history below.
+                </p>
+                <Button type="submit" disabled={saving}>
+                  {saving ? 'Saving…' : 'Save privacy settings'}
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+
+        <div className="space-y-6">
+          <Card>
+            <CardHeader className="border-b">
+              <CardTitle className="flex items-center gap-2">
+                <ShieldCheck className="h-5 w-5 text-primary" />
+                Current visibility
+              </CardTitle>
+              <CardDescription>Keep a quick view of what is currently visible to approved companies.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4 pt-6">
+              <div className="rounded-2xl border border-border bg-muted/30 p-4">
+                <p className="text-sm text-muted-foreground">Company-visible sections</p>
+                <p className="mt-2 text-3xl font-bold">{visibleCount}/3</p>
+              </div>
+
+              <div className="space-y-3">
+                {privacyOptions.map((option) => {
+                  const Icon = option.icon
+                  const enabled = settings[option.key]
+
+                  return (
+                    <div key={option.key} className="flex items-center justify-between gap-3 rounded-xl border border-border p-3">
+                      <div className="flex items-center gap-3">
+                        <div className="rounded-lg bg-muted p-2">
+                          <Icon className="h-4 w-4 text-muted-foreground" />
+                        </div>
+                        <span className="font-medium">{option.title}</span>
+                      </div>
+                      <Badge variant={enabled ? 'default' : 'outline'} className={enabled ? '' : 'text-muted-foreground'}>
+                        {enabled ? 'Shared' : 'Hidden'}
+                      </Badge>
+                    </div>
+                  )
+                })}
+              </div>
+
+              <Button variant="outline" className="w-full" asChild>
+                <Link to="/student/profile">Review profile page</Link>
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="border-b">
+              <CardTitle className="flex items-center gap-2">
+                <Lock className="h-5 w-5 text-primary" />
+                Privacy guardrails
+              </CardTitle>
+              <CardDescription>These controls work inside the platform's privacy-safe candidate review flow.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3 pt-6">
+              <div className="rounded-xl border border-border p-3">
+                <p className="font-medium">Permission-controlled access</p>
+                <p className="mt-1 text-sm text-muted-foreground">Companies only see student data in approved review contexts, not through open browsing.</p>
+              </div>
+              <div className="rounded-xl border border-border p-3">
+                <p className="font-medium">Exam results stay private by default</p>
+                <p className="mt-1 text-sm text-muted-foreground">Assessment outcomes remain hidden until you choose to share them explicitly.</p>
+              </div>
+              <div className="rounded-xl border border-border p-3">
+                <p className="font-medium">Consent changes are auditable</p>
+                <p className="mt-1 text-sm text-muted-foreground">Every saved change creates a timestamped history entry so access decisions remain explainable.</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="border-b">
+              <CardTitle className="flex items-center gap-2">
+                <History className="h-5 w-5 text-primary" />
+                Recent consent history
+              </CardTitle>
+              <CardDescription>Each save creates a snapshot of your sharing choices.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4 pt-6">
+              {sortedHistory.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No consent changes yet.</p>
+              ) : (
+                visibleConsentHistory.map((event) => (
+                  <article key={event.id} className="space-y-3 rounded-2xl border border-border p-4">
+                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{formatVisibilityTimestamp(event.created_at)}</p>
+                    <div className="flex flex-wrap gap-2">
+                      <Badge variant={event.share_profile_preview ? 'default' : 'outline'} className={event.share_profile_preview ? '' : 'text-muted-foreground'}>
+                        Profile {event.share_profile_preview ? 'shared' : 'hidden'}
+                      </Badge>
+                      <Badge variant={event.share_learning_record ? 'default' : 'outline'} className={event.share_learning_record ? '' : 'text-muted-foreground'}>
+                        Learning {event.share_learning_record ? 'shared' : 'hidden'}
+                      </Badge>
+                      <Badge variant={event.share_exam_results ? 'default' : 'outline'} className={event.share_exam_results ? '' : 'text-muted-foreground'}>
+                        Exams {event.share_exam_results ? 'shared' : 'hidden'}
+                      </Badge>
+                    </div>
+                  </article>
+                ))
+              )}
+              {!showAllConsentHistory && sortedHistory.length > 3 ? (
+                <button
+                  type="button"
+                  className="text-sm font-medium text-primary transition-colors hover:text-primary/80"
+                  onClick={() => setShowAllConsentHistory(true)}
+                >
+                  See more
+                </button>
+              ) : null}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
   )
 }

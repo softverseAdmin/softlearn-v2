@@ -2,7 +2,13 @@ import { useEffect, useRef, useState, type ChangeEvent } from 'react'
 import { useAuth } from '../../auth/useAuth'
 import { Link } from 'react-router-dom'
 import { ApiError, apiRequest } from '../../lib/api'
-import type { StudentEducationRecord, StudentExperienceRecord, StudentProfile, StudentSkillsResponse } from './types'
+import type {
+  StudentCertificateRecord,
+  StudentEducationRecord,
+  StudentExperienceRecord,
+  StudentProfile,
+  StudentSkillsResponse,
+} from './types'
 import { Award, BriefcaseBusiness, ChevronRight, GraduationCap, Image as ImageIcon, Mail, MapPin, Pencil, Plus, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -19,7 +25,7 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { getStoredProfileImages, saveStoredProfileImages, type StoredProfileImages } from '@/lib/profileImages'
+import { emitStoredProfileImages, type StoredProfileImages } from '@/lib/profileImages'
 
 function getInitials(name: string) {
   const parts = name
@@ -73,9 +79,9 @@ function formatExperienceType(value: string) {
     .replace(/\b\w/g, (character) => character.toUpperCase())
 }
 
-type ExperienceDraft = Omit<StudentExperienceRecord, 'id'> & { end_date: string }
+type ExperienceDraft = Omit<StudentExperienceRecord, 'id' | 'skill_ids'> & { end_date: string }
 type ExperienceSkillMap = Record<number, number[]>
-type EducationDraft = Omit<StudentEducationRecord, 'id'> & { end_date: string }
+type EducationDraft = Omit<StudentEducationRecord, 'id' | 'grade' | 'activities' | 'description' | 'skill_ids'> & { end_date: string }
 type EducationDetailDraft = {
   grade: string
   activities: string
@@ -131,125 +137,51 @@ function normalizeEducationDraft(draft: EducationDraft) {
   }
 }
 
+function toEducationDetailDraft(record: StudentEducationRecord): EducationDetailDraft {
+  return {
+    grade: record.grade,
+    activities: record.activities,
+    description: record.description,
+    skillIds: record.skill_ids,
+  }
+}
+
+function buildEducationDetailMap(records: StudentEducationRecord[]): EducationDetailMap {
+  return Object.fromEntries(records.map((record) => [record.id, toEducationDetailDraft(record)]))
+}
+
 function formatCompletionStatus(value: string) {
   return value
     .replace(/[_-]+/g, ' ')
     .replace(/\b\w/g, (character) => character.toUpperCase())
 }
 
-function parseStoredExperienceSkills(value: string | null): ExperienceSkillMap {
-  if (!value) {
-    return {}
-  }
+function buildExperienceSkillMap(records: StudentExperienceRecord[]): ExperienceSkillMap {
+  return Object.fromEntries(records.map((record) => [record.id, record.skill_ids]))
+}
 
-  try {
-    const parsed = JSON.parse(value)
-    if (!parsed || typeof parsed !== 'object') {
-      return {}
-    }
-
-    return Object.fromEntries(
-      Object.entries(parsed).flatMap(([recordId, skillIds]) => {
-        const numericRecordId = Number(recordId)
-        if (!Number.isInteger(numericRecordId) || !Array.isArray(skillIds)) {
-          return []
-        }
-
-        return [
-          [
-            numericRecordId,
-            skillIds
-              .map((skillId) => Number(skillId))
-              .filter((skillId) => Number.isInteger(skillId)),
-          ],
-        ]
-      }),
-    )
-  } catch {
-    return {}
+function toCertificateRecord(record: StudentCertificateRecord): CertificateRecord {
+  return {
+    id: record.id,
+    name: record.name,
+    issuer: record.issuer,
+    issueDate: record.issue_date,
+    expiryDate: record.expiry_date ?? '',
+    credentialId: record.credential_id,
+    credentialUrl: record.credential_url,
+    description: record.description,
+    skillIds: record.skill_ids,
   }
 }
 
-function parseStoredEducationDetails(value: string | null): EducationDetailMap {
-  if (!value) {
-    return {}
-  }
-
-  try {
-    const parsed = JSON.parse(value)
-    if (!parsed || typeof parsed !== 'object') {
-      return {}
-    }
-
-    return Object.fromEntries(
-      Object.entries(parsed).flatMap(([recordId, details]) => {
-        const numericRecordId = Number(recordId)
-        if (!Number.isInteger(numericRecordId) || !details || typeof details !== 'object') {
-          return []
-        }
-
-        const typedDetails = details as Partial<EducationDetailDraft>
-        return [
-          [
-            numericRecordId,
-            {
-              grade: typeof typedDetails.grade === 'string' ? typedDetails.grade : '',
-              activities: typeof typedDetails.activities === 'string' ? typedDetails.activities : '',
-              description: typeof typedDetails.description === 'string' ? typedDetails.description : '',
-              skillIds: Array.isArray(typedDetails.skillIds)
-                ? typedDetails.skillIds
-                    .map((skillId) => Number(skillId))
-                    .filter((skillId) => Number.isInteger(skillId))
-                : [],
-            },
-          ],
-        ]
-      }),
-    )
-  } catch {
-    return {}
-  }
+function buildCertificateRecords(records: StudentCertificateRecord[]): CertificateRecord[] {
+  return records.map(toCertificateRecord)
 }
 
-function parseStoredCertificates(value: string | null): CertificateRecord[] {
-  if (!value) {
-    return []
-  }
-
-  try {
-    const parsed = JSON.parse(value)
-    if (!Array.isArray(parsed)) {
-      return []
-    }
-
-    return parsed.flatMap((entry) => {
-      if (!entry || typeof entry !== 'object') {
-        return []
-      }
-
-      const certificate = entry as Partial<CertificateRecord>
-      if (!Number.isInteger(certificate.id)) {
-        return []
-      }
-
-      return [
-        {
-          id: certificate.id,
-          name: typeof certificate.name === 'string' ? certificate.name : '',
-          issuer: typeof certificate.issuer === 'string' ? certificate.issuer : '',
-          issueDate: typeof certificate.issueDate === 'string' ? certificate.issueDate : '',
-          expiryDate: typeof certificate.expiryDate === 'string' ? certificate.expiryDate : '',
-          credentialId: typeof certificate.credentialId === 'string' ? certificate.credentialId : '',
-          credentialUrl: typeof certificate.credentialUrl === 'string' ? certificate.credentialUrl : '',
-          description: typeof certificate.description === 'string' ? certificate.description : '',
-          skillIds: Array.isArray(certificate.skillIds)
-            ? certificate.skillIds.map((skillId) => Number(skillId)).filter((skillId) => Number.isInteger(skillId))
-            : [],
-        },
-      ]
-    })
-  } catch {
-    return []
+function toStoredProfileImages(profile: StudentProfile): StoredProfileImages {
+  return {
+    profileImage: profile.profile_image,
+    coverImage: profile.cover_image,
   }
 }
 
@@ -260,9 +192,13 @@ const emptyProfile: StudentProfile = {
   desired_work_location: '',
   japanese_level: '',
   english_level: '',
+  about_me: '',
+  profile_image: null,
+  cover_image: null,
   profile_complete: false,
   education_records: [],
   experience_records: [],
+  certificates: [],
   resumes: [],
   availability: {
     job_search_status: '',
@@ -327,10 +263,6 @@ export function StudentProfilePage() {
   const { user, csrfToken, refreshSession } = useAuth()
   const displayName = user?.name?.trim() || 'Student Profile'
   const initials = getInitials(displayName)
-  const aboutStorageKey = `student-profile-about:${user?.user_id ?? 'anonymous'}`
-  const experienceSkillsStorageKey = `student-profile-experience-skills:${user?.user_id ?? 'anonymous'}`
-  const educationDetailsStorageKey = `student-profile-education-details:${user?.user_id ?? 'anonymous'}`
-  const certificatesStorageKey = `student-profile-certificates:${user?.user_id ?? 'anonymous'}`
   const profileInputRef = useRef<HTMLInputElement | null>(null)
   const coverInputRef = useRef<HTMLInputElement | null>(null)
   const [profile, setProfile] = useState<StudentProfile>(emptyProfile)
@@ -359,6 +291,7 @@ export function StudentProfilePage() {
   const [isEditingAbout, setIsEditingAbout] = useState(false)
   const [savingAbout, setSavingAbout] = useState(false)
   const [isAboutExpanded, setIsAboutExpanded] = useState(false)
+  const [expandedExperienceIds, setExpandedExperienceIds] = useState<number[]>([])
   const [isSkillsDialogOpen, setIsSkillsDialogOpen] = useState(false)
   const [skillDraftIds, setSkillDraftIds] = useState<number[]>([])
   const [savingSkills, setSavingSkills] = useState(false)
@@ -368,41 +301,6 @@ export function StudentProfilePage() {
   const [savingEducation, setSavingEducation] = useState(false)
   const [isExperienceDialogOpen, setIsExperienceDialogOpen] = useState(false)
   const [savingExperience, setSavingExperience] = useState(false)
-
-  useEffect(() => {
-    const nextImages = getStoredProfileImages(user?.user_id)
-    setSavedImages(nextImages)
-    setDraftImages(nextImages)
-  }, [user?.user_id])
-
-  useEffect(() => {
-    const storedAbout = localStorage.getItem(aboutStorageKey)
-    const nextAbout = storedAbout?.trim() ? storedAbout : defaultAboutMe
-    setAboutMe(nextAbout)
-    setAboutDraft(nextAbout)
-    setIsAboutExpanded(false)
-  }, [aboutStorageKey])
-
-  useEffect(() => {
-    const nextExperienceSkills = parseStoredExperienceSkills(localStorage.getItem(experienceSkillsStorageKey))
-    setExperienceSkills(nextExperienceSkills)
-    setExperienceSkillDrafts(nextExperienceSkills)
-    setNewExperienceSkillIds([])
-  }, [experienceSkillsStorageKey])
-
-  useEffect(() => {
-    const nextEducationDetails = parseStoredEducationDetails(localStorage.getItem(educationDetailsStorageKey))
-    setEducationDetails(nextEducationDetails)
-    setEducationDetailDrafts(nextEducationDetails)
-    setNewEducationDetails(emptyEducationDetailDraft)
-  }, [educationDetailsStorageKey])
-
-  useEffect(() => {
-    const nextCertificates = parseStoredCertificates(localStorage.getItem(certificatesStorageKey))
-    setCertificates(nextCertificates)
-    setCertificateDrafts(Object.fromEntries(nextCertificates.map((certificate) => [certificate.id, certificate])))
-    setNewCertificate(emptyCertificate)
-  }, [certificatesStorageKey])
 
   useEffect(() => {
     setNameDraft(displayName)
@@ -431,6 +329,20 @@ export function StudentProfilePage() {
         setNewEducation(emptyEducationDraft)
         setNewExperience(emptyExperienceDraft)
         setNameDraft(profileData.name || displayName)
+        setAboutMe(profileData.about_me || defaultAboutMe)
+        setAboutDraft(profileData.about_me || defaultAboutMe)
+        setIsAboutExpanded(false)
+        setSavedImages(toStoredProfileImages(profileData))
+        setDraftImages(toStoredProfileImages(profileData))
+        const nextEducationDetails = buildEducationDetailMap(profileData.education_records)
+        setEducationDetails(nextEducationDetails)
+        setEducationDetailDrafts(nextEducationDetails)
+        const nextExperienceSkills = buildExperienceSkillMap(profileData.experience_records)
+        setExperienceSkills(nextExperienceSkills)
+        setExperienceSkillDrafts(nextExperienceSkills)
+        const nextCertificates = buildCertificateRecords(profileData.certificates)
+        setCertificates(nextCertificates)
+        setCertificateDrafts(Object.fromEntries(nextCertificates.map((certificate) => [certificate.id, certificate])))
         setSkillsData(studentSkills)
         setSkillDraftIds(studentSkills.skills.map((skill) => skill.skill_id))
       } catch (error) {
@@ -490,26 +402,67 @@ export function StudentProfilePage() {
     coverInputRef.current?.click()
   }
 
+  function buildStudentProfilePayload(overrides?: Partial<{
+    name: string
+    about_me: string
+    profile_image: string
+    cover_image: string
+  }>) {
+    return {
+      name: overrides?.name ?? (profile.name || displayName),
+      desired_job_type: profile.desired_job_type,
+      desired_work_location: profile.desired_work_location,
+      japanese_level: profile.japanese_level,
+      english_level: profile.english_level,
+      about_me: overrides?.about_me ?? (aboutMe === defaultAboutMe ? '' : aboutMe),
+      profile_image: overrides?.profile_image ?? (savedImages.profileImage ?? ''),
+      cover_image: overrides?.cover_image ?? (savedImages.coverImage ?? ''),
+    }
+  }
+
   function syncProfile(updatedProfile: StudentProfile) {
     setProfile(updatedProfile)
     setEducationDrafts(
       Object.fromEntries(updatedProfile.education_records.map((record) => [record.id, toEducationDraft(record)])),
     )
+    const nextEducationDetails = buildEducationDetailMap(updatedProfile.education_records)
+    setEducationDetails(nextEducationDetails)
+    setEducationDetailDrafts(nextEducationDetails)
     setExperienceDrafts(
       Object.fromEntries(updatedProfile.experience_records.map((record) => [record.id, toExperienceDraft(record)])),
     )
+    const nextExperienceSkills = buildExperienceSkillMap(updatedProfile.experience_records)
+    setExperienceSkills(nextExperienceSkills)
+    setExperienceSkillDrafts(nextExperienceSkills)
+    const nextCertificates = buildCertificateRecords(updatedProfile.certificates)
+    setCertificates(nextCertificates)
+    setCertificateDrafts(Object.fromEntries(nextCertificates.map((certificate) => [certificate.id, certificate])))
     setNameDraft(updatedProfile.name || displayName)
+    setExpandedExperienceIds((current) =>
+      current.filter((recordId) => updatedProfile.experience_records.some((record) => record.id === recordId)),
+    )
   }
 
-  function handleSaveImages() {
+  async function handleSaveImages() {
     setSaving(true)
 
     try {
-      saveStoredProfileImages(user?.user_id, draftImages)
-      setSavedImages(draftImages)
+      const response = await apiRequest<StudentProfile>('/student/profile', {
+        method: 'PUT',
+        body: buildStudentProfilePayload({
+          profile_image: draftImages.profileImage ?? '',
+          cover_image: draftImages.coverImage ?? '',
+        }),
+        csrfToken,
+      })
+      syncProfile(response)
+      const nextImages = toStoredProfileImages(response)
+      setSavedImages(nextImages)
+      setDraftImages(nextImages)
+      emitStoredProfileImages(user?.user_id, nextImages)
       toast.success('Profile images saved successfully.')
-    } catch {
-      toast.error('Unable to save profile images on this device.')
+    } catch (error) {
+      toast.error(error instanceof ApiError ? error.message : 'Unable to save profile images.')
     } finally {
       setSaving(false)
     }
@@ -527,13 +480,7 @@ export function StudentProfilePage() {
     try {
       const response = await apiRequest<StudentProfile>('/student/profile', {
         method: 'PUT',
-        body: {
-          name: trimmedName,
-          desired_job_type: profile.desired_job_type,
-          desired_work_location: profile.desired_work_location,
-          japanese_level: profile.japanese_level,
-          english_level: profile.english_level,
-        },
+        body: buildStudentProfilePayload({ name: trimmedName }),
         csrfToken,
       })
 
@@ -558,7 +505,7 @@ export function StudentProfilePage() {
     setIsEditingAbout(false)
   }
 
-  function handleSaveAbout() {
+  async function handleSaveAbout() {
     const trimmedAbout = aboutDraft.trim()
     if (!trimmedAbout) {
       toast.error('About me cannot be empty.')
@@ -568,13 +515,19 @@ export function StudentProfilePage() {
     setSavingAbout(true)
 
     try {
-      localStorage.setItem(aboutStorageKey, trimmedAbout)
-      setAboutMe(trimmedAbout)
-      setAboutDraft(trimmedAbout)
+      const response = await apiRequest<StudentProfile>('/student/profile', {
+        method: 'PUT',
+        body: buildStudentProfilePayload({ about_me: trimmedAbout }),
+        csrfToken,
+      })
+      syncProfile(response)
+      const nextAbout = response.about_me || defaultAboutMe
+      setAboutMe(nextAbout)
+      setAboutDraft(nextAbout)
       setIsEditingAbout(false)
       toast.success('About me saved successfully.')
-    } catch {
-      toast.error('Unable to save your about me section on this device.')
+    } catch (error) {
+      toast.error(error instanceof ApiError ? error.message : 'Unable to save your about me section.')
     } finally {
       setSavingAbout(false)
     }
@@ -590,24 +543,6 @@ export function StudentProfilePage() {
     ...skillsData.available_skills.map((skill) => [skill.id, skill.name] as const),
     ...skillsData.skills.map((skill) => [skill.skill_id, skill.skill_name] as const),
   ])
-
-  function persistExperienceSkills(nextSkills: ExperienceSkillMap) {
-    setExperienceSkills(nextSkills)
-    setExperienceSkillDrafts(nextSkills)
-    localStorage.setItem(experienceSkillsStorageKey, JSON.stringify(nextSkills))
-  }
-
-  function persistEducationDetails(nextDetails: EducationDetailMap) {
-    setEducationDetails(nextDetails)
-    setEducationDetailDrafts(nextDetails)
-    localStorage.setItem(educationDetailsStorageKey, JSON.stringify(nextDetails))
-  }
-
-  function persistCertificates(nextCertificates: CertificateRecord[]) {
-    setCertificates(nextCertificates)
-    setCertificateDrafts(Object.fromEntries(nextCertificates.map((certificate) => [certificate.id, certificate])))
-    localStorage.setItem(certificatesStorageKey, JSON.stringify(nextCertificates))
-  }
 
   function toggleExperienceSkill(recordId: number, skillId: number) {
     setExperienceSkillDrafts((current) => {
@@ -773,20 +708,16 @@ export function StudentProfilePage() {
       const previousExperienceIds = new Set(profile.experience_records.map((record) => record.id))
       const response = await apiRequest<StudentProfile>('/student/profile/experience', {
         method: 'POST',
-        body: normalizeExperienceDraft(newExperience),
+        body: {
+          ...normalizeExperienceDraft(newExperience),
+          skill_ids: newExperienceSkillIds,
+        },
         csrfToken,
       })
       syncProfile(response)
       const createdRecord = response.experience_records.find((record) => !previousExperienceIds.has(record.id))
       if (createdRecord) {
-        try {
-          persistExperienceSkills({
-            ...experienceSkills,
-            [createdRecord.id]: newExperienceSkillIds,
-          })
-        } catch {
-          toast.error('Experience added, but skills could not be saved on this device.')
-        }
+        setExpandedExperienceIds((current) => current.filter((recordId) => recordId !== createdRecord.id))
       }
       setNewExperience(emptyExperienceDraft)
       setNewExperienceSkillIds([])
@@ -806,24 +737,18 @@ export function StudentProfilePage() {
 
     setSavingEducation(true)
     try {
-      const previousEducationIds = new Set(profile.education_records.map((record) => record.id))
       const response = await apiRequest<StudentProfile>('/student/profile/education', {
         method: 'POST',
-        body: normalizeEducationDraft(newEducation),
+        body: {
+          ...normalizeEducationDraft(newEducation),
+          grade: newEducationDetails.grade,
+          activities: newEducationDetails.activities,
+          description: newEducationDetails.description,
+          skill_ids: newEducationDetails.skillIds,
+        },
         csrfToken,
       })
       syncProfile(response)
-      const createdRecord = response.education_records.find((record) => !previousEducationIds.has(record.id))
-      if (createdRecord) {
-        try {
-          persistEducationDetails({
-            ...educationDetails,
-            [createdRecord.id]: newEducationDetails,
-          })
-        } catch {
-          toast.error('Education added, but extra details could not be saved on this device.')
-        }
-      }
       setNewEducation(emptyEducationDraft)
       setNewEducationDetails(emptyEducationDetailDraft)
       toast.success('Education added successfully.')
@@ -834,7 +759,7 @@ export function StudentProfilePage() {
     }
   }
 
-  function handleCreateCertificate() {
+  async function handleCreateCertificate() {
     if (!newCertificate.name.trim() || !newCertificate.issuer.trim() || !newCertificate.issueDate) {
       toast.error('Please complete the required certificate fields.')
       return
@@ -842,21 +767,31 @@ export function StudentProfilePage() {
 
     setSavingCertificates(true)
     try {
-      const createdCertificate: CertificateRecord = {
-        ...newCertificate,
-        id: Date.now(),
-      }
-      persistCertificates([...certificates, createdCertificate])
+      const response = await apiRequest<StudentProfile>('/student/profile/certificates', {
+        method: 'POST',
+        body: {
+          name: newCertificate.name,
+          issuer: newCertificate.issuer,
+          issue_date: newCertificate.issueDate,
+          expiry_date: newCertificate.expiryDate || null,
+          credential_id: newCertificate.credentialId,
+          credential_url: newCertificate.credentialUrl,
+          description: newCertificate.description,
+          skill_ids: newCertificate.skillIds,
+        },
+        csrfToken,
+      })
+      syncProfile(response)
       setNewCertificate(emptyCertificate)
       toast.success('Certificate added successfully.')
-    } catch {
-      toast.error('Unable to save certificate on this device.')
+    } catch (error) {
+      toast.error(error instanceof ApiError ? error.message : 'Unable to save certificate.')
     } finally {
       setSavingCertificates(false)
     }
   }
 
-  function handleUpdateCertificate(recordId: number) {
+  async function handleUpdateCertificate(recordId: number) {
     const draft = certificateDrafts[recordId]
     if (!draft || !draft.name.trim() || !draft.issuer.trim() || !draft.issueDate) {
       toast.error('Please complete the required certificate fields.')
@@ -865,22 +800,40 @@ export function StudentProfilePage() {
 
     setSavingCertificates(true)
     try {
-      persistCertificates(certificates.map((certificate) => (certificate.id === recordId ? draft : certificate)))
+      const response = await apiRequest<StudentProfile>(`/student/profile/certificates/${recordId}`, {
+        method: 'PUT',
+        body: {
+          name: draft.name,
+          issuer: draft.issuer,
+          issue_date: draft.issueDate,
+          expiry_date: draft.expiryDate || null,
+          credential_id: draft.credentialId,
+          credential_url: draft.credentialUrl,
+          description: draft.description,
+          skill_ids: draft.skillIds,
+        },
+        csrfToken,
+      })
+      syncProfile(response)
       toast.success('Certificate updated successfully.')
-    } catch {
-      toast.error('Unable to update certificate on this device.')
+    } catch (error) {
+      toast.error(error instanceof ApiError ? error.message : 'Unable to update certificate.')
     } finally {
       setSavingCertificates(false)
     }
   }
 
-  function handleDeleteCertificate(recordId: number) {
+  async function handleDeleteCertificate(recordId: number) {
     setSavingCertificates(true)
     try {
-      persistCertificates(certificates.filter((certificate) => certificate.id !== recordId))
+      const response = await apiRequest<StudentProfile>(`/student/profile/certificates/${recordId}`, {
+        method: 'DELETE',
+        csrfToken,
+      })
+      syncProfile(response)
       toast.success('Certificate removed successfully.')
-    } catch {
-      toast.error('Unable to remove certificate on this device.')
+    } catch (error) {
+      toast.error(error instanceof ApiError ? error.message : 'Unable to remove certificate.')
     } finally {
       setSavingCertificates(false)
     }
@@ -897,18 +850,16 @@ export function StudentProfilePage() {
     try {
       const response = await apiRequest<StudentProfile>(`/student/profile/education/${recordId}`, {
         method: 'PUT',
-        body: normalizeEducationDraft(draft),
+        body: {
+          ...normalizeEducationDraft(draft),
+          grade: (educationDetailDrafts[recordId] ?? emptyEducationDetailDraft).grade,
+          activities: (educationDetailDrafts[recordId] ?? emptyEducationDetailDraft).activities,
+          description: (educationDetailDrafts[recordId] ?? emptyEducationDetailDraft).description,
+          skill_ids: (educationDetailDrafts[recordId] ?? emptyEducationDetailDraft).skillIds,
+        },
         csrfToken,
       })
       syncProfile(response)
-      try {
-        persistEducationDetails({
-          ...educationDetails,
-          [recordId]: educationDetailDrafts[recordId] ?? emptyEducationDetailDraft,
-        })
-      } catch {
-        toast.error('Education updated, but extra details could not be saved on this device.')
-      }
       toast.success('Education updated successfully.')
     } catch (error) {
       toast.error(error instanceof ApiError ? error.message : 'Unable to update education.')
@@ -925,14 +876,6 @@ export function StudentProfilePage() {
         csrfToken,
       })
       syncProfile(response)
-      const nextEducationDetails = Object.fromEntries(
-        Object.entries(educationDetails).filter(([currentRecordId]) => Number(currentRecordId) !== recordId),
-      )
-      try {
-        persistEducationDetails(nextEducationDetails)
-      } catch {
-        toast.error('Education removed, but local details could not be updated on this device.')
-      }
       toast.success('Education removed successfully.')
     } catch (error) {
       toast.error(error instanceof ApiError ? error.message : 'Unable to remove education.')
@@ -952,18 +895,13 @@ export function StudentProfilePage() {
     try {
       const response = await apiRequest<StudentProfile>(`/student/profile/experience/${recordId}`, {
         method: 'PUT',
-        body: normalizeExperienceDraft(draft),
+        body: {
+          ...normalizeExperienceDraft(draft),
+          skill_ids: experienceSkillDrafts[recordId] ?? [],
+        },
         csrfToken,
       })
       syncProfile(response)
-      try {
-        persistExperienceSkills({
-          ...experienceSkills,
-          [recordId]: experienceSkillDrafts[recordId] ?? [],
-        })
-      } catch {
-        toast.error('Experience updated, but skills could not be saved on this device.')
-      }
       toast.success('Experience updated successfully.')
     } catch (error) {
       toast.error(error instanceof ApiError ? error.message : 'Unable to update experience.')
@@ -980,14 +918,6 @@ export function StudentProfilePage() {
         csrfToken,
       })
       syncProfile(response)
-      const nextExperienceSkills = Object.fromEntries(
-        Object.entries(experienceSkills).filter(([currentRecordId]) => Number(currentRecordId) !== recordId),
-      )
-      try {
-        persistExperienceSkills(nextExperienceSkills)
-      } catch {
-        toast.error('Experience removed, but local skill tags could not be updated on this device.')
-      }
       toast.success('Experience removed successfully.')
     } catch (error) {
       toast.error(error instanceof ApiError ? error.message : 'Unable to remove experience.')
@@ -1188,7 +1118,7 @@ export function StudentProfilePage() {
                   <div className="space-y-2">
                     <div className="flex items-center justify-between gap-2">
                       <label className="text-sm font-medium text-slate-700">Description</label>
-                      <span className="text-xs text-slate-500">Extra details saved on this device</span>
+                      <span className="text-xs text-slate-500">Saved with your profile</span>
                     </div>
                     <Textarea
                       rows={4}
@@ -1298,7 +1228,7 @@ export function StudentProfilePage() {
               <div className="space-y-2">
                 <div className="flex items-center justify-between gap-2">
                   <label className="text-sm font-medium text-slate-700">Description</label>
-                  <span className="text-xs text-slate-500">Extra details saved on this device</span>
+                  <span className="text-xs text-slate-500">Saved with your profile</span>
                 </div>
                 <Textarea
                   rows={4}
@@ -1722,7 +1652,7 @@ export function StudentProfilePage() {
                   <div className="space-y-2">
                     <div className="flex items-center justify-between gap-2">
                       <label className="text-sm font-medium text-slate-700">Skills</label>
-                      <span className="text-xs text-slate-500">Saved on this device</span>
+                      <span className="text-xs text-slate-500">Saved with your profile</span>
                     </div>
                     {skillsData.available_skills.length > 0 ? (
                       <div className="flex flex-wrap gap-2">
@@ -1836,7 +1766,7 @@ export function StudentProfilePage() {
               <div className="space-y-2">
                 <div className="flex items-center justify-between gap-2">
                   <label className="text-sm font-medium text-slate-700">Skills</label>
-                  <span className="text-xs text-slate-500">Saved on this device</span>
+                  <span className="text-xs text-slate-500">Saved with your profile</span>
                 </div>
                 {skillsData.available_skills.length > 0 ? (
                   <div className="flex flex-wrap gap-2">
@@ -2164,50 +2094,78 @@ export function StudentProfilePage() {
           {hasExperience ? (
             <div className="space-y-5">
               {profile.experience_records.map((record, index) => (
-                <div key={record.id} className="relative pl-14">
-                  {index < profile.experience_records.length - 1 ? (
-                    <div className="absolute left-[19px] top-12 h-[calc(100%-0.5rem)] w-px bg-slate-200" />
-                  ) : null}
-                  <div className="absolute left-0 top-0 flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-100 text-slate-600">
-                    <BriefcaseBusiness className="h-5 w-5" />
-                  </div>
-                  <div className="space-y-2 rounded-2xl border border-slate-100 bg-slate-50 px-4 py-4">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <p className="font-semibold text-slate-900">{record.role_title}</p>
-                          {record.is_current ? (
-                            <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
-                              Current
-                            </span>
+                (() => {
+                  const shouldShowExperienceToggle = record.summary.length > aboutPreviewLimit
+                  const isExperienceExpanded = expandedExperienceIds.includes(record.id)
+                  const displayedExperienceSummary =
+                    isExperienceExpanded || !shouldShowExperienceToggle
+                      ? record.summary
+                      : `${record.summary.slice(0, aboutPreviewLimit).trimEnd()}...`
+
+                  return (
+                    <div key={record.id} className="relative pl-14">
+                      {index < profile.experience_records.length - 1 ? (
+                        <div className="absolute left-[19px] top-12 h-[calc(100%-0.5rem)] w-px bg-slate-200" />
+                      ) : null}
+                      <div className="absolute left-0 top-0 flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-100 text-slate-600">
+                        <BriefcaseBusiness className="h-5 w-5" />
+                      </div>
+                      <div className="space-y-2 rounded-2xl border border-slate-100 bg-slate-50 px-4 py-4">
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <p className="font-semibold text-slate-900">{record.role_title}</p>
+                              {record.is_current ? (
+                                <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
+                                  Current
+                                </span>
+                              ) : null}
+                            </div>
+                            <p className="text-sm text-slate-500">
+                              {record.organization} · {formatExperienceType(record.experience_type)}
+                            </p>
+                          </div>
+                          <span className="text-sm text-slate-500">
+                            {formatExperienceDate(record.start_date)} - {record.is_current ? 'Present' : formatExperienceDate(record.end_date)}
+                          </span>
+                        </div>
+                        <div className="space-y-3">
+                          <p className="text-sm leading-6 text-slate-600">{displayedExperienceSummary || 'No experience summary added yet.'}</p>
+                          {shouldShowExperienceToggle ? (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setExpandedExperienceIds((current) =>
+                                  current.includes(record.id)
+                                    ? current.filter((recordId) => recordId !== record.id)
+                                    : [...current, record.id],
+                                )
+                              }
+                              className="text-sm font-medium text-primary transition hover:underline"
+                            >
+                              {isExperienceExpanded ? 'Show less' : 'Show more'}
+                            </button>
                           ) : null}
                         </div>
-                        <p className="text-sm text-slate-500">
-                          {record.organization} · {formatExperienceType(record.experience_type)}
-                        </p>
+                        {(experienceSkills[record.id] ?? []).length > 0 ? (
+                          <div className="flex flex-wrap gap-2 pt-1">
+                            {(experienceSkills[record.id] ?? [])
+                              .map((skillId) => skillNameById.get(skillId))
+                              .filter((skillName): skillName is string => Boolean(skillName))
+                              .map((skillName) => (
+                                <span
+                                  key={`${record.id}-${skillName}`}
+                                  className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-600 ring-1 ring-slate-200"
+                                >
+                                  {skillName}
+                                </span>
+                              ))}
+                          </div>
+                        ) : null}
                       </div>
-                      <span className="text-sm text-slate-500">
-                        {formatExperienceDate(record.start_date)} - {record.is_current ? 'Present' : formatExperienceDate(record.end_date)}
-                      </span>
                     </div>
-                    <p className="text-sm leading-6 text-slate-600">{record.summary || 'No experience summary added yet.'}</p>
-                    {(experienceSkills[record.id] ?? []).length > 0 ? (
-                      <div className="flex flex-wrap gap-2 pt-1">
-                        {(experienceSkills[record.id] ?? [])
-                          .map((skillId) => skillNameById.get(skillId))
-                          .filter((skillName): skillName is string => Boolean(skillName))
-                          .map((skillName) => (
-                            <span
-                              key={`${record.id}-${skillName}`}
-                              className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-600 ring-1 ring-slate-200"
-                            >
-                              {skillName}
-                            </span>
-                          ))}
-                      </div>
-                    ) : null}
-                  </div>
-                </div>
+                  )
+                })()
               ))}
             </div>
           ) : (

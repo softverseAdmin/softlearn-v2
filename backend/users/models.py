@@ -252,6 +252,9 @@ class StudentProfile(models.Model):
     desired_work_location = models.CharField(max_length=100, blank=True, default="")
     japanese_level = models.CharField(max_length=50, blank=True, default="")
     english_level = models.CharField(max_length=50, blank=True, default="")
+    about_me = models.TextField(blank=True, default="")
+    profile_image = models.TextField(blank=True, default="")
+    cover_image = models.TextField(blank=True, default="")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -290,6 +293,10 @@ class StudentEducation(models.Model):
     start_date = models.DateField()
     end_date = models.DateField(null=True, blank=True)
     completion_status = models.CharField(max_length=20, choices=CompletionStatus.choices, default=CompletionStatus.IN_PROGRESS)
+    grade = models.CharField(max_length=100, blank=True, default="")
+    activities = models.CharField(max_length=255, blank=True, default="")
+    description = models.TextField(blank=True, default="")
+    skills = models.ManyToManyField("Skill", blank=True, related_name="student_education_records")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -328,6 +335,7 @@ class StudentExperience(models.Model):
     end_date = models.DateField(null=True, blank=True)
     is_current = models.BooleanField(default=False)
     summary = models.TextField(blank=True, default="")
+    skills = models.ManyToManyField("Skill", blank=True, related_name="student_experience_records")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -376,6 +384,38 @@ class StudentResume(models.Model):
 
     def __str__(self) -> str:
         return f"{self.student.email} - {self.display_name}"
+
+
+class StudentCertificate(models.Model):
+    student = models.ForeignKey(
+        "User",
+        on_delete=models.CASCADE,
+        related_name="certificate_records",
+        limit_choices_to={"role": "student"},
+    )
+    name = models.CharField(max_length=255)
+    issuer = models.CharField(max_length=255)
+    issue_date = models.DateField()
+    expiry_date = models.DateField(null=True, blank=True)
+    credential_id = models.CharField(max_length=255, blank=True, default="")
+    credential_url = models.URLField(blank=True, default="")
+    description = models.TextField(blank=True, default="")
+    skills = models.ManyToManyField("Skill", blank=True, related_name="student_certificates")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-issue_date", "-id"]
+
+    def clean(self) -> None:
+        super().clean()
+        if self.student.role != User.Role.STUDENT:
+            raise ValidationError({"student": ["Certificate records may only belong to student users."]})
+        if self.expiry_date and self.expiry_date < self.issue_date:
+            raise ValidationError({"expiry_date": ["Expiry date cannot be earlier than issue date."]})
+
+    def __str__(self) -> str:
+        return f"{self.student.email} - {self.name}"
 
 
 class StudentAvailabilityProfile(models.Model):

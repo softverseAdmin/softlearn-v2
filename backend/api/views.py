@@ -52,6 +52,7 @@ from users.models import (
     StudentSkill,
     StudyPlan,
     StudyPlanItem,
+    StudentCertificate,
     StudentVisibilityEvent,
     StudentVisibilitySettings,
     User,
@@ -108,6 +109,10 @@ def serialize_student_education(record: StudentEducation) -> dict:
         "start_date": record.start_date.isoformat(),
         "end_date": record.end_date.isoformat() if record.end_date else None,
         "completion_status": record.completion_status,
+        "grade": record.grade,
+        "activities": record.activities,
+        "description": record.description,
+        "skill_ids": list(record.skills.order_by("id").values_list("id", flat=True)),
     }
 
 
@@ -121,6 +126,21 @@ def serialize_student_experience(record: StudentExperience) -> dict:
         "end_date": record.end_date.isoformat() if record.end_date else None,
         "is_current": record.is_current,
         "summary": record.summary,
+        "skill_ids": list(record.skills.order_by("id").values_list("id", flat=True)),
+    }
+
+
+def serialize_student_certificate(record: StudentCertificate) -> dict:
+    return {
+        "id": record.id,
+        "name": record.name,
+        "issuer": record.issuer,
+        "issue_date": record.issue_date.isoformat(),
+        "expiry_date": record.expiry_date.isoformat() if record.expiry_date else None,
+        "credential_id": record.credential_id,
+        "credential_url": record.credential_url,
+        "description": record.description,
+        "skill_ids": list(record.skills.order_by("id").values_list("id", flat=True)),
     }
 
 
@@ -150,8 +170,9 @@ def serialize_student_availability_profile(profile: StudentAvailabilityProfile) 
 def serialize_student_profile(user: User) -> dict:
     profile = get_student_profile(user)
     availability_profile = get_student_availability_profile(user)
-    education_records = list(StudentEducation.objects.filter(student=user))
-    experience_records = list(StudentExperience.objects.filter(student=user))
+    education_records = list(StudentEducation.objects.filter(student=user).prefetch_related("skills"))
+    experience_records = list(StudentExperience.objects.filter(student=user).prefetch_related("skills"))
+    certificates = list(StudentCertificate.objects.filter(student=user).prefetch_related("skills"))
     resumes = list(StudentResume.objects.filter(student=user))
     return {
         "student_id": user.id,
@@ -160,9 +181,13 @@ def serialize_student_profile(user: User) -> dict:
         "desired_work_location": profile.desired_work_location,
         "japanese_level": profile.japanese_level,
         "english_level": profile.english_level,
+        "about_me": profile.about_me,
+        "profile_image": profile.profile_image or None,
+        "cover_image": profile.cover_image or None,
         "profile_complete": profile.profile_complete,
         "education_records": [serialize_student_education(record) for record in education_records],
         "experience_records": [serialize_student_experience(record) for record in experience_records],
+        "certificates": [serialize_student_certificate(record) for record in certificates],
         "resumes": [serialize_student_resume(record) for record in resumes],
         "availability": serialize_student_availability_profile(availability_profile),
         "profile_extension_summary": {
@@ -1733,6 +1758,9 @@ def validate_student_profile_payload(payload: dict) -> dict:
         "desired_work_location": str(payload.get("desired_work_location", "")).strip(),
         "japanese_level": str(payload.get("japanese_level", "")).strip(),
         "english_level": str(payload.get("english_level", "")).strip(),
+        "about_me": str(payload.get("about_me", "")).strip(),
+        "profile_image": str(payload.get("profile_image", "")).strip(),
+        "cover_image": str(payload.get("cover_image", "")).strip(),
     }
 
     errors = {}
@@ -1743,6 +1771,30 @@ def validate_student_profile_payload(payload: dict) -> dict:
         raise ValidationError(errors)
 
     return cleaned
+
+
+def parse_skill_ids(payload: dict, errors: dict) -> list[int]:
+    raw_value = payload.get("skill_ids", [])
+    if raw_value in (None, ""):
+        raw_value = []
+    if not isinstance(raw_value, list):
+        errors["skill_ids"] = ["This field must be an array of skill IDs."]
+        return []
+
+    skill_ids: list[int] = []
+    for value in raw_value:
+        if not isinstance(value, int):
+            errors["skill_ids"] = ["Each skill ID must be an integer."]
+            return []
+        if value not in skill_ids:
+            skill_ids.append(value)
+
+    existing_skill_ids = set(Skill.objects.filter(id__in=skill_ids).values_list("id", flat=True))
+    missing_skill_ids = [str(skill_id) for skill_id in skill_ids if skill_id not in existing_skill_ids]
+    if missing_skill_ids:
+        errors["skill_ids"] = [f"Unknown skill IDs: {', '.join(missing_skill_ids)}."]
+
+    return skill_ids
 
 
 def parse_required_date(value, field_name: str, errors: dict) -> object | None:
@@ -1773,7 +1825,11 @@ def validate_student_education_payload(payload: dict) -> dict:
         "institution": str(payload.get("institution", "")).strip(),
         "field_of_study": str(payload.get("field_of_study", "")).strip(),
         "completion_status": str(payload.get("completion_status", "")).strip() or StudentEducation.CompletionStatus.IN_PROGRESS,
+        "grade": str(payload.get("grade", "")).strip(),
+        "activities": str(payload.get("activities", "")).strip(),
+        "description": str(payload.get("description", "")).strip(),
     }
+    cleaned["skill_ids"] = parse_skill_ids(payload, errors)
     cleaned["start_date"] = parse_required_date(payload.get("start_date"), "start_date", errors)
     cleaned["end_date"] = parse_optional_date(payload.get("end_date"), "end_date", errors)
 
@@ -1800,6 +1856,7 @@ def validate_student_experience_payload(payload: dict) -> dict:
         "summary": str(payload.get("summary", "")).strip(),
         "is_current": bool(payload.get("is_current", False)),
     }
+    cleaned["skill_ids"] = parse_skill_ids(payload, errors)
     if payload.get("is_current") not in (True, False, None):
         errors["is_current"] = ["This field must be a boolean."]
 
@@ -1816,6 +1873,29 @@ def validate_student_experience_payload(payload: dict) -> dict:
         ]
     if cleaned["is_current"] and cleaned["end_date"] is not None:
         errors["end_date"] = ["Current experience cannot have an end date."]
+
+    if errors:
+        raise ValidationError(errors)
+    return cleaned
+
+
+def validate_student_certificate_payload(payload: dict) -> dict:
+    errors = {}
+    cleaned = {
+        "name": str(payload.get("name", "")).strip(),
+        "issuer": str(payload.get("issuer", "")).strip(),
+        "credential_id": str(payload.get("credential_id", "")).strip(),
+        "credential_url": str(payload.get("credential_url", "")).strip(),
+        "description": str(payload.get("description", "")).strip(),
+    }
+    cleaned["skill_ids"] = parse_skill_ids(payload, errors)
+    cleaned["issue_date"] = parse_required_date(payload.get("issue_date"), "issue_date", errors)
+    cleaned["expiry_date"] = parse_optional_date(payload.get("expiry_date"), "expiry_date", errors)
+
+    if not cleaned["name"]:
+        errors["name"] = ["This field is required."]
+    if not cleaned["issuer"]:
+        errors["issuer"] = ["This field is required."]
 
     if errors:
         raise ValidationError(errors)
@@ -3681,12 +3761,18 @@ def student_profile_view(request):
     profile.desired_work_location = payload["desired_work_location"]
     profile.japanese_level = payload["japanese_level"]
     profile.english_level = payload["english_level"]
+    profile.about_me = payload["about_me"]
+    profile.profile_image = payload["profile_image"]
+    profile.cover_image = payload["cover_image"]
     profile.save(
         update_fields=[
             "desired_job_type",
             "desired_work_location",
             "japanese_level",
             "english_level",
+            "about_me",
+            "profile_image",
+            "cover_image",
             "updated_at",
         ]
     )
@@ -3706,9 +3792,12 @@ def student_education_view(request):
         )
 
     payload = validate_student_education_payload(parse_json_body(request))
-    record = StudentEducation(student=request.user, **payload)
-    record.full_clean()
-    record.save()
+    skill_ids = payload.pop("skill_ids")
+    with transaction.atomic():
+        record = StudentEducation(student=request.user, **payload)
+        record.full_clean()
+        record.save()
+        record.skills.set(skill_ids)
     return success_response(serialize_student_profile(request.user), status=201)
 
 
@@ -3729,19 +3818,25 @@ def student_education_detail_view(request, education_id: int):
         return success_response(serialize_student_profile(request.user))
 
     payload = validate_student_education_payload(parse_json_body(request))
+    skill_ids = payload.pop("skill_ids")
     for field, value in payload.items():
         setattr(record, field, value)
-    record.full_clean()
-    record.save(
-        update_fields=[
-            "institution",
-            "field_of_study",
-            "start_date",
-            "end_date",
-            "completion_status",
-            "updated_at",
-        ]
-    )
+    with transaction.atomic():
+        record.full_clean()
+        record.save(
+            update_fields=[
+                "institution",
+                "field_of_study",
+                "start_date",
+                "end_date",
+                "completion_status",
+                "grade",
+                "activities",
+                "description",
+                "updated_at",
+            ]
+        )
+        record.skills.set(skill_ids)
     return success_response(serialize_student_profile(request.user))
 
 
@@ -3758,9 +3853,12 @@ def student_experience_view(request):
         )
 
     payload = validate_student_experience_payload(parse_json_body(request))
-    record = StudentExperience(student=request.user, **payload)
-    record.full_clean()
-    record.save()
+    skill_ids = payload.pop("skill_ids")
+    with transaction.atomic():
+        record = StudentExperience(student=request.user, **payload)
+        record.full_clean()
+        record.save()
+        record.skills.set(skill_ids)
     return success_response(serialize_student_profile(request.user), status=201)
 
 
@@ -3781,21 +3879,84 @@ def student_experience_detail_view(request, experience_id: int):
         return success_response(serialize_student_profile(request.user))
 
     payload = validate_student_experience_payload(parse_json_body(request))
+    skill_ids = payload.pop("skill_ids")
     for field, value in payload.items():
         setattr(record, field, value)
-    record.full_clean()
-    record.save(
-        update_fields=[
-            "organization",
-            "role_title",
-            "experience_type",
-            "start_date",
-            "end_date",
-            "is_current",
-            "summary",
-            "updated_at",
-        ]
-    )
+    with transaction.atomic():
+        record.full_clean()
+        record.save(
+            update_fields=[
+                "organization",
+                "role_title",
+                "experience_type",
+                "start_date",
+                "end_date",
+                "is_current",
+                "summary",
+                "updated_at",
+            ]
+        )
+        record.skills.set(skill_ids)
+    return success_response(serialize_student_profile(request.user))
+
+
+@api_endpoint(["GET", "POST"], authentication_required=True, roles=[User.Role.STUDENT])
+def student_certificates_view(request):
+    if request.method == "GET":
+        return success_response(
+            {
+                "certificates": [
+                    serialize_student_certificate(record)
+                    for record in StudentCertificate.objects.filter(student=request.user).prefetch_related("skills")
+                ],
+            }
+        )
+
+    payload = validate_student_certificate_payload(parse_json_body(request))
+    skill_ids = payload.pop("skill_ids")
+    with transaction.atomic():
+        record = StudentCertificate(student=request.user, **payload)
+        record.full_clean()
+        record.save()
+        record.skills.set(skill_ids)
+    return success_response(serialize_student_profile(request.user), status=201)
+
+
+@api_endpoint(["PUT", "DELETE"], authentication_required=True, roles=[User.Role.STUDENT])
+def student_certificate_detail_view(request, certificate_id: int):
+    record = StudentCertificate.objects.filter(student=request.user, pk=certificate_id).first()
+    if record is None:
+        return error_response(
+            request,
+            "NOT_FOUND",
+            "The requested certificate record was not found.",
+            details={"certificate_id": [str(certificate_id)]},
+            status=404,
+        )
+
+    if request.method == "DELETE":
+        record.delete()
+        return success_response(serialize_student_profile(request.user))
+
+    payload = validate_student_certificate_payload(parse_json_body(request))
+    skill_ids = payload.pop("skill_ids")
+    for field, value in payload.items():
+        setattr(record, field, value)
+    with transaction.atomic():
+        record.full_clean()
+        record.save(
+            update_fields=[
+                "name",
+                "issuer",
+                "issue_date",
+                "expiry_date",
+                "credential_id",
+                "credential_url",
+                "description",
+                "updated_at",
+            ]
+        )
+        record.skills.set(skill_ids)
     return success_response(serialize_student_profile(request.user))
 
 

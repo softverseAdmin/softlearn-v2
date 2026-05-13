@@ -37,6 +37,7 @@ from users.models import (
     PracticeQuestionOption,
     Skill,
     StudentAvailabilityProfile,
+    StudentCertificate,
     StudentEducation,
     StudentExperience,
     StudentPerformanceMetric,
@@ -524,7 +525,7 @@ class ApiFoundationTests(TestCase):
         CandidateReviewAccess.objects.create(
             company=company,
             student=student,
-            source=CandidateReviewAccess.Source.MATCH,
+            source=CandidateReviewAccess.Source.APPLICATION,
         )
         client = Client()
         client.force_login(company_user)
@@ -1165,8 +1166,8 @@ class ApiFoundationTests(TestCase):
             role=User.Role.COMPANY,
             company=company,
         )
-        python_skill = Skill.objects.create(name="Python")
-        react_skill = Skill.objects.create(name="React")
+        python_skill, _ = Skill.objects.get_or_create(name="Python")
+        react_skill, _ = Skill.objects.get_or_create(name="React")
         client, csrf_token = self.csrf_client()
         client.force_login(company_user)
 
@@ -1261,7 +1262,9 @@ class ApiFoundationTests(TestCase):
         list_response = client.get("/api/v1/company/vacancies")
 
         self.assertEqual(list_response.status_code, 200)
-        self.assertEqual(len(list_response.json()["data"]["available_skills"]), 2)
+        available_skill_ids = {item["id"] for item in list_response.json()["data"]["available_skills"]}
+        self.assertIn(python_skill.id, available_skill_ids)
+        self.assertIn(react_skill.id, available_skill_ids)
         self.assertEqual(list_response.json()["data"]["vacancies"][0]["work_style"], "remote")
 
     def test_student_job_list_shows_only_active_visible_vacancies(self):
@@ -1366,8 +1369,8 @@ class ApiFoundationTests(TestCase):
             full_name="Student User",
             role=User.Role.STUDENT,
         )
-        python_skill = Skill.objects.create(name="Python")
-        react_skill = Skill.objects.create(name="React")
+        python_skill, _ = Skill.objects.get_or_create(name="Python")
+        react_skill, _ = Skill.objects.get_or_create(name="React")
         matching_vacancy = Vacancy.objects.create(
             company=company,
             created_by=company_user,
@@ -1497,8 +1500,8 @@ class ApiFoundationTests(TestCase):
             japanese_level="business",
             english_level="conversational",
         )
-        python_skill = Skill.objects.create(name="Python")
-        django_skill = Skill.objects.create(name="Django")
+        python_skill, _ = Skill.objects.get_or_create(name="Python")
+        django_skill, _ = Skill.objects.get_or_create(name="Django")
         StudentSkill.objects.create(student=student, skill=python_skill, proficiency_level="advanced")
         StudentSkill.objects.create(student=student, skill=django_skill, proficiency_level="intermediate")
         LearningRecord.objects.create(
@@ -1624,7 +1627,7 @@ class ApiFoundationTests(TestCase):
             relocation_support=True,
             status=Vacancy.Status.ACTIVE,
         )
-        python_skill = Skill.objects.create(name="Python")
+        python_skill, _ = Skill.objects.get_or_create(name="Python")
         VacancySkillRequirement.objects.create(
             vacancy=vacancy,
             skill=python_skill,
@@ -2284,6 +2287,9 @@ class ApiFoundationTests(TestCase):
                     "desired_work_location": "Tokyo",
                     "japanese_level": "N3",
                     "english_level": "B2",
+                    "about_me": "Backend-focused student.",
+                    "profile_image": "data:image/png;base64,profile",
+                    "cover_image": "data:image/png;base64,cover",
                 }
             ),
             content_type="application/json",
@@ -2295,6 +2301,9 @@ class ApiFoundationTests(TestCase):
         profile = StudentProfile.objects.get(user=user)
         self.assertEqual(user.full_name, "Updated Student")
         self.assertEqual(profile.desired_job_type, "backend")
+        self.assertEqual(profile.about_me, "Backend-focused student.")
+        self.assertEqual(profile.profile_image, "data:image/png;base64,profile")
+        self.assertEqual(profile.cover_image, "data:image/png;base64,cover")
         self.assertTrue(response.json()["data"]["profile_complete"])
 
     def test_student_profile_get_includes_extension_sections(self):
@@ -2304,13 +2313,25 @@ class ApiFoundationTests(TestCase):
             full_name="Student User",
             role=User.Role.STUDENT,
         )
+        profile = StudentProfile.objects.create(
+            user=user,
+            about_me="Focused on backend engineering.",
+            profile_image="data:image/png;base64,profile",
+            cover_image="data:image/png;base64,cover",
+        )
+        skill, _ = Skill.objects.get_or_create(name="Python")
         StudentEducation.objects.create(
             student=user,
             institution="Softlearn University",
             field_of_study="Computer Science",
             start_date="2022-01-01",
             completion_status=StudentEducation.CompletionStatus.IN_PROGRESS,
+            grade="A",
+            activities="Tech club",
+            description="Studied backend development.",
         )
+        education = StudentEducation.objects.get(student=user)
+        education.skills.add(skill)
         StudentExperience.objects.create(
             student=user,
             organization="Softverse",
@@ -2319,6 +2340,18 @@ class ApiFoundationTests(TestCase):
             start_date="2024-01-01",
             summary="Worked on student-facing flows.",
         )
+        experience = StudentExperience.objects.get(student=user)
+        experience.skills.add(skill)
+        certificate = StudentCertificate.objects.create(
+            student=user,
+            name="Cloud Basics",
+            issuer="Softlearn Academy",
+            issue_date="2024-06-01",
+            credential_id="CERT-1",
+            credential_url="https://example.com/certificates/1",
+            description="Foundational cloud certification.",
+        )
+        certificate.skills.add(skill)
         StudentResume.objects.create(
             student=user,
             display_name="Main Resume",
@@ -2339,8 +2372,17 @@ class ApiFoundationTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         body = response.json()["data"]
+        profile.refresh_from_db()
+        self.assertEqual(body["about_me"], profile.about_me)
+        self.assertEqual(body["profile_image"], profile.profile_image)
+        self.assertEqual(body["cover_image"], profile.cover_image)
         self.assertEqual(len(body["education_records"]), 1)
         self.assertEqual(len(body["experience_records"]), 1)
+        self.assertEqual(len(body["certificates"]), 1)
+        self.assertEqual(body["education_records"][0]["grade"], "A")
+        self.assertEqual(body["education_records"][0]["skill_ids"], [skill.id])
+        self.assertEqual(body["experience_records"][0]["skill_ids"], [skill.id])
+        self.assertEqual(body["certificates"][0]["credential_id"], "CERT-1")
         self.assertEqual(len(body["resumes"]), 1)
         self.assertTrue(body["availability"]["availability_set"])
         self.assertTrue(body["profile_extension_summary"]["has_active_resume"])
@@ -2354,6 +2396,7 @@ class ApiFoundationTests(TestCase):
         )
         client, csrf_token = self.csrf_client()
         client.force_login(user)
+        skill, _ = Skill.objects.get_or_create(name="React")
 
         create_response = client.post(
             "/api/v1/student/profile/education",
@@ -2363,6 +2406,10 @@ class ApiFoundationTests(TestCase):
                     "field_of_study": "Computer Science",
                     "start_date": "2022-01-01",
                     "completion_status": "in_progress",
+                    "grade": "A-",
+                    "activities": "Robotics Club",
+                    "description": "Built student projects.",
+                    "skill_ids": [skill.id],
                 }
             ),
             content_type="application/json",
@@ -2370,6 +2417,8 @@ class ApiFoundationTests(TestCase):
         )
         self.assertEqual(create_response.status_code, 201)
         record = StudentEducation.objects.get(student=user)
+        self.assertEqual(record.grade, "A-")
+        self.assertEqual(list(record.skills.values_list("id", flat=True)), [skill.id])
 
         update_response = client.put(
             f"/api/v1/student/profile/education/{record.id}",
@@ -2380,6 +2429,10 @@ class ApiFoundationTests(TestCase):
                     "start_date": "2022-01-01",
                     "end_date": "2025-01-01",
                     "completion_status": "completed",
+                    "grade": "A",
+                    "activities": "Engineering society",
+                    "description": "Completed capstone work.",
+                    "skill_ids": [],
                 }
             ),
             content_type="application/json",
@@ -2389,6 +2442,8 @@ class ApiFoundationTests(TestCase):
         record.refresh_from_db()
         self.assertEqual(record.field_of_study, "Software Engineering")
         self.assertEqual(record.completion_status, StudentEducation.CompletionStatus.COMPLETED)
+        self.assertEqual(record.grade, "A")
+        self.assertFalse(record.skills.exists())
 
         delete_response = client.delete(
             f"/api/v1/student/profile/education/{record.id}",
@@ -2406,6 +2461,7 @@ class ApiFoundationTests(TestCase):
         )
         client, csrf_token = self.csrf_client()
         client.force_login(user)
+        skill, _ = Skill.objects.get_or_create(name="Django")
 
         experience_response = client.post(
             "/api/v1/student/profile/experience",
@@ -2417,12 +2473,15 @@ class ApiFoundationTests(TestCase):
                     "start_date": "2024-01-01",
                     "is_current": True,
                     "summary": "Built API endpoints.",
+                    "skill_ids": [skill.id],
                 }
             ),
             content_type="application/json",
             HTTP_X_CSRFTOKEN=csrf_token,
         )
         self.assertEqual(experience_response.status_code, 201)
+        experience = StudentExperience.objects.get(student=user)
+        self.assertEqual(list(experience.skills.values_list("id", flat=True)), [skill.id])
 
         availability_response = client.put(
             "/api/v1/student/profile/availability",
@@ -2441,6 +2500,68 @@ class ApiFoundationTests(TestCase):
         availability = StudentAvailabilityProfile.objects.get(student=user)
         self.assertEqual(availability.job_search_status, StudentAvailabilityProfile.JobSearchStatus.ACTIVELY_LOOKING)
         self.assertTrue(availability.availability_set)
+
+    def test_student_can_manage_certificates(self):
+        user = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        client, csrf_token = self.csrf_client()
+        client.force_login(user)
+        skill, _ = Skill.objects.get_or_create(name="AWS")
+
+        create_response = client.post(
+            "/api/v1/student/profile/certificates",
+            data=json.dumps(
+                {
+                    "name": "AWS Cloud Practitioner",
+                    "issuer": "AWS",
+                    "issue_date": "2024-05-01",
+                    "credential_id": "AWS-123",
+                    "credential_url": "https://example.com/aws-123",
+                    "description": "Entry cloud certification.",
+                    "skill_ids": [skill.id],
+                }
+            ),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+        self.assertEqual(create_response.status_code, 201)
+        certificate = StudentCertificate.objects.get(student=user)
+        self.assertEqual(certificate.credential_id, "AWS-123")
+        self.assertEqual(list(certificate.skills.values_list("id", flat=True)), [skill.id])
+
+        update_response = client.put(
+            f"/api/v1/student/profile/certificates/{certificate.id}",
+            data=json.dumps(
+                {
+                    "name": "AWS Cloud Practitioner",
+                    "issuer": "AWS Training",
+                    "issue_date": "2024-05-01",
+                    "expiry_date": "2027-05-01",
+                    "credential_id": "AWS-999",
+                    "credential_url": "https://example.com/aws-999",
+                    "description": "Updated certification details.",
+                    "skill_ids": [],
+                }
+            ),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+        self.assertEqual(update_response.status_code, 200)
+        certificate.refresh_from_db()
+        self.assertEqual(certificate.issuer, "AWS Training")
+        self.assertEqual(certificate.credential_id, "AWS-999")
+        self.assertFalse(certificate.skills.exists())
+
+        delete_response = client.delete(
+            f"/api/v1/student/profile/certificates/{certificate.id}",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+        self.assertEqual(delete_response.status_code, 200)
+        self.assertFalse(StudentCertificate.objects.filter(student=user).exists())
 
     def test_student_resume_management_keeps_single_active_resume(self):
         user = User.objects.create_user(
