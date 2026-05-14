@@ -93042,3 +93042,1760 @@ django.db.utils.OperationalError: database is locked
 [INFO] 2026-05-14 13:21:27,154 basehttp 22765 6132690944 "GET /api/v1/company/courses HTTP/1.1" 200 1024
 [INFO] 2026-05-14 13:21:27,163 logging 22765 6132690944 [req_861d79f7b968] GET /api/v1/company/courses
 [INFO] 2026-05-14 13:21:27,163 basehttp 22765 6132690944 "GET /api/v1/company/courses HTTP/1.1" 200 1024
+[INFO] 2026-05-14 13:22:12,637 logging 22765 6132690944 [req_666f5236198e] GET /api/v1/auth/session
+[INFO] 2026-05-14 13:22:12,637 basehttp 22765 6132690944 "GET /api/v1/auth/session HTTP/1.1" 200 254
+[INFO] 2026-05-14 13:22:12,642 logging 22765 6132690944 [req_b43629a7d19e] GET /api/v1/auth/session
+[INFO] 2026-05-14 13:22:12,642 basehttp 22765 6132690944 "GET /api/v1/auth/session HTTP/1.1" 200 254
+[INFO] 2026-05-14 13:22:12,663 logging 22765 6183170048 [req_5b23fd20af0d] GET /api/v1/company/profile
+[INFO] 2026-05-14 13:22:12,663 basehttp 22765 6183170048 "GET /api/v1/company/profile HTTP/1.1" 200 69755
+[INFO] 2026-05-14 13:22:12,668 logging 22765 6149517312 [req_90b45bd1f97f] GET /api/v1/notifications
+[INFO] 2026-05-14 13:22:12,668 basehttp 22765 6149517312 "GET /api/v1/notifications HTTP/1.1" 200 2331
+[INFO] 2026-05-14 13:22:12,669 logging 22765 6166343680 [req_04635de50aa4] GET /api/v1/company/messages
+[INFO] 2026-05-14 13:22:12,670 basehttp 22765 6166343680 "GET /api/v1/company/messages HTTP/1.1" 200 338863
+[INFO] 2026-05-14 13:22:12,676 logging 22765 6132690944 [req_7cbf0a6d5c1a] GET /api/v1/company/courses
+[INFO] 2026-05-14 13:22:12,676 basehttp 22765 6132690944 "GET /api/v1/company/courses HTTP/1.1" 200 1024
+[INFO] 2026-05-14 13:22:12,681 logging 22765 6149517312 [req_3c6318d633d4] GET /api/v1/notifications
+[INFO] 2026-05-14 13:22:12,681 basehttp 22765 6149517312 "GET /api/v1/notifications HTTP/1.1" 200 2331
+[INFO] 2026-05-14 13:22:12,683 logging 22765 6183170048 [req_1240c8a5a011] GET /api/v1/company/profile
+[INFO] 2026-05-14 13:22:12,683 basehttp 22765 6183170048 "GET /api/v1/company/profile HTTP/1.1" 200 69755
+[INFO] 2026-05-14 13:22:12,684 logging 22765 6199996416 [req_b17faf798b24] GET /api/v1/company/messages
+[INFO] 2026-05-14 13:22:12,685 basehttp 22765 6199996416 "GET /api/v1/company/messages HTTP/1.1" 200 338863
+[INFO] 2026-05-14 13:22:12,690 logging 22765 6132690944 [req_15d12ae9b918] GET /api/v1/company/courses
+[INFO] 2026-05-14 13:22:12,690 basehttp 22765 6132690944 "GET /api/v1/company/courses HTTP/1.1" 200 1024
+[INFO] 2026-05-14 13:22:12,691 logging 22765 6166343680 [req_2d14f4f95c61] GET /api/v1/company/profile
+[INFO] 2026-05-14 13:22:12,691 basehttp 22765 6166343680 "GET /api/v1/company/profile HTTP/1.1" 200 69755
+[INFO] 2026-05-14 13:22:12,696 logging 22765 6149517312 [req_ebeca20cdc94] GET /api/v1/notifications
+[INFO] 2026-05-14 13:22:12,696 basehttp 22765 6149517312 "GET /api/v1/notifications HTTP/1.1" 200 2331
+[INFO] 2026-05-14 13:22:12,703 logging 22765 6183170048 [req_2062c318e909] GET /api/v1/company/messages
+[INFO] 2026-05-14 13:22:12,704 basehttp 22765 6183170048 "GET /api/v1/company/messages HTTP/1.1" 200 338863
+[INFO] 2026-05-14 13:22:12,712 logging 22765 6132690944 [req_0528bba151bd] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:22:12,712 log 22765 6132690944 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:22:12,712 basehttp 22765 6132690944 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 46932
+[INFO] 2026-05-14 13:22:12,722 logging 22765 6149517312 [req_710a499a4d41] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:22:12,723 log 22765 6149517312 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:22:12,723 basehttp 22765 6149517312 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 46932
+[INFO] 2026-05-14 13:22:12,724 logging 22765 6132690944 [req_3163a8f85ab5] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:22:12,724 log 22765 6132690944 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:22:12,726 basehttp 22765 6132690944 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 46932
+[INFO] 2026-05-14 13:22:12,730 logging 22765 6199996416 [req_e03796631363] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:22:12,730 log 22765 6199996416 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:22:12,731 basehttp 22765 6199996416 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 46932
+[INFO] 2026-05-14 13:22:12,733 logging 22765 6149517312 [req_6a4f2c511699] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:22:12,733 log 22765 6149517312 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:22:12,734 basehttp 22765 6149517312 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 46932
+[INFO] 2026-05-14 13:22:12,735 logging 22765 6183170048 [req_63e5bf0b9b06] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:22:12,735 log 22765 6183170048 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:22:12,735 basehttp 22765 6183170048 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 46932
+[INFO] 2026-05-14 13:22:12,738 logging 22765 6166343680 [req_8882868549c4] GET /api/v1/company/messages
+[INFO] 2026-05-14 13:22:12,738 basehttp 22765 6166343680 "GET /api/v1/company/messages HTTP/1.1" 200 338863
+[INFO] 2026-05-14 13:22:12,756 logging 22765 6132690944 [req_5d8952a9951c] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:22:12,756 log 22765 6132690944 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:22:12,756 basehttp 22765 6132690944 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 46932
+[INFO] 2026-05-14 13:22:12,764 logging 22765 6149517312 [req_b2b92ef06f97] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:22:12,764 log 22765 6149517312 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:22:12,765 basehttp 22765 6149517312 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 46932
+[INFO] 2026-05-14 13:22:12,766 logging 22765 6183170048 [req_c469a31f634c] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:22:12,766 log 22765 6183170048 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:22:12,766 basehttp 22765 6183170048 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 46932
+[INFO] 2026-05-14 13:22:12,769 logging 22765 6199996416 [req_b2da69aab721] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:22:12,772 log 22765 6199996416 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:22:12,773 basehttp 22765 6199996416 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 46932
+[INFO] 2026-05-14 13:22:12,773 logging 22765 6166343680 [req_bb4982b42c4d] GET /api/v1/company/messages
+[INFO] 2026-05-14 13:22:12,777 basehttp 22765 6166343680 "GET /api/v1/company/messages HTTP/1.1" 200 338863
+[INFO] 2026-05-14 13:22:12,778 logging 22765 6132690944 [req_ab64f76c2d6d] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:22:12,778 log 22765 6132690944 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:22:12,779 basehttp 22765 6132690944 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 46932
+[INFO] 2026-05-14 13:22:12,784 logging 22765 6149517312 [req_2f061dade994] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:22:12,784 log 22765 6149517312 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:22:12,784 basehttp 22765 6149517312 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 46932
+[INFO] 2026-05-14 13:22:12,789 logging 22765 6183170048 [req_2064f3f94b7d] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:22:12,789 log 22765 6183170048 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:22:12,790 basehttp 22765 6183170048 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 46932
+[INFO] 2026-05-14 13:22:12,795 logging 22765 6216822784 [req_c46b6d833815] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:22:12,795 log 22765 6216822784 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:22:12,795 basehttp 22765 6216822784 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 46932
+[INFO] 2026-05-14 13:22:12,804 logging 22765 6132690944 [req_c6d5aba950c4] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:22:12,804 log 22765 6132690944 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:22:12,804 basehttp 22765 6132690944 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 46932
+[INFO] 2026-05-14 13:22:12,806 logging 22765 6199996416 [req_7a736d05659f] GET /api/v1/company/messages
+[INFO] 2026-05-14 13:22:12,806 basehttp 22765 6199996416 "GET /api/v1/company/messages HTTP/1.1" 200 338863
+[INFO] 2026-05-14 13:22:12,811 logging 22765 6149517312 [req_440475dd0e75] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:22:12,811 log 22765 6149517312 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:22:12,811 basehttp 22765 6149517312 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 46932
+[INFO] 2026-05-14 13:22:12,818 logging 22765 6166343680 [req_520c3024871a] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:22:12,819 log 22765 6166343680 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:22:12,819 basehttp 22765 6166343680 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 46932
+[INFO] 2026-05-14 13:22:12,820 logging 22765 6132690944 [req_110bdc1f6966] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:22:12,820 log 22765 6132690944 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:22:12,820 basehttp 22765 6132690944 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 46932
+[INFO] 2026-05-14 13:22:12,830 logging 22765 6132690944 [req_616a3ec911a2] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:22:12,830 log 22765 6132690944 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:22:12,831 basehttp 22765 6132690944 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 46932
+[INFO] 2026-05-14 13:22:12,832 logging 22765 6149517312 [req_e54abbb6b882] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:22:12,832 log 22765 6149517312 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:22:12,832 basehttp 22765 6149517312 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 46932
+[INFO] 2026-05-14 13:42:09,295 logging 22765 6132690944 [req_626089c084bf] GET /api/v1/auth/session
+[INFO] 2026-05-14 13:42:09,296 basehttp 22765 6132690944 "GET /api/v1/auth/session HTTP/1.1" 200 254
+[INFO] 2026-05-14 13:42:09,301 logging 22765 6132690944 [req_5c4670ecc062] GET /api/v1/auth/session
+[INFO] 2026-05-14 13:42:09,301 basehttp 22765 6132690944 "GET /api/v1/auth/session HTTP/1.1" 200 254
+[INFO] 2026-05-14 13:42:09,340 logging 22765 6149517312 [req_8a56892d616d] GET /api/v1/notifications
+[INFO] 2026-05-14 13:42:09,340 basehttp 22765 6149517312 "GET /api/v1/notifications HTTP/1.1" 200 2331
+[INFO] 2026-05-14 13:42:09,342 logging 22765 6166343680 [req_d636dcf15cd4] GET /api/v1/company/messages
+[INFO] 2026-05-14 13:42:09,343 basehttp 22765 6166343680 "GET /api/v1/company/messages HTTP/1.1" 200 338863
+[INFO] 2026-05-14 13:42:09,343 logging 22765 6183170048 [req_d57ac5fbe311] GET /api/v1/company/profile
+[INFO] 2026-05-14 13:42:09,344 basehttp 22765 6183170048 "GET /api/v1/company/profile HTTP/1.1" 200 69755
+[INFO] 2026-05-14 13:42:09,352 logging 22765 6132690944 [req_f6e15eaad435] GET /api/v1/company/courses
+[INFO] 2026-05-14 13:42:09,352 basehttp 22765 6132690944 "GET /api/v1/company/courses HTTP/1.1" 200 1024
+[INFO] 2026-05-14 13:42:09,366 logging 22765 6132690944 [req_9ef13768b430] GET /api/v1/notifications
+[INFO] 2026-05-14 13:42:09,366 basehttp 22765 6132690944 "GET /api/v1/notifications HTTP/1.1" 200 2331
+[INFO] 2026-05-14 13:42:09,371 logging 22765 6149517312 [req_69bb5cb826d1] GET /api/v1/company/profile
+[INFO] 2026-05-14 13:42:09,371 basehttp 22765 6149517312 "GET /api/v1/company/profile HTTP/1.1" 200 69755
+[INFO] 2026-05-14 13:42:09,378 logging 22765 6199996416 [req_8845bcbc5c06] GET /api/v1/notifications
+[INFO] 2026-05-14 13:42:09,378 basehttp 22765 6199996416 "GET /api/v1/notifications HTTP/1.1" 200 2331
+[INFO] 2026-05-14 13:42:09,379 logging 22765 6183170048 [req_ada6b68b1444] GET /api/v1/company/courses
+[INFO] 2026-05-14 13:42:09,379 basehttp 22765 6183170048 "GET /api/v1/company/courses HTTP/1.1" 200 1024
+[INFO] 2026-05-14 13:42:09,381 logging 22765 6166343680 [req_11868056f46e] GET /api/v1/company/messages
+[INFO] 2026-05-14 13:42:09,381 basehttp 22765 6166343680 "GET /api/v1/company/messages HTTP/1.1" 200 338863
+[INFO] 2026-05-14 13:42:09,387 logging 22765 6132690944 [req_4ac13fc767d2] GET /api/v1/company/profile
+[INFO] 2026-05-14 13:42:09,387 basehttp 22765 6132690944 "GET /api/v1/company/profile HTTP/1.1" 200 69755
+[INFO] 2026-05-14 13:42:09,395 logging 22765 6149517312 [req_ef69d71663d5] GET /api/v1/company/messages
+[INFO] 2026-05-14 13:42:09,395 basehttp 22765 6149517312 "GET /api/v1/company/messages HTTP/1.1" 200 338863
+[INFO] 2026-05-14 13:42:09,420 logging 22765 6132690944 [req_2457e1b3e14b] GET /api/v1/company/messages
+[INFO] 2026-05-14 13:42:09,420 basehttp 22765 6132690944 "GET /api/v1/company/messages HTTP/1.1" 200 338863
+[INFO] 2026-05-14 13:42:09,425 logging 22765 6132690944 [req_3e8d0e41a3ed] GET /api/v1/company/messages
+[INFO] 2026-05-14 13:42:09,425 basehttp 22765 6132690944 "GET /api/v1/company/messages HTTP/1.1" 200 338863
+[INFO] 2026-05-14 13:42:09,432 logging 22765 6132690944 [req_c389facb4c16] GET /api/v1/company/messages
+[INFO] 2026-05-14 13:42:09,433 basehttp 22765 6132690944 "GET /api/v1/company/messages HTTP/1.1" 200 338863
+[WARNING] 2026-05-14 13:52:52,063 error_tracking 30332 8331386496 SENTRY_DSN not configured, error tracking disabled
+[INFO] 2026-05-14 13:52:52,067 logging 30332 8331386496 [req_365b2494f8be] POST /api/v1/practice-questions/1
+[INFO] 2026-05-14 13:52:52,286 logging 30332 8331386496 [req_7ea695940018] POST /api/v1/exam-categories
+[WARNING] 2026-05-14 13:52:52,291 log 30332 8331386496 Forbidden: /api/v1/exam-categories
+[INFO] 2026-05-14 13:52:52,364 logging 30332 8331386496 [req_648bb98c0679] POST /api/v1/exam-categories
+[INFO] 2026-05-14 13:52:52,597 logging 30332 8331386496 [req_3d5fb088950f] POST /api/v1/exams/1/mock-exams
+[INFO] 2026-05-14 13:52:52,818 logging 30332 8331386496 [req_9f05ed122877] POST /api/v1/exams/1/practice-questions
+[INFO] 2026-05-14 13:52:53,038 logging 30332 8331386496 [req_54e5fc7aa164] DELETE /api/v1/exam-categories/2
+[INFO] 2026-05-14 13:52:53,185 logging 30332 8331386496 [req_40aeed57dcec] GET /api/v1/exam-categories/1
+[INFO] 2026-05-14 13:52:53,338 logging 30332 8331386496 [req_03e9cb5a76a5] GET /api/v1/practice-questions/1
+[INFO] 2026-05-14 13:52:53,560 logging 30332 8331386496 [req_72c397edee97] GET /api/v1/student/performance
+[INFO] 2026-05-14 13:52:53,780 logging 30332 8331386496 [req_806448d009f1] GET /api/v1/student/performance/1
+[INFO] 2026-05-14 13:52:54,000 logging 30332 8331386496 [req_5f61b6885e45] GET /api/v1/study-plan
+[INFO] 2026-05-14 13:52:54,159 logging 30332 8331386496 [req_a5dd145cb127] GET /api/v1/exam-categories
+[INFO] 2026-05-14 13:52:54,307 logging 30332 8331386496 [req_e7df398c9bf0] GET /api/v1/exams/1/mock-exams
+[INFO] 2026-05-14 13:52:54,457 logging 30332 8331386496 [req_fe6a75e0739f] GET /api/v1/exams/1/practice-questions
+[INFO] 2026-05-14 13:52:54,681 logging 30332 8331386496 [req_8f22aa97664d] PUT /api/v1/exam-categories/1
+[INFO] 2026-05-14 13:52:54,974 logging 30332 8331386496 [req_6585e299cfe2] GET /api/v1/admin/export/users/
+[INFO] 2026-05-14 13:52:55,122 logging 30332 8331386496 [req_189a36f7bc6e] GET /api/v1/admin/export/users/
+[WARNING] 2026-05-14 13:52:55,122 log 30332 8331386496 Forbidden: /api/v1/admin/export/users/
+[INFO] 2026-05-14 13:52:55,271 logging 30332 8331386496 [req_71765b581fa3] GET /api/v1/admin/scheduled-tasks/
+[INFO] 2026-05-14 13:52:56,388 logging 30332 8331386496 [req_82bd9558fb7f] GET /api/v1/student/data-access-log
+[INFO] 2026-05-14 13:52:56,828 logging 30332 8331386496 [req_597d7f83a0e1] POST /api/v1/student/deletion-request
+[WARNING] 2026-05-14 13:52:56,828 log 30332 8331386496 Bad Request: /api/v1/student/deletion-request
+[INFO] 2026-05-14 13:52:56,976 logging 30332 8331386496 [req_686f10cba03a] POST /api/v1/student/deletion-request
+[INFO] 2026-05-14 13:52:57,124 logging 30332 8331386496 [req_a2df6024ee6c] GET /api/v1/student/deletion-status
+[INFO] 2026-05-14 13:52:57,429 logging 30332 8331386496 [req_33e1b11cb552] POST /api/v1/student/data-export-request
+[INFO] 2026-05-14 13:52:57,578 logging 30332 8331386496 [req_004f4ffa5dc6] GET /api/v1/student/data-export/1
+[INFO] 2026-05-14 13:52:59,202 logging 30332 8331386496 [req_cc24221559b8] GET /api/v1/student/consent
+[INFO] 2026-05-14 13:52:59,350 logging 30332 8331386496 [req_636c11852daf] PUT /api/v1/student/consent
+[INFO] 2026-05-14 13:52:59,718 logging 30332 8331386496 [req_dc4159fbc54d] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:52:59,793 logging 30332 8331386496 [req_e897857616fc] POST /api/v1/admin/users
+[INFO] 2026-05-14 13:52:59,795 logging 30332 8331386496 [req_fda30a76ce0d] GET /api/v1/admin/users
+[INFO] 2026-05-14 13:52:59,869 logging 30332 8331386496 [req_e6e0bb877e0d] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:52:59,871 logging 30332 8331386496 [req_7371a116b35e] POST /api/v1/admin/companies
+[INFO] 2026-05-14 13:52:59,946 logging 30332 8331386496 [req_2a50791574bd] GET /api/v1/admin/companies
+[INFO] 2026-05-14 13:52:59,947 logging 30332 8331386496 [req_2b94704c4abb] GET /api/v1/admin/companies/1
+[INFO] 2026-05-14 13:52:59,949 logging 30332 8331386496 [req_697c059f5c1c] PUT /api/v1/admin/companies/1
+[INFO] 2026-05-14 13:52:59,950 logging 30332 8331386496 [req_a39de55b4e64] DELETE /api/v1/admin/companies/1
+[INFO] 2026-05-14 13:53:00,024 logging 30332 8331386496 [req_a64c6fecc7e1] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:00,026 logging 30332 8331386496 [req_944a1c02de05] POST /api/v1/admin/courses
+[INFO] 2026-05-14 13:53:00,027 logging 30332 8331386496 [req_5180f44c3d7d] PUT /api/v1/admin/courses/1
+[INFO] 2026-05-14 13:53:00,028 logging 30332 8331386496 [req_785a797db615] DELETE /api/v1/admin/courses/1
+[INFO] 2026-05-14 13:53:00,102 logging 30332 8331386496 [req_fedb9f6148e6] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:00,104 logging 30332 8331386496 [req_40044d5e99d9] POST /api/v1/admin/exams
+[INFO] 2026-05-14 13:53:00,105 logging 30332 8331386496 [req_48926540b250] PUT /api/v1/admin/exams/1
+[INFO] 2026-05-14 13:53:00,106 logging 30332 8331386496 [req_824fcb0b59fe] DELETE /api/v1/admin/exams/1
+[INFO] 2026-05-14 13:53:00,179 logging 30332 8331386496 [req_c69dec95b203] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:00,181 logging 30332 8331386496 [req_cdd40bfb2b48] POST /api/v1/admin/courses/1/lessons
+[INFO] 2026-05-14 13:53:00,183 logging 30332 8331386496 [req_fafa50bc6d24] PUT /api/v1/admin/lessons/1
+[INFO] 2026-05-14 13:53:00,185 logging 30332 8331386496 [req_6b4ad313f12f] DELETE /api/v1/admin/lessons/1
+[INFO] 2026-05-14 13:53:00,405 logging 30332 8331386496 [req_64123ff80bbd] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:00,408 logging 30332 8331386496 [req_ac4ae1a0c896] POST /api/v1/admin/vacancies
+[INFO] 2026-05-14 13:53:00,410 logging 30332 8331386496 [req_d410d197d05b] PUT /api/v1/admin/vacancies/1
+[INFO] 2026-05-14 13:53:00,412 logging 30332 8331386496 [req_edf5f166e9e4] DELETE /api/v1/admin/vacancies/1
+[INFO] 2026-05-14 13:53:00,487 logging 30332 8331386496 [req_5b24b5c87ee9] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:00,490 logging 30332 8331386496 [req_206055bfb66e] POST /api/v1/admin/exams/1/questions
+[INFO] 2026-05-14 13:53:00,491 logging 30332 8331386496 [req_ee04b293a585] POST /api/v1/admin/questions/1/options
+[INFO] 2026-05-14 13:53:00,492 logging 30332 8331386496 [req_d4a382b56ac4] PUT /api/v1/admin/options/1
+[INFO] 2026-05-14 13:53:00,642 logging 30332 8331386496 [req_e59e691635a3] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:00,644 logging 30332 8331386496 [req_77547e384087] PUT /api/v1/admin/users/2
+[INFO] 2026-05-14 13:53:00,794 logging 30332 8331386496 [req_cd13b3dbb68d] GET /api/v1/admin/vacancies
+[INFO] 2026-05-14 13:53:00,878 logging 30332 8331386496 [req_4dd0ab90dcc2] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:00,880 logging 30332 8331386496 [req_5e38a4649d79] PUT /api/v1/admin/users/1
+[WARNING] 2026-05-14 13:53:00,880 log 30332 8331386496 Bad Request: /api/v1/admin/users/1
+[INFO] 2026-05-14 13:53:01,104 logging 30332 8331386496 [req_858997910342] GET /api/v1/admin/dashboard
+[INFO] 2026-05-14 13:53:01,251 logging 30332 8331386496 [req_9598f6c31e21] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:01,253 logging 30332 8331386496 [req_86599ab5687d] POST /api/v1/admin/vacancies
+[WARNING] 2026-05-14 13:53:01,253 log 30332 8331386496 Bad Request: /api/v1/admin/vacancies
+[INFO] 2026-05-14 13:53:01,400 logging 30332 8331386496 [req_ec370f0051f5] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:01,406 logging 30332 8331386496 [req_597225b76346] POST /api/v1/company/interviews/1/confirm
+[INFO] 2026-05-14 13:53:01,554 logging 30332 8331386496 [req_f5580f998af7] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:01,559 logging 30332 8331386496 [req_a4a1ceb59de8] POST /api/v1/company/messages/threads
+[INFO] 2026-05-14 13:53:01,562 logging 30332 8331386496 [req_4ff594130953] PUT /api/v1/company/messages/threads/1
+[INFO] 2026-05-14 13:53:01,565 logging 30332 8331386496 [req_1f0d0eab8175] POST /api/v1/company/messages/threads/1/messages
+[INFO] 2026-05-14 13:53:01,714 logging 30332 8331386496 [req_608739f149c6] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:01,720 logging 30332 8331386496 [req_ca3066e7e05d] POST /api/v1/company/messages/threads
+[INFO] 2026-05-14 13:53:01,814 logging 30332 8331386496 [req_70e0d504b530] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:01,817 logging 30332 8331386496 [req_5379d122de1b] POST /api/v1/company/vacancies
+[INFO] 2026-05-14 13:53:01,819 logging 30332 8331386496 [req_ff2ae9d4ef5c] PUT /api/v1/company/vacancies/1
+[INFO] 2026-05-14 13:53:01,821 logging 30332 8331386496 [req_ce60518bae74] DELETE /api/v1/company/vacancies/1
+[INFO] 2026-05-14 13:53:01,971 logging 30332 8331386496 [req_b220163b13c7] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:01,977 logging 30332 8331386496 [req_82157535c6eb] POST /api/v1/company/applications/1/reject
+[INFO] 2026-05-14 13:53:02,125 logging 30332 8331386496 [req_202da246e6d8] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:02,131 logging 30332 8331386496 [req_bf587d2d133f] POST /api/v1/company/candidates/1/interviews
+[INFO] 2026-05-14 13:53:02,280 logging 30332 8331386496 [req_e143bf673f3e] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:02,286 logging 30332 8331386496 [req_22b1f77dc686] POST /api/v1/company/candidates/1/interviews
+[INFO] 2026-05-14 13:53:02,289 logging 30332 8331386496 [req_2916c4eb7abb] GET /api/v1/student/interviews
+[INFO] 2026-05-14 13:53:02,437 logging 30332 8331386496 [req_f094c88df6ba] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:02,440 logging 30332 8331386496 [req_88231a57490d] GET /api/v1/company/applications
+[INFO] 2026-05-14 13:53:02,445 logging 30332 8331386496 [req_a2e89145915b] POST /api/v1/company/applications/1/shortlist
+[INFO] 2026-05-14 13:53:02,595 logging 30332 8331386496 [req_c5c8ff529fe6] GET /api/v1/company/candidates/1/exam-results
+[INFO] 2026-05-14 13:53:02,597 logging 30332 8331386496 [req_b57ac1048686] GET /api/v1/company/candidates/1/exam-results
+[INFO] 2026-05-14 13:53:02,745 logging 30332 8331386496 [req_9de40908647b] GET /api/v1/company/candidates/1/learning-record
+[INFO] 2026-05-14 13:53:02,893 logging 30332 8331386496 [req_6e2b840033fd] GET /api/v1/company/candidates/1/notes
+[WARNING] 2026-05-14 13:53:02,893 log 30332 8331386496 Forbidden: /api/v1/company/candidates/1/notes
+[INFO] 2026-05-14 13:53:02,894 logging 30332 8331386496 [req_e9292c800270] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:02,896 logging 30332 8331386496 [req_b4aed725ad4a] POST /api/v1/company/candidates/1/notes
+[INFO] 2026-05-14 13:53:02,897 logging 30332 8331386496 [req_8e838c933558] GET /api/v1/company/candidates/1/notes
+[INFO] 2026-05-14 13:53:03,051 logging 30332 8331386496 [req_d5d904ece31c] GET /api/v1/company/candidates/1/preview
+[INFO] 2026-05-14 13:53:03,201 logging 30332 8331386496 [req_ed0ca8b9bf36] GET /api/v1/company/candidates/1/preview
+[INFO] 2026-05-14 13:53:03,354 logging 30332 8331386496 [req_fba9355754fb] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:03,357 logging 30332 8331386496 [req_603e25855673] POST /api/v1/company/candidates/1/shortlist
+[INFO] 2026-05-14 13:53:03,358 logging 30332 8331386496 [req_556086bc4437] GET /api/v1/company/shortlist
+[INFO] 2026-05-14 13:53:03,359 logging 30332 8331386496 [req_fd7d970a0400] DELETE /api/v1/company/candidates/1/shortlist
+[INFO] 2026-05-14 13:53:03,511 logging 30332 8331386496 [req_f56f756a2386] GET /api/v1/company/candidates
+[INFO] 2026-05-14 13:53:03,662 logging 30332 8331386496 [req_8f0a701eb62d] GET /api/v1/company/candidates
+[INFO] 2026-05-14 13:53:03,813 logging 30332 8331386496 [req_200771ec3fed] GET /api/v1/company/candidates/1/preview
+[WARNING] 2026-05-14 13:53:03,814 log 30332 8331386496 Bad Request: /api/v1/company/candidates/1/preview
+[INFO] 2026-05-14 13:53:03,889 logging 30332 8331386496 [req_05f65d879f6c] GET /api/v1/student/profile
+[WARNING] 2026-05-14 13:53:03,889 log 30332 8331386496 Forbidden: /api/v1/student/profile
+[INFO] 2026-05-14 13:53:04,043 logging 30332 8331386496 [req_9542c4d3cb33] GET /api/v1/company/dashboard
+[INFO] 2026-05-14 13:53:04,198 logging 30332 8331386496 [req_9e74473c8e61] GET /api/v1/company/dashboard
+[INFO] 2026-05-14 13:53:04,347 logging 30332 8331386496 [req_b6b28decedca] GET /api/v1/company/messages/contacts
+[INFO] 2026-05-14 13:53:04,497 logging 30332 8331386496 [req_8f04c1cc57bd] GET /api/v1/company/messages/contacts
+[INFO] 2026-05-14 13:53:04,646 logging 30332 8331386496 [req_06fcc8c39080] GET /api/v1/company/messages
+[INFO] 2026-05-14 13:53:04,721 logging 30332 8331386496 [req_7129d8f008c9] GET /api/v1/company/profile
+[INFO] 2026-05-14 13:53:04,795 logging 30332 8331386496 [req_f7b63c37c060] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:04,808 logging 30332 8331386496 [req_0d12e3f10638] PUT /api/v1/company/profile
+[INFO] 2026-05-14 13:53:04,809 logging 30332 8331386496 [req_fabb5e651cf4] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:04,883 logging 30332 8331386496 [req_3f830f9d0066] POST /api/v1/auth/signup
+[INFO] 2026-05-14 13:53:04,884 logging 30332 8331386496 [req_f974a17219f0] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:04,884 logging 30332 8331386496 [req_b35e4b08f4d9] POST /api/v1/auth/signup
+[WARNING] 2026-05-14 13:53:04,884 log 30332 8331386496 Bad Request: /api/v1/auth/signup
+[INFO] 2026-05-14 13:53:04,961 logging 30332 8331386496 [req_d76567b83731] GET /api/v1/company/courses
+[INFO] 2026-05-14 13:53:05,035 logging 30332 8331386496 [req_7eb3cb1963ab] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:05,037 logging 30332 8331386496 [req_aec8b90e2d86] POST /api/v1/company/courses
+[INFO] 2026-05-14 13:53:05,038 logging 30332 8331386496 [req_52109a2f4ec8] PUT /api/v1/company/courses/1
+[INFO] 2026-05-14 13:53:05,039 logging 30332 8331386496 [req_f020cba3c022] DELETE /api/v1/company/courses/1
+[INFO] 2026-05-14 13:53:05,114 logging 30332 8331386496 [req_76534a02a753] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:05,116 logging 30332 8331386496 [req_48d35fb38ede] POST /api/v1/company/courses/1/lessons
+[INFO] 2026-05-14 13:53:05,118 logging 30332 8331386496 [req_bc573f0910ae] PUT /api/v1/company/lessons/1
+[INFO] 2026-05-14 13:53:05,119 logging 30332 8331386496 [req_abf7153f23d6] GET /api/v1/company/courses/1/lessons
+[INFO] 2026-05-14 13:53:05,120 logging 30332 8331386496 [req_f63c53582007] DELETE /api/v1/company/lessons/1
+[INFO] 2026-05-14 13:53:05,195 logging 30332 8331386496 [req_a9dbb6d017be] GET /api/v1/admin/courses
+[WARNING] 2026-05-14 13:53:05,195 log 30332 8331386496 Forbidden: /api/v1/admin/courses
+[INFO] 2026-05-14 13:53:05,270 logging 30332 8331386496 [req_802b472e31ae] GET /api/v1/admin/exams
+[WARNING] 2026-05-14 13:53:05,270 log 30332 8331386496 Forbidden: /api/v1/admin/exams
+[INFO] 2026-05-14 13:53:05,346 logging 30332 8331386496 [req_d04f0f42b5c2] GET /api/v1/student/courses
+[WARNING] 2026-05-14 13:53:05,346 log 30332 8331386496 Forbidden: /api/v1/student/courses
+[INFO] 2026-05-14 13:53:05,421 logging 30332 8331386496 [req_5845f709c8ec] GET /api/v1/student/jobs
+[WARNING] 2026-05-14 13:53:05,421 log 30332 8331386496 Forbidden: /api/v1/student/jobs
+[INFO] 2026-05-14 13:53:05,499 logging 30332 8331386496 [req_64344db9ba09] GET /api/v1/student/messages
+[WARNING] 2026-05-14 13:53:05,499 log 30332 8331386496 Forbidden: /api/v1/student/messages
+[INFO] 2026-05-14 13:53:05,575 logging 30332 8331386496 [req_62b1ce8ad2bb] GET /api/v1/student/skills
+[WARNING] 2026-05-14 13:53:05,575 log 30332 8331386496 Forbidden: /api/v1/student/skills
+[INFO] 2026-05-14 13:53:05,650 logging 30332 8331386496 [req_b464857d85ab] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:05,651 logging 30332 8331386496 [req_a62e3d1d8be2] POST /api/v1/student/courses/1/enrollment
+[WARNING] 2026-05-14 13:53:05,651 log 30332 8331386496 Forbidden: /api/v1/student/courses/1/enrollment
+[INFO] 2026-05-14 13:53:05,726 logging 30332 8331386496 [req_91be0ccc3689] GET /api/v1/student/exams/1
+[WARNING] 2026-05-14 13:53:05,726 log 30332 8331386496 Forbidden: /api/v1/student/exams/1
+[INFO] 2026-05-14 13:53:05,950 logging 30332 8331386496 [req_9b70bf643ddb] GET /api/v1/company/vacancies
+[INFO] 2026-05-14 13:53:06,259 logging 30332 8331386496 [req_3579c6d9c4a7] GET /api/v1/company/vacancies/1/matches
+[INFO] 2026-05-14 13:53:06,265 logging 30332 8331386496 [req_2d208d4cd918] GET /api/v1/company/candidates
+[INFO] 2026-05-14 13:53:06,340 logging 30332 8331386496 [req_dea51fa6ea29] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:06,344 logging 30332 8331386496 [req_d166d20a813f] POST /api/v1/company/vacancies
+[INFO] 2026-05-14 13:53:06,347 logging 30332 8331386496 [req_f3f3b81d8c89] PUT /api/v1/company/vacancies/1
+[INFO] 2026-05-14 13:53:06,349 logging 30332 8331386496 [req_bbebfb178437] GET /api/v1/company/vacancies
+[INFO] 2026-05-14 13:53:06,497 logging 30332 8331386496 [req_9b6658d14e5f] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:06,502 logging 30332 8331386496 [req_e1d5608e7c3c] POST /api/v1/interviews/1/complete
+[INFO] 2026-05-14 13:53:06,589 logging 30332 8331386496 [req_e7f45e52db65] GET /api/v1/health
+[INFO] 2026-05-14 13:53:06,738 logging 30332 8331386496 [req_ca8e776bc3f3] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:06,744 logging 30332 8331386496 [req_f332687ea456] POST /api/v1/interviews/1/cancel
+[INFO] 2026-05-14 13:53:06,894 logging 30332 8331386496 [req_9d1759fb170a] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:06,899 logging 30332 8331386496 [req_31775cc53b3c] POST /api/v1/interviews/1/reschedule
+[INFO] 2026-05-14 13:53:06,973 logging 30332 8331386496 [req_2e2b0f2c260a] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:07,046 logging 30332 8331386496 [req_f1eef2fadff3] POST /api/v1/auth/login
+[WARNING] 2026-05-14 13:53:07,046 log 30332 8331386496 Forbidden: /api/v1/auth/login
+[INFO] 2026-05-14 13:53:07,121 logging 30332 8331386496 [req_5f77df934a05] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:07,121 logging 30332 8331386496 [req_c63d5784c034] POST /api/v1/auth/login
+[WARNING] 2026-05-14 13:53:07,121 log 30332 8331386496 Bad Request: /api/v1/auth/login
+[INFO] 2026-05-14 13:53:07,194 logging 30332 8331386496 [req_ec40196c4025] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:07,267 logging 30332 8331386496 [req_0dcb29966bf7] POST /api/v1/auth/login
+[WARNING] 2026-05-14 13:53:07,267 log 30332 8331386496 Unauthorized: /api/v1/auth/login
+[WARNING] 2026-05-14 13:53:07,342 log 30332 8331386496 Forbidden (CSRF cookie not set.): /api/v1/auth/logout
+[INFO] 2026-05-14 13:53:07,342 logging 30332 8331386496 [req_7f64553ccc9f] POST /api/v1/auth/logout
+[INFO] 2026-05-14 13:53:07,415 logging 30332 8331386496 [req_9e206c7c9840] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:07,417 logging 30332 8331386496 [req_3aaf6d43896a] POST /api/v1/notifications/read-all
+[INFO] 2026-05-14 13:53:07,564 logging 30332 8331386496 [req_c05560c8b5c0] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:07,566 logging 30332 8331386496 [req_21e7492675ed] POST /api/v1/company/candidates/1/interviews
+[WARNING] 2026-05-14 13:53:07,567 log 30332 8331386496 Bad Request: /api/v1/company/candidates/1/interviews
+[INFO] 2026-05-14 13:53:07,713 logging 30332 8331386496 [req_b0ef68d6c5f0] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:07,717 logging 30332 8331386496 [req_98a1112cae82] PUT /api/v1/interviews/1/meeting-link
+[INFO] 2026-05-14 13:53:07,718 logging 30332 8331386496 [req_1517b70ede8b] PUT /api/v1/interviews/1/meeting-link
+[WARNING] 2026-05-14 13:53:07,718 log 30332 8331386496 Bad Request: /api/v1/interviews/1/meeting-link
+[INFO] 2026-05-14 13:53:07,865 logging 30332 8331386496 [req_60025dc9f4d6] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:07,868 logging 30332 8331386496 [req_18f56df7f285] PUT /api/v1/interviews/1/meeting-link
+[WARNING] 2026-05-14 13:53:07,868 log 30332 8331386496 Bad Request: /api/v1/interviews/1/meeting-link
+[INFO] 2026-05-14 13:53:07,942 logging 30332 8331386496 [req_e6eac6e1e614] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:07,944 logging 30332 8331386496 [req_ae31df2878b4] GET /api/v1/notifications
+[INFO] 2026-05-14 13:53:07,945 logging 30332 8331386496 [req_974b5a92ec0d] POST /api/v1/notifications/1/read
+[INFO] 2026-05-14 13:53:08,096 logging 30332 8331386496 [req_578691c83ed7] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:08,099 logging 30332 8331386496 [req_aed8d29d0ec2] POST /api/v1/interviews/1/complete
+[WARNING] 2026-05-14 13:53:08,099 log 30332 8331386496 Bad Request: /api/v1/interviews/1/complete
+[INFO] 2026-05-14 13:53:08,174 logging 30332 8331386496 [req_9022bc7a462f] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:08,322 logging 30332 8331386496 [req_d9a70d7111e3] POST /api/v1/auth/password/change
+[INFO] 2026-05-14 13:53:08,616 logging 30332 8331386496 [req_30e194ba44fe] GET /api/v1/access/student
+[INFO] 2026-05-14 13:53:08,616 logging 30332 8331386496 [req_faeb9eb4948f] GET /api/v1/access/company
+[WARNING] 2026-05-14 13:53:08,616 log 30332 8331386496 Forbidden: /api/v1/access/company
+[INFO] 2026-05-14 13:53:08,618 logging 30332 8331386496 [req_44e307cea5d1] GET /api/v1/access/company
+[INFO] 2026-05-14 13:53:08,618 logging 30332 8331386496 [req_d3d6e267bf99] GET /api/v1/access/admin
+[WARNING] 2026-05-14 13:53:08,618 log 30332 8331386496 Forbidden: /api/v1/access/admin
+[INFO] 2026-05-14 13:53:08,620 logging 30332 8331386496 [req_fa1fa85b7989] GET /api/v1/access/admin
+[INFO] 2026-05-14 13:53:08,620 logging 30332 8331386496 [req_1ba3429d0efa] GET /api/v1/auth/session
+[INFO] 2026-05-14 13:53:08,621 logging 30332 8331386496 [req_5654a61fd5ee] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:08,621 logging 30332 8331386496 [req_3133bbddbcbf] POST /api/v1/auth/signup
+[WARNING] 2026-05-14 13:53:08,621 log 30332 8331386496 Bad Request: /api/v1/auth/signup
+[INFO] 2026-05-14 13:53:08,767 logging 30332 8331386496 [req_6c4971f11192] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:08,772 logging 30332 8331386496 [req_70d068f4b76d] POST /api/v1/interviews/1/availability
+[INFO] 2026-05-14 13:53:08,772 logging 30332 8331386496 [req_dd83723aed79] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:08,776 logging 30332 8331386496 [req_68cb5d54b2a0] POST /api/v1/interviews/1/availability
+[INFO] 2026-05-14 13:53:08,923 logging 30332 8331386496 [req_3676395a945e] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:08,925 logging 30332 8331386496 [req_56b86ed03456] POST /api/v1/student/applications
+[WARNING] 2026-05-14 13:53:08,925 log 30332 8331386496 Bad Request: /api/v1/student/applications
+[INFO] 2026-05-14 13:53:09,071 logging 30332 8331386496 [req_70b8566c07f4] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:09,076 logging 30332 8331386496 [req_1be2ea008ddf] POST /api/v1/student/applications
+[INFO] 2026-05-14 13:53:09,077 logging 30332 8331386496 [req_3bb775e2f6ed] GET /api/v1/student/applications
+[INFO] 2026-05-14 13:53:09,151 logging 30332 8331386496 [req_ebbe9fd9b766] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:09,155 logging 30332 8331386496 [req_09243940f49c] POST /api/v1/student/messages/threads
+[INFO] 2026-05-14 13:53:09,302 logging 30332 8331386496 [req_b2b14697bfce] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:09,306 logging 30332 8331386496 [req_592879e06e99] POST /api/v1/student/messages/threads
+[INFO] 2026-05-14 13:53:09,380 logging 30332 8331386496 [req_516fa7fa0d62] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:09,383 logging 30332 8331386496 [req_844c35a89c84] POST /api/v1/student/profile/education
+[INFO] 2026-05-14 13:53:09,386 logging 30332 8331386496 [req_eeeb3e746b4a] PUT /api/v1/student/profile/education/1
+[INFO] 2026-05-14 13:53:09,388 logging 30332 8331386496 [req_2c04924c6ea5] DELETE /api/v1/student/profile/education/1
+[INFO] 2026-05-14 13:53:09,461 logging 30332 8331386496 [req_9406f84f0c64] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:09,463 logging 30332 8331386496 [req_d1af79a128db] DELETE /api/v1/student/messages/threads/1
+[INFO] 2026-05-14 13:53:09,613 logging 30332 8331386496 [req_658c942a66f6] GET /api/v1/student/interviews
+[INFO] 2026-05-14 13:53:09,615 logging 30332 8331386496 [req_5c652d019f2f] GET /api/v1/interviews/1
+[INFO] 2026-05-14 13:53:09,689 logging 30332 8331386496 [req_0b5dd6fba481] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:09,694 logging 30332 8331386496 [req_7df6dbf24888] GET /api/v1/student/exams/1
+[INFO] 2026-05-14 13:53:09,699 logging 30332 8331386496 [req_29de57e7e77a] POST /api/v1/student/exams/1/submit
+[INFO] 2026-05-14 13:53:09,773 logging 30332 8331386496 [req_5aa5b8541ef6] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:09,777 logging 30332 8331386496 [req_27a3f85bee92] POST /api/v1/student/profile/certificates
+[INFO] 2026-05-14 13:53:09,779 logging 30332 8331386496 [req_a824f45c2aba] PUT /api/v1/student/profile/certificates/1
+[INFO] 2026-05-14 13:53:09,781 logging 30332 8331386496 [req_6d5057e17217] DELETE /api/v1/student/profile/certificates/1
+[INFO] 2026-05-14 13:53:09,855 logging 30332 8331386496 [req_9a78b2255ec9] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:09,858 logging 30332 8331386496 [req_ac128018463b] POST /api/v1/student/profile/experience
+[INFO] 2026-05-14 13:53:09,861 logging 30332 8331386496 [req_1b36f53dbea8] PUT /api/v1/student/profile/availability
+[INFO] 2026-05-14 13:53:10,007 logging 30332 8331386496 [req_eab3c7d027c2] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:10,011 logging 30332 8331386496 [req_a1266cdecd8a] PUT /api/v1/student/messages/threads/1
+[INFO] 2026-05-14 13:53:10,013 logging 30332 8331386496 [req_a02781ddf1be] POST /api/v1/student/messages/threads/1/messages
+[INFO] 2026-05-14 13:53:10,087 logging 30332 8331386496 [req_fd055890508d] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:10,090 logging 30332 8331386496 [req_6413587521b0] GET /api/v1/student/mock-exams/1
+[INFO] 2026-05-14 13:53:10,094 logging 30332 8331386496 [req_d0c355783dda] POST /api/v1/student/mock-exams/1/submit
+[INFO] 2026-05-14 13:53:10,167 logging 30332 8331386496 [req_c86c03a59573] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:10,171 logging 30332 8331386496 [req_87a38c29930d] POST /api/v1/student/practice-questions/1/attempt
+[INFO] 2026-05-14 13:53:10,244 logging 30332 8331386496 [req_4ba9c88f5339] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:10,250 logging 30332 8331386496 [req_458f70f39cec] PUT /api/v1/student/courses/1/lessons/1/progress
+[INFO] 2026-05-14 13:53:10,254 logging 30332 8331386496 [req_343630156203] PUT /api/v1/student/courses/1/lessons/1/progress
+[INFO] 2026-05-14 13:53:10,259 logging 30332 8331386496 [req_e663c94a37bf] PUT /api/v1/student/courses/1/lessons/2/progress
+[INFO] 2026-05-14 13:53:10,407 logging 30332 8331386496 [req_0a421f665bc7] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:10,412 logging 30332 8331386496 [req_b5daa8156205] POST /api/v1/student/applications/1/withdraw
+[INFO] 2026-05-14 13:53:10,487 logging 30332 8331386496 [req_ee9336022dc7] GET /api/v1/company/profile
+[WARNING] 2026-05-14 13:53:10,487 log 30332 8331386496 Forbidden: /api/v1/company/profile
+[INFO] 2026-05-14 13:53:10,634 logging 30332 8331386496 [req_9b5a4d1f0fb4] GET /api/v1/student/courses/1
+[INFO] 2026-05-14 13:53:10,709 logging 30332 8331386496 [req_d280d41b945a] GET /api/v1/student/courses/1
+[INFO] 2026-05-14 13:53:10,710 logging 30332 8331386496 [req_4799bde544e7] GET /api/v1/student/courses/2
+[WARNING] 2026-05-14 13:53:10,710 log 30332 8331386496 Not Found: /api/v1/student/courses/2
+[INFO] 2026-05-14 13:53:10,783 logging 30332 8331386496 [req_7c4f3de820dd] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:10,787 logging 30332 8331386496 [req_08adc206a515] POST /api/v1/student/courses/1/enrollment
+[INFO] 2026-05-14 13:53:10,790 logging 30332 8331386496 [req_860e4e92dc1a] POST /api/v1/student/courses/1/enrollment
+[INFO] 2026-05-14 13:53:10,865 logging 30332 8331386496 [req_57a22c02edb1] GET /api/v1/student/courses
+[INFO] 2026-05-14 13:53:10,942 logging 30332 8331386496 [req_6b9bf9124565] GET /api/v1/student/dashboard
+[INFO] 2026-05-14 13:53:11,019 logging 30332 8331386496 [req_2a6f813f51af] GET /api/v1/student/exam-results
+[INFO] 2026-05-14 13:53:11,095 logging 30332 8331386496 [req_5b5c38bc2de4] GET /api/v1/student/exams/1
+[WARNING] 2026-05-14 13:53:11,095 log 30332 8331386496 Forbidden: /api/v1/student/exams/1
+[INFO] 2026-05-14 13:53:11,319 logging 30332 8331386496 [req_436d7e35c3c8] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:11,323 logging 30332 8331386496 [req_da9aa6414dab] GET /api/v1/student/jobs
+[INFO] 2026-05-14 13:53:11,325 logging 30332 8331386496 [req_4d49b90aabb0] POST /api/v1/student/jobs/1/bookmark
+[INFO] 2026-05-14 13:53:11,326 logging 30332 8331386496 [req_0489c6306ae9] POST /api/v1/student/jobs/3/bookmark
+[WARNING] 2026-05-14 13:53:11,326 log 30332 8331386496 Not Found: /api/v1/student/jobs/3/bookmark
+[INFO] 2026-05-14 13:53:11,329 logging 30332 8331386496 [req_9c8b51e69050] GET /api/v1/student/jobs
+[INFO] 2026-05-14 13:53:11,330 logging 30332 8331386496 [req_ee41610dc4e1] DELETE /api/v1/student/jobs/1/bookmark
+[INFO] 2026-05-14 13:53:11,553 logging 30332 8331386496 [req_187aeebdbc8a] GET /api/v1/student/jobs
+[INFO] 2026-05-14 13:53:11,627 logging 30332 8331386496 [req_b057ffecee83] GET /api/v1/student/learning-summary
+[INFO] 2026-05-14 13:53:11,780 logging 30332 8331386496 [req_eeffb04ca976] GET /api/v1/student/matches
+[INFO] 2026-05-14 13:53:11,929 logging 30332 8331386496 [req_76b991dd7961] GET /api/v1/student/messages/contacts
+[INFO] 2026-05-14 13:53:12,078 logging 30332 8331386496 [req_a0c73ba2afb8] GET /api/v1/student/messages
+[INFO] 2026-05-14 13:53:12,153 logging 30332 8331386496 [req_bd16f0355a64] GET /api/v1/student/courses/1/lessons/1
+[WARNING] 2026-05-14 13:53:12,153 log 30332 8331386496 Forbidden: /api/v1/student/courses/1/lessons/1
+[INFO] 2026-05-14 13:53:12,233 logging 30332 8331386496 [req_0faee901419f] GET /api/v1/student/preparation-summary
+[INFO] 2026-05-14 13:53:12,309 logging 30332 8331386496 [req_d39ca2cdcd0f] GET /api/v1/student/privacy-settings
+[INFO] 2026-05-14 13:53:12,382 logging 30332 8331386496 [req_7c90bc558d48] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:12,385 logging 30332 8331386496 [req_188fba9bb64a] PUT /api/v1/student/privacy-settings
+[INFO] 2026-05-14 13:53:12,462 logging 30332 8331386496 [req_0a1da2ba0375] GET /api/v1/student/profile
+[INFO] 2026-05-14 13:53:12,538 logging 30332 8331386496 [req_bd08505357c7] GET /api/v1/student/profile
+[INFO] 2026-05-14 13:53:12,611 logging 30332 8331386496 [req_e3b415c140a1] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:12,614 logging 30332 8331386496 [req_b8323736b218] PUT /api/v1/student/profile
+[INFO] 2026-05-14 13:53:12,687 logging 30332 8331386496 [req_dd3a818410be] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:12,690 logging 30332 8331386496 [req_8a4b14c181d4] POST /api/v1/student/profile/resumes
+[INFO] 2026-05-14 13:53:12,692 logging 30332 8331386496 [req_0a26dfd93dd1] POST /api/v1/student/profile/resumes
+[INFO] 2026-05-14 13:53:12,839 logging 30332 8331386496 [req_d7d24bd2942d] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:12,843 logging 30332 8331386496 [req_cf19a12ef122] POST /api/v1/student/messages/threads
+[INFO] 2026-05-14 13:53:12,844 logging 30332 8331386496 [req_74639cf13bcd] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:12,917 logging 30332 8331386496 [req_96cc1a88463c] POST /api/v1/auth/signup
+[INFO] 2026-05-14 13:53:12,918 logging 30332 8331386496 [req_5f5a8d30845d] GET /api/v1/auth/session
+[INFO] 2026-05-14 13:53:12,991 logging 30332 8331386496 [req_b1b1a5ac80b7] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:12,993 logging 30332 8331386496 [req_fadec2d6ac4a] DELETE /api/v1/student/skills/1
+[INFO] 2026-05-14 13:53:13,068 logging 30332 8331386496 [req_6dacb79667de] GET /api/v1/student/skills
+[INFO] 2026-05-14 13:53:13,141 logging 30332 8331386496 [req_0226fd658eeb] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:13,143 logging 30332 8331386496 [req_49c094928186] POST /api/v1/student/skills
+[INFO] 2026-05-14 13:53:13,217 logging 30332 8331386496 [req_5643945d1e96] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:13,219 logging 30332 8331386496 [req_ab61a3028b62] PUT /api/v1/student/skills/1
+[INFO] 2026-05-14 13:53:13,293 logging 30332 8331386496 [req_565d02b75737] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:13,294 logging 30332 8331386496 [req_52380eb1e4b1] POST /api/v1/student/skills
+[WARNING] 2026-05-14 13:53:13,295 log 30332 8331386496 Bad Request: /api/v1/student/skills
+[INFO] 2026-05-14 13:53:13,371 logging 30332 8331386496 [req_f6f213f4a713] GET /api/v1/admin/dashboard-data
+[INFO] 2026-05-14 13:53:13,518 logging 30332 8331386496 [req_f04fc28966f5] GET /api/v1/admin/dashboard-data
+[WARNING] 2026-05-14 13:53:13,518 log 30332 8331386496 Forbidden: /api/v1/admin/dashboard-data
+[INFO] 2026-05-14 13:53:14,487 logging 30332 8331386496 [req_1c6836d0f20a] GET /api/v1/company/dashboard-data
+[INFO] 2026-05-14 13:53:14,561 logging 30332 8331386496 [req_a989a4d9c79b] GET /api/v1/company/dashboard-data
+[WARNING] 2026-05-14 13:53:14,561 log 30332 8331386496 Unauthorized: /api/v1/company/dashboard-data
+[INFO] 2026-05-14 13:53:14,640 logging 30332 8331386496 [req_2666d88436c0] GET /api/v1/company/dashboard-data/pipeline
+[INFO] 2026-05-14 13:53:14,717 logging 30332 8331386496 [req_17d187d1a11e] GET /api/v1/student/dashboard-data/applications
+[INFO] 2026-05-14 13:53:14,793 logging 30332 8331386496 [req_f850f9a09474] GET /api/v1/student/dashboard-data
+[INFO] 2026-05-14 13:53:14,866 logging 30332 8331386496 [req_aab3b9b932f6] GET /api/v1/student/dashboard-data
+[WARNING] 2026-05-14 13:53:14,866 log 30332 8331386496 Unauthorized: /api/v1/student/dashboard-data
+[INFO] 2026-05-14 13:53:14,943 logging 30332 8331386496 [req_dafb57c377a5] GET /api/v1/student/dashboard-data/learning
+[INFO] 2026-05-14 13:53:15,091 logging 30332 8331386496 [req_1d0122941da2] GET /api/v1/notification-preferences
+[INFO] 2026-05-14 13:53:15,239 logging 30332 8331386496 [req_045b9e7d856c] POST /api/v1/notifications/read-all
+[INFO] 2026-05-14 13:53:15,386 logging 30332 8331386496 [req_2d4ca278e10f] POST /api/v1/notifications/1/read
+[INFO] 2026-05-14 13:53:15,534 logging 30332 8331386496 [req_4c1bdc9bc8ba] GET /api/v1/notifications
+[INFO] 2026-05-14 13:53:15,681 logging 30332 8331386496 [req_fbeae0327208] GET /api/v1/notifications
+[WARNING] 2026-05-14 13:53:15,682 log 30332 8331386496 Unauthorized: /api/v1/notifications
+[INFO] 2026-05-14 13:53:15,829 logging 30332 8331386496 [req_f2a16c85e463] PUT /api/v1/notification-preferences/update
+[WARNING] 2026-05-14 13:53:31,295 error_tracking 30401 8331386496 SENTRY_DSN not configured, error tracking disabled
+[INFO] 2026-05-14 13:53:31,299 logging 30401 8331386496 [req_0e3889590df4] POST /api/v1/practice-questions/1
+[INFO] 2026-05-14 13:53:31,521 logging 30401 8331386496 [req_a9ce7ce06d63] POST /api/v1/exam-categories
+[WARNING] 2026-05-14 13:53:31,521 log 30401 8331386496 Forbidden: /api/v1/exam-categories
+[INFO] 2026-05-14 13:53:31,596 logging 30401 8331386496 [req_e4aec20d864c] POST /api/v1/exam-categories
+[INFO] 2026-05-14 13:53:31,817 logging 30401 8331386496 [req_5bd4e84e4840] POST /api/v1/exams/1/mock-exams
+[INFO] 2026-05-14 13:53:32,038 logging 30401 8331386496 [req_33976369118f] POST /api/v1/exams/1/practice-questions
+[INFO] 2026-05-14 13:53:32,259 logging 30401 8331386496 [req_4603527b8a0e] DELETE /api/v1/exam-categories/2
+[INFO] 2026-05-14 13:53:32,408 logging 30401 8331386496 [req_ffc54a1ab5a1] GET /api/v1/exam-categories/1
+[INFO] 2026-05-14 13:53:32,556 logging 30401 8331386496 [req_d1f9e897bb5f] GET /api/v1/practice-questions/1
+[INFO] 2026-05-14 13:53:32,777 logging 30401 8331386496 [req_1cf6e75e7d02] GET /api/v1/student/performance
+[INFO] 2026-05-14 13:53:32,998 logging 30401 8331386496 [req_b0aaa4c9ada5] GET /api/v1/student/performance/1
+[INFO] 2026-05-14 13:53:33,220 logging 30401 8331386496 [req_91d5dedd7776] GET /api/v1/study-plan
+[INFO] 2026-05-14 13:53:33,367 logging 30401 8331386496 [req_649edb2b2ca1] GET /api/v1/exam-categories
+[INFO] 2026-05-14 13:53:33,514 logging 30401 8331386496 [req_05b0f1a91ba1] GET /api/v1/exams/1/mock-exams
+[INFO] 2026-05-14 13:53:33,661 logging 30401 8331386496 [req_0d4a92b44e64] GET /api/v1/exams/1/practice-questions
+[INFO] 2026-05-14 13:53:33,887 logging 30401 8331386496 [req_52659740873a] PUT /api/v1/exam-categories/1
+[INFO] 2026-05-14 13:53:34,181 logging 30401 8331386496 [req_e3246ae349f5] GET /api/v1/admin/export/users/
+[INFO] 2026-05-14 13:53:34,328 logging 30401 8331386496 [req_4490b5ba5a53] GET /api/v1/admin/export/users/
+[WARNING] 2026-05-14 13:53:34,328 log 30401 8331386496 Forbidden: /api/v1/admin/export/users/
+[INFO] 2026-05-14 13:53:34,477 logging 30401 8331386496 [req_dfe2edf98ef8] GET /api/v1/admin/scheduled-tasks/
+[INFO] 2026-05-14 13:53:35,586 logging 30401 8331386496 [req_45fc90fb08bc] GET /api/v1/student/data-access-log
+[INFO] 2026-05-14 13:53:36,028 logging 30401 8331386496 [req_9a8fed709349] POST /api/v1/student/deletion-request
+[WARNING] 2026-05-14 13:53:36,028 log 30401 8331386496 Bad Request: /api/v1/student/deletion-request
+[INFO] 2026-05-14 13:53:36,176 logging 30401 8331386496 [req_fdc1e80ef826] POST /api/v1/student/deletion-request
+[INFO] 2026-05-14 13:53:36,323 logging 30401 8331386496 [req_7769b9f81449] GET /api/v1/student/deletion-status
+[INFO] 2026-05-14 13:53:36,621 logging 30401 8331386496 [req_00ca04029682] POST /api/v1/student/data-export-request
+[INFO] 2026-05-14 13:53:36,769 logging 30401 8331386496 [req_56d9cae98ea9] GET /api/v1/student/data-export/1
+[INFO] 2026-05-14 13:53:38,378 logging 30401 8331386496 [req_e45437cf2a9b] GET /api/v1/student/consent
+[INFO] 2026-05-14 13:53:38,532 logging 30401 8331386496 [req_13cf785bcb84] PUT /api/v1/student/consent
+[INFO] 2026-05-14 13:53:38,899 logging 30401 8331386496 [req_0d6e6f412a41] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:38,974 logging 30401 8331386496 [req_6ab4f8d9de9e] POST /api/v1/admin/users
+[INFO] 2026-05-14 13:53:38,976 logging 30401 8331386496 [req_16ebb326ff26] GET /api/v1/admin/users
+[INFO] 2026-05-14 13:53:39,050 logging 30401 8331386496 [req_2bc04f6d5015] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:39,051 logging 30401 8331386496 [req_85315ce5a28a] POST /api/v1/admin/companies
+[INFO] 2026-05-14 13:53:39,128 logging 30401 8331386496 [req_ce1de5452658] GET /api/v1/admin/companies
+[INFO] 2026-05-14 13:53:39,130 logging 30401 8331386496 [req_8c315f3aad1f] GET /api/v1/admin/companies/1
+[INFO] 2026-05-14 13:53:39,131 logging 30401 8331386496 [req_f2f7fb09f07c] PUT /api/v1/admin/companies/1
+[INFO] 2026-05-14 13:53:39,132 logging 30401 8331386496 [req_f61979646cd4] DELETE /api/v1/admin/companies/1
+[INFO] 2026-05-14 13:53:39,206 logging 30401 8331386496 [req_9273647afa55] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:39,208 logging 30401 8331386496 [req_0db421a446cb] POST /api/v1/admin/courses
+[INFO] 2026-05-14 13:53:39,209 logging 30401 8331386496 [req_a256b39c6d6b] PUT /api/v1/admin/courses/1
+[INFO] 2026-05-14 13:53:39,210 logging 30401 8331386496 [req_44e42437afa3] DELETE /api/v1/admin/courses/1
+[INFO] 2026-05-14 13:53:39,283 logging 30401 8331386496 [req_ee95eef795e4] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:39,285 logging 30401 8331386496 [req_87abddcfda57] POST /api/v1/admin/exams
+[INFO] 2026-05-14 13:53:39,286 logging 30401 8331386496 [req_d999c53fa6ec] PUT /api/v1/admin/exams/1
+[INFO] 2026-05-14 13:53:39,287 logging 30401 8331386496 [req_d96b5844b48f] DELETE /api/v1/admin/exams/1
+[INFO] 2026-05-14 13:53:39,360 logging 30401 8331386496 [req_8a7a4ec55adb] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:39,363 logging 30401 8331386496 [req_e2c505365fbd] POST /api/v1/admin/courses/1/lessons
+[INFO] 2026-05-14 13:53:39,364 logging 30401 8331386496 [req_064c16d8a370] PUT /api/v1/admin/lessons/1
+[INFO] 2026-05-14 13:53:39,366 logging 30401 8331386496 [req_8cc3fad4bebd] DELETE /api/v1/admin/lessons/1
+[INFO] 2026-05-14 13:53:39,586 logging 30401 8331386496 [req_66b763f71d8a] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:39,589 logging 30401 8331386496 [req_326974509a22] POST /api/v1/admin/vacancies
+[INFO] 2026-05-14 13:53:39,591 logging 30401 8331386496 [req_3971d4633ec7] PUT /api/v1/admin/vacancies/1
+[INFO] 2026-05-14 13:53:39,593 logging 30401 8331386496 [req_805806b84ca6] DELETE /api/v1/admin/vacancies/1
+[INFO] 2026-05-14 13:53:39,668 logging 30401 8331386496 [req_0c66be46086e] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:39,671 logging 30401 8331386496 [req_2190bf053c3d] POST /api/v1/admin/exams/1/questions
+[INFO] 2026-05-14 13:53:39,672 logging 30401 8331386496 [req_8acab655835c] POST /api/v1/admin/questions/1/options
+[INFO] 2026-05-14 13:53:39,674 logging 30401 8331386496 [req_de8388463a24] PUT /api/v1/admin/options/1
+[INFO] 2026-05-14 13:53:39,823 logging 30401 8331386496 [req_3550fda34e29] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:39,825 logging 30401 8331386496 [req_fd8693c34492] PUT /api/v1/admin/users/2
+[INFO] 2026-05-14 13:53:39,975 logging 30401 8331386496 [req_6c07dbe447e7] GET /api/v1/admin/vacancies
+[INFO] 2026-05-14 13:53:40,048 logging 30401 8331386496 [req_f0ce973fc01f] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:40,050 logging 30401 8331386496 [req_633099af76c1] PUT /api/v1/admin/users/1
+[WARNING] 2026-05-14 13:53:40,050 log 30401 8331386496 Bad Request: /api/v1/admin/users/1
+[INFO] 2026-05-14 13:53:40,273 logging 30401 8331386496 [req_3ca0472b1c56] GET /api/v1/admin/dashboard
+[INFO] 2026-05-14 13:53:40,419 logging 30401 8331386496 [req_9758b7feed45] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:40,421 logging 30401 8331386496 [req_aa69ee5ce272] POST /api/v1/admin/vacancies
+[WARNING] 2026-05-14 13:53:40,421 log 30401 8331386496 Bad Request: /api/v1/admin/vacancies
+[INFO] 2026-05-14 13:53:40,570 logging 30401 8331386496 [req_2841e1612613] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:40,576 logging 30401 8331386496 [req_85feb45a3f61] POST /api/v1/company/interviews/1/confirm
+[INFO] 2026-05-14 13:53:40,724 logging 30401 8331386496 [req_797ac1dacb51] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:40,729 logging 30401 8331386496 [req_40d3672bae68] POST /api/v1/company/messages/threads
+[INFO] 2026-05-14 13:53:40,732 logging 30401 8331386496 [req_323938b3b42d] PUT /api/v1/company/messages/threads/1
+[INFO] 2026-05-14 13:53:40,735 logging 30401 8331386496 [req_082709d616db] POST /api/v1/company/messages/threads/1/messages
+[INFO] 2026-05-14 13:53:40,883 logging 30401 8331386496 [req_a256a195f26e] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:40,888 logging 30401 8331386496 [req_433f58c74545] POST /api/v1/company/messages/threads
+[INFO] 2026-05-14 13:53:40,962 logging 30401 8331386496 [req_1aff0c044c31] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:40,965 logging 30401 8331386496 [req_a04c1ef93f9e] POST /api/v1/company/vacancies
+[INFO] 2026-05-14 13:53:40,967 logging 30401 8331386496 [req_d2b374124baa] PUT /api/v1/company/vacancies/1
+[INFO] 2026-05-14 13:53:40,969 logging 30401 8331386496 [req_2a20c2d3c28a] DELETE /api/v1/company/vacancies/1
+[INFO] 2026-05-14 13:53:41,118 logging 30401 8331386496 [req_430dad014dce] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:41,123 logging 30401 8331386496 [req_02b36d76b014] POST /api/v1/company/applications/1/reject
+[INFO] 2026-05-14 13:53:41,270 logging 30401 8331386496 [req_ba70987c30d3] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:41,276 logging 30401 8331386496 [req_b61729ea49b0] POST /api/v1/company/candidates/1/interviews
+[INFO] 2026-05-14 13:53:41,423 logging 30401 8331386496 [req_699609cc126c] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:41,429 logging 30401 8331386496 [req_a598bfde92b0] POST /api/v1/company/candidates/1/interviews
+[INFO] 2026-05-14 13:53:41,432 logging 30401 8331386496 [req_bd6c5a82e73c] GET /api/v1/student/interviews
+[INFO] 2026-05-14 13:53:41,581 logging 30401 8331386496 [req_0ed7795d0776] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:41,584 logging 30401 8331386496 [req_06c56dd13bb6] GET /api/v1/company/applications
+[INFO] 2026-05-14 13:53:41,589 logging 30401 8331386496 [req_9904f7871aca] POST /api/v1/company/applications/1/shortlist
+[INFO] 2026-05-14 13:53:41,742 logging 30401 8331386496 [req_87efd0d3705e] GET /api/v1/company/candidates/1/exam-results
+[INFO] 2026-05-14 13:53:41,743 logging 30401 8331386496 [req_f851a7803ab0] GET /api/v1/company/candidates/1/exam-results
+[INFO] 2026-05-14 13:53:41,893 logging 30401 8331386496 [req_0b3b2895e173] GET /api/v1/company/candidates/1/learning-record
+[INFO] 2026-05-14 13:53:42,042 logging 30401 8331386496 [req_e95aa6fe92d5] GET /api/v1/company/candidates/1/notes
+[WARNING] 2026-05-14 13:53:42,042 log 30401 8331386496 Forbidden: /api/v1/company/candidates/1/notes
+[INFO] 2026-05-14 13:53:42,043 logging 30401 8331386496 [req_f2981a43c742] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:42,045 logging 30401 8331386496 [req_97031546507a] POST /api/v1/company/candidates/1/notes
+[INFO] 2026-05-14 13:53:42,047 logging 30401 8331386496 [req_922bd4bcd76d] GET /api/v1/company/candidates/1/notes
+[INFO] 2026-05-14 13:53:42,199 logging 30401 8331386496 [req_2d78d846eb92] GET /api/v1/company/candidates/1/preview
+[INFO] 2026-05-14 13:53:42,348 logging 30401 8331386496 [req_4c7fce9b64f0] GET /api/v1/company/candidates/1/preview
+[INFO] 2026-05-14 13:53:42,495 logging 30401 8331386496 [req_1e98f33a749d] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:42,498 logging 30401 8331386496 [req_edc84c682711] POST /api/v1/company/candidates/1/shortlist
+[INFO] 2026-05-14 13:53:42,499 logging 30401 8331386496 [req_37cc193a8984] GET /api/v1/company/shortlist
+[INFO] 2026-05-14 13:53:42,500 logging 30401 8331386496 [req_24ad2931eb66] DELETE /api/v1/company/candidates/1/shortlist
+[INFO] 2026-05-14 13:53:42,650 logging 30401 8331386496 [req_d88f49258c8e] GET /api/v1/company/candidates
+[INFO] 2026-05-14 13:53:42,801 logging 30401 8331386496 [req_2aabce20488a] GET /api/v1/company/candidates
+[INFO] 2026-05-14 13:53:42,949 logging 30401 8331386496 [req_f597f1ef456b] GET /api/v1/company/candidates/1/preview
+[WARNING] 2026-05-14 13:53:42,949 log 30401 8331386496 Bad Request: /api/v1/company/candidates/1/preview
+[INFO] 2026-05-14 13:53:43,024 logging 30401 8331386496 [req_4b83abd5f187] GET /api/v1/student/profile
+[WARNING] 2026-05-14 13:53:43,024 log 30401 8331386496 Forbidden: /api/v1/student/profile
+[INFO] 2026-05-14 13:53:43,177 logging 30401 8331386496 [req_c78ef50b6a90] GET /api/v1/company/dashboard
+[INFO] 2026-05-14 13:53:43,329 logging 30401 8331386496 [req_bba5f7ac0b93] GET /api/v1/company/dashboard
+[INFO] 2026-05-14 13:53:43,482 logging 30401 8331386496 [req_da24a6d0cda2] GET /api/v1/company/messages/contacts
+[INFO] 2026-05-14 13:53:43,630 logging 30401 8331386496 [req_c7ef8fd8b3f9] GET /api/v1/company/messages/contacts
+[INFO] 2026-05-14 13:53:43,780 logging 30401 8331386496 [req_bf780dc4acab] GET /api/v1/company/messages
+[INFO] 2026-05-14 13:53:43,855 logging 30401 8331386496 [req_b94b36cb32e3] GET /api/v1/company/profile
+[INFO] 2026-05-14 13:53:43,928 logging 30401 8331386496 [req_48d005e8f7c8] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:43,941 logging 30401 8331386496 [req_dd24cd7b772c] PUT /api/v1/company/profile
+[INFO] 2026-05-14 13:53:43,942 logging 30401 8331386496 [req_8683bbbe4ba4] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:44,016 logging 30401 8331386496 [req_2d70425a055e] POST /api/v1/auth/signup
+[INFO] 2026-05-14 13:53:44,017 logging 30401 8331386496 [req_eca8d2dbe6cf] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:44,017 logging 30401 8331386496 [req_7056e2e40bf4] POST /api/v1/auth/signup
+[WARNING] 2026-05-14 13:53:44,017 log 30401 8331386496 Bad Request: /api/v1/auth/signup
+[INFO] 2026-05-14 13:53:44,092 logging 30401 8331386496 [req_ab4ff84d0267] GET /api/v1/company/courses
+[INFO] 2026-05-14 13:53:44,166 logging 30401 8331386496 [req_241a5a12dbf1] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:44,167 logging 30401 8331386496 [req_d00877677f05] POST /api/v1/company/courses
+[INFO] 2026-05-14 13:53:44,169 logging 30401 8331386496 [req_39a906bf3f98] PUT /api/v1/company/courses/1
+[INFO] 2026-05-14 13:53:44,169 logging 30401 8331386496 [req_68fc7a21b9c5] DELETE /api/v1/company/courses/1
+[INFO] 2026-05-14 13:53:44,243 logging 30401 8331386496 [req_c028e100d05c] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:44,246 logging 30401 8331386496 [req_86f8137ba339] POST /api/v1/company/courses/1/lessons
+[INFO] 2026-05-14 13:53:44,247 logging 30401 8331386496 [req_6944e2e4ae8c] PUT /api/v1/company/lessons/1
+[INFO] 2026-05-14 13:53:44,248 logging 30401 8331386496 [req_c6e4c6135c98] GET /api/v1/company/courses/1/lessons
+[INFO] 2026-05-14 13:53:44,249 logging 30401 8331386496 [req_4fb21c9b57d2] DELETE /api/v1/company/lessons/1
+[INFO] 2026-05-14 13:53:44,324 logging 30401 8331386496 [req_38388bd47d55] GET /api/v1/admin/courses
+[WARNING] 2026-05-14 13:53:44,324 log 30401 8331386496 Forbidden: /api/v1/admin/courses
+[INFO] 2026-05-14 13:53:44,399 logging 30401 8331386496 [req_14fbdf948d8f] GET /api/v1/admin/exams
+[WARNING] 2026-05-14 13:53:44,399 log 30401 8331386496 Forbidden: /api/v1/admin/exams
+[INFO] 2026-05-14 13:53:44,473 logging 30401 8331386496 [req_905fda8abfaf] GET /api/v1/student/courses
+[WARNING] 2026-05-14 13:53:44,473 log 30401 8331386496 Forbidden: /api/v1/student/courses
+[INFO] 2026-05-14 13:53:44,548 logging 30401 8331386496 [req_7e1e128f7b00] GET /api/v1/student/jobs
+[WARNING] 2026-05-14 13:53:44,548 log 30401 8331386496 Forbidden: /api/v1/student/jobs
+[INFO] 2026-05-14 13:53:44,624 logging 30401 8331386496 [req_616c09682ad5] GET /api/v1/student/messages
+[WARNING] 2026-05-14 13:53:44,624 log 30401 8331386496 Forbidden: /api/v1/student/messages
+[INFO] 2026-05-14 13:53:44,699 logging 30401 8331386496 [req_e611c6bf686b] GET /api/v1/student/skills
+[WARNING] 2026-05-14 13:53:44,699 log 30401 8331386496 Forbidden: /api/v1/student/skills
+[INFO] 2026-05-14 13:53:44,773 logging 30401 8331386496 [req_9ef155dc48a0] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:44,775 logging 30401 8331386496 [req_249fcbbde795] POST /api/v1/student/courses/1/enrollment
+[WARNING] 2026-05-14 13:53:44,775 log 30401 8331386496 Forbidden: /api/v1/student/courses/1/enrollment
+[INFO] 2026-05-14 13:53:44,852 logging 30401 8331386496 [req_774b8437566c] GET /api/v1/student/exams/1
+[WARNING] 2026-05-14 13:53:44,852 log 30401 8331386496 Forbidden: /api/v1/student/exams/1
+[INFO] 2026-05-14 13:53:45,077 logging 30401 8331386496 [req_cef99fc3d395] GET /api/v1/company/vacancies
+[INFO] 2026-05-14 13:53:45,388 logging 30401 8331386496 [req_646c56b0e92e] GET /api/v1/company/vacancies/1/matches
+[INFO] 2026-05-14 13:53:45,396 logging 30401 8331386496 [req_ee58bb9373c3] GET /api/v1/company/candidates
+[INFO] 2026-05-14 13:53:45,471 logging 30401 8331386496 [req_84085eccfe68] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:45,476 logging 30401 8331386496 [req_46f910b2dc0b] POST /api/v1/company/vacancies
+[INFO] 2026-05-14 13:53:45,479 logging 30401 8331386496 [req_93ee347d5a0c] PUT /api/v1/company/vacancies/1
+[INFO] 2026-05-14 13:53:45,481 logging 30401 8331386496 [req_63f53ae5aed8] GET /api/v1/company/vacancies
+[INFO] 2026-05-14 13:53:45,629 logging 30401 8331386496 [req_436f6c49d5c4] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:45,634 logging 30401 8331386496 [req_043a0cc7ae42] POST /api/v1/interviews/1/complete
+[INFO] 2026-05-14 13:53:45,710 logging 30401 8331386496 [req_1476a4bd68bb] GET /api/v1/health
+[INFO] 2026-05-14 13:53:45,864 logging 30401 8331386496 [req_41b3b7f00520] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:45,870 logging 30401 8331386496 [req_6e9a3dfd89b0] POST /api/v1/interviews/1/cancel
+[INFO] 2026-05-14 13:53:46,019 logging 30401 8331386496 [req_167845301d96] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:46,024 logging 30401 8331386496 [req_10cba1ebaa85] POST /api/v1/interviews/1/reschedule
+[INFO] 2026-05-14 13:53:46,098 logging 30401 8331386496 [req_61d19da6701d] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:46,172 logging 30401 8331386496 [req_6e76f31e3a78] POST /api/v1/auth/login
+[WARNING] 2026-05-14 13:53:46,173 log 30401 8331386496 Forbidden: /api/v1/auth/login
+[INFO] 2026-05-14 13:53:46,248 logging 30401 8331386496 [req_369446d513ca] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:46,248 logging 30401 8331386496 [req_229e8dee5f9b] POST /api/v1/auth/login
+[WARNING] 2026-05-14 13:53:46,248 log 30401 8331386496 Bad Request: /api/v1/auth/login
+[INFO] 2026-05-14 13:53:46,323 logging 30401 8331386496 [req_a775b445ac07] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:46,397 logging 30401 8331386496 [req_ded7fb3611fe] POST /api/v1/auth/login
+[WARNING] 2026-05-14 13:53:46,397 log 30401 8331386496 Unauthorized: /api/v1/auth/login
+[WARNING] 2026-05-14 13:53:46,472 log 30401 8331386496 Forbidden (CSRF cookie not set.): /api/v1/auth/logout
+[INFO] 2026-05-14 13:53:46,472 logging 30401 8331386496 [req_6d6cf4deb8cd] POST /api/v1/auth/logout
+[INFO] 2026-05-14 13:53:46,546 logging 30401 8331386496 [req_2cdf8ff05878] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:46,548 logging 30401 8331386496 [req_2dc0696255e1] POST /api/v1/notifications/read-all
+[INFO] 2026-05-14 13:53:46,696 logging 30401 8331386496 [req_7eeadfd04584] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:46,699 logging 30401 8331386496 [req_338a1155fafe] POST /api/v1/company/candidates/1/interviews
+[WARNING] 2026-05-14 13:53:46,699 log 30401 8331386496 Bad Request: /api/v1/company/candidates/1/interviews
+[INFO] 2026-05-14 13:53:46,847 logging 30401 8331386496 [req_f9db463ccd41] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:46,851 logging 30401 8331386496 [req_27464349c615] PUT /api/v1/interviews/1/meeting-link
+[INFO] 2026-05-14 13:53:46,853 logging 30401 8331386496 [req_d6717d283633] PUT /api/v1/interviews/1/meeting-link
+[WARNING] 2026-05-14 13:53:46,853 log 30401 8331386496 Bad Request: /api/v1/interviews/1/meeting-link
+[INFO] 2026-05-14 13:53:47,000 logging 30401 8331386496 [req_b232ade65761] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:47,003 logging 30401 8331386496 [req_f62b5d806633] PUT /api/v1/interviews/1/meeting-link
+[WARNING] 2026-05-14 13:53:47,003 log 30401 8331386496 Bad Request: /api/v1/interviews/1/meeting-link
+[INFO] 2026-05-14 13:53:47,077 logging 30401 8331386496 [req_d199024c15a9] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:47,079 logging 30401 8331386496 [req_b09324725cbe] GET /api/v1/notifications
+[INFO] 2026-05-14 13:53:47,080 logging 30401 8331386496 [req_a391f665cca9] POST /api/v1/notifications/1/read
+[INFO] 2026-05-14 13:53:47,228 logging 30401 8331386496 [req_3fcf45cd138f] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:47,231 logging 30401 8331386496 [req_934dd4754164] POST /api/v1/interviews/1/complete
+[WARNING] 2026-05-14 13:53:47,231 log 30401 8331386496 Bad Request: /api/v1/interviews/1/complete
+[INFO] 2026-05-14 13:53:47,305 logging 30401 8331386496 [req_01fd9802eaa2] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:47,454 logging 30401 8331386496 [req_0ce174f71806] POST /api/v1/auth/password/change
+[INFO] 2026-05-14 13:53:47,752 logging 30401 8331386496 [req_cef0c5492976] GET /api/v1/access/student
+[INFO] 2026-05-14 13:53:47,753 logging 30401 8331386496 [req_f9113530e072] GET /api/v1/access/company
+[WARNING] 2026-05-14 13:53:47,753 log 30401 8331386496 Forbidden: /api/v1/access/company
+[INFO] 2026-05-14 13:53:47,754 logging 30401 8331386496 [req_b81d310e0185] GET /api/v1/access/company
+[INFO] 2026-05-14 13:53:47,755 logging 30401 8331386496 [req_728f69e20748] GET /api/v1/access/admin
+[WARNING] 2026-05-14 13:53:47,755 log 30401 8331386496 Forbidden: /api/v1/access/admin
+[INFO] 2026-05-14 13:53:47,756 logging 30401 8331386496 [req_6fdfe70e8307] GET /api/v1/access/admin
+[INFO] 2026-05-14 13:53:47,757 logging 30401 8331386496 [req_203127f2542f] GET /api/v1/auth/session
+[INFO] 2026-05-14 13:53:47,757 logging 30401 8331386496 [req_b1f5157c6a5d] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:47,758 logging 30401 8331386496 [req_d4b735a6849e] POST /api/v1/auth/signup
+[WARNING] 2026-05-14 13:53:47,758 log 30401 8331386496 Bad Request: /api/v1/auth/signup
+[INFO] 2026-05-14 13:53:47,906 logging 30401 8331386496 [req_b05af99f04a6] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:47,910 logging 30401 8331386496 [req_0ccb705cfeb1] POST /api/v1/interviews/1/availability
+[INFO] 2026-05-14 13:53:47,910 logging 30401 8331386496 [req_813e2f3b47c4] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:47,915 logging 30401 8331386496 [req_10202ef4e8bf] POST /api/v1/interviews/1/availability
+[INFO] 2026-05-14 13:53:48,063 logging 30401 8331386496 [req_a9b887adf30a] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:48,065 logging 30401 8331386496 [req_83bb3d4133ae] POST /api/v1/student/applications
+[WARNING] 2026-05-14 13:53:48,065 log 30401 8331386496 Bad Request: /api/v1/student/applications
+[INFO] 2026-05-14 13:53:48,214 logging 30401 8331386496 [req_64e7f08dbc9d] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:48,219 logging 30401 8331386496 [req_c5dedbf65b5b] POST /api/v1/student/applications
+[INFO] 2026-05-14 13:53:48,221 logging 30401 8331386496 [req_f8e0595d0e4f] GET /api/v1/student/applications
+[INFO] 2026-05-14 13:53:48,296 logging 30401 8331386496 [req_a8fe7ded4853] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:48,300 logging 30401 8331386496 [req_96835a4f786a] POST /api/v1/student/messages/threads
+[INFO] 2026-05-14 13:53:48,448 logging 30401 8331386496 [req_efb61ba7f3e3] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:48,453 logging 30401 8331386496 [req_ff6c0146bab4] POST /api/v1/student/messages/threads
+[INFO] 2026-05-14 13:53:48,530 logging 30401 8331386496 [req_ed17d3a9e19f] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:48,534 logging 30401 8331386496 [req_cbe4d8a2b7e0] POST /api/v1/student/profile/education
+[INFO] 2026-05-14 13:53:48,537 logging 30401 8331386496 [req_fed7b96b9eeb] PUT /api/v1/student/profile/education/1
+[INFO] 2026-05-14 13:53:48,539 logging 30401 8331386496 [req_2797a1999282] DELETE /api/v1/student/profile/education/1
+[INFO] 2026-05-14 13:53:48,615 logging 30401 8331386496 [req_becac726b56a] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:48,617 logging 30401 8331386496 [req_05de63933995] DELETE /api/v1/student/messages/threads/1
+[INFO] 2026-05-14 13:53:48,772 logging 30401 8331386496 [req_6b53ef8eec0c] GET /api/v1/student/interviews
+[INFO] 2026-05-14 13:53:48,774 logging 30401 8331386496 [req_aaa5ea43a977] GET /api/v1/interviews/1
+[INFO] 2026-05-14 13:53:48,849 logging 30401 8331386496 [req_5b18f892fadf] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:48,853 logging 30401 8331386496 [req_8b6f5d1b488b] GET /api/v1/student/exams/1
+[INFO] 2026-05-14 13:53:48,859 logging 30401 8331386496 [req_2a40b1907fec] POST /api/v1/student/exams/1/submit
+[INFO] 2026-05-14 13:53:48,934 logging 30401 8331386496 [req_c8896c7e4188] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:48,938 logging 30401 8331386496 [req_96cb7cbf23d3] POST /api/v1/student/profile/certificates
+[INFO] 2026-05-14 13:53:48,941 logging 30401 8331386496 [req_601e1e8ed89c] PUT /api/v1/student/profile/certificates/1
+[INFO] 2026-05-14 13:53:48,943 logging 30401 8331386496 [req_5f0500afe39d] DELETE /api/v1/student/profile/certificates/1
+[INFO] 2026-05-14 13:53:49,026 logging 30401 8331386496 [req_677c40383d78] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:49,032 logging 30401 8331386496 [req_3ba515b2d32c] POST /api/v1/student/profile/experience
+[INFO] 2026-05-14 13:53:49,035 logging 30401 8331386496 [req_7e40afe7e1f6] PUT /api/v1/student/profile/availability
+[INFO] 2026-05-14 13:53:49,184 logging 30401 8331386496 [req_2330591032a0] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:49,187 logging 30401 8331386496 [req_b94ff2f93238] PUT /api/v1/student/messages/threads/1
+[INFO] 2026-05-14 13:53:49,191 logging 30401 8331386496 [req_9e537aff8430] POST /api/v1/student/messages/threads/1/messages
+[INFO] 2026-05-14 13:53:49,266 logging 30401 8331386496 [req_114a2df87969] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:49,269 logging 30401 8331386496 [req_603e441167d7] GET /api/v1/student/mock-exams/1
+[INFO] 2026-05-14 13:53:49,273 logging 30401 8331386496 [req_e0e6f0401998] POST /api/v1/student/mock-exams/1/submit
+[INFO] 2026-05-14 13:53:49,348 logging 30401 8331386496 [req_c29fc1243b68] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:49,351 logging 30401 8331386496 [req_80b0ab4c8332] POST /api/v1/student/practice-questions/1/attempt
+[INFO] 2026-05-14 13:53:49,426 logging 30401 8331386496 [req_68307fb1c02c] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:49,432 logging 30401 8331386496 [req_3b9499e9d914] PUT /api/v1/student/courses/1/lessons/1/progress
+[INFO] 2026-05-14 13:53:49,437 logging 30401 8331386496 [req_43e6039a797b] PUT /api/v1/student/courses/1/lessons/1/progress
+[INFO] 2026-05-14 13:53:49,442 logging 30401 8331386496 [req_3ace1f93bddf] PUT /api/v1/student/courses/1/lessons/2/progress
+[INFO] 2026-05-14 13:53:49,593 logging 30401 8331386496 [req_ae4bf69bcde4] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:49,598 logging 30401 8331386496 [req_3e82e76fa551] POST /api/v1/student/applications/1/withdraw
+[INFO] 2026-05-14 13:53:49,675 logging 30401 8331386496 [req_2f070f2fde4e] GET /api/v1/company/profile
+[WARNING] 2026-05-14 13:53:49,675 log 30401 8331386496 Forbidden: /api/v1/company/profile
+[INFO] 2026-05-14 13:53:49,826 logging 30401 8331386496 [req_678a1e0d1d22] GET /api/v1/student/courses/1
+[INFO] 2026-05-14 13:53:49,903 logging 30401 8331386496 [req_16b93a019153] GET /api/v1/student/courses/1
+[INFO] 2026-05-14 13:53:49,903 logging 30401 8331386496 [req_0031cc53330f] GET /api/v1/student/courses/2
+[WARNING] 2026-05-14 13:53:49,903 log 30401 8331386496 Not Found: /api/v1/student/courses/2
+[INFO] 2026-05-14 13:53:49,978 logging 30401 8331386496 [req_480c8e4a3175] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:49,983 logging 30401 8331386496 [req_9a4967119a9a] POST /api/v1/student/courses/1/enrollment
+[INFO] 2026-05-14 13:53:49,985 logging 30401 8331386496 [req_8c6cb91892d1] POST /api/v1/student/courses/1/enrollment
+[INFO] 2026-05-14 13:53:50,062 logging 30401 8331386496 [req_4bda9e678d5a] GET /api/v1/student/courses
+[INFO] 2026-05-14 13:53:50,141 logging 30401 8331386496 [req_d018a85aaf28] GET /api/v1/student/dashboard
+[INFO] 2026-05-14 13:53:50,220 logging 30401 8331386496 [req_80784b38252c] GET /api/v1/student/exam-results
+[INFO] 2026-05-14 13:53:50,297 logging 30401 8331386496 [req_ee99419a6cb7] GET /api/v1/student/exams/1
+[WARNING] 2026-05-14 13:53:50,298 log 30401 8331386496 Forbidden: /api/v1/student/exams/1
+[INFO] 2026-05-14 13:53:50,519 logging 30401 8331386496 [req_1597d0b586a6] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:50,523 logging 30401 8331386496 [req_6fda5ed7c915] GET /api/v1/student/jobs
+[INFO] 2026-05-14 13:53:50,525 logging 30401 8331386496 [req_1464750d4bee] POST /api/v1/student/jobs/1/bookmark
+[INFO] 2026-05-14 13:53:50,526 logging 30401 8331386496 [req_b5398fa2c167] POST /api/v1/student/jobs/3/bookmark
+[WARNING] 2026-05-14 13:53:50,526 log 30401 8331386496 Not Found: /api/v1/student/jobs/3/bookmark
+[INFO] 2026-05-14 13:53:50,529 logging 30401 8331386496 [req_0d695923cc68] GET /api/v1/student/jobs
+[INFO] 2026-05-14 13:53:50,530 logging 30401 8331386496 [req_1835aaeea119] DELETE /api/v1/student/jobs/1/bookmark
+[INFO] 2026-05-14 13:53:50,754 logging 30401 8331386496 [req_572a1d7fa852] GET /api/v1/student/jobs
+[INFO] 2026-05-14 13:53:50,830 logging 30401 8331386496 [req_fe58ab4e995a] GET /api/v1/student/learning-summary
+[INFO] 2026-05-14 13:53:50,985 logging 30401 8331386496 [req_1a6d5caa95f3] GET /api/v1/student/matches
+[INFO] 2026-05-14 13:53:51,137 logging 30401 8331386496 [req_d403bfe351f3] GET /api/v1/student/messages/contacts
+[INFO] 2026-05-14 13:53:51,289 logging 30401 8331386496 [req_5c8fa9b81cc2] GET /api/v1/student/messages
+[INFO] 2026-05-14 13:53:51,367 logging 30401 8331386496 [req_f3a3713e74c5] GET /api/v1/student/courses/1/lessons/1
+[WARNING] 2026-05-14 13:53:51,367 log 30401 8331386496 Forbidden: /api/v1/student/courses/1/lessons/1
+[INFO] 2026-05-14 13:53:51,449 logging 30401 8331386496 [req_f43f23f44ffe] GET /api/v1/student/preparation-summary
+[INFO] 2026-05-14 13:53:51,526 logging 30401 8331386496 [req_cb73825690c4] GET /api/v1/student/privacy-settings
+[INFO] 2026-05-14 13:53:51,600 logging 30401 8331386496 [req_edc53b7da3ec] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:51,604 logging 30401 8331386496 [req_6cbd6aeffe0a] PUT /api/v1/student/privacy-settings
+[INFO] 2026-05-14 13:53:51,683 logging 30401 8331386496 [req_9112e6e2ff19] GET /api/v1/student/profile
+[INFO] 2026-05-14 13:53:51,771 logging 30401 8331386496 [req_d19d1b82e83f] GET /api/v1/student/profile
+[INFO] 2026-05-14 13:53:51,857 logging 30401 8331386496 [req_2fde294a8e01] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:51,860 logging 30401 8331386496 [req_9ed19949f6d2] PUT /api/v1/student/profile
+[INFO] 2026-05-14 13:53:51,937 logging 30401 8331386496 [req_9641f372bd60] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:51,940 logging 30401 8331386496 [req_92360fdeb27f] POST /api/v1/student/profile/resumes
+[INFO] 2026-05-14 13:53:51,942 logging 30401 8331386496 [req_8b7dd6fe792e] POST /api/v1/student/profile/resumes
+[INFO] 2026-05-14 13:53:52,091 logging 30401 8331386496 [req_178ba395ace6] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:52,096 logging 30401 8331386496 [req_ac4bdf63a6b1] POST /api/v1/student/messages/threads
+[INFO] 2026-05-14 13:53:52,097 logging 30401 8331386496 [req_92304636b117] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:52,172 logging 30401 8331386496 [req_aec455daa1de] POST /api/v1/auth/signup
+[INFO] 2026-05-14 13:53:52,173 logging 30401 8331386496 [req_f09b7b14082a] GET /api/v1/auth/session
+[INFO] 2026-05-14 13:53:52,247 logging 30401 8331386496 [req_6444ef6015f9] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:52,250 logging 30401 8331386496 [req_c480f9bbefe4] DELETE /api/v1/student/skills/1
+[INFO] 2026-05-14 13:53:52,326 logging 30401 8331386496 [req_8b4029a66f1b] GET /api/v1/student/skills
+[INFO] 2026-05-14 13:53:52,401 logging 30401 8331386496 [req_765531266565] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:52,403 logging 30401 8331386496 [req_b01186f03c35] POST /api/v1/student/skills
+[INFO] 2026-05-14 13:53:52,479 logging 30401 8331386496 [req_8ec7a2e55aa2] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:52,482 logging 30401 8331386496 [req_a832d352a9e9] PUT /api/v1/student/skills/1
+[INFO] 2026-05-14 13:53:52,557 logging 30401 8331386496 [req_348704995e78] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:53:52,558 logging 30401 8331386496 [req_d16d74841d94] POST /api/v1/student/skills
+[WARNING] 2026-05-14 13:53:52,558 log 30401 8331386496 Bad Request: /api/v1/student/skills
+[INFO] 2026-05-14 13:53:52,636 logging 30401 8331386496 [req_16c947c8df68] GET /api/v1/admin/dashboard-data
+[INFO] 2026-05-14 13:53:52,786 logging 30401 8331386496 [req_eb362905f269] GET /api/v1/admin/dashboard-data
+[WARNING] 2026-05-14 13:53:52,786 log 30401 8331386496 Forbidden: /api/v1/admin/dashboard-data
+[INFO] 2026-05-14 13:53:53,768 logging 30401 8331386496 [req_addfd0964289] GET /api/v1/company/dashboard-data
+[INFO] 2026-05-14 13:53:53,843 logging 30401 8331386496 [req_86c265129730] GET /api/v1/company/dashboard-data
+[WARNING] 2026-05-14 13:53:53,843 log 30401 8331386496 Unauthorized: /api/v1/company/dashboard-data
+[INFO] 2026-05-14 13:53:53,922 logging 30401 8331386496 [req_2bbec1ba4fbf] GET /api/v1/company/dashboard-data/pipeline
+[INFO] 2026-05-14 13:53:54,001 logging 30401 8331386496 [req_e0829d81322f] GET /api/v1/student/dashboard-data/applications
+[INFO] 2026-05-14 13:53:54,080 logging 30401 8331386496 [req_0fad8eb0f95e] GET /api/v1/student/dashboard-data
+[INFO] 2026-05-14 13:53:54,155 logging 30401 8331386496 [req_baf3a4f79ec8] GET /api/v1/student/dashboard-data
+[WARNING] 2026-05-14 13:53:54,156 log 30401 8331386496 Unauthorized: /api/v1/student/dashboard-data
+[INFO] 2026-05-14 13:53:54,234 logging 30401 8331386496 [req_a5fd3c166abe] GET /api/v1/student/dashboard-data/learning
+[INFO] 2026-05-14 13:53:54,383 logging 30401 8331386496 [req_9b8b7476d362] GET /api/v1/notification-preferences
+[INFO] 2026-05-14 13:53:54,533 logging 30401 8331386496 [req_5e02168ffcf5] POST /api/v1/notifications/read-all
+[INFO] 2026-05-14 13:53:54,695 logging 30401 8331386496 [req_8a718ed60fed] POST /api/v1/notifications/1/read
+[INFO] 2026-05-14 13:53:54,845 logging 30401 8331386496 [req_e95aac458f11] GET /api/v1/notifications
+[INFO] 2026-05-14 13:53:54,993 logging 30401 8331386496 [req_02c97a7f5aa4] GET /api/v1/notifications
+[WARNING] 2026-05-14 13:53:54,993 log 30401 8331386496 Unauthorized: /api/v1/notifications
+[INFO] 2026-05-14 13:53:55,147 logging 30401 8331386496 [req_18684496e945] PUT /api/v1/notification-preferences/update
+[WARNING] 2026-05-14 13:54:29,966 error_tracking 30570 8331386496 SENTRY_DSN not configured, error tracking disabled
+[INFO] 2026-05-14 13:54:29,975 logging 30570 8331386496 [req_d1eaee45270c] POST /api/v1/practice-questions/1
+[INFO] 2026-05-14 13:54:30,194 logging 30570 8331386496 [req_b0bf77721ec8] POST /api/v1/exam-categories
+[WARNING] 2026-05-14 13:54:30,199 log 30570 8331386496 Forbidden: /api/v1/exam-categories
+[INFO] 2026-05-14 13:54:30,276 logging 30570 8331386496 [req_b893e8fab3fb] POST /api/v1/exam-categories
+[INFO] 2026-05-14 13:54:30,497 logging 30570 8331386496 [req_c4b890a8e631] POST /api/v1/exams/1/mock-exams
+[INFO] 2026-05-14 13:54:30,718 logging 30570 8331386496 [req_61add6bf4186] POST /api/v1/exams/1/practice-questions
+[INFO] 2026-05-14 13:54:30,938 logging 30570 8331386496 [req_0c5afd711ce3] DELETE /api/v1/exam-categories/2
+[INFO] 2026-05-14 13:54:31,085 logging 30570 8331386496 [req_c5bef8235e3c] GET /api/v1/exam-categories/1
+[INFO] 2026-05-14 13:54:31,231 logging 30570 8331386496 [req_033c2c5c4ac2] GET /api/v1/practice-questions/1
+[INFO] 2026-05-14 13:54:31,457 logging 30570 8331386496 [req_4eb5b8410873] GET /api/v1/student/performance
+[INFO] 2026-05-14 13:54:31,678 logging 30570 8331386496 [req_db1f0e4f7263] GET /api/v1/student/performance/1
+[INFO] 2026-05-14 13:54:31,899 logging 30570 8331386496 [req_4d07476940fb] GET /api/v1/study-plan
+[INFO] 2026-05-14 13:54:32,045 logging 30570 8331386496 [req_e259304b9709] GET /api/v1/exam-categories
+[INFO] 2026-05-14 13:54:32,192 logging 30570 8331386496 [req_d275e47551b0] GET /api/v1/exams/1/mock-exams
+[INFO] 2026-05-14 13:54:32,339 logging 30570 8331386496 [req_81dcf32751eb] GET /api/v1/exams/1/practice-questions
+[INFO] 2026-05-14 13:54:32,559 logging 30570 8331386496 [req_7338413578a7] PUT /api/v1/exam-categories/1
+[INFO] 2026-05-14 13:54:32,854 logging 30570 8331386496 [req_58076505e988] GET /api/v1/admin/export/users/
+[INFO] 2026-05-14 13:54:33,002 logging 30570 8331386496 [req_341f244194cf] GET /api/v1/admin/export/users/
+[WARNING] 2026-05-14 13:54:33,002 log 30570 8331386496 Forbidden: /api/v1/admin/export/users/
+[INFO] 2026-05-14 13:54:33,150 logging 30570 8331386496 [req_e8b6c4d9e876] GET /api/v1/admin/scheduled-tasks/
+[INFO] 2026-05-14 13:54:34,255 logging 30570 8331386496 [req_d6909bd82e79] GET /api/v1/student/data-access-log
+[INFO] 2026-05-14 13:54:34,697 logging 30570 8331386496 [req_e41c0c5f5f50] POST /api/v1/student/deletion-request
+[WARNING] 2026-05-14 13:54:34,697 log 30570 8331386496 Bad Request: /api/v1/student/deletion-request
+[INFO] 2026-05-14 13:54:34,846 logging 30570 8331386496 [req_1d8b060d4a4e] POST /api/v1/student/deletion-request
+[INFO] 2026-05-14 13:54:34,994 logging 30570 8331386496 [req_8216d7a987cc] GET /api/v1/student/deletion-status
+[INFO] 2026-05-14 13:54:35,288 logging 30570 8331386496 [req_1b191c3ce5f2] POST /api/v1/student/data-export-request
+[INFO] 2026-05-14 13:54:35,435 logging 30570 8331386496 [req_c607b44c08ea] GET /api/v1/student/data-export/1
+[INFO] 2026-05-14 13:54:37,045 logging 30570 8331386496 [req_3a8530679c35] GET /api/v1/student/consent
+[INFO] 2026-05-14 13:54:37,194 logging 30570 8331386496 [req_81124fa7e0c2] PUT /api/v1/student/consent
+[INFO] 2026-05-14 13:54:37,560 logging 30570 8331386496 [req_657feceb3eed] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:54:37,636 logging 30570 8331386496 [req_61a7449d21f7] POST /api/v1/admin/users
+[INFO] 2026-05-14 13:54:37,637 logging 30570 8331386496 [req_ba7087dade6d] GET /api/v1/admin/users
+[INFO] 2026-05-14 13:54:37,711 logging 30570 8331386496 [req_cb2fa79a02bc] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:54:37,713 logging 30570 8331386496 [req_d9f7f737e11e] POST /api/v1/admin/companies
+[INFO] 2026-05-14 13:54:37,788 logging 30570 8331386496 [req_d0df56f1d9d8] GET /api/v1/admin/companies
+[INFO] 2026-05-14 13:54:37,789 logging 30570 8331386496 [req_b358119280b5] GET /api/v1/admin/companies/1
+[INFO] 2026-05-14 13:54:37,791 logging 30570 8331386496 [req_5a4fd663664e] PUT /api/v1/admin/companies/1
+[INFO] 2026-05-14 13:54:37,792 logging 30570 8331386496 [req_ab18151c3673] DELETE /api/v1/admin/companies/1
+[INFO] 2026-05-14 13:54:37,865 logging 30570 8331386496 [req_a93ca98b98eb] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:54:37,867 logging 30570 8331386496 [req_bcbfbb71ec44] POST /api/v1/admin/courses
+[INFO] 2026-05-14 13:54:37,868 logging 30570 8331386496 [req_7556e9cca96b] PUT /api/v1/admin/courses/1
+[INFO] 2026-05-14 13:54:37,869 logging 30570 8331386496 [req_7b4ebe590ca4] DELETE /api/v1/admin/courses/1
+[INFO] 2026-05-14 13:54:37,943 logging 30570 8331386496 [req_913964f6eba5] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:54:37,944 logging 30570 8331386496 [req_90ea6c0b619e] POST /api/v1/admin/exams
+[INFO] 2026-05-14 13:54:37,945 logging 30570 8331386496 [req_d620446b9468] PUT /api/v1/admin/exams/1
+[INFO] 2026-05-14 13:54:37,946 logging 30570 8331386496 [req_fc3c5d08922e] DELETE /api/v1/admin/exams/1
+[INFO] 2026-05-14 13:54:38,020 logging 30570 8331386496 [req_958777b1a977] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:54:38,022 logging 30570 8331386496 [req_6484eda3bb76] POST /api/v1/admin/courses/1/lessons
+[INFO] 2026-05-14 13:54:38,023 logging 30570 8331386496 [req_3b3335c1bf29] PUT /api/v1/admin/lessons/1
+[INFO] 2026-05-14 13:54:38,025 logging 30570 8331386496 [req_2f7ab8d0f6f3] DELETE /api/v1/admin/lessons/1
+[INFO] 2026-05-14 13:54:38,244 logging 30570 8331386496 [req_20340f4d69d8] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:54:38,247 logging 30570 8331386496 [req_4f699c0a8949] POST /api/v1/admin/vacancies
+[INFO] 2026-05-14 13:54:38,249 logging 30570 8331386496 [req_27b09e57f59d] PUT /api/v1/admin/vacancies/1
+[INFO] 2026-05-14 13:54:38,251 logging 30570 8331386496 [req_17d28964dca2] DELETE /api/v1/admin/vacancies/1
+[INFO] 2026-05-14 13:54:38,325 logging 30570 8331386496 [req_b12719e5fdc6] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:54:38,327 logging 30570 8331386496 [req_1e42a5e03669] POST /api/v1/admin/exams/1/questions
+[INFO] 2026-05-14 13:54:38,328 logging 30570 8331386496 [req_113f476deefb] POST /api/v1/admin/questions/1/options
+[INFO] 2026-05-14 13:54:38,330 logging 30570 8331386496 [req_8cec3fdd2f7c] PUT /api/v1/admin/options/1
+[INFO] 2026-05-14 13:54:38,477 logging 30570 8331386496 [req_41ae782fbbd8] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:54:38,479 logging 30570 8331386496 [req_d0a1d2a292a5] PUT /api/v1/admin/users/2
+[INFO] 2026-05-14 13:54:38,629 logging 30570 8331386496 [req_18fd1f753dc5] GET /api/v1/admin/vacancies
+[INFO] 2026-05-14 13:54:38,703 logging 30570 8331386496 [req_a5c2343ee724] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:54:38,705 logging 30570 8331386496 [req_beea65c776cb] PUT /api/v1/admin/users/1
+[WARNING] 2026-05-14 13:54:38,705 log 30570 8331386496 Bad Request: /api/v1/admin/users/1
+[INFO] 2026-05-14 13:54:38,928 logging 30570 8331386496 [req_dc6e23368a18] GET /api/v1/admin/dashboard
+[INFO] 2026-05-14 13:54:39,081 logging 30570 8331386496 [req_35fa2b61b5b4] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:54:39,083 logging 30570 8331386496 [req_09e66b042586] POST /api/v1/admin/vacancies
+[WARNING] 2026-05-14 13:54:39,083 log 30570 8331386496 Bad Request: /api/v1/admin/vacancies
+[INFO] 2026-05-14 13:54:39,230 logging 30570 8331386496 [req_a2c30ce413e7] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:54:39,236 logging 30570 8331386496 [req_ded0c7df0e9c] POST /api/v1/company/interviews/1/confirm
+[INFO] 2026-05-14 13:54:39,384 logging 30570 8331386496 [req_c107e8f80d93] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:54:39,388 logging 30570 8331386496 [req_8deac97ada40] POST /api/v1/company/messages/threads
+[INFO] 2026-05-14 13:54:39,391 logging 30570 8331386496 [req_c4f913d3f483] PUT /api/v1/company/messages/threads/1
+[INFO] 2026-05-14 13:54:39,394 logging 30570 8331386496 [req_7c6a7ae31b84] POST /api/v1/company/messages/threads/1/messages
+[INFO] 2026-05-14 13:54:39,542 logging 30570 8331386496 [req_ebb4d2b71b6a] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:54:39,546 logging 30570 8331386496 [req_b52ee401e8fd] POST /api/v1/company/messages/threads
+[INFO] 2026-05-14 13:54:39,621 logging 30570 8331386496 [req_8f0b09fe757a] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:54:39,623 logging 30570 8331386496 [req_9d8b8bf69b4c] POST /api/v1/company/vacancies
+[INFO] 2026-05-14 13:54:39,626 logging 30570 8331386496 [req_f20433183643] PUT /api/v1/company/vacancies/1
+[INFO] 2026-05-14 13:54:39,627 logging 30570 8331386496 [req_31cb2ac3ed8c] DELETE /api/v1/company/vacancies/1
+[INFO] 2026-05-14 13:54:39,775 logging 30570 8331386496 [req_1beb6a63fe47] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:54:39,781 logging 30570 8331386496 [req_292068c418db] POST /api/v1/company/applications/1/reject
+[INFO] 2026-05-14 13:54:39,928 logging 30570 8331386496 [req_e20220a684e7] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:54:39,933 logging 30570 8331386496 [req_faa8fb606eb3] POST /api/v1/company/candidates/1/interviews
+[INFO] 2026-05-14 13:54:40,080 logging 30570 8331386496 [req_5a8996235c00] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:54:40,086 logging 30570 8331386496 [req_4199c524c58e] POST /api/v1/company/candidates/1/interviews
+[INFO] 2026-05-14 13:54:40,089 logging 30570 8331386496 [req_8e32abca2218] GET /api/v1/student/interviews
+[INFO] 2026-05-14 13:54:40,240 logging 30570 8331386496 [req_43838885a74c] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:54:40,243 logging 30570 8331386496 [req_d30b149b4193] GET /api/v1/company/applications
+[INFO] 2026-05-14 13:54:40,248 logging 30570 8331386496 [req_1af20e7f2938] POST /api/v1/company/applications/1/shortlist
+[INFO] 2026-05-14 13:54:40,401 logging 30570 8331386496 [req_f05b0263fc0c] GET /api/v1/company/candidates/1/exam-results
+[INFO] 2026-05-14 13:54:40,402 logging 30570 8331386496 [req_65adb94218cf] GET /api/v1/company/candidates/1/exam-results
+[INFO] 2026-05-14 13:54:40,555 logging 30570 8331386496 [req_f0340d91d81a] GET /api/v1/company/candidates/1/learning-record
+[INFO] 2026-05-14 13:54:40,707 logging 30570 8331386496 [req_1a4ea9ea59a7] GET /api/v1/company/candidates/1/notes
+[WARNING] 2026-05-14 13:54:40,707 log 30570 8331386496 Forbidden: /api/v1/company/candidates/1/notes
+[INFO] 2026-05-14 13:54:40,708 logging 30570 8331386496 [req_78f5752a09b6] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:54:40,710 logging 30570 8331386496 [req_258f43a6ca0d] POST /api/v1/company/candidates/1/notes
+[INFO] 2026-05-14 13:54:40,712 logging 30570 8331386496 [req_f6ded9f329ee] GET /api/v1/company/candidates/1/notes
+[INFO] 2026-05-14 13:54:40,864 logging 30570 8331386496 [req_cf483761bdf4] GET /api/v1/company/candidates/1/preview
+[INFO] 2026-05-14 13:54:41,013 logging 30570 8331386496 [req_4e280c3e67ed] GET /api/v1/company/candidates/1/preview
+[INFO] 2026-05-14 13:54:41,159 logging 30570 8331386496 [req_e171c7edf0c7] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:54:41,162 logging 30570 8331386496 [req_38dde2e204b4] POST /api/v1/company/candidates/1/shortlist
+[INFO] 2026-05-14 13:54:41,163 logging 30570 8331386496 [req_ed574aad93ae] GET /api/v1/company/shortlist
+[INFO] 2026-05-14 13:54:41,164 logging 30570 8331386496 [req_b8ef72bba6c4] DELETE /api/v1/company/candidates/1/shortlist
+[INFO] 2026-05-14 13:54:41,314 logging 30570 8331386496 [req_be7930e457c9] GET /api/v1/company/candidates
+[INFO] 2026-05-14 13:54:41,467 logging 30570 8331386496 [req_de52c83b7af3] GET /api/v1/company/candidates
+[INFO] 2026-05-14 13:54:41,616 logging 30570 8331386496 [req_11dcba9f0c56] GET /api/v1/company/candidates/1/preview
+[WARNING] 2026-05-14 13:54:41,616 log 30570 8331386496 Bad Request: /api/v1/company/candidates/1/preview
+[INFO] 2026-05-14 13:54:41,691 logging 30570 8331386496 [req_6fda32c10851] GET /api/v1/student/profile
+[WARNING] 2026-05-14 13:54:41,691 log 30570 8331386496 Forbidden: /api/v1/student/profile
+[INFO] 2026-05-14 13:54:41,844 logging 30570 8331386496 [req_675e8be13a19] GET /api/v1/company/dashboard
+[INFO] 2026-05-14 13:54:41,997 logging 30570 8331386496 [req_17dfbb95e548] GET /api/v1/company/dashboard
+[INFO] 2026-05-14 13:54:42,145 logging 30570 8331386496 [req_e6f9db86fddb] GET /api/v1/company/messages/contacts
+[INFO] 2026-05-14 13:54:42,294 logging 30570 8331386496 [req_e319a2734315] GET /api/v1/company/messages/contacts
+[INFO] 2026-05-14 13:54:42,445 logging 30570 8331386496 [req_84052522612e] GET /api/v1/company/messages
+[INFO] 2026-05-14 13:54:42,520 logging 30570 8331386496 [req_bbc89cde1d2a] GET /api/v1/company/profile
+[INFO] 2026-05-14 13:54:42,593 logging 30570 8331386496 [req_6851b4fec9d8] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:54:42,606 logging 30570 8331386496 [req_0572fe0927fa] PUT /api/v1/company/profile
+[INFO] 2026-05-14 13:54:42,607 logging 30570 8331386496 [req_6e2fa63e5766] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:54:42,681 logging 30570 8331386496 [req_95b23d234e05] POST /api/v1/auth/signup
+[INFO] 2026-05-14 13:54:42,682 logging 30570 8331386496 [req_7c8ccd09ff62] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:54:42,682 logging 30570 8331386496 [req_6728e8448220] POST /api/v1/auth/signup
+[WARNING] 2026-05-14 13:54:42,682 log 30570 8331386496 Bad Request: /api/v1/auth/signup
+[INFO] 2026-05-14 13:54:42,757 logging 30570 8331386496 [req_b99e321c6879] GET /api/v1/company/courses
+[INFO] 2026-05-14 13:54:42,831 logging 30570 8331386496 [req_89b9dd1f33dd] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:54:42,832 logging 30570 8331386496 [req_f3cb47f56de9] POST /api/v1/company/courses
+[INFO] 2026-05-14 13:54:42,833 logging 30570 8331386496 [req_e8071575a2a8] PUT /api/v1/company/courses/1
+[INFO] 2026-05-14 13:54:42,834 logging 30570 8331386496 [req_1de6a603148e] DELETE /api/v1/company/courses/1
+[INFO] 2026-05-14 13:54:42,908 logging 30570 8331386496 [req_4619b7e8606f] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:54:42,910 logging 30570 8331386496 [req_b28e89325419] POST /api/v1/company/courses/1/lessons
+[INFO] 2026-05-14 13:54:42,911 logging 30570 8331386496 [req_575cf508af47] PUT /api/v1/company/lessons/1
+[INFO] 2026-05-14 13:54:42,913 logging 30570 8331386496 [req_f27da38cfe16] GET /api/v1/company/courses/1/lessons
+[INFO] 2026-05-14 13:54:42,914 logging 30570 8331386496 [req_03e72c375414] DELETE /api/v1/company/lessons/1
+[INFO] 2026-05-14 13:54:42,988 logging 30570 8331386496 [req_db6eb3fd765d] GET /api/v1/admin/courses
+[WARNING] 2026-05-14 13:54:42,988 log 30570 8331386496 Forbidden: /api/v1/admin/courses
+[INFO] 2026-05-14 13:54:43,064 logging 30570 8331386496 [req_72dccfe4cfc0] GET /api/v1/admin/exams
+[WARNING] 2026-05-14 13:54:43,064 log 30570 8331386496 Forbidden: /api/v1/admin/exams
+[INFO] 2026-05-14 13:54:43,138 logging 30570 8331386496 [req_65e4df7f287e] GET /api/v1/student/courses
+[WARNING] 2026-05-14 13:54:43,138 log 30570 8331386496 Forbidden: /api/v1/student/courses
+[INFO] 2026-05-14 13:54:43,212 logging 30570 8331386496 [req_ac14894266a2] GET /api/v1/student/jobs
+[WARNING] 2026-05-14 13:54:43,213 log 30570 8331386496 Forbidden: /api/v1/student/jobs
+[INFO] 2026-05-14 13:54:43,287 logging 30570 8331386496 [req_9223037aa512] GET /api/v1/student/messages
+[WARNING] 2026-05-14 13:54:43,287 log 30570 8331386496 Forbidden: /api/v1/student/messages
+[INFO] 2026-05-14 13:54:43,361 logging 30570 8331386496 [req_6b6cc0c672a0] GET /api/v1/student/skills
+[WARNING] 2026-05-14 13:54:43,361 log 30570 8331386496 Forbidden: /api/v1/student/skills
+[INFO] 2026-05-14 13:54:43,435 logging 30570 8331386496 [req_ef24a009c5d9] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:54:43,437 logging 30570 8331386496 [req_472e1c79e677] POST /api/v1/student/courses/1/enrollment
+[WARNING] 2026-05-14 13:54:43,437 log 30570 8331386496 Forbidden: /api/v1/student/courses/1/enrollment
+[INFO] 2026-05-14 13:54:43,512 logging 30570 8331386496 [req_316be63c39ff] GET /api/v1/student/exams/1
+[WARNING] 2026-05-14 13:54:43,512 log 30570 8331386496 Forbidden: /api/v1/student/exams/1
+[INFO] 2026-05-14 13:54:43,735 logging 30570 8331386496 [req_a0b9886a93c6] GET /api/v1/company/vacancies
+[INFO] 2026-05-14 13:54:44,046 logging 30570 8331386496 [req_9984d50cda14] GET /api/v1/company/vacancies/1/matches
+[INFO] 2026-05-14 13:54:44,053 logging 30570 8331386496 [req_3614b5c52519] GET /api/v1/company/candidates
+[INFO] 2026-05-14 13:54:44,127 logging 30570 8331386496 [req_007eb229dfa6] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:54:44,131 logging 30570 8331386496 [req_fb867145bbe4] POST /api/v1/company/vacancies
+[INFO] 2026-05-14 13:54:44,134 logging 30570 8331386496 [req_16b56da2927a] PUT /api/v1/company/vacancies/1
+[INFO] 2026-05-14 13:54:44,136 logging 30570 8331386496 [req_909be5029682] GET /api/v1/company/vacancies
+[INFO] 2026-05-14 13:54:44,283 logging 30570 8331386496 [req_9bb284ad8a45] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:54:44,288 logging 30570 8331386496 [req_d5285b242c2b] POST /api/v1/interviews/1/complete
+[INFO] 2026-05-14 13:54:44,363 logging 30570 8331386496 [req_ed00506a2a3c] GET /api/v1/health
+[INFO] 2026-05-14 13:54:44,510 logging 30570 8331386496 [req_a720a9a4b16f] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:54:44,515 logging 30570 8331386496 [req_da4889533abf] POST /api/v1/interviews/1/cancel
+[INFO] 2026-05-14 13:54:44,663 logging 30570 8331386496 [req_abdd9c35a3e9] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:54:44,668 logging 30570 8331386496 [req_05bada8abfa0] POST /api/v1/interviews/1/reschedule
+[INFO] 2026-05-14 13:54:44,742 logging 30570 8331386496 [req_bdeaa5c8b45b] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:54:44,815 logging 30570 8331386496 [req_92c479e65a1f] POST /api/v1/auth/login
+[WARNING] 2026-05-14 13:54:44,815 log 30570 8331386496 Forbidden: /api/v1/auth/login
+[INFO] 2026-05-14 13:54:44,888 logging 30570 8331386496 [req_02bb8c63fd18] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:54:44,889 logging 30570 8331386496 [req_3016104d9df4] POST /api/v1/auth/login
+[WARNING] 2026-05-14 13:54:44,889 log 30570 8331386496 Bad Request: /api/v1/auth/login
+[INFO] 2026-05-14 13:54:44,962 logging 30570 8331386496 [req_27718350c0d4] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:54:45,035 logging 30570 8331386496 [req_7e680d4b90d4] POST /api/v1/auth/login
+[WARNING] 2026-05-14 13:54:45,036 log 30570 8331386496 Unauthorized: /api/v1/auth/login
+[WARNING] 2026-05-14 13:54:45,110 log 30570 8331386496 Forbidden (CSRF cookie not set.): /api/v1/auth/logout
+[INFO] 2026-05-14 13:54:45,110 logging 30570 8331386496 [req_542b0e999ef6] POST /api/v1/auth/logout
+[INFO] 2026-05-14 13:54:45,183 logging 30570 8331386496 [req_97dcb157cf68] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:54:45,185 logging 30570 8331386496 [req_22b00216ef2c] POST /api/v1/notifications/read-all
+[INFO] 2026-05-14 13:54:45,332 logging 30570 8331386496 [req_85e6c496a22f] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:54:45,334 logging 30570 8331386496 [req_5e818476ac8c] POST /api/v1/company/candidates/1/interviews
+[WARNING] 2026-05-14 13:54:45,334 log 30570 8331386496 Bad Request: /api/v1/company/candidates/1/interviews
+[INFO] 2026-05-14 13:54:45,483 logging 30570 8331386496 [req_ea285a429536] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:54:45,488 logging 30570 8331386496 [req_ad5e10c47d53] PUT /api/v1/interviews/1/meeting-link
+[INFO] 2026-05-14 13:54:45,490 logging 30570 8331386496 [req_e175894349e8] PUT /api/v1/interviews/1/meeting-link
+[WARNING] 2026-05-14 13:54:45,490 log 30570 8331386496 Bad Request: /api/v1/interviews/1/meeting-link
+[INFO] 2026-05-14 13:54:45,638 logging 30570 8331386496 [req_98f1210f5be7] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:54:45,640 logging 30570 8331386496 [req_f0a8828d693f] PUT /api/v1/interviews/1/meeting-link
+[WARNING] 2026-05-14 13:54:45,640 log 30570 8331386496 Bad Request: /api/v1/interviews/1/meeting-link
+[INFO] 2026-05-14 13:54:45,714 logging 30570 8331386496 [req_80490499a18f] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:54:45,716 logging 30570 8331386496 [req_f509f92d6153] GET /api/v1/notifications
+[INFO] 2026-05-14 13:54:45,717 logging 30570 8331386496 [req_7ad5ee708959] POST /api/v1/notifications/1/read
+[INFO] 2026-05-14 13:54:45,864 logging 30570 8331386496 [req_7a2d96ea55be] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:54:45,866 logging 30570 8331386496 [req_177bf81c8dc4] POST /api/v1/interviews/1/complete
+[WARNING] 2026-05-14 13:54:45,866 log 30570 8331386496 Bad Request: /api/v1/interviews/1/complete
+[INFO] 2026-05-14 13:54:45,944 logging 30570 8331386496 [req_dfdf3defaea7] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:54:46,094 logging 30570 8331386496 [req_1ade0c7ec3d1] POST /api/v1/auth/password/change
+[INFO] 2026-05-14 13:54:46,391 logging 30570 8331386496 [req_6b793179f762] GET /api/v1/access/student
+[INFO] 2026-05-14 13:54:46,391 logging 30570 8331386496 [req_5567cc6e37eb] GET /api/v1/access/company
+[WARNING] 2026-05-14 13:54:46,391 log 30570 8331386496 Forbidden: /api/v1/access/company
+[INFO] 2026-05-14 13:54:46,393 logging 30570 8331386496 [req_a0a4432d0859] GET /api/v1/access/company
+[INFO] 2026-05-14 13:54:46,394 logging 30570 8331386496 [req_9b050b11ba22] GET /api/v1/access/admin
+[WARNING] 2026-05-14 13:54:46,394 log 30570 8331386496 Forbidden: /api/v1/access/admin
+[INFO] 2026-05-14 13:54:46,395 logging 30570 8331386496 [req_02c03273e3d1] GET /api/v1/access/admin
+[INFO] 2026-05-14 13:54:46,396 logging 30570 8331386496 [req_1dc2473387d7] GET /api/v1/auth/session
+[INFO] 2026-05-14 13:54:46,396 logging 30570 8331386496 [req_16660b2bddd5] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:54:46,396 logging 30570 8331386496 [req_0c48f2591478] POST /api/v1/auth/signup
+[WARNING] 2026-05-14 13:54:46,396 log 30570 8331386496 Bad Request: /api/v1/auth/signup
+[INFO] 2026-05-14 13:54:46,551 logging 30570 8331386496 [req_87750f56c2d2] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:54:46,556 logging 30570 8331386496 [req_5d2ca3888dc1] POST /api/v1/interviews/1/availability
+[INFO] 2026-05-14 13:54:46,556 logging 30570 8331386496 [req_aef4af30fc16] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:54:46,561 logging 30570 8331386496 [req_2d31dcf82178] POST /api/v1/interviews/1/availability
+[INFO] 2026-05-14 13:54:46,709 logging 30570 8331386496 [req_efff0b52d379] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:54:46,712 logging 30570 8331386496 [req_933d06e0d767] POST /api/v1/student/applications
+[WARNING] 2026-05-14 13:54:46,712 log 30570 8331386496 Bad Request: /api/v1/student/applications
+[INFO] 2026-05-14 13:54:46,860 logging 30570 8331386496 [req_281ed0b45d34] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:54:46,865 logging 30570 8331386496 [req_2ae82938f7b8] POST /api/v1/student/applications
+[INFO] 2026-05-14 13:54:46,867 logging 30570 8331386496 [req_8850b5b9264f] GET /api/v1/student/applications
+[INFO] 2026-05-14 13:54:46,942 logging 30570 8331386496 [req_37580d21deba] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:54:46,946 logging 30570 8331386496 [req_8c402214c675] POST /api/v1/student/messages/threads
+[INFO] 2026-05-14 13:54:47,095 logging 30570 8331386496 [req_edc98a342a9b] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:54:47,100 logging 30570 8331386496 [req_458960e538d4] POST /api/v1/student/messages/threads
+[INFO] 2026-05-14 13:54:47,174 logging 30570 8331386496 [req_fc3d81a1276e] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:54:47,178 logging 30570 8331386496 [req_193e2008ea50] POST /api/v1/student/profile/education
+[INFO] 2026-05-14 13:54:47,181 logging 30570 8331386496 [req_b0cff6fc20fd] PUT /api/v1/student/profile/education/1
+[INFO] 2026-05-14 13:54:47,183 logging 30570 8331386496 [req_fcb2d82dfaf7] DELETE /api/v1/student/profile/education/1
+[INFO] 2026-05-14 13:54:47,258 logging 30570 8331386496 [req_7347744c67d0] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:54:47,260 logging 30570 8331386496 [req_ab4b219ea0b4] DELETE /api/v1/student/messages/threads/1
+[INFO] 2026-05-14 13:54:47,410 logging 30570 8331386496 [req_8dcda88ed574] GET /api/v1/student/interviews
+[INFO] 2026-05-14 13:54:47,412 logging 30570 8331386496 [req_0d4390b5dfd1] GET /api/v1/interviews/1
+[INFO] 2026-05-14 13:54:47,486 logging 30570 8331386496 [req_7d9cf73ecde2] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:54:47,490 logging 30570 8331386496 [req_6d3bcea68cb5] GET /api/v1/student/exams/1
+[INFO] 2026-05-14 13:54:47,496 logging 30570 8331386496 [req_641a07c2caf3] POST /api/v1/student/exams/1/submit
+[INFO] 2026-05-14 13:54:47,571 logging 30570 8331386496 [req_89c63bc7d205] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:54:47,574 logging 30570 8331386496 [req_2abe6a256398] POST /api/v1/student/profile/certificates
+[INFO] 2026-05-14 13:54:47,577 logging 30570 8331386496 [req_110e04064009] PUT /api/v1/student/profile/certificates/1
+[INFO] 2026-05-14 13:54:47,579 logging 30570 8331386496 [req_9300cc1116cf] DELETE /api/v1/student/profile/certificates/1
+[INFO] 2026-05-14 13:54:47,653 logging 30570 8331386496 [req_51bda62e36d7] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:54:47,657 logging 30570 8331386496 [req_1ddc9c21c281] POST /api/v1/student/profile/experience
+[INFO] 2026-05-14 13:54:47,659 logging 30570 8331386496 [req_7b6fb0f769a4] PUT /api/v1/student/profile/availability
+[INFO] 2026-05-14 13:54:47,807 logging 30570 8331386496 [req_ac6c9211cd15] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:54:47,811 logging 30570 8331386496 [req_6a76f19a467c] PUT /api/v1/student/messages/threads/1
+[INFO] 2026-05-14 13:54:47,814 logging 30570 8331386496 [req_4df80159c804] POST /api/v1/student/messages/threads/1/messages
+[INFO] 2026-05-14 13:54:47,888 logging 30570 8331386496 [req_a4cd69a43e1e] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:54:47,892 logging 30570 8331386496 [req_96e8b092d8c1] GET /api/v1/student/mock-exams/1
+[INFO] 2026-05-14 13:54:47,895 logging 30570 8331386496 [req_c2e0925f5c0e] POST /api/v1/student/mock-exams/1/submit
+[INFO] 2026-05-14 13:54:47,970 logging 30570 8331386496 [req_953c6f9c915f] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:54:47,973 logging 30570 8331386496 [req_3267a53bd89e] POST /api/v1/student/practice-questions/1/attempt
+[INFO] 2026-05-14 13:54:48,048 logging 30570 8331386496 [req_5baae1f1dffb] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:54:48,054 logging 30570 8331386496 [req_117d141c6782] PUT /api/v1/student/courses/1/lessons/1/progress
+[INFO] 2026-05-14 13:54:48,059 logging 30570 8331386496 [req_8f06f749772a] PUT /api/v1/student/courses/1/lessons/1/progress
+[INFO] 2026-05-14 13:54:48,064 logging 30570 8331386496 [req_019a92adb93c] PUT /api/v1/student/courses/1/lessons/2/progress
+[INFO] 2026-05-14 13:54:48,212 logging 30570 8331386496 [req_6085917ba857] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:54:48,217 logging 30570 8331386496 [req_f1021ec250b0] POST /api/v1/student/applications/1/withdraw
+[INFO] 2026-05-14 13:54:48,293 logging 30570 8331386496 [req_1084cabe6074] GET /api/v1/company/profile
+[WARNING] 2026-05-14 13:54:48,293 log 30570 8331386496 Forbidden: /api/v1/company/profile
+[INFO] 2026-05-14 13:54:48,442 logging 30570 8331386496 [req_d4a020face8a] GET /api/v1/student/courses/1
+[INFO] 2026-05-14 13:54:48,519 logging 30570 8331386496 [req_1d0bf2495970] GET /api/v1/student/courses/1
+[INFO] 2026-05-14 13:54:48,520 logging 30570 8331386496 [req_c6bd0c1e5f1a] GET /api/v1/student/courses/2
+[WARNING] 2026-05-14 13:54:48,520 log 30570 8331386496 Not Found: /api/v1/student/courses/2
+[INFO] 2026-05-14 13:54:48,608 logging 30570 8331386496 [req_6a9f34f0c970] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:54:48,616 logging 30570 8331386496 [req_f54993ece2c1] POST /api/v1/student/courses/1/enrollment
+[INFO] 2026-05-14 13:54:48,619 logging 30570 8331386496 [req_be73ef718d4d] POST /api/v1/student/courses/1/enrollment
+[INFO] 2026-05-14 13:54:48,696 logging 30570 8331386496 [req_3aa5edf3801d] GET /api/v1/student/courses
+[INFO] 2026-05-14 13:54:48,774 logging 30570 8331386496 [req_4c9d8a9947e3] GET /api/v1/student/dashboard
+[INFO] 2026-05-14 13:54:48,852 logging 30570 8331386496 [req_33e8acbefe7f] GET /api/v1/student/exam-results
+[INFO] 2026-05-14 13:54:48,929 logging 30570 8331386496 [req_902d8af971ce] GET /api/v1/student/exams/1
+[WARNING] 2026-05-14 13:54:48,929 log 30570 8331386496 Forbidden: /api/v1/student/exams/1
+[INFO] 2026-05-14 13:54:49,151 logging 30570 8331386496 [req_37f641f8377d] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:54:49,156 logging 30570 8331386496 [req_7b21b6148e45] GET /api/v1/student/jobs
+[INFO] 2026-05-14 13:54:49,158 logging 30570 8331386496 [req_a0daf6a5159d] POST /api/v1/student/jobs/1/bookmark
+[INFO] 2026-05-14 13:54:49,159 logging 30570 8331386496 [req_ba75aa0fd9e1] POST /api/v1/student/jobs/3/bookmark
+[WARNING] 2026-05-14 13:54:49,159 log 30570 8331386496 Not Found: /api/v1/student/jobs/3/bookmark
+[INFO] 2026-05-14 13:54:49,162 logging 30570 8331386496 [req_dd64a59c1c92] GET /api/v1/student/jobs
+[INFO] 2026-05-14 13:54:49,163 logging 30570 8331386496 [req_6acae079a448] DELETE /api/v1/student/jobs/1/bookmark
+[INFO] 2026-05-14 13:54:49,388 logging 30570 8331386496 [req_e10c361eda7b] GET /api/v1/student/jobs
+[INFO] 2026-05-14 13:54:49,464 logging 30570 8331386496 [req_7aab75b68315] GET /api/v1/student/learning-summary
+[INFO] 2026-05-14 13:54:49,619 logging 30570 8331386496 [req_cfc9c0b29e8b] GET /api/v1/student/matches
+[INFO] 2026-05-14 13:54:49,769 logging 30570 8331386496 [req_8315e784de4e] GET /api/v1/student/messages/contacts
+[INFO] 2026-05-14 13:54:49,920 logging 30570 8331386496 [req_1964f2d9e5b3] GET /api/v1/student/messages
+[INFO] 2026-05-14 13:54:49,996 logging 30570 8331386496 [req_cc9cb6164099] GET /api/v1/student/courses/1/lessons/1
+[WARNING] 2026-05-14 13:54:49,996 log 30570 8331386496 Forbidden: /api/v1/student/courses/1/lessons/1
+[INFO] 2026-05-14 13:54:50,078 logging 30570 8331386496 [req_965aa6a19d17] GET /api/v1/student/preparation-summary
+[INFO] 2026-05-14 13:54:50,154 logging 30570 8331386496 [req_a00e7eb15c3f] GET /api/v1/student/privacy-settings
+[INFO] 2026-05-14 13:54:50,228 logging 30570 8331386496 [req_b34341b09891] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:54:50,231 logging 30570 8331386496 [req_5e4eef6ee304] PUT /api/v1/student/privacy-settings
+[INFO] 2026-05-14 13:54:50,309 logging 30570 8331386496 [req_14d19e68595b] GET /api/v1/student/profile
+[INFO] 2026-05-14 13:54:50,385 logging 30570 8331386496 [req_49fc8dbd9d32] GET /api/v1/student/profile
+[INFO] 2026-05-14 13:54:50,459 logging 30570 8331386496 [req_cdb77657e5a0] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:54:50,462 logging 30570 8331386496 [req_bd0bd6b7d206] PUT /api/v1/student/profile
+[INFO] 2026-05-14 13:54:50,536 logging 30570 8331386496 [req_d133518da18f] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:54:50,539 logging 30570 8331386496 [req_46693a4cb5ae] POST /api/v1/student/profile/resumes
+[INFO] 2026-05-14 13:54:50,541 logging 30570 8331386496 [req_05a2980102ee] POST /api/v1/student/profile/resumes
+[INFO] 2026-05-14 13:54:50,688 logging 30570 8331386496 [req_e289558f39ab] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:54:50,693 logging 30570 8331386496 [req_e41977cea2cc] POST /api/v1/student/messages/threads
+[INFO] 2026-05-14 13:54:50,694 logging 30570 8331386496 [req_b687cc7dde92] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:54:50,767 logging 30570 8331386496 [req_1e3dd39f8984] POST /api/v1/auth/signup
+[INFO] 2026-05-14 13:54:50,768 logging 30570 8331386496 [req_7c8f130ec25b] GET /api/v1/auth/session
+[INFO] 2026-05-14 13:54:50,842 logging 30570 8331386496 [req_513ca65ceebe] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:54:50,844 logging 30570 8331386496 [req_1dce6c968cc6] DELETE /api/v1/student/skills/1
+[INFO] 2026-05-14 13:54:50,920 logging 30570 8331386496 [req_4cfc1ce1e23d] GET /api/v1/student/skills
+[INFO] 2026-05-14 13:54:50,994 logging 30570 8331386496 [req_ca188b814cb0] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:54:50,996 logging 30570 8331386496 [req_9f8d1c6d847c] POST /api/v1/student/skills
+[INFO] 2026-05-14 13:54:51,070 logging 30570 8331386496 [req_69941209a4a0] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:54:51,073 logging 30570 8331386496 [req_9b212c24676f] PUT /api/v1/student/skills/1
+[INFO] 2026-05-14 13:54:51,147 logging 30570 8331386496 [req_bf2fa325c6e6] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:54:51,149 logging 30570 8331386496 [req_f1d485583495] POST /api/v1/student/skills
+[WARNING] 2026-05-14 13:54:51,149 log 30570 8331386496 Bad Request: /api/v1/student/skills
+[INFO] 2026-05-14 13:54:51,226 logging 30570 8331386496 [req_268b7c832530] GET /api/v1/admin/dashboard-data
+[INFO] 2026-05-14 13:54:51,374 logging 30570 8331386496 [req_be3668986222] GET /api/v1/admin/dashboard-data
+[WARNING] 2026-05-14 13:54:51,374 log 30570 8331386496 Forbidden: /api/v1/admin/dashboard-data
+[INFO] 2026-05-14 13:54:52,353 logging 30570 8331386496 [req_cd1895713325] GET /api/v1/company/dashboard-data
+[INFO] 2026-05-14 13:54:52,427 logging 30570 8331386496 [req_da668944fb25] GET /api/v1/company/dashboard-data
+[WARNING] 2026-05-14 13:54:52,427 log 30570 8331386496 Unauthorized: /api/v1/company/dashboard-data
+[INFO] 2026-05-14 13:54:52,505 logging 30570 8331386496 [req_8fb8d3646c32] GET /api/v1/company/dashboard-data/pipeline
+[INFO] 2026-05-14 13:54:52,583 logging 30570 8331386496 [req_244c1b47e269] GET /api/v1/student/dashboard-data/applications
+[INFO] 2026-05-14 13:54:52,660 logging 30570 8331386496 [req_f68d64e25d12] GET /api/v1/student/dashboard-data
+[INFO] 2026-05-14 13:54:52,734 logging 30570 8331386496 [req_a116e2b2572e] GET /api/v1/student/dashboard-data
+[WARNING] 2026-05-14 13:54:52,734 log 30570 8331386496 Unauthorized: /api/v1/student/dashboard-data
+[INFO] 2026-05-14 13:54:52,811 logging 30570 8331386496 [req_5efa51d88315] GET /api/v1/student/dashboard-data/learning
+[INFO] 2026-05-14 13:54:52,959 logging 30570 8331386496 [req_d3bb1326b072] GET /api/v1/notification-preferences
+[INFO] 2026-05-14 13:54:53,108 logging 30570 8331386496 [req_18de6266dd25] POST /api/v1/notifications/read-all
+[INFO] 2026-05-14 13:54:53,258 logging 30570 8331386496 [req_c4f2cbf192fd] POST /api/v1/notifications/1/read
+[INFO] 2026-05-14 13:54:53,408 logging 30570 8331386496 [req_d318a04f7fd7] GET /api/v1/notifications
+[INFO] 2026-05-14 13:54:53,557 logging 30570 8331386496 [req_21d1f1cfc42e] GET /api/v1/notifications
+[WARNING] 2026-05-14 13:54:53,557 log 30570 8331386496 Unauthorized: /api/v1/notifications
+[INFO] 2026-05-14 13:54:53,707 logging 30570 8331386496 [req_dbc7704be7df] PUT /api/v1/notification-preferences/update
+[INFO] 2026-05-14 13:55:05,450 autoreload 22765 8331386496 /Users/adhikarirabin/Desktop/softlearn-v2/backend/config/settings.py changed, reloading.
+[INFO] 2026-05-14 13:55:05,668 autoreload 30665 8331386496 Watching for file changes with StatReloader
+[WARNING] 2026-05-14 13:55:05,734 error_tracking 30665 6174552064 SENTRY_DSN not configured, error tracking disabled
+[WARNING] 2026-05-14 13:55:10,337 error_tracking 30672 8331386496 SENTRY_DSN not configured, error tracking disabled
+[INFO] 2026-05-14 13:55:10,342 logging 30672 8331386496 [req_dd0f6cfc4d01] POST /api/v1/practice-questions/1
+[INFO] 2026-05-14 13:55:10,562 logging 30672 8331386496 [req_9196157b3e7d] POST /api/v1/exam-categories
+[WARNING] 2026-05-14 13:55:10,565 log 30672 8331386496 Forbidden: /api/v1/exam-categories
+[INFO] 2026-05-14 13:55:10,639 logging 30672 8331386496 [req_c24666596014] POST /api/v1/exam-categories
+[INFO] 2026-05-14 13:55:10,859 logging 30672 8331386496 [req_5030008e9166] POST /api/v1/exams/1/mock-exams
+[INFO] 2026-05-14 13:55:11,085 logging 30672 8331386496 [req_82fbb9597945] POST /api/v1/exams/1/practice-questions
+[INFO] 2026-05-14 13:55:11,306 logging 30672 8331386496 [req_1e0b7f2c1bc3] DELETE /api/v1/exam-categories/2
+[INFO] 2026-05-14 13:55:11,454 logging 30672 8331386496 [req_a21661a0e760] GET /api/v1/exam-categories/1
+[INFO] 2026-05-14 13:55:11,601 logging 30672 8331386496 [req_2fd8861facc6] GET /api/v1/practice-questions/1
+[INFO] 2026-05-14 13:55:11,822 logging 30672 8331386496 [req_27eaa7615daf] GET /api/v1/student/performance
+[INFO] 2026-05-14 13:55:12,044 logging 30672 8331386496 [req_adda5001d86f] GET /api/v1/student/performance/1
+[INFO] 2026-05-14 13:55:12,272 logging 30672 8331386496 [req_9b7a708de4a7] GET /api/v1/study-plan
+[INFO] 2026-05-14 13:55:12,420 logging 30672 8331386496 [req_90ec4fcc3bab] GET /api/v1/exam-categories
+[INFO] 2026-05-14 13:55:12,567 logging 30672 8331386496 [req_35001f3e27b8] GET /api/v1/exams/1/mock-exams
+[INFO] 2026-05-14 13:55:12,714 logging 30672 8331386496 [req_e24e9fde7eab] GET /api/v1/exams/1/practice-questions
+[INFO] 2026-05-14 13:55:12,935 logging 30672 8331386496 [req_526343d83267] PUT /api/v1/exam-categories/1
+[INFO] 2026-05-14 13:55:13,229 logging 30672 8331386496 [req_398403e51faf] GET /api/v1/admin/export/users/
+[INFO] 2026-05-14 13:55:13,377 logging 30672 8331386496 [req_25ceaf4d3de6] GET /api/v1/admin/export/users/
+[WARNING] 2026-05-14 13:55:13,377 log 30672 8331386496 Forbidden: /api/v1/admin/export/users/
+[INFO] 2026-05-14 13:55:13,531 logging 30672 8331386496 [req_27ecc83f0c76] GET /api/v1/admin/scheduled-tasks/
+[INFO] 2026-05-14 13:55:14,639 logging 30672 8331386496 [req_b430e654fc31] GET /api/v1/student/data-access-log
+[INFO] 2026-05-14 13:55:15,084 logging 30672 8331386496 [req_2fc654edd77e] POST /api/v1/student/deletion-request
+[WARNING] 2026-05-14 13:55:15,084 log 30672 8331386496 Bad Request: /api/v1/student/deletion-request
+[INFO] 2026-05-14 13:55:15,232 logging 30672 8331386496 [req_5994af26e48d] POST /api/v1/student/deletion-request
+[INFO] 2026-05-14 13:55:15,380 logging 30672 8331386496 [req_31e31ac7d98e] GET /api/v1/student/deletion-status
+[INFO] 2026-05-14 13:55:15,674 logging 30672 8331386496 [req_47811aa67d1e] POST /api/v1/student/data-export-request
+[INFO] 2026-05-14 13:55:15,822 logging 30672 8331386496 [req_56ba62a8e8d1] GET /api/v1/student/data-export/1
+[INFO] 2026-05-14 13:55:17,432 logging 30672 8331386496 [req_30a1f2d99289] GET /api/v1/student/consent
+[INFO] 2026-05-14 13:55:17,581 logging 30672 8331386496 [req_8854a01726e8] PUT /api/v1/student/consent
+[INFO] 2026-05-14 13:55:17,950 logging 30672 8331386496 [req_7b19a29995ef] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:55:18,026 logging 30672 8331386496 [req_645c5f42a972] POST /api/v1/admin/users
+[INFO] 2026-05-14 13:55:18,028 logging 30672 8331386496 [req_5a41b3c88abf] GET /api/v1/admin/users
+[INFO] 2026-05-14 13:55:18,102 logging 30672 8331386496 [req_11dbf07f608f] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:55:18,104 logging 30672 8331386496 [req_2b090c851a19] POST /api/v1/admin/companies
+[INFO] 2026-05-14 13:55:18,178 logging 30672 8331386496 [req_61ecf65d4166] GET /api/v1/admin/companies
+[INFO] 2026-05-14 13:55:18,179 logging 30672 8331386496 [req_73d2992342f6] GET /api/v1/admin/companies/1
+[INFO] 2026-05-14 13:55:18,181 logging 30672 8331386496 [req_af76cbc1fb0a] PUT /api/v1/admin/companies/1
+[INFO] 2026-05-14 13:55:18,182 logging 30672 8331386496 [req_9b1fa5decaaf] DELETE /api/v1/admin/companies/1
+[INFO] 2026-05-14 13:55:18,255 logging 30672 8331386496 [req_13a30609a62c] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:55:18,257 logging 30672 8331386496 [req_038966668b13] POST /api/v1/admin/courses
+[INFO] 2026-05-14 13:55:18,258 logging 30672 8331386496 [req_e6a494d3b7d3] PUT /api/v1/admin/courses/1
+[INFO] 2026-05-14 13:55:18,259 logging 30672 8331386496 [req_59f6ca8e3a13] DELETE /api/v1/admin/courses/1
+[INFO] 2026-05-14 13:55:18,333 logging 30672 8331386496 [req_8d690fdcebea] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:55:18,334 logging 30672 8331386496 [req_a46ed61d1ff8] POST /api/v1/admin/exams
+[INFO] 2026-05-14 13:55:18,335 logging 30672 8331386496 [req_83cc408b7c95] PUT /api/v1/admin/exams/1
+[INFO] 2026-05-14 13:55:18,336 logging 30672 8331386496 [req_1d543bdbe07c] DELETE /api/v1/admin/exams/1
+[INFO] 2026-05-14 13:55:18,410 logging 30672 8331386496 [req_5bf7d7bde37c] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:55:18,412 logging 30672 8331386496 [req_8d3042be14e2] POST /api/v1/admin/courses/1/lessons
+[INFO] 2026-05-14 13:55:18,414 logging 30672 8331386496 [req_ad9f64782307] PUT /api/v1/admin/lessons/1
+[INFO] 2026-05-14 13:55:18,415 logging 30672 8331386496 [req_0e8381c5c6af] DELETE /api/v1/admin/lessons/1
+[INFO] 2026-05-14 13:55:18,635 logging 30672 8331386496 [req_180724219b30] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:55:18,638 logging 30672 8331386496 [req_e03e9169ac99] POST /api/v1/admin/vacancies
+[INFO] 2026-05-14 13:55:18,641 logging 30672 8331386496 [req_f10c953797a6] PUT /api/v1/admin/vacancies/1
+[INFO] 2026-05-14 13:55:18,642 logging 30672 8331386496 [req_f8c1c93ccb98] DELETE /api/v1/admin/vacancies/1
+[INFO] 2026-05-14 13:55:18,716 logging 30672 8331386496 [req_949e7393560f] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:55:18,719 logging 30672 8331386496 [req_65c7d861a713] POST /api/v1/admin/exams/1/questions
+[INFO] 2026-05-14 13:55:18,720 logging 30672 8331386496 [req_fe190f1aca92] POST /api/v1/admin/questions/1/options
+[INFO] 2026-05-14 13:55:18,722 logging 30672 8331386496 [req_b9de9260a30e] PUT /api/v1/admin/options/1
+[INFO] 2026-05-14 13:55:18,868 logging 30672 8331386496 [req_b85b420a951a] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:55:18,870 logging 30672 8331386496 [req_09840dfb9a0a] PUT /api/v1/admin/users/2
+[INFO] 2026-05-14 13:55:19,020 logging 30672 8331386496 [req_07e47fd1ff34] GET /api/v1/admin/vacancies
+[INFO] 2026-05-14 13:55:19,094 logging 30672 8331386496 [req_94b62a5c8154] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:55:19,096 logging 30672 8331386496 [req_7949b6cd2a3f] PUT /api/v1/admin/users/1
+[WARNING] 2026-05-14 13:55:19,096 log 30672 8331386496 Bad Request: /api/v1/admin/users/1
+[INFO] 2026-05-14 13:55:19,319 logging 30672 8331386496 [req_4bbbca275589] GET /api/v1/admin/dashboard
+[INFO] 2026-05-14 13:55:19,466 logging 30672 8331386496 [req_064e6fa5cdbd] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:55:19,467 logging 30672 8331386496 [req_319dc1f5a6c6] POST /api/v1/admin/vacancies
+[WARNING] 2026-05-14 13:55:19,468 log 30672 8331386496 Bad Request: /api/v1/admin/vacancies
+[INFO] 2026-05-14 13:55:19,614 logging 30672 8331386496 [req_bd3deb843b96] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:55:19,620 logging 30672 8331386496 [req_7fdb0e035386] POST /api/v1/company/interviews/1/confirm
+[INFO] 2026-05-14 13:55:19,768 logging 30672 8331386496 [req_70a85130a138] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:55:19,773 logging 30672 8331386496 [req_9d3e0577e15d] POST /api/v1/company/messages/threads
+[INFO] 2026-05-14 13:55:19,776 logging 30672 8331386496 [req_d235fca096ab] PUT /api/v1/company/messages/threads/1
+[INFO] 2026-05-14 13:55:19,778 logging 30672 8331386496 [req_50f3fe64884b] POST /api/v1/company/messages/threads/1/messages
+[INFO] 2026-05-14 13:55:19,926 logging 30672 8331386496 [req_db5b73432461] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:55:19,930 logging 30672 8331386496 [req_50c618eabef8] POST /api/v1/company/messages/threads
+[INFO] 2026-05-14 13:55:20,004 logging 30672 8331386496 [req_134d5934f3b6] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:55:20,006 logging 30672 8331386496 [req_c9d580321927] POST /api/v1/company/vacancies
+[INFO] 2026-05-14 13:55:20,008 logging 30672 8331386496 [req_41466f674502] PUT /api/v1/company/vacancies/1
+[INFO] 2026-05-14 13:55:20,010 logging 30672 8331386496 [req_b489d8d72c8f] DELETE /api/v1/company/vacancies/1
+[INFO] 2026-05-14 13:55:20,158 logging 30672 8331386496 [req_2f7a0f7e6cb6] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:55:20,163 logging 30672 8331386496 [req_f9a031c5b99c] POST /api/v1/company/applications/1/reject
+[INFO] 2026-05-14 13:55:20,314 logging 30672 8331386496 [req_866c2bdf3813] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:55:20,319 logging 30672 8331386496 [req_e9ec777d100d] POST /api/v1/company/candidates/1/interviews
+[INFO] 2026-05-14 13:55:20,467 logging 30672 8331386496 [req_83feadcc441f] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:55:20,473 logging 30672 8331386496 [req_a8555db49431] POST /api/v1/company/candidates/1/interviews
+[INFO] 2026-05-14 13:55:20,475 logging 30672 8331386496 [req_b2d3b3d8a718] GET /api/v1/student/interviews
+[INFO] 2026-05-14 13:55:20,623 logging 30672 8331386496 [req_15d16bfd0b8e] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:55:20,626 logging 30672 8331386496 [req_ab23344ebe31] GET /api/v1/company/applications
+[INFO] 2026-05-14 13:55:20,631 logging 30672 8331386496 [req_d3a939c90ebb] POST /api/v1/company/applications/1/shortlist
+[INFO] 2026-05-14 13:55:20,780 logging 30672 8331386496 [req_6074896a8983] GET /api/v1/company/candidates/1/exam-results
+[INFO] 2026-05-14 13:55:20,782 logging 30672 8331386496 [req_bbf75ad29b8e] GET /api/v1/company/candidates/1/exam-results
+[INFO] 2026-05-14 13:55:20,931 logging 30672 8331386496 [req_7ccdd9e86503] GET /api/v1/company/candidates/1/learning-record
+[INFO] 2026-05-14 13:55:21,079 logging 30672 8331386496 [req_4b3b5751957f] GET /api/v1/company/candidates/1/notes
+[WARNING] 2026-05-14 13:55:21,079 log 30672 8331386496 Forbidden: /api/v1/company/candidates/1/notes
+[INFO] 2026-05-14 13:55:21,079 logging 30672 8331386496 [req_ad4f0ca09e36] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:55:21,082 logging 30672 8331386496 [req_8be5d3146216] POST /api/v1/company/candidates/1/notes
+[INFO] 2026-05-14 13:55:21,083 logging 30672 8331386496 [req_86cb10ac5d94] GET /api/v1/company/candidates/1/notes
+[INFO] 2026-05-14 13:55:21,236 logging 30672 8331386496 [req_3349e9267204] GET /api/v1/company/candidates/1/preview
+[INFO] 2026-05-14 13:55:21,385 logging 30672 8331386496 [req_55c8786c4b81] GET /api/v1/company/candidates/1/preview
+[INFO] 2026-05-14 13:55:21,532 logging 30672 8331386496 [req_4111d754165c] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:55:21,535 logging 30672 8331386496 [req_8457ec941a48] POST /api/v1/company/candidates/1/shortlist
+[INFO] 2026-05-14 13:55:21,536 logging 30672 8331386496 [req_6a6525a3ba0d] GET /api/v1/company/shortlist
+[INFO] 2026-05-14 13:55:21,537 logging 30672 8331386496 [req_0efaa399feb8] DELETE /api/v1/company/candidates/1/shortlist
+[INFO] 2026-05-14 13:55:21,687 logging 30672 8331386496 [req_b66153f163ef] GET /api/v1/company/candidates
+[INFO] 2026-05-14 13:55:21,838 logging 30672 8331386496 [req_32efb2e97b8f] GET /api/v1/company/candidates
+[INFO] 2026-05-14 13:55:21,986 logging 30672 8331386496 [req_37c14990407f] GET /api/v1/company/candidates/1/preview
+[WARNING] 2026-05-14 13:55:21,986 log 30672 8331386496 Bad Request: /api/v1/company/candidates/1/preview
+[INFO] 2026-05-14 13:55:22,061 logging 30672 8331386496 [req_a0db814ee1e0] GET /api/v1/student/profile
+[WARNING] 2026-05-14 13:55:22,061 log 30672 8331386496 Forbidden: /api/v1/student/profile
+[INFO] 2026-05-14 13:55:22,214 logging 30672 8331386496 [req_5b787bd4140f] GET /api/v1/company/dashboard
+[INFO] 2026-05-14 13:55:22,367 logging 30672 8331386496 [req_b3971b6bf3e7] GET /api/v1/company/dashboard
+[INFO] 2026-05-14 13:55:22,515 logging 30672 8331386496 [req_61a1718e7e55] GET /api/v1/company/messages/contacts
+[INFO] 2026-05-14 13:55:22,664 logging 30672 8331386496 [req_d15364b4e8bb] GET /api/v1/company/messages/contacts
+[INFO] 2026-05-14 13:55:22,814 logging 30672 8331386496 [req_285b780f4538] GET /api/v1/company/messages
+[INFO] 2026-05-14 13:55:22,893 logging 30672 8331386496 [req_b37333859b70] GET /api/v1/company/profile
+[INFO] 2026-05-14 13:55:22,967 logging 30672 8331386496 [req_c4b374797d37] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:55:22,980 logging 30672 8331386496 [req_d0fecce1ee69] PUT /api/v1/company/profile
+[INFO] 2026-05-14 13:55:22,981 logging 30672 8331386496 [req_4c5ae69e9102] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:55:23,054 logging 30672 8331386496 [req_e68c839df0ea] POST /api/v1/auth/signup
+[INFO] 2026-05-14 13:55:23,055 logging 30672 8331386496 [req_34ba33c34ede] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:55:23,056 logging 30672 8331386496 [req_2ff2b096b319] POST /api/v1/auth/signup
+[WARNING] 2026-05-14 13:55:23,056 log 30672 8331386496 Bad Request: /api/v1/auth/signup
+[INFO] 2026-05-14 13:55:23,131 logging 30672 8331386496 [req_8ab0eb31eb93] GET /api/v1/company/courses
+[INFO] 2026-05-14 13:55:23,204 logging 30672 8331386496 [req_1f17cf96e388] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:55:23,206 logging 30672 8331386496 [req_89b936adaa7a] POST /api/v1/company/courses
+[INFO] 2026-05-14 13:55:23,207 logging 30672 8331386496 [req_b1f2b3222acb] PUT /api/v1/company/courses/1
+[INFO] 2026-05-14 13:55:23,208 logging 30672 8331386496 [req_e105ca4f0d93] DELETE /api/v1/company/courses/1
+[INFO] 2026-05-14 13:55:23,282 logging 30672 8331386496 [req_6841fb521516] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:55:23,284 logging 30672 8331386496 [req_b432b9fba5bc] POST /api/v1/company/courses/1/lessons
+[INFO] 2026-05-14 13:55:23,286 logging 30672 8331386496 [req_2b50755f56d7] PUT /api/v1/company/lessons/1
+[INFO] 2026-05-14 13:55:23,287 logging 30672 8331386496 [req_dca6b2bad4c1] GET /api/v1/company/courses/1/lessons
+[INFO] 2026-05-14 13:55:23,288 logging 30672 8331386496 [req_8f51c71c326d] DELETE /api/v1/company/lessons/1
+[INFO] 2026-05-14 13:55:23,367 logging 30672 8331386496 [req_794d2b2f69f4] GET /api/v1/admin/courses
+[WARNING] 2026-05-14 13:55:23,367 log 30672 8331386496 Forbidden: /api/v1/admin/courses
+[INFO] 2026-05-14 13:55:23,444 logging 30672 8331386496 [req_649619f70ac4] GET /api/v1/admin/exams
+[WARNING] 2026-05-14 13:55:23,444 log 30672 8331386496 Forbidden: /api/v1/admin/exams
+[INFO] 2026-05-14 13:55:23,520 logging 30672 8331386496 [req_110051b0584d] GET /api/v1/student/courses
+[WARNING] 2026-05-14 13:55:23,520 log 30672 8331386496 Forbidden: /api/v1/student/courses
+[INFO] 2026-05-14 13:55:23,595 logging 30672 8331386496 [req_c6e00405c806] GET /api/v1/student/jobs
+[WARNING] 2026-05-14 13:55:23,596 log 30672 8331386496 Forbidden: /api/v1/student/jobs
+[INFO] 2026-05-14 13:55:23,672 logging 30672 8331386496 [req_0f46f61d8a08] GET /api/v1/student/messages
+[WARNING] 2026-05-14 13:55:23,672 log 30672 8331386496 Forbidden: /api/v1/student/messages
+[INFO] 2026-05-14 13:55:23,748 logging 30672 8331386496 [req_7266382207a5] GET /api/v1/student/skills
+[WARNING] 2026-05-14 13:55:23,748 log 30672 8331386496 Forbidden: /api/v1/student/skills
+[INFO] 2026-05-14 13:55:23,824 logging 30672 8331386496 [req_2d193004d217] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:55:23,825 logging 30672 8331386496 [req_064ee6e0e850] POST /api/v1/student/courses/1/enrollment
+[WARNING] 2026-05-14 13:55:23,825 log 30672 8331386496 Forbidden: /api/v1/student/courses/1/enrollment
+[INFO] 2026-05-14 13:55:23,902 logging 30672 8331386496 [req_6c4a19f19648] GET /api/v1/student/exams/1
+[WARNING] 2026-05-14 13:55:23,902 log 30672 8331386496 Forbidden: /api/v1/student/exams/1
+[INFO] 2026-05-14 13:55:24,125 logging 30672 8331386496 [req_163e4a3c7802] GET /api/v1/company/vacancies
+[INFO] 2026-05-14 13:55:24,434 logging 30672 8331386496 [req_dbd1cbf1fded] GET /api/v1/company/vacancies/1/matches
+[INFO] 2026-05-14 13:55:24,442 logging 30672 8331386496 [req_5603fad50cea] GET /api/v1/company/candidates
+[INFO] 2026-05-14 13:55:24,517 logging 30672 8331386496 [req_b6ed5443428d] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:55:24,522 logging 30672 8331386496 [req_68c9d9ebb1af] POST /api/v1/company/vacancies
+[INFO] 2026-05-14 13:55:24,525 logging 30672 8331386496 [req_8b25315588a6] PUT /api/v1/company/vacancies/1
+[INFO] 2026-05-14 13:55:24,527 logging 30672 8331386496 [req_b2021aecefa8] GET /api/v1/company/vacancies
+[INFO] 2026-05-14 13:55:24,676 logging 30672 8331386496 [req_bb4fc8bbdc92] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:55:24,681 logging 30672 8331386496 [req_231f87edbe90] POST /api/v1/interviews/1/complete
+[INFO] 2026-05-14 13:55:24,757 logging 30672 8331386496 [req_cd9d30af7382] GET /api/v1/health
+[INFO] 2026-05-14 13:55:24,904 logging 30672 8331386496 [req_e426811f72d9] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:55:24,909 logging 30672 8331386496 [req_596204bd96d7] POST /api/v1/interviews/1/cancel
+[INFO] 2026-05-14 13:55:25,057 logging 30672 8331386496 [req_51f3fd2ed711] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:55:25,062 logging 30672 8331386496 [req_ff45c6024557] POST /api/v1/interviews/1/reschedule
+[INFO] 2026-05-14 13:55:25,136 logging 30672 8331386496 [req_2558d33d2006] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:55:25,209 logging 30672 8331386496 [req_0f323635b505] POST /api/v1/auth/login
+[WARNING] 2026-05-14 13:55:25,209 log 30672 8331386496 Forbidden: /api/v1/auth/login
+[INFO] 2026-05-14 13:55:25,283 logging 30672 8331386496 [req_081654c6112f] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:55:25,283 logging 30672 8331386496 [req_434b63dcc05d] POST /api/v1/auth/login
+[WARNING] 2026-05-14 13:55:25,283 log 30672 8331386496 Bad Request: /api/v1/auth/login
+[INFO] 2026-05-14 13:55:25,356 logging 30672 8331386496 [req_ee85ec21a948] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:55:25,430 logging 30672 8331386496 [req_c4f9631920bc] POST /api/v1/auth/login
+[WARNING] 2026-05-14 13:55:25,430 log 30672 8331386496 Unauthorized: /api/v1/auth/login
+[WARNING] 2026-05-14 13:55:25,504 log 30672 8331386496 Forbidden (CSRF cookie not set.): /api/v1/auth/logout
+[INFO] 2026-05-14 13:55:25,504 logging 30672 8331386496 [req_dd317c722ba7] POST /api/v1/auth/logout
+[INFO] 2026-05-14 13:55:25,578 logging 30672 8331386496 [req_0364000536f2] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:55:25,580 logging 30672 8331386496 [req_56cd59548d72] POST /api/v1/notifications/read-all
+[INFO] 2026-05-14 13:55:25,732 logging 30672 8331386496 [req_994a71342100] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:55:25,735 logging 30672 8331386496 [req_06904671950c] POST /api/v1/company/candidates/1/interviews
+[WARNING] 2026-05-14 13:55:25,735 log 30672 8331386496 Bad Request: /api/v1/company/candidates/1/interviews
+[INFO] 2026-05-14 13:55:25,882 logging 30672 8331386496 [req_cd6a0833952a] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:55:25,886 logging 30672 8331386496 [req_9578ac791cc9] PUT /api/v1/interviews/1/meeting-link
+[INFO] 2026-05-14 13:55:25,888 logging 30672 8331386496 [req_14dd162ac4b6] PUT /api/v1/interviews/1/meeting-link
+[WARNING] 2026-05-14 13:55:25,888 log 30672 8331386496 Bad Request: /api/v1/interviews/1/meeting-link
+[INFO] 2026-05-14 13:55:26,034 logging 30672 8331386496 [req_a8262032a9bb] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:55:26,037 logging 30672 8331386496 [req_ff4affa68a09] PUT /api/v1/interviews/1/meeting-link
+[WARNING] 2026-05-14 13:55:26,037 log 30672 8331386496 Bad Request: /api/v1/interviews/1/meeting-link
+[INFO] 2026-05-14 13:55:26,110 logging 30672 8331386496 [req_737db597545b] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:55:26,113 logging 30672 8331386496 [req_b92959649e12] GET /api/v1/notifications
+[INFO] 2026-05-14 13:55:26,114 logging 30672 8331386496 [req_b5bff47e07e8] POST /api/v1/notifications/1/read
+[INFO] 2026-05-14 13:55:26,261 logging 30672 8331386496 [req_86f96df24f9a] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:55:26,263 logging 30672 8331386496 [req_91ce3d7bd3a6] POST /api/v1/interviews/1/complete
+[WARNING] 2026-05-14 13:55:26,263 log 30672 8331386496 Bad Request: /api/v1/interviews/1/complete
+[INFO] 2026-05-14 13:55:26,337 logging 30672 8331386496 [req_a3fa6e2c9e38] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:55:26,484 logging 30672 8331386496 [req_c23bf7a6e20c] POST /api/v1/auth/password/change
+[INFO] 2026-05-14 13:55:26,778 logging 30672 8331386496 [req_c1ff7832488e] GET /api/v1/access/student
+[INFO] 2026-05-14 13:55:26,779 logging 30672 8331386496 [req_4bd3fa15ab86] GET /api/v1/access/company
+[WARNING] 2026-05-14 13:55:26,779 log 30672 8331386496 Forbidden: /api/v1/access/company
+[INFO] 2026-05-14 13:55:26,780 logging 30672 8331386496 [req_7fe105b02715] GET /api/v1/access/company
+[INFO] 2026-05-14 13:55:26,781 logging 30672 8331386496 [req_254ed13d0ea8] GET /api/v1/access/admin
+[WARNING] 2026-05-14 13:55:26,781 log 30672 8331386496 Forbidden: /api/v1/access/admin
+[INFO] 2026-05-14 13:55:26,783 logging 30672 8331386496 [req_16d923155228] GET /api/v1/access/admin
+[INFO] 2026-05-14 13:55:26,783 logging 30672 8331386496 [req_574ed6338feb] GET /api/v1/auth/session
+[INFO] 2026-05-14 13:55:26,784 logging 30672 8331386496 [req_2719b67e4f31] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:55:26,784 logging 30672 8331386496 [req_c2e9fa5db8b2] POST /api/v1/auth/signup
+[WARNING] 2026-05-14 13:55:26,784 log 30672 8331386496 Bad Request: /api/v1/auth/signup
+[INFO] 2026-05-14 13:55:26,933 logging 30672 8331386496 [req_2827500a7628] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:55:26,937 logging 30672 8331386496 [req_9d0efe5baf74] POST /api/v1/interviews/1/availability
+[INFO] 2026-05-14 13:55:26,937 logging 30672 8331386496 [req_1d45480c0d42] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:55:26,942 logging 30672 8331386496 [req_b406662c0776] POST /api/v1/interviews/1/availability
+[INFO] 2026-05-14 13:55:27,089 logging 30672 8331386496 [req_8ef043a65ea7] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:55:27,092 logging 30672 8331386496 [req_2835833dab48] POST /api/v1/student/applications
+[WARNING] 2026-05-14 13:55:27,092 log 30672 8331386496 Bad Request: /api/v1/student/applications
+[INFO] 2026-05-14 13:55:27,239 logging 30672 8331386496 [req_a1a5218b8d2b] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:55:27,244 logging 30672 8331386496 [req_68e88384aacc] POST /api/v1/student/applications
+[INFO] 2026-05-14 13:55:27,245 logging 30672 8331386496 [req_f744f4068296] GET /api/v1/student/applications
+[INFO] 2026-05-14 13:55:27,319 logging 30672 8331386496 [req_adff210ef09f] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:55:27,323 logging 30672 8331386496 [req_feab3becc906] POST /api/v1/student/messages/threads
+[INFO] 2026-05-14 13:55:27,470 logging 30672 8331386496 [req_7b5088f325c5] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:55:27,475 logging 30672 8331386496 [req_2cf8278f707d] POST /api/v1/student/messages/threads
+[INFO] 2026-05-14 13:55:27,549 logging 30672 8331386496 [req_508c3baecd87] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:55:27,552 logging 30672 8331386496 [req_1fb4b9c6c42a] POST /api/v1/student/profile/education
+[INFO] 2026-05-14 13:55:27,555 logging 30672 8331386496 [req_f1fa519fa8f3] PUT /api/v1/student/profile/education/1
+[INFO] 2026-05-14 13:55:27,557 logging 30672 8331386496 [req_81dc370086ac] DELETE /api/v1/student/profile/education/1
+[INFO] 2026-05-14 13:55:27,631 logging 30672 8331386496 [req_90e4112f66da] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:55:27,633 logging 30672 8331386496 [req_fca64e39c78f] DELETE /api/v1/student/messages/threads/1
+[INFO] 2026-05-14 13:55:27,783 logging 30672 8331386496 [req_9795995eb61e] GET /api/v1/student/interviews
+[INFO] 2026-05-14 13:55:27,785 logging 30672 8331386496 [req_66351fedcded] GET /api/v1/interviews/1
+[INFO] 2026-05-14 13:55:27,859 logging 30672 8331386496 [req_dcca84c307c8] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:55:27,863 logging 30672 8331386496 [req_73ad0d99f972] GET /api/v1/student/exams/1
+[INFO] 2026-05-14 13:55:27,869 logging 30672 8331386496 [req_e3a1e2c0d783] POST /api/v1/student/exams/1/submit
+[INFO] 2026-05-14 13:55:27,943 logging 30672 8331386496 [req_06e859001cd4] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:55:27,946 logging 30672 8331386496 [req_e1a394af1543] POST /api/v1/student/profile/certificates
+[INFO] 2026-05-14 13:55:27,949 logging 30672 8331386496 [req_686d7011447f] PUT /api/v1/student/profile/certificates/1
+[INFO] 2026-05-14 13:55:27,951 logging 30672 8331386496 [req_9d5484edcea5] DELETE /api/v1/student/profile/certificates/1
+[INFO] 2026-05-14 13:55:28,025 logging 30672 8331386496 [req_657bf2101252] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:55:28,028 logging 30672 8331386496 [req_4cdd0dc26922] POST /api/v1/student/profile/experience
+[INFO] 2026-05-14 13:55:28,031 logging 30672 8331386496 [req_613d5e35dc5f] PUT /api/v1/student/profile/availability
+[INFO] 2026-05-14 13:55:28,181 logging 30672 8331386496 [req_baa2a92e73b8] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:55:28,185 logging 30672 8331386496 [req_941e05b59077] PUT /api/v1/student/messages/threads/1
+[INFO] 2026-05-14 13:55:28,189 logging 30672 8331386496 [req_c546d7565334] POST /api/v1/student/messages/threads/1/messages
+[INFO] 2026-05-14 13:55:28,264 logging 30672 8331386496 [req_072eff1ba43d] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:55:28,268 logging 30672 8331386496 [req_41e3143e0377] GET /api/v1/student/mock-exams/1
+[INFO] 2026-05-14 13:55:28,271 logging 30672 8331386496 [req_a652992495b3] POST /api/v1/student/mock-exams/1/submit
+[INFO] 2026-05-14 13:55:28,345 logging 30672 8331386496 [req_a88388dde084] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:55:28,349 logging 30672 8331386496 [req_22a3f454742b] POST /api/v1/student/practice-questions/1/attempt
+[INFO] 2026-05-14 13:55:28,423 logging 30672 8331386496 [req_28631ff174c1] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:55:28,429 logging 30672 8331386496 [req_0b8d36b6eaed] PUT /api/v1/student/courses/1/lessons/1/progress
+[INFO] 2026-05-14 13:55:28,434 logging 30672 8331386496 [req_438b7b62ac43] PUT /api/v1/student/courses/1/lessons/1/progress
+[INFO] 2026-05-14 13:55:28,438 logging 30672 8331386496 [req_c66648da72ad] PUT /api/v1/student/courses/1/lessons/2/progress
+[INFO] 2026-05-14 13:55:28,586 logging 30672 8331386496 [req_7d16fff8a37c] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:55:28,591 logging 30672 8331386496 [req_39400c045fe1] POST /api/v1/student/applications/1/withdraw
+[INFO] 2026-05-14 13:55:28,667 logging 30672 8331386496 [req_02dba8436dcb] GET /api/v1/company/profile
+[WARNING] 2026-05-14 13:55:28,667 log 30672 8331386496 Forbidden: /api/v1/company/profile
+[INFO] 2026-05-14 13:55:28,816 logging 30672 8331386496 [req_42fe01ba1861] GET /api/v1/student/courses/1
+[INFO] 2026-05-14 13:55:28,891 logging 30672 8331386496 [req_431426cf83c4] GET /api/v1/student/courses/1
+[INFO] 2026-05-14 13:55:28,891 logging 30672 8331386496 [req_737ba4198398] GET /api/v1/student/courses/2
+[WARNING] 2026-05-14 13:55:28,892 log 30672 8331386496 Not Found: /api/v1/student/courses/2
+[INFO] 2026-05-14 13:55:28,965 logging 30672 8331386496 [req_bcbf2551a534] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:55:28,969 logging 30672 8331386496 [req_a4ee0ba96314] POST /api/v1/student/courses/1/enrollment
+[INFO] 2026-05-14 13:55:28,972 logging 30672 8331386496 [req_f8cc6f5b9e55] POST /api/v1/student/courses/1/enrollment
+[INFO] 2026-05-14 13:55:29,048 logging 30672 8331386496 [req_789c7eeccbd4] GET /api/v1/student/courses
+[INFO] 2026-05-14 13:55:29,126 logging 30672 8331386496 [req_a9409555fe63] GET /api/v1/student/dashboard
+[INFO] 2026-05-14 13:55:29,203 logging 30672 8331386496 [req_c7120f73d8e9] GET /api/v1/student/exam-results
+[INFO] 2026-05-14 13:55:29,279 logging 30672 8331386496 [req_2f12219e8536] GET /api/v1/student/exams/1
+[WARNING] 2026-05-14 13:55:29,279 log 30672 8331386496 Forbidden: /api/v1/student/exams/1
+[INFO] 2026-05-14 13:55:29,501 logging 30672 8331386496 [req_71242139e16c] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:55:29,505 logging 30672 8331386496 [req_744abccaf175] GET /api/v1/student/jobs
+[INFO] 2026-05-14 13:55:29,507 logging 30672 8331386496 [req_a0caa9fa188f] POST /api/v1/student/jobs/1/bookmark
+[INFO] 2026-05-14 13:55:29,508 logging 30672 8331386496 [req_afe12007ce59] POST /api/v1/student/jobs/3/bookmark
+[WARNING] 2026-05-14 13:55:29,508 log 30672 8331386496 Not Found: /api/v1/student/jobs/3/bookmark
+[INFO] 2026-05-14 13:55:29,511 logging 30672 8331386496 [req_5a2ef5e36f17] GET /api/v1/student/jobs
+[INFO] 2026-05-14 13:55:29,512 logging 30672 8331386496 [req_76c0b00c78e7] DELETE /api/v1/student/jobs/1/bookmark
+[INFO] 2026-05-14 13:55:29,735 logging 30672 8331386496 [req_1d9097ad6af8] GET /api/v1/student/jobs
+[INFO] 2026-05-14 13:55:29,810 logging 30672 8331386496 [req_7a69fbff3832] GET /api/v1/student/learning-summary
+[INFO] 2026-05-14 13:55:29,964 logging 30672 8331386496 [req_e6712e7607e5] GET /api/v1/student/matches
+[INFO] 2026-05-14 13:55:30,113 logging 30672 8331386496 [req_fb4badd40563] GET /api/v1/student/messages/contacts
+[INFO] 2026-05-14 13:55:30,262 logging 30672 8331386496 [req_03dcb4bcf3a7] GET /api/v1/student/messages
+[INFO] 2026-05-14 13:55:30,338 logging 30672 8331386496 [req_003db13e1aba] GET /api/v1/student/courses/1/lessons/1
+[WARNING] 2026-05-14 13:55:30,338 log 30672 8331386496 Forbidden: /api/v1/student/courses/1/lessons/1
+[INFO] 2026-05-14 13:55:30,419 logging 30672 8331386496 [req_bd456f88a9f6] GET /api/v1/student/preparation-summary
+[INFO] 2026-05-14 13:55:30,494 logging 30672 8331386496 [req_0380966521c5] GET /api/v1/student/privacy-settings
+[INFO] 2026-05-14 13:55:30,568 logging 30672 8331386496 [req_992e6c7d11c8] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:55:30,570 logging 30672 8331386496 [req_f90fe628260c] PUT /api/v1/student/privacy-settings
+[INFO] 2026-05-14 13:55:30,648 logging 30672 8331386496 [req_7e5a9bd93682] GET /api/v1/student/profile
+[INFO] 2026-05-14 13:55:30,723 logging 30672 8331386496 [req_0c7fcc35f7da] GET /api/v1/student/profile
+[INFO] 2026-05-14 13:55:30,796 logging 30672 8331386496 [req_09a536bd0b1f] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:55:30,799 logging 30672 8331386496 [req_01c5517dc556] PUT /api/v1/student/profile
+[INFO] 2026-05-14 13:55:30,873 logging 30672 8331386496 [req_877284927d24] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:55:30,875 logging 30672 8331386496 [req_9c36b4a4eeb9] POST /api/v1/student/profile/resumes
+[INFO] 2026-05-14 13:55:30,877 logging 30672 8331386496 [req_cde2d69dccba] POST /api/v1/student/profile/resumes
+[INFO] 2026-05-14 13:55:31,025 logging 30672 8331386496 [req_551ddf6b2f6b] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:55:31,029 logging 30672 8331386496 [req_9cbdd8b53693] POST /api/v1/student/messages/threads
+[INFO] 2026-05-14 13:55:31,030 logging 30672 8331386496 [req_0ff61e36c31d] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:55:31,104 logging 30672 8331386496 [req_d93d2a87122a] POST /api/v1/auth/signup
+[INFO] 2026-05-14 13:55:31,105 logging 30672 8331386496 [req_78e8b744465e] GET /api/v1/auth/session
+[INFO] 2026-05-14 13:55:31,178 logging 30672 8331386496 [req_1ce8fa34ec77] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:55:31,181 logging 30672 8331386496 [req_8c4dcbb4a80c] DELETE /api/v1/student/skills/1
+[INFO] 2026-05-14 13:55:31,256 logging 30672 8331386496 [req_548ff4eb5b14] GET /api/v1/student/skills
+[INFO] 2026-05-14 13:55:31,329 logging 30672 8331386496 [req_bad9067a71f9] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:55:31,332 logging 30672 8331386496 [req_2981c23c72fb] POST /api/v1/student/skills
+[INFO] 2026-05-14 13:55:31,406 logging 30672 8331386496 [req_c1a1a7307d7a] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:55:31,408 logging 30672 8331386496 [req_3d881d3ed31b] PUT /api/v1/student/skills/1
+[INFO] 2026-05-14 13:55:31,484 logging 30672 8331386496 [req_f3feea4dc127] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:55:31,486 logging 30672 8331386496 [req_0d36f694f667] POST /api/v1/student/skills
+[WARNING] 2026-05-14 13:55:31,486 log 30672 8331386496 Bad Request: /api/v1/student/skills
+[INFO] 2026-05-14 13:55:31,563 logging 30672 8331386496 [req_cc127fbfee3a] GET /api/v1/admin/dashboard-data
+[INFO] 2026-05-14 13:55:31,711 logging 30672 8331386496 [req_7622547dbe40] GET /api/v1/admin/dashboard-data
+[WARNING] 2026-05-14 13:55:31,711 log 30672 8331386496 Forbidden: /api/v1/admin/dashboard-data
+[INFO] 2026-05-14 13:55:32,687 logging 30672 8331386496 [req_c46afa7230d1] GET /api/v1/company/dashboard-data
+[INFO] 2026-05-14 13:55:32,761 logging 30672 8331386496 [req_561910fd6f9f] GET /api/v1/company/dashboard-data
+[WARNING] 2026-05-14 13:55:32,761 log 30672 8331386496 Unauthorized: /api/v1/company/dashboard-data
+[INFO] 2026-05-14 13:55:32,839 logging 30672 8331386496 [req_f7c6c2fde215] GET /api/v1/company/dashboard-data/pipeline
+[INFO] 2026-05-14 13:55:32,916 logging 30672 8331386496 [req_328d7512298c] GET /api/v1/student/dashboard-data/applications
+[INFO] 2026-05-14 13:55:32,994 logging 30672 8331386496 [req_7b4439e59314] GET /api/v1/student/dashboard-data
+[INFO] 2026-05-14 13:55:33,068 logging 30672 8331386496 [req_699c49fe77d6] GET /api/v1/student/dashboard-data
+[WARNING] 2026-05-14 13:55:33,069 log 30672 8331386496 Unauthorized: /api/v1/student/dashboard-data
+[INFO] 2026-05-14 13:55:33,146 logging 30672 8331386496 [req_15e1fd562335] GET /api/v1/student/dashboard-data/learning
+[INFO] 2026-05-14 13:55:33,294 logging 30672 8331386496 [req_e94b9f698084] GET /api/v1/notification-preferences
+[INFO] 2026-05-14 13:55:33,443 logging 30672 8331386496 [req_2a62f8d35ea7] POST /api/v1/notifications/read-all
+[INFO] 2026-05-14 13:55:33,591 logging 30672 8331386496 [req_4229269b57ef] POST /api/v1/notifications/1/read
+[INFO] 2026-05-14 13:55:33,740 logging 30672 8331386496 [req_56dcb57fb588] GET /api/v1/notifications
+[INFO] 2026-05-14 13:55:33,888 logging 30672 8331386496 [req_b7bc37e8d9bf] GET /api/v1/notifications
+[WARNING] 2026-05-14 13:55:33,889 log 30672 8331386496 Unauthorized: /api/v1/notifications
+[INFO] 2026-05-14 13:55:34,037 logging 30672 8331386496 [req_7099a15dd983] PUT /api/v1/notification-preferences/update
+[WARNING] 2026-05-14 13:56:03,486 error_tracking 30739 8331386496 SENTRY_DSN not configured, error tracking disabled
+[INFO] 2026-05-14 13:56:03,490 logging 30739 8331386496 [req_52da220751ec] POST /api/v1/practice-questions/1
+[INFO] 2026-05-14 13:56:03,709 logging 30739 8331386496 [req_15602dfdb1b1] POST /api/v1/exam-categories
+[WARNING] 2026-05-14 13:56:03,712 log 30739 8331386496 Forbidden: /api/v1/exam-categories
+[INFO] 2026-05-14 13:56:03,787 logging 30739 8331386496 [req_05b4e189b197] POST /api/v1/exam-categories
+[INFO] 2026-05-14 13:56:04,008 logging 30739 8331386496 [req_a5a5dcded08b] POST /api/v1/exams/1/mock-exams
+[INFO] 2026-05-14 13:56:04,229 logging 30739 8331386496 [req_a99d2a8e63d0] POST /api/v1/exams/1/practice-questions
+[INFO] 2026-05-14 13:56:04,450 logging 30739 8331386496 [req_506169c7de93] DELETE /api/v1/exam-categories/2
+[INFO] 2026-05-14 13:56:04,601 logging 30739 8331386496 [req_07a0e83dddad] GET /api/v1/exam-categories/1
+[INFO] 2026-05-14 13:56:04,749 logging 30739 8331386496 [req_bc9c376b6fba] GET /api/v1/practice-questions/1
+[INFO] 2026-05-14 13:56:04,972 logging 30739 8331386496 [req_c74aa01bda34] GET /api/v1/student/performance
+[INFO] 2026-05-14 13:56:05,193 logging 30739 8331386496 [req_8dd318f4dea3] GET /api/v1/student/performance/1
+[INFO] 2026-05-14 13:56:05,415 logging 30739 8331386496 [req_6a6692abfeac] GET /api/v1/study-plan
+[INFO] 2026-05-14 13:56:05,561 logging 30739 8331386496 [req_8c4adc8f3f73] GET /api/v1/exam-categories
+[INFO] 2026-05-14 13:56:05,709 logging 30739 8331386496 [req_f7f560cea856] GET /api/v1/exams/1/mock-exams
+[INFO] 2026-05-14 13:56:05,860 logging 30739 8331386496 [req_9675eb6fce59] GET /api/v1/exams/1/practice-questions
+[INFO] 2026-05-14 13:56:06,081 logging 30739 8331386496 [req_89d2ee1e0e87] PUT /api/v1/exam-categories/1
+[INFO] 2026-05-14 13:56:06,378 logging 30739 8331386496 [req_9147906e6bad] GET /api/v1/admin/export/users/
+[INFO] 2026-05-14 13:56:06,525 logging 30739 8331386496 [req_1d9e5f657b02] GET /api/v1/admin/export/users/
+[WARNING] 2026-05-14 13:56:06,525 log 30739 8331386496 Forbidden: /api/v1/admin/export/users/
+[INFO] 2026-05-14 13:56:06,673 logging 30739 8331386496 [req_47d3ce4a8d2f] GET /api/v1/admin/scheduled-tasks/
+[INFO] 2026-05-14 13:56:07,779 logging 30739 8331386496 [req_38988899c257] GET /api/v1/student/data-access-log
+[INFO] 2026-05-14 13:56:08,220 logging 30739 8331386496 [req_f3235bd004ff] POST /api/v1/student/deletion-request
+[WARNING] 2026-05-14 13:56:08,220 log 30739 8331386496 Bad Request: /api/v1/student/deletion-request
+[INFO] 2026-05-14 13:56:08,368 logging 30739 8331386496 [req_f6aee542824b] POST /api/v1/student/deletion-request
+[INFO] 2026-05-14 13:56:08,516 logging 30739 8331386496 [req_5e79261fd8b8] GET /api/v1/student/deletion-status
+[INFO] 2026-05-14 13:56:08,810 logging 30739 8331386496 [req_322e219614dc] POST /api/v1/student/data-export-request
+[INFO] 2026-05-14 13:56:08,960 logging 30739 8331386496 [req_a32716379c29] GET /api/v1/student/data-export/1
+[INFO] 2026-05-14 13:56:10,577 logging 30739 8331386496 [req_b025624268f7] GET /api/v1/student/consent
+[INFO] 2026-05-14 13:56:10,725 logging 30739 8331386496 [req_1af07d5a745b] PUT /api/v1/student/consent
+[INFO] 2026-05-14 13:56:11,099 logging 30739 8331386496 [req_df8438ac0f63] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:56:11,177 logging 30739 8331386496 [req_5d1761897002] POST /api/v1/admin/users
+[INFO] 2026-05-14 13:56:11,179 logging 30739 8331386496 [req_9c9b41734f51] GET /api/v1/admin/users
+[INFO] 2026-05-14 13:56:11,254 logging 30739 8331386496 [req_431d98ed096e] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:56:11,256 logging 30739 8331386496 [req_ef72f4333ed6] POST /api/v1/admin/companies
+[INFO] 2026-05-14 13:56:11,332 logging 30739 8331386496 [req_ee0ce0a561de] GET /api/v1/admin/companies
+[INFO] 2026-05-14 13:56:11,333 logging 30739 8331386496 [req_7b9044945124] GET /api/v1/admin/companies/1
+[INFO] 2026-05-14 13:56:11,335 logging 30739 8331386496 [req_8c284c7a06ab] PUT /api/v1/admin/companies/1
+[INFO] 2026-05-14 13:56:11,336 logging 30739 8331386496 [req_60325fe35824] DELETE /api/v1/admin/companies/1
+[INFO] 2026-05-14 13:56:11,411 logging 30739 8331386496 [req_66f1ebd502b6] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:56:11,413 logging 30739 8331386496 [req_4b173e92a999] POST /api/v1/admin/courses
+[INFO] 2026-05-14 13:56:11,414 logging 30739 8331386496 [req_35225739fe68] PUT /api/v1/admin/courses/1
+[INFO] 2026-05-14 13:56:11,415 logging 30739 8331386496 [req_f76c70b30fe9] DELETE /api/v1/admin/courses/1
+[INFO] 2026-05-14 13:56:11,491 logging 30739 8331386496 [req_5d2fb788bda7] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:56:11,494 logging 30739 8331386496 [req_c1390591c96a] POST /api/v1/admin/exams
+[INFO] 2026-05-14 13:56:11,495 logging 30739 8331386496 [req_906b5e7f1d93] PUT /api/v1/admin/exams/1
+[INFO] 2026-05-14 13:56:11,496 logging 30739 8331386496 [req_6f4b6fe37a71] DELETE /api/v1/admin/exams/1
+[INFO] 2026-05-14 13:56:11,571 logging 30739 8331386496 [req_57b891b93c5b] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:56:11,573 logging 30739 8331386496 [req_ac0d406632d0] POST /api/v1/admin/courses/1/lessons
+[INFO] 2026-05-14 13:56:11,575 logging 30739 8331386496 [req_7dc8df60db30] PUT /api/v1/admin/lessons/1
+[INFO] 2026-05-14 13:56:11,576 logging 30739 8331386496 [req_530e0b0e72dc] DELETE /api/v1/admin/lessons/1
+[INFO] 2026-05-14 13:56:11,805 logging 30739 8331386496 [req_b94f0ec43d35] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:56:11,808 logging 30739 8331386496 [req_f16192045471] POST /api/v1/admin/vacancies
+[INFO] 2026-05-14 13:56:11,811 logging 30739 8331386496 [req_e22fe01b3e1b] PUT /api/v1/admin/vacancies/1
+[INFO] 2026-05-14 13:56:11,812 logging 30739 8331386496 [req_cab6425b677d] DELETE /api/v1/admin/vacancies/1
+[INFO] 2026-05-14 13:56:11,887 logging 30739 8331386496 [req_0d784dc8b1e5] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:56:11,890 logging 30739 8331386496 [req_a9f1837fe193] POST /api/v1/admin/exams/1/questions
+[INFO] 2026-05-14 13:56:11,892 logging 30739 8331386496 [req_bb3f7f9f2720] POST /api/v1/admin/questions/1/options
+[INFO] 2026-05-14 13:56:11,893 logging 30739 8331386496 [req_4bc3afec05c2] PUT /api/v1/admin/options/1
+[INFO] 2026-05-14 13:56:12,054 logging 30739 8331386496 [req_bfd8a0103951] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:56:12,056 logging 30739 8331386496 [req_ef4884198c0e] PUT /api/v1/admin/users/2
+[INFO] 2026-05-14 13:56:12,207 logging 30739 8331386496 [req_11be2e87cc61] GET /api/v1/admin/vacancies
+[INFO] 2026-05-14 13:56:12,282 logging 30739 8331386496 [req_1a85a4de8165] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:56:12,283 logging 30739 8331386496 [req_f74d66a8a634] PUT /api/v1/admin/users/1
+[WARNING] 2026-05-14 13:56:12,283 log 30739 8331386496 Bad Request: /api/v1/admin/users/1
+[INFO] 2026-05-14 13:56:12,510 logging 30739 8331386496 [req_c6df80a4dd0c] GET /api/v1/admin/dashboard
+[INFO] 2026-05-14 13:56:12,658 logging 30739 8331386496 [req_fcfe847b4b6e] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:56:12,661 logging 30739 8331386496 [req_c7dbd640baa5] POST /api/v1/admin/vacancies
+[WARNING] 2026-05-14 13:56:12,661 log 30739 8331386496 Bad Request: /api/v1/admin/vacancies
+[INFO] 2026-05-14 13:56:12,809 logging 30739 8331386496 [req_08a7e435255f] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:56:12,815 logging 30739 8331386496 [req_520603a9831d] POST /api/v1/company/interviews/1/confirm
+[INFO] 2026-05-14 13:56:12,963 logging 30739 8331386496 [req_adf91fa5d021] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:56:12,969 logging 30739 8331386496 [req_c617df2dd024] POST /api/v1/company/messages/threads
+[INFO] 2026-05-14 13:56:12,971 logging 30739 8331386496 [req_85873fff2c6c] PUT /api/v1/company/messages/threads/1
+[INFO] 2026-05-14 13:56:12,974 logging 30739 8331386496 [req_fb16464d9e3e] POST /api/v1/company/messages/threads/1/messages
+[INFO] 2026-05-14 13:56:13,122 logging 30739 8331386496 [req_38b63d346fbd] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:56:13,127 logging 30739 8331386496 [req_5c1297c1f4f3] POST /api/v1/company/messages/threads
+[INFO] 2026-05-14 13:56:13,201 logging 30739 8331386496 [req_8c23dbfebbad] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:56:13,204 logging 30739 8331386496 [req_5949ccbc15fa] POST /api/v1/company/vacancies
+[INFO] 2026-05-14 13:56:13,206 logging 30739 8331386496 [req_c46234473ca5] PUT /api/v1/company/vacancies/1
+[INFO] 2026-05-14 13:56:13,207 logging 30739 8331386496 [req_3819b77a957b] DELETE /api/v1/company/vacancies/1
+[INFO] 2026-05-14 13:56:13,356 logging 30739 8331386496 [req_7eccae3586b9] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:56:13,362 logging 30739 8331386496 [req_7b39da1f2e3d] POST /api/v1/company/applications/1/reject
+[INFO] 2026-05-14 13:56:13,510 logging 30739 8331386496 [req_bfd932e593f6] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:56:13,515 logging 30739 8331386496 [req_6afc64315964] POST /api/v1/company/candidates/1/interviews
+[INFO] 2026-05-14 13:56:13,663 logging 30739 8331386496 [req_956edf898558] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:56:13,669 logging 30739 8331386496 [req_8801a749d615] POST /api/v1/company/candidates/1/interviews
+[INFO] 2026-05-14 13:56:13,672 logging 30739 8331386496 [req_cdb51133991b] GET /api/v1/student/interviews
+[INFO] 2026-05-14 13:56:13,820 logging 30739 8331386496 [req_476167735067] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:56:13,823 logging 30739 8331386496 [req_f88f2b80e862] GET /api/v1/company/applications
+[INFO] 2026-05-14 13:56:13,828 logging 30739 8331386496 [req_26342955d8fe] POST /api/v1/company/applications/1/shortlist
+[INFO] 2026-05-14 13:56:13,979 logging 30739 8331386496 [req_340fa56651dd] GET /api/v1/company/candidates/1/exam-results
+[INFO] 2026-05-14 13:56:13,981 logging 30739 8331386496 [req_e47b3e13d781] GET /api/v1/company/candidates/1/exam-results
+[INFO] 2026-05-14 13:56:14,131 logging 30739 8331386496 [req_0ee2e40ac8fe] GET /api/v1/company/candidates/1/learning-record
+[INFO] 2026-05-14 13:56:14,281 logging 30739 8331386496 [req_2ff8e3270c6b] GET /api/v1/company/candidates/1/notes
+[WARNING] 2026-05-14 13:56:14,281 log 30739 8331386496 Forbidden: /api/v1/company/candidates/1/notes
+[INFO] 2026-05-14 13:56:14,282 logging 30739 8331386496 [req_85de2e95521b] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:56:14,285 logging 30739 8331386496 [req_13476c2d21e8] POST /api/v1/company/candidates/1/notes
+[INFO] 2026-05-14 13:56:14,286 logging 30739 8331386496 [req_efa3aef0a862] GET /api/v1/company/candidates/1/notes
+[INFO] 2026-05-14 13:56:14,440 logging 30739 8331386496 [req_dda53f57a68c] GET /api/v1/company/candidates/1/preview
+[INFO] 2026-05-14 13:56:14,590 logging 30739 8331386496 [req_8caba2cfa455] GET /api/v1/company/candidates/1/preview
+[INFO] 2026-05-14 13:56:14,739 logging 30739 8331386496 [req_c56416e4df2c] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:56:14,742 logging 30739 8331386496 [req_40e54cdfb720] POST /api/v1/company/candidates/1/shortlist
+[INFO] 2026-05-14 13:56:14,743 logging 30739 8331386496 [req_c60c0da1498f] GET /api/v1/company/shortlist
+[INFO] 2026-05-14 13:56:14,744 logging 30739 8331386496 [req_9b7a990b3c10] DELETE /api/v1/company/candidates/1/shortlist
+[INFO] 2026-05-14 13:56:14,896 logging 30739 8331386496 [req_dd59e5caf101] GET /api/v1/company/candidates
+[INFO] 2026-05-14 13:56:15,047 logging 30739 8331386496 [req_39ba6d396d1b] GET /api/v1/company/candidates
+[INFO] 2026-05-14 13:56:15,196 logging 30739 8331386496 [req_63a0b5c88efd] GET /api/v1/company/candidates/1/preview
+[WARNING] 2026-05-14 13:56:15,196 log 30739 8331386496 Bad Request: /api/v1/company/candidates/1/preview
+[INFO] 2026-05-14 13:56:15,271 logging 30739 8331386496 [req_5ea58d4c1913] GET /api/v1/student/profile
+[WARNING] 2026-05-14 13:56:15,271 log 30739 8331386496 Forbidden: /api/v1/student/profile
+[INFO] 2026-05-14 13:56:15,425 logging 30739 8331386496 [req_76b78c72e059] GET /api/v1/company/dashboard
+[INFO] 2026-05-14 13:56:15,579 logging 30739 8331386496 [req_3e56416d5ca3] GET /api/v1/company/dashboard
+[INFO] 2026-05-14 13:56:15,728 logging 30739 8331386496 [req_e6a12c3d48e1] GET /api/v1/company/messages/contacts
+[INFO] 2026-05-14 13:56:15,878 logging 30739 8331386496 [req_87a2ebb4af5e] GET /api/v1/company/messages/contacts
+[INFO] 2026-05-14 13:56:16,029 logging 30739 8331386496 [req_320fccfa160d] GET /api/v1/company/messages
+[INFO] 2026-05-14 13:56:16,104 logging 30739 8331386496 [req_c6de2924b1ee] GET /api/v1/company/profile
+[INFO] 2026-05-14 13:56:16,179 logging 30739 8331386496 [req_96c5cc3a4ca5] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:56:16,192 logging 30739 8331386496 [req_6ab6d6b01012] PUT /api/v1/company/profile
+[INFO] 2026-05-14 13:56:16,193 logging 30739 8331386496 [req_b1bef0786345] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:56:16,268 logging 30739 8331386496 [req_7095a5dc61b2] POST /api/v1/auth/signup
+[INFO] 2026-05-14 13:56:16,269 logging 30739 8331386496 [req_6e667ec6bace] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:56:16,269 logging 30739 8331386496 [req_c08d120f101b] POST /api/v1/auth/signup
+[WARNING] 2026-05-14 13:56:16,269 log 30739 8331386496 Bad Request: /api/v1/auth/signup
+[INFO] 2026-05-14 13:56:16,346 logging 30739 8331386496 [req_0caf3e17a1c1] GET /api/v1/company/courses
+[INFO] 2026-05-14 13:56:16,420 logging 30739 8331386496 [req_7ece5af75ef6] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:56:16,422 logging 30739 8331386496 [req_f537a46f4756] POST /api/v1/company/courses
+[INFO] 2026-05-14 13:56:16,423 logging 30739 8331386496 [req_1ddd9b5000c6] PUT /api/v1/company/courses/1
+[INFO] 2026-05-14 13:56:16,424 logging 30739 8331386496 [req_204a5765befc] DELETE /api/v1/company/courses/1
+[INFO] 2026-05-14 13:56:16,499 logging 30739 8331386496 [req_f103cb96241c] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:56:16,501 logging 30739 8331386496 [req_89129239f5a9] POST /api/v1/company/courses/1/lessons
+[INFO] 2026-05-14 13:56:16,502 logging 30739 8331386496 [req_e207f62386b9] PUT /api/v1/company/lessons/1
+[INFO] 2026-05-14 13:56:16,503 logging 30739 8331386496 [req_47492efd83b2] GET /api/v1/company/courses/1/lessons
+[INFO] 2026-05-14 13:56:16,505 logging 30739 8331386496 [req_011ca54ee84d] DELETE /api/v1/company/lessons/1
+[INFO] 2026-05-14 13:56:16,580 logging 30739 8331386496 [req_12b97df212bb] GET /api/v1/admin/courses
+[WARNING] 2026-05-14 13:56:16,580 log 30739 8331386496 Forbidden: /api/v1/admin/courses
+[INFO] 2026-05-14 13:56:16,655 logging 30739 8331386496 [req_e5259e18d17e] GET /api/v1/admin/exams
+[WARNING] 2026-05-14 13:56:16,655 log 30739 8331386496 Forbidden: /api/v1/admin/exams
+[INFO] 2026-05-14 13:56:16,730 logging 30739 8331386496 [req_ff3a9b1c7939] GET /api/v1/student/courses
+[WARNING] 2026-05-14 13:56:16,731 log 30739 8331386496 Forbidden: /api/v1/student/courses
+[INFO] 2026-05-14 13:56:16,809 logging 30739 8331386496 [req_0c361411da0f] GET /api/v1/student/jobs
+[WARNING] 2026-05-14 13:56:16,809 log 30739 8331386496 Forbidden: /api/v1/student/jobs
+[INFO] 2026-05-14 13:56:16,885 logging 30739 8331386496 [req_16841fa6fdec] GET /api/v1/student/messages
+[WARNING] 2026-05-14 13:56:16,885 log 30739 8331386496 Forbidden: /api/v1/student/messages
+[INFO] 2026-05-14 13:56:16,961 logging 30739 8331386496 [req_9038d37e70b2] GET /api/v1/student/skills
+[WARNING] 2026-05-14 13:56:16,961 log 30739 8331386496 Forbidden: /api/v1/student/skills
+[INFO] 2026-05-14 13:56:17,035 logging 30739 8331386496 [req_b025d23605b0] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:56:17,037 logging 30739 8331386496 [req_ffb1481b2806] POST /api/v1/student/courses/1/enrollment
+[WARNING] 2026-05-14 13:56:17,037 log 30739 8331386496 Forbidden: /api/v1/student/courses/1/enrollment
+[INFO] 2026-05-14 13:56:17,112 logging 30739 8331386496 [req_ccfc2ef321b1] GET /api/v1/student/exams/1
+[WARNING] 2026-05-14 13:56:17,112 log 30739 8331386496 Forbidden: /api/v1/student/exams/1
+[INFO] 2026-05-14 13:56:17,336 logging 30739 8331386496 [req_b07c7ffddc9d] GET /api/v1/company/vacancies
+[INFO] 2026-05-14 13:56:17,652 logging 30739 8331386496 [req_6de8be6a9612] GET /api/v1/company/vacancies/1/matches
+[INFO] 2026-05-14 13:56:17,660 logging 30739 8331386496 [req_779c97102608] GET /api/v1/company/candidates
+[INFO] 2026-05-14 13:56:17,734 logging 30739 8331386496 [req_b09a2521ce92] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:56:17,738 logging 30739 8331386496 [req_157cac97ad87] POST /api/v1/company/vacancies
+[INFO] 2026-05-14 13:56:17,742 logging 30739 8331386496 [req_19636a8ecdce] PUT /api/v1/company/vacancies/1
+[INFO] 2026-05-14 13:56:17,744 logging 30739 8331386496 [req_f13a05ed074c] GET /api/v1/company/vacancies
+[INFO] 2026-05-14 13:56:17,891 logging 30739 8331386496 [req_f01704e524f6] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:56:17,895 logging 30739 8331386496 [req_6c75c717e961] POST /api/v1/interviews/1/complete
+[INFO] 2026-05-14 13:56:17,971 logging 30739 8331386496 [req_f91887564dad] GET /api/v1/health
+[INFO] 2026-05-14 13:56:18,118 logging 30739 8331386496 [req_2ee2a07bc5ef] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:56:18,124 logging 30739 8331386496 [req_968c1371f172] POST /api/v1/interviews/1/cancel
+[INFO] 2026-05-14 13:56:18,272 logging 30739 8331386496 [req_dd35822d889d] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:56:18,277 logging 30739 8331386496 [req_3a71c93cc7d2] POST /api/v1/interviews/1/reschedule
+[INFO] 2026-05-14 13:56:18,352 logging 30739 8331386496 [req_8cc6bc56d866] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:56:18,425 logging 30739 8331386496 [req_081e8a98a736] POST /api/v1/auth/login
+[WARNING] 2026-05-14 13:56:18,425 log 30739 8331386496 Forbidden: /api/v1/auth/login
+[INFO] 2026-05-14 13:56:18,499 logging 30739 8331386496 [req_91d3767fc4ae] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:56:18,500 logging 30739 8331386496 [req_8dc45022979a] POST /api/v1/auth/login
+[WARNING] 2026-05-14 13:56:18,500 log 30739 8331386496 Bad Request: /api/v1/auth/login
+[INFO] 2026-05-14 13:56:18,574 logging 30739 8331386496 [req_9dfcc41f4917] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:56:18,647 logging 30739 8331386496 [req_edb019c6be27] POST /api/v1/auth/login
+[WARNING] 2026-05-14 13:56:18,647 log 30739 8331386496 Unauthorized: /api/v1/auth/login
+[WARNING] 2026-05-14 13:56:18,722 log 30739 8331386496 Forbidden (CSRF cookie not set.): /api/v1/auth/logout
+[INFO] 2026-05-14 13:56:18,723 logging 30739 8331386496 [req_0ade0c8f3582] POST /api/v1/auth/logout
+[INFO] 2026-05-14 13:56:18,797 logging 30739 8331386496 [req_aefb31325ed0] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:56:18,799 logging 30739 8331386496 [req_096a16f03e11] POST /api/v1/notifications/read-all
+[INFO] 2026-05-14 13:56:18,946 logging 30739 8331386496 [req_7f68bf75f7c6] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:56:18,949 logging 30739 8331386496 [req_f29d13a1658a] POST /api/v1/company/candidates/1/interviews
+[WARNING] 2026-05-14 13:56:18,949 log 30739 8331386496 Bad Request: /api/v1/company/candidates/1/interviews
+[INFO] 2026-05-14 13:56:19,097 logging 30739 8331386496 [req_9e3f22ce3a70] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:56:19,101 logging 30739 8331386496 [req_cdb1d1052478] PUT /api/v1/interviews/1/meeting-link
+[INFO] 2026-05-14 13:56:19,103 logging 30739 8331386496 [req_dc6fad81efa3] PUT /api/v1/interviews/1/meeting-link
+[WARNING] 2026-05-14 13:56:19,103 log 30739 8331386496 Bad Request: /api/v1/interviews/1/meeting-link
+[INFO] 2026-05-14 13:56:19,256 logging 30739 8331386496 [req_7596a0f69c92] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:56:19,259 logging 30739 8331386496 [req_d10d45a0c758] PUT /api/v1/interviews/1/meeting-link
+[WARNING] 2026-05-14 13:56:19,259 log 30739 8331386496 Bad Request: /api/v1/interviews/1/meeting-link
+[INFO] 2026-05-14 13:56:19,333 logging 30739 8331386496 [req_b17e483e5b77] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:56:19,335 logging 30739 8331386496 [req_f5c3b7b11835] GET /api/v1/notifications
+[INFO] 2026-05-14 13:56:19,336 logging 30739 8331386496 [req_455d8c190702] POST /api/v1/notifications/1/read
+[INFO] 2026-05-14 13:56:19,484 logging 30739 8331386496 [req_d85fd6612a25] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:56:19,486 logging 30739 8331386496 [req_c278373eee59] POST /api/v1/interviews/1/complete
+[WARNING] 2026-05-14 13:56:19,486 log 30739 8331386496 Bad Request: /api/v1/interviews/1/complete
+[INFO] 2026-05-14 13:56:19,560 logging 30739 8331386496 [req_26e8d685e276] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:56:19,710 logging 30739 8331386496 [req_330237e9f3cb] POST /api/v1/auth/password/change
+[INFO] 2026-05-14 13:56:20,005 logging 30739 8331386496 [req_6f72429eba70] GET /api/v1/access/student
+[INFO] 2026-05-14 13:56:20,006 logging 30739 8331386496 [req_78f244048c2a] GET /api/v1/access/company
+[WARNING] 2026-05-14 13:56:20,006 log 30739 8331386496 Forbidden: /api/v1/access/company
+[INFO] 2026-05-14 13:56:20,008 logging 30739 8331386496 [req_0e8b143b11d3] GET /api/v1/access/company
+[INFO] 2026-05-14 13:56:20,008 logging 30739 8331386496 [req_ee5c4c356460] GET /api/v1/access/admin
+[WARNING] 2026-05-14 13:56:20,008 log 30739 8331386496 Forbidden: /api/v1/access/admin
+[INFO] 2026-05-14 13:56:20,010 logging 30739 8331386496 [req_b559252dee33] GET /api/v1/access/admin
+[INFO] 2026-05-14 13:56:20,010 logging 30739 8331386496 [req_8b89d4878534] GET /api/v1/auth/session
+[INFO] 2026-05-14 13:56:20,011 logging 30739 8331386496 [req_4b8bb55a5435] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:56:20,011 logging 30739 8331386496 [req_01b9892f4ba8] POST /api/v1/auth/signup
+[WARNING] 2026-05-14 13:56:20,011 log 30739 8331386496 Bad Request: /api/v1/auth/signup
+[INFO] 2026-05-14 13:56:20,161 logging 30739 8331386496 [req_0c0147b84442] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:56:20,165 logging 30739 8331386496 [req_d809c75ead54] POST /api/v1/interviews/1/availability
+[INFO] 2026-05-14 13:56:20,166 logging 30739 8331386496 [req_c578e5e7cf0d] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:56:20,170 logging 30739 8331386496 [req_b09efc4b5ab3] POST /api/v1/interviews/1/availability
+[INFO] 2026-05-14 13:56:20,318 logging 30739 8331386496 [req_3364bf04c8d5] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:56:20,321 logging 30739 8331386496 [req_2dbe58f0a19d] POST /api/v1/student/applications
+[WARNING] 2026-05-14 13:56:20,321 log 30739 8331386496 Bad Request: /api/v1/student/applications
+[INFO] 2026-05-14 13:56:20,468 logging 30739 8331386496 [req_10f3a91501ff] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:56:20,473 logging 30739 8331386496 [req_eca285a8a0cd] POST /api/v1/student/applications
+[INFO] 2026-05-14 13:56:20,474 logging 30739 8331386496 [req_20ad51077be3] GET /api/v1/student/applications
+[INFO] 2026-05-14 13:56:20,549 logging 30739 8331386496 [req_c00491caec90] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:56:20,553 logging 30739 8331386496 [req_7e788bd1be2f] POST /api/v1/student/messages/threads
+[INFO] 2026-05-14 13:56:20,701 logging 30739 8331386496 [req_1983eddc5c06] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:56:20,706 logging 30739 8331386496 [req_59a3f55e014f] POST /api/v1/student/messages/threads
+[INFO] 2026-05-14 13:56:20,780 logging 30739 8331386496 [req_7bbe4bc41568] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:56:20,784 logging 30739 8331386496 [req_87fca4b90308] POST /api/v1/student/profile/education
+[INFO] 2026-05-14 13:56:20,787 logging 30739 8331386496 [req_59ca4351302b] PUT /api/v1/student/profile/education/1
+[INFO] 2026-05-14 13:56:20,789 logging 30739 8331386496 [req_19d12ef24478] DELETE /api/v1/student/profile/education/1
+[INFO] 2026-05-14 13:56:20,863 logging 30739 8331386496 [req_d79ce5bd782c] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:56:20,865 logging 30739 8331386496 [req_b9bf93e9af9c] DELETE /api/v1/student/messages/threads/1
+[INFO] 2026-05-14 13:56:21,016 logging 30739 8331386496 [req_816fbd6bcf05] GET /api/v1/student/interviews
+[INFO] 2026-05-14 13:56:21,018 logging 30739 8331386496 [req_ca918c835cd2] GET /api/v1/interviews/1
+[INFO] 2026-05-14 13:56:21,093 logging 30739 8331386496 [req_042e5dbe3f20] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:56:21,097 logging 30739 8331386496 [req_d098e050a659] GET /api/v1/student/exams/1
+[INFO] 2026-05-14 13:56:21,103 logging 30739 8331386496 [req_51fbe1db9bca] POST /api/v1/student/exams/1/submit
+[INFO] 2026-05-14 13:56:21,177 logging 30739 8331386496 [req_bf0f324af73b] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:56:21,181 logging 30739 8331386496 [req_6c5876994e31] POST /api/v1/student/profile/certificates
+[INFO] 2026-05-14 13:56:21,184 logging 30739 8331386496 [req_5ec1ff301e95] PUT /api/v1/student/profile/certificates/1
+[INFO] 2026-05-14 13:56:21,186 logging 30739 8331386496 [req_25c29adfb076] DELETE /api/v1/student/profile/certificates/1
+[INFO] 2026-05-14 13:56:21,261 logging 30739 8331386496 [req_4114ae83b3e4] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:56:21,264 logging 30739 8331386496 [req_33f0797e3d8c] POST /api/v1/student/profile/experience
+[INFO] 2026-05-14 13:56:21,267 logging 30739 8331386496 [req_9b09a82395d1] PUT /api/v1/student/profile/availability
+[INFO] 2026-05-14 13:56:21,415 logging 30739 8331386496 [req_cdda1ecb0b8c] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:56:21,419 logging 30739 8331386496 [req_74b06c50b6e3] PUT /api/v1/student/messages/threads/1
+[INFO] 2026-05-14 13:56:21,422 logging 30739 8331386496 [req_8894ceef9ced] POST /api/v1/student/messages/threads/1/messages
+[INFO] 2026-05-14 13:56:21,497 logging 30739 8331386496 [req_3bd650346cfc] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:56:21,500 logging 30739 8331386496 [req_37ef07b741bd] GET /api/v1/student/mock-exams/1
+[INFO] 2026-05-14 13:56:21,504 logging 30739 8331386496 [req_0782bd62202d] POST /api/v1/student/mock-exams/1/submit
+[INFO] 2026-05-14 13:56:21,578 logging 30739 8331386496 [req_efcf0d1d1de9] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:56:21,582 logging 30739 8331386496 [req_f6b4f0763c09] POST /api/v1/student/practice-questions/1/attempt
+[INFO] 2026-05-14 13:56:21,656 logging 30739 8331386496 [req_f693d8b7cd46] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:56:21,662 logging 30739 8331386496 [req_9d9b1e2b8be3] PUT /api/v1/student/courses/1/lessons/1/progress
+[INFO] 2026-05-14 13:56:21,667 logging 30739 8331386496 [req_40e4e091b292] PUT /api/v1/student/courses/1/lessons/1/progress
+[INFO] 2026-05-14 13:56:21,671 logging 30739 8331386496 [req_3871622faf77] PUT /api/v1/student/courses/1/lessons/2/progress
+[INFO] 2026-05-14 13:56:21,820 logging 30739 8331386496 [req_f5aeceb7dbfb] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:56:21,826 logging 30739 8331386496 [req_fb2dd222ed5e] POST /api/v1/student/applications/1/withdraw
+[INFO] 2026-05-14 13:56:21,901 logging 30739 8331386496 [req_f7631c944e77] GET /api/v1/company/profile
+[WARNING] 2026-05-14 13:56:21,901 log 30739 8331386496 Forbidden: /api/v1/company/profile
+[INFO] 2026-05-14 13:56:22,056 logging 30739 8331386496 [req_2b124670e13d] GET /api/v1/student/courses/1
+[INFO] 2026-05-14 13:56:22,132 logging 30739 8331386496 [req_4302d0a387ff] GET /api/v1/student/courses/1
+[INFO] 2026-05-14 13:56:22,133 logging 30739 8331386496 [req_b4ae659a31f5] GET /api/v1/student/courses/2
+[WARNING] 2026-05-14 13:56:22,133 log 30739 8331386496 Not Found: /api/v1/student/courses/2
+[INFO] 2026-05-14 13:56:22,207 logging 30739 8331386496 [req_aa1c8e300225] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:56:22,211 logging 30739 8331386496 [req_151587fe87e5] POST /api/v1/student/courses/1/enrollment
+[INFO] 2026-05-14 13:56:22,214 logging 30739 8331386496 [req_e222ebde8735] POST /api/v1/student/courses/1/enrollment
+[INFO] 2026-05-14 13:56:22,290 logging 30739 8331386496 [req_0a54581c0298] GET /api/v1/student/courses
+[INFO] 2026-05-14 13:56:22,368 logging 30739 8331386496 [req_296fb6947418] GET /api/v1/student/dashboard
+[INFO] 2026-05-14 13:56:22,446 logging 30739 8331386496 [req_db0d25755fa4] GET /api/v1/student/exam-results
+[INFO] 2026-05-14 13:56:22,523 logging 30739 8331386496 [req_37da081c15fc] GET /api/v1/student/exams/1
+[WARNING] 2026-05-14 13:56:22,523 log 30739 8331386496 Forbidden: /api/v1/student/exams/1
+[INFO] 2026-05-14 13:56:22,744 logging 30739 8331386496 [req_5c8844e7241c] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:56:22,749 logging 30739 8331386496 [req_0675ad30a702] GET /api/v1/student/jobs
+[INFO] 2026-05-14 13:56:22,750 logging 30739 8331386496 [req_0cb1799ce66f] POST /api/v1/student/jobs/1/bookmark
+[INFO] 2026-05-14 13:56:22,751 logging 30739 8331386496 [req_8cdab17d45f2] POST /api/v1/student/jobs/3/bookmark
+[WARNING] 2026-05-14 13:56:22,751 log 30739 8331386496 Not Found: /api/v1/student/jobs/3/bookmark
+[INFO] 2026-05-14 13:56:22,755 logging 30739 8331386496 [req_f9f98a11c802] GET /api/v1/student/jobs
+[INFO] 2026-05-14 13:56:22,755 logging 30739 8331386496 [req_0452d34bc686] DELETE /api/v1/student/jobs/1/bookmark
+[INFO] 2026-05-14 13:56:22,979 logging 30739 8331386496 [req_ae081d0d5b77] GET /api/v1/student/jobs
+[INFO] 2026-05-14 13:56:23,057 logging 30739 8331386496 [req_37b97a6b438a] GET /api/v1/student/learning-summary
+[INFO] 2026-05-14 13:56:23,211 logging 30739 8331386496 [req_1b05cffe3473] GET /api/v1/student/matches
+[INFO] 2026-05-14 13:56:23,361 logging 30739 8331386496 [req_9c3f4535ab41] GET /api/v1/student/messages/contacts
+[INFO] 2026-05-14 13:56:23,512 logging 30739 8331386496 [req_462117a7fc71] GET /api/v1/student/messages
+[INFO] 2026-05-14 13:56:23,587 logging 30739 8331386496 [req_2ce7287089ce] GET /api/v1/student/courses/1/lessons/1
+[WARNING] 2026-05-14 13:56:23,587 log 30739 8331386496 Forbidden: /api/v1/student/courses/1/lessons/1
+[INFO] 2026-05-14 13:56:23,670 logging 30739 8331386496 [req_738297897b79] GET /api/v1/student/preparation-summary
+[INFO] 2026-05-14 13:56:23,746 logging 30739 8331386496 [req_cc1950bfa7f2] GET /api/v1/student/privacy-settings
+[INFO] 2026-05-14 13:56:23,820 logging 30739 8331386496 [req_e437a8a82642] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:56:23,823 logging 30739 8331386496 [req_dfb6dddce2c9] PUT /api/v1/student/privacy-settings
+[INFO] 2026-05-14 13:56:23,901 logging 30739 8331386496 [req_6d4604104bea] GET /api/v1/student/profile
+[INFO] 2026-05-14 13:56:23,978 logging 30739 8331386496 [req_d8bd2469c0e6] GET /api/v1/student/profile
+[INFO] 2026-05-14 13:56:24,052 logging 30739 8331386496 [req_edb431bc09d9] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:56:24,055 logging 30739 8331386496 [req_f06112f2cbbc] PUT /api/v1/student/profile
+[INFO] 2026-05-14 13:56:24,129 logging 30739 8331386496 [req_8bf99f9a2f5c] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:56:24,132 logging 30739 8331386496 [req_9b61fe666899] POST /api/v1/student/profile/resumes
+[INFO] 2026-05-14 13:56:24,134 logging 30739 8331386496 [req_51fe95be8a60] POST /api/v1/student/profile/resumes
+[INFO] 2026-05-14 13:56:24,282 logging 30739 8331386496 [req_a7cf59bae6af] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:56:24,286 logging 30739 8331386496 [req_ebc0dcbe6d94] POST /api/v1/student/messages/threads
+[INFO] 2026-05-14 13:56:24,287 logging 30739 8331386496 [req_15bbdac9e79e] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:56:24,361 logging 30739 8331386496 [req_73759779299d] POST /api/v1/auth/signup
+[INFO] 2026-05-14 13:56:24,362 logging 30739 8331386496 [req_61ac079aad73] GET /api/v1/auth/session
+[INFO] 2026-05-14 13:56:24,437 logging 30739 8331386496 [req_08e22f5d3a90] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:56:24,439 logging 30739 8331386496 [req_442ed4567e4e] DELETE /api/v1/student/skills/1
+[INFO] 2026-05-14 13:56:24,514 logging 30739 8331386496 [req_4dc7917150de] GET /api/v1/student/skills
+[INFO] 2026-05-14 13:56:24,588 logging 30739 8331386496 [req_b033c2abdf04] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:56:24,590 logging 30739 8331386496 [req_5d82d72cbbfc] POST /api/v1/student/skills
+[INFO] 2026-05-14 13:56:24,665 logging 30739 8331386496 [req_f3eed9e138f7] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:56:24,667 logging 30739 8331386496 [req_e3bdc2d3b280] PUT /api/v1/student/skills/1
+[INFO] 2026-05-14 13:56:24,742 logging 30739 8331386496 [req_e2a166a95bab] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:56:24,744 logging 30739 8331386496 [req_d7e385f0b1b2] POST /api/v1/student/skills
+[WARNING] 2026-05-14 13:56:24,744 log 30739 8331386496 Bad Request: /api/v1/student/skills
+[INFO] 2026-05-14 13:56:24,821 logging 30739 8331386496 [req_39c34a13f030] GET /api/v1/admin/dashboard-data
+[INFO] 2026-05-14 13:56:24,970 logging 30739 8331386496 [req_940d1eceec1a] GET /api/v1/admin/dashboard-data
+[WARNING] 2026-05-14 13:56:24,970 log 30739 8331386496 Forbidden: /api/v1/admin/dashboard-data
+[INFO] 2026-05-14 13:56:25,950 logging 30739 8331386496 [req_8db78490fdfa] GET /api/v1/company/dashboard-data
+[INFO] 2026-05-14 13:56:26,025 logging 30739 8331386496 [req_447f0e117e35] GET /api/v1/company/dashboard-data
+[WARNING] 2026-05-14 13:56:26,025 log 30739 8331386496 Unauthorized: /api/v1/company/dashboard-data
+[INFO] 2026-05-14 13:56:26,103 logging 30739 8331386496 [req_e4d7ece4bcb0] GET /api/v1/company/dashboard-data/pipeline
+[INFO] 2026-05-14 13:56:26,181 logging 30739 8331386496 [req_a55095bb8d0e] GET /api/v1/student/dashboard-data/applications
+[INFO] 2026-05-14 13:56:26,259 logging 30739 8331386496 [req_a6484ef8b411] GET /api/v1/student/dashboard-data
+[INFO] 2026-05-14 13:56:26,333 logging 30739 8331386496 [req_bac1121d4090] GET /api/v1/student/dashboard-data
+[WARNING] 2026-05-14 13:56:26,333 log 30739 8331386496 Unauthorized: /api/v1/student/dashboard-data
+[INFO] 2026-05-14 13:56:26,411 logging 30739 8331386496 [req_ebcf2a998a65] GET /api/v1/student/dashboard-data/learning
+[INFO] 2026-05-14 13:56:26,570 logging 30739 8331386496 [req_255f999d1191] GET /api/v1/notification-preferences
+[INFO] 2026-05-14 13:56:26,719 logging 30739 8331386496 [req_84041370dec1] POST /api/v1/notifications/read-all
+[INFO] 2026-05-14 13:56:26,869 logging 30739 8331386496 [req_24c3008afd36] POST /api/v1/notifications/1/read
+[INFO] 2026-05-14 13:56:27,018 logging 30739 8331386496 [req_96e31f213cb4] GET /api/v1/notifications
+[INFO] 2026-05-14 13:56:27,166 logging 30739 8331386496 [req_7dce83983551] GET /api/v1/notifications
+[WARNING] 2026-05-14 13:56:27,166 log 30739 8331386496 Unauthorized: /api/v1/notifications
+[INFO] 2026-05-14 13:56:27,315 logging 30739 8331386496 [req_bc7d04713cb3] PUT /api/v1/notification-preferences/update
