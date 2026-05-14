@@ -11,7 +11,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { cn } from '@/lib/utils'
-import { getAllCourseMediaOverrides } from './courseMediaStorage'
+import { getCourseMediaOverrideForCourse } from './courseMediaStorage'
 
 const emptyCoursesResponse: AdminCoursesResponse = {
   courses: [],
@@ -76,7 +76,6 @@ function getStatusBadgeClassName(status: string) {
 
 export function CompanyCourseCatalogPage() {
   const [data, setData] = useState<AdminCoursesResponse>(emptyCoursesResponse)
-  const [courseMediaOverrides] = useState(() => getAllCourseMediaOverrides())
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
@@ -344,7 +343,7 @@ export function CompanyCourseCatalogPage() {
         <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
           {filteredCourses.map((course) => {
             const meta = getCourseMockMeta(course)
-            const mediaOverride = courseMediaOverrides[String(course.course_id)]
+            const mediaOverride = getCourseMediaOverrideForCourse(course.course_id, course.title)
             const courseThumbnail = mediaOverride?.thumbnailImage || mediaOverride?.previewImage || ''
 
             return (

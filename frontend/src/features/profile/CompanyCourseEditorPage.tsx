@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ChevronRight } from 'lucide-react'
+import { toast } from 'sonner'
 
 import { useAuth } from '../../auth/useAuth'
 import { ApiError, apiRequest } from '../../lib/api'
 import type { AdminCourseRecord, AdminCoursesResponse } from '../admin/types'
-import { getCourseMediaOverride, setCourseMediaOverride } from './courseMediaStorage'
+import { getCourseMediaOverrideForCourse, setCourseMediaOverride } from './courseMediaStorage'
 
 const emptyCoursesResponse: AdminCoursesResponse = {
   courses: [],
@@ -221,7 +222,9 @@ export function CompanyCourseEditorPage({ mode }: CompanyCourseEditorPageProps) 
         }
       } catch (loadError) {
         if (active) {
-          setError(loadError instanceof ApiError ? loadError.message : 'Unable to load course.')
+          const message = loadError instanceof ApiError ? loadError.message : 'Unable to load course.'
+          setError(message)
+          toast.error(message)
         }
       } finally {
         if (active) {
@@ -241,7 +244,7 @@ export function CompanyCourseEditorPage({ mode }: CompanyCourseEditorPageProps) 
       return
     }
 
-    const savedMedia = getCourseMediaOverride(selectedCourse.course_id)
+    const savedMedia = getCourseMediaOverrideForCourse(selectedCourse.course_id, selectedCourse.title)
 
     setTitle(selectedCourse.title)
     setSlug(slugify(selectedCourse.title))
@@ -272,7 +275,9 @@ export function CompanyCourseEditorPage({ mode }: CompanyCourseEditorPageProps) 
       setImage(imageData)
       setError(null)
     } catch (readError) {
-      setError(readError instanceof Error ? readError.message : 'Unable to read image file.')
+      const message = readError instanceof Error ? readError.message : 'Unable to read image file.'
+      setError(message)
+      toast.error(message)
       event.target.value = ''
     } finally {
       setReadingState(false)
@@ -389,15 +394,18 @@ export function CompanyCourseEditorPage({ mode }: CompanyCourseEditorPageProps) 
         })
       }
 
-      setCourseMediaOverride(savedCourse.course_id, {
+      setCourseMediaOverride(savedCourse.course_id, savedCourse.title, {
         thumbnailImage,
         previewImage,
         thumbnailAltText,
       })
 
+      toast.success(mode === 'edit' ? 'Course updated successfully.' : 'Course created successfully.')
       navigate('/company/courses')
     } catch (saveError) {
-      setError(saveError instanceof ApiError ? saveError.message : 'Unable to save course.')
+      const message = saveError instanceof ApiError ? saveError.message : 'Unable to save course.'
+      setError(message)
+      toast.error(message)
     } finally {
       setSaving(false)
     }
@@ -416,9 +424,12 @@ export function CompanyCourseEditorPage({ mode }: CompanyCourseEditorPageProps) 
         method: 'DELETE',
         csrfToken,
       })
+      toast.success('Course retired successfully.')
       navigate('/company/courses')
     } catch (saveError) {
-      setError(saveError instanceof ApiError ? saveError.message : 'Unable to retire course.')
+      const message = saveError instanceof ApiError ? saveError.message : 'Unable to retire course.'
+      setError(message)
+      toast.error(message)
     } finally {
       setSaving(false)
     }
@@ -431,7 +442,7 @@ export function CompanyCourseEditorPage({ mode }: CompanyCourseEditorPageProps) 
   if (mode === 'edit' && !selectedCourse) {
     return (
       <section className="page">
-        <div className="card form-error">Course was not found.</div>
+        <div className="card form-error">{error ?? 'Course was not found.'}</div>
       </section>
     )
   }

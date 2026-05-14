@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { cn } from '@/lib/utils'
-import { getAllCourseMediaOverrides } from './courseMediaStorage'
+import { getCourseMediaOverrideForCourse } from './courseMediaStorage'
 
 const emptyCatalog: CourseCatalogResponse = {
   result_count: 0,
@@ -71,7 +71,6 @@ function getCourseRecommendationScore(course: CourseCatalogRecord, favoriteCours
 
 export function StudentCourseCatalogPage() {
   const [catalog, setCatalog] = useState<CourseCatalogResponse>(emptyCatalog)
-  const [courseMediaOverrides] = useState(() => getAllCourseMediaOverrides())
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
@@ -356,7 +355,7 @@ export function StudentCourseCatalogPage() {
           {filteredCourses.map((course) => {
             const meta = getCourseMockMeta(course)
             const isFavorite = favoriteCourseIds.includes(course.course_id)
-            const mediaOverride = courseMediaOverrides[String(course.course_id)]
+            const mediaOverride = getCourseMediaOverrideForCourse(course.course_id, course.title)
             const courseThumbnail = mediaOverride?.thumbnailImage || mediaOverride?.previewImage || ''
 
             return (
