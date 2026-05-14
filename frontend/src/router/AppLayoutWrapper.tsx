@@ -15,6 +15,7 @@ import {
   Settings,
   ShieldCheck,
   Sparkles,
+  User,
   Users,
 } from 'lucide-react'
 
@@ -92,6 +93,7 @@ export function AppLayoutWrapper() {
   if (!user) return null
 
   const roleLabel = user.role.charAt(0).toUpperCase() + user.role.slice(1)
+  const showStudentUpgradeCard = false
   const studentUpgradeCard = (
     <div className="rounded-2xl border border-blue-100 bg-gradient-to-br from-white via-blue-50 to-indigo-50 p-4 shadow-sm">
       <div className="space-y-3">
@@ -118,7 +120,8 @@ export function AppLayoutWrapper() {
       return <BriefcaseBusiness className="h-5 w-5" />
     }
     if (href.endsWith('/applications')) return <ClipboardCheck className="h-5 w-5" />
-    if (href.endsWith('/profile') || href.endsWith('/privacy')) return <Settings className="h-5 w-5" />
+    if (href.endsWith('/profile')) return <User className="h-5 w-5" />
+    if (href.endsWith('/privacy')) return <Settings className="h-5 w-5" />
     if (href.endsWith('/skills')) return <ShieldCheck className="h-5 w-5" />
     if (href.endsWith('/courses') || href.endsWith('/study-plan')) return <BookOpen className="h-5 w-5" />
     if (href.endsWith('/learning')) return <GraduationCap className="h-5 w-5" />
@@ -161,7 +164,7 @@ export function AppLayoutWrapper() {
           </div>
         </div>
       }
-      sidebarBottomContent={user.role === 'student' ? studentUpgradeCard : undefined}
+      sidebarBottomContent={user.role === 'student' && showStudentUpgradeCard ? studentUpgradeCard : undefined}
       navbarProps={{
         searchPlaceholder:
           user.role === 'student'
