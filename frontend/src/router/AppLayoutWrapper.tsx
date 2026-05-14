@@ -58,18 +58,19 @@ export function AppLayoutWrapper() {
   }, [user.user_id])
 
   useEffect(() => {
-    if (user.role !== 'student') {
+    if (user.role !== 'student' && user.role !== 'company') {
       setProfileAvatar(undefined)
       return
     }
 
     const syncAvatar = async () => {
       try {
-        const profile = await apiRequest<{ profile_image: string | null }>('/student/profile')
+        const endpoint = user.role === 'student' ? '/student/profile' : '/company/profile'
+        const profile = await apiRequest<{ profile_image: string | null }>(endpoint)
         setProfileAvatar(profile.profile_image ?? undefined)
       } catch (error) {
         if (!(error instanceof ApiError)) {
-          console.error('Unable to refresh student profile avatar', error)
+          console.error('Unable to refresh profile avatar', error)
         }
       }
     }
@@ -184,7 +185,7 @@ export function AppLayoutWrapper() {
           user.role === 'student'
             ? '/student/messages'
             : user.role === 'company'
-              ? '/company/notifications'
+              ? '/company/messages'
               : '/admin/notifications',
         userMenu: {
           name: user.name || 'User',

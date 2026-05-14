@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 
-import type { AdminDashboardResponse, CompanyDashboardResponse, StudentDashboardResponse } from '../features/dashboard/types'
-import { CompanyDashboardRedesign } from '../features/dashboard/CompanyDashboardRedesign'
+import type { AdminDashboardResponse, StudentDashboardResponse } from '../features/dashboard/types'
 import { StudentDashboard } from '../features/dashboard/StudentDashboard'
 import { useAuth } from '../auth/useAuth'
 import { ApiError, apiRequest } from '../lib/api'
@@ -34,24 +33,16 @@ export function DashboardPage({ role }: DashboardPageProps) {
   const content = contentByRole[role]
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [data, setData] = useState<StudentDashboardResponse | CompanyDashboardResponse | AdminDashboardResponse | null>(null)
+  const [data, setData] = useState<StudentDashboardResponse | AdminDashboardResponse | null>(null)
 
   useEffect(() => {
     let active = true
 
     async function loadDashboard() {
       try {
-        if (role === 'student') {
+        if (role === 'student' || role === 'company') {
           if (active) {
             setLoading(false)
-          }
-          return
-        }
-
-        if (role === 'company') {
-          const response = await apiRequest<CompanyDashboardResponse>(dashboardPathByRole(role))
-          if (active) {
-            setData(response)
           }
           return
         }
@@ -140,14 +131,7 @@ export function DashboardPage({ role }: DashboardPageProps) {
   }
 
   if (role === 'company') {
-    return (
-      <CompanyDashboardRedesign
-        companyName={user?.name ?? 'Company'}
-        loading={loading}
-        error={error}
-        data={(data as CompanyDashboardResponse | null) ?? null}
-      />
-    )
+    return null
   }
 
   return (

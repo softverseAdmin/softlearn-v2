@@ -10,6 +10,7 @@ export interface MessageRecord {
   id: number
   author: MessageAuthor
   sender: string
+  senderImage: string | null
   body: string
   sentAt: string
   status?: MessageDeliveryStatus
@@ -26,6 +27,7 @@ export interface ConversationThread {
   isStarred: boolean
   lastActivity: string
   preview: string
+  participantImage: string | null
   messages: MessageRecord[]
 }
 
@@ -33,6 +35,7 @@ export interface MessageRecordResponse {
   id: number
   author: MessageAuthor
   sender: string
+  sender_image: string | null
   body: string
   sent_at: string
   status: MessageDeliveryStatus | null
@@ -49,11 +52,20 @@ export interface ConversationThreadResponse {
   is_starred: boolean
   last_activity: string
   preview: string
+  participant_image: string | null
   messages: MessageRecordResponse[]
 }
 
 export interface StudentMessagesResponse {
   student_id: number
+  thread_count: number
+  unread_count: number
+  starred_count: number
+  threads: ConversationThreadResponse[]
+}
+
+export interface CompanyMessagesResponse {
+  company_id: number
   thread_count: number
   unread_count: number
   starred_count: number
@@ -69,7 +81,8 @@ export interface ComposeContact {
 }
 
 export interface ComposeContactsResponse {
-  student_id: number
+  student_id?: number
+  company_id?: number
   contact_count: number
   contacts: ComposeContact[]
 }

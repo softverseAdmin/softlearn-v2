@@ -11,7 +11,7 @@ import { ApiError, apiRequest } from '@/lib/api'
 import { cn } from '@/lib/utils'
 import type { AppLayoutOutletContext } from '@/router/AppLayoutWrapper'
 
-import type { ConversationThreadResponse, StudentMessagesResponse } from '../profile/messages/types'
+import type { CompanyMessagesResponse, ConversationThreadResponse, StudentMessagesResponse } from '../profile/messages/types'
 import type { StudentMatchesResponse } from '../profile/types'
 import type { NotificationItem, NotificationsResponse } from './types'
 
@@ -49,6 +49,8 @@ const emptyMessagesResponse: StudentMessagesResponse = {
   starred_count: 0,
   threads: [],
 }
+
+type MessagesResponse = StudentMessagesResponse | CompanyMessagesResponse
 
 const emptyMatchesResponse: StudentMatchesResponse = {
   student_id: 0,
@@ -188,6 +190,9 @@ function getNotificationDestination(notification: NotificationItem, role: 'stude
   }
 
   if (role === 'company') {
+    if (category === 'messages') {
+      return '/company/messages'
+    }
     if (category === 'applications') {
       return '/company/applications'
     }
@@ -252,7 +257,11 @@ function mapBackendNotificationToFeedItem(
   }
 }
 
-function mapMessageThreadToFeedItem(thread: ConversationThreadResponse): NotificationFeedItem {
+function mapMessageThreadToFeedItem(
+  thread: ConversationThreadResponse,
+  role: 'student' | 'company' | 'admin',
+): NotificationFeedItem {
+  const destination = role === 'company' ? `/company/messages?thread=${thread.id}` : `/student/messages?thread=${thread.id}`
   return {
     key: `message-${thread.id}`,
     source: 'message',
@@ -262,13 +271,13 @@ function mapMessageThreadToFeedItem(thread: ConversationThreadResponse): Notific
     notification_type: 'message_received',
     title: `New message from ${thread.participant_name}`,
     message: thread.preview || `${thread.participant_name} sent a new message.`,
-    link: `/student/messages?thread=${thread.id}`,
+    link: destination,
     actor_name: thread.participant_name,
     actor_role: thread.role_label,
     read_at: thread.is_unread ? null : thread.last_activity,
     is_read: !thread.is_unread,
     created_at: thread.last_activity,
-    destination: `/student/messages?thread=${thread.id}`,
+    destination,
   }
 }
 
@@ -297,7 +306,7 @@ export function NotificationsPage() {
   const { csrfToken, user } = useAuth()
   const outletContext = useOutletContext<AppLayoutOutletContext | undefined>()
   const [notificationsData, setNotificationsData] = useState<NotificationsResponse>(emptyNotificationsResponse)
-  const [messagesData, setMessagesData] = useState<StudentMessagesResponse>(emptyMessagesResponse)
+  const [messagesData, setMessagesData] = useState<MessagesResponse>(emptyMessagesResponse)
   const [matchesData, setMatchesData] = useState<StudentMatchesResponse>(emptyMatchesResponse)
   const [seenMatchIds, setSeenMatchIds] = useState<Set<number>>(new Set())
   const [loading, setLoading] = useState(true)
@@ -338,6 +347,18 @@ export function NotificationsPage() {
           setNotificationsData(notificationsResponse)
           setMessagesData(studentMessagesResponse)
           setMatchesData(studentMatchesResponse)
+        } else if (role === 'company') {
+          const [notificationsResponse, companyMessagesResponse] = await Promise.all([
+            apiRequest<NotificationsResponse>('/notifications'),
+            apiRequest<CompanyMessagesResponse>('/company/messages'),
+          ])
+
+          if (!active) {
+            return
+          }
+
+          setNotificationsData(notificationsResponse)
+          setMessagesData(companyMessagesResponse)
         } else {
           const notificationsResponse = await apiRequest<NotificationsResponse>('/notifications')
           if (!active) {
@@ -368,13 +389,15 @@ export function NotificationsPage() {
     () =>
       role === 'student'
         ? ['all', 'unread', 'messages', 'jobs', 'applications', 'interviews', 'exams']
-        : ['all', 'unread', 'applications', 'interviews', 'jobs', 'exams'],
+        : role === 'company'
+          ? ['all', 'unread', 'messages', 'applications', 'interviews', 'jobs', 'exams']
+          : ['all', 'unread', 'applications', 'interviews', 'jobs', 'exams'],
     [role],
   )
 
   const feedItems = useMemo(() => {
     const backendItems = notificationsData.notifications.map((notification) => mapBackendNotificationToFeedItem(notification, role))
-    const messageItems = role === 'student' ? messagesData.threads.map(mapMessageThreadToFeedItem) : []
+    const messageItems = role === 'student' || role === 'company' ? messagesData.threads.map((thread) => mapMessageThreadToFeedItem(thread, role)) : []
     const matchItems = role === 'student' ? matchesData.matches.map((match) => mapMatchToFeedItem(match, seenMatchIds)) : []
 
     return [...backendItems, ...messageItems, ...matchItems].sort(
@@ -462,7 +485,8 @@ export function NotificationsPage() {
   }
 
   async function markMessageThreadRead(threadId: number) {
-    const updatedThread = await apiRequest<ConversationThreadResponse>(`/student/messages/threads/${threadId}`, {
+    const endpoint = role === 'company' ? `/company/messages/threads/${threadId}` : `/student/messages/threads/${threadId}`
+    const updatedThread = await apiRequest<ConversationThreadResponse>(endpoint, {
       method: 'PUT',
       body: { mark_as_read: true },
       csrfToken,
@@ -521,11 +545,13 @@ export function NotificationsPage() {
       const unreadThreadIds =
         role === 'student'
           ? messagesData.threads.filter((thread) => thread.is_unread).map((thread) => thread.id)
+          : role === 'company'
+            ? messagesData.threads.filter((thread) => thread.is_unread).map((thread) => thread.id)
           : []
 
       for (const threadId of unreadThreadIds) {
         tasks.push(
-          apiRequest<ConversationThreadResponse>(`/student/messages/threads/${threadId}`, {
+          apiRequest<ConversationThreadResponse>(`${role === 'company' ? '/company/messages/threads' : '/student/messages/threads'}/${threadId}`, {
             method: 'PUT',
             body: { mark_as_read: true },
             csrfToken,
@@ -536,18 +562,20 @@ export function NotificationsPage() {
       const results = await Promise.all(tasks)
       setNotificationsData(results[0] as NotificationsResponse)
 
-      if (role === 'student') {
+      if (role === 'student' || role === 'company') {
         setMessagesData((current) => ({
           ...current,
           unread_count: 0,
           threads: current.threads.map((thread) => (thread.is_unread ? { ...thread, is_unread: false } : thread)),
         }))
 
-        const nextSeenMatchIds = new Set(seenMatchIds)
-        for (const match of matchesData.matches) {
-          nextSeenMatchIds.add(match.vacancy_id)
+        if (role === 'student') {
+          const nextSeenMatchIds = new Set(seenMatchIds)
+          for (const match of matchesData.matches) {
+            nextSeenMatchIds.add(match.vacancy_id)
+          }
+          updateSeenMatchIds(nextSeenMatchIds)
         }
-        updateSeenMatchIds(nextSeenMatchIds)
       }
     } catch (saveError) {
       setError(getErrorMessage(saveError))
@@ -572,7 +600,9 @@ export function NotificationsPage() {
         <p className="max-w-2xl text-base text-muted-foreground">
           {role === 'student'
             ? 'Review updates in the same workspace pattern as messages. New message alerts open your inbox, and matched-job alerts open the related job page.'
-            : 'Review recent application, interview, and system updates from one protected workspace.'}
+            : role === 'company'
+              ? 'Review candidate messages, applications, interviews, and system updates from one protected workspace.'
+              : 'Review recent application, interview, and system updates from one protected workspace.'}
         </p>
       </div>
 
@@ -658,8 +688,12 @@ export function NotificationsPage() {
                 <div>
                   <p className="font-medium">{feedItems.length === 0 ? 'No notifications yet' : 'No notifications match this filter'}</p>
                   <p className="text-sm text-muted-foreground">
-                    {feedItems.length === 0
-                      ? 'New message threads, matched jobs, and platform updates will appear here.'
+                     {feedItems.length === 0
+                      ? role === 'student'
+                        ? 'New message threads, matched jobs, and platform updates will appear here.'
+                        : role === 'company'
+                          ? 'New candidate messages, hiring updates, and platform notifications will appear here.'
+                          : 'New platform notifications will appear here.'
                       : 'Try a different search term or switch back to another filter.'}
                   </p>
                 </div>

@@ -369,16 +369,20 @@ class ApiFoundationTests(TestCase):
             full_name="Student User",
             role=User.Role.STUDENT,
         )
+        StudentProfile.objects.create(user=student, profile_image="https://example.com/student-avatar.png")
+        company = Company.objects.create(name="Softverse", profile_image="https://example.com/company-avatar.png", is_active=True)
         other_user = User.objects.create_user(
             email="recruiter@example.com",
             password="SecurePass123!",
             full_name="Recruiter User",
-            role=User.Role.ADMIN,
+            role=User.Role.COMPANY,
+            company=company,
         )
         thread = MessageThread.objects.create(
             student=student,
+            participant_user=other_user,
             participant_name="Recruiter User",
-            company_name="Softverse",
+            company_name=company.name,
             role_label="Recruiter",
             category=MessageThread.Category.APPLICATIONS,
             is_starred=True,
@@ -404,7 +408,9 @@ class ApiFoundationTests(TestCase):
         self.assertEqual(body["unread_count"], 1)
         self.assertEqual(body["starred_count"], 1)
         self.assertEqual(body["threads"][0]["participant_name"], "Recruiter User")
+        self.assertEqual(body["threads"][0]["participant_image"], "https://example.com/company-avatar.png")
         self.assertEqual(body["threads"][0]["messages"][0]["author"], "other")
+        self.assertEqual(body["threads"][0]["messages"][0]["sender_image"], "https://example.com/company-avatar.png")
 
     def test_student_can_create_thread_and_initial_message(self):
         student = User.objects.create_user(
@@ -566,6 +572,7 @@ class ApiFoundationTests(TestCase):
             full_name="Student User",
             role=User.Role.STUDENT,
         )
+        StudentProfile.objects.create(user=student, profile_image="https://example.com/student-avatar.png")
         other_user = User.objects.create_user(
             email="support@example.com",
             password="SecurePass123!",
@@ -617,6 +624,7 @@ class ApiFoundationTests(TestCase):
         self.assertEqual(thread.last_message_sender, student)
         self.assertEqual(Message.objects.filter(thread=thread).count(), 2)
         self.assertEqual(reply_response.json()["data"]["messages"][-1]["status"], "Sent")
+        self.assertEqual(reply_response.json()["data"]["messages"][-1]["sender_image"], "https://example.com/student-avatar.png")
 
     def test_student_can_delete_thread(self):
         student = User.objects.create_user(
@@ -720,6 +728,236 @@ class ApiFoundationTests(TestCase):
         response = client.get("/api/v1/student/messages")
 
         self.assertEqual(response.status_code, 403)
+
+    def test_company_messages_get_returns_threads_and_counts(self):
+        company = Company.objects.create(name="Softverse", is_active=True)
+        student = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        StudentProfile.objects.create(user=student, profile_image="https://example.com/student-avatar.png")
+        company.profile_image = "https://example.com/company-avatar.png"
+        company.save(update_fields=["profile_image", "updated_at"])
+        company_user = User.objects.create_user(
+            email="company@example.com",
+            password="SecurePass123!",
+            full_name="Company User",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+        thread = MessageThread.objects.create(
+            student=student,
+            participant_user=company_user,
+            participant_name=company_user.full_name,
+            company_name=company.name,
+            role_label="Admin",
+            category=MessageThread.Category.APPLICATIONS,
+            is_starred=True,
+        )
+        message = Message.objects.create(
+            thread=thread,
+            sender=student,
+            sender_name=student.full_name,
+            body="I would like to discuss the role.",
+        )
+        thread.last_message_preview = message.body
+        thread.last_message_at = message.created_at
+        thread.last_message_sender = student
+        thread.save(update_fields=["last_message_preview", "last_message_at", "last_message_sender", "updated_at"])
+
+        client = Client()
+        client.force_login(company_user)
+        response = client.get("/api/v1/company/messages")
+
+        self.assertEqual(response.status_code, 200)
+        body = response.json()["data"]
+        self.assertEqual(body["thread_count"], 1)
+        self.assertEqual(body["unread_count"], 1)
+        self.assertEqual(body["starred_count"], 1)
+        self.assertEqual(body["threads"][0]["participant_name"], "Student User")
+        self.assertEqual(body["threads"][0]["participant_image"], "https://example.com/student-avatar.png")
+        self.assertEqual(body["threads"][0]["messages"][0]["author"], "other")
+        self.assertEqual(body["threads"][0]["messages"][0]["sender_image"], "https://example.com/student-avatar.png")
+
+    def test_company_message_contacts_return_accessible_students(self):
+        company = Company.objects.create(name="Softverse", is_active=True)
+        student = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        company_user = User.objects.create_user(
+            email="company@example.com",
+            password="SecurePass123!",
+            full_name="Company User",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+        CandidateReviewAccess.objects.create(
+            company=company,
+            student=student,
+            source=CandidateReviewAccess.Source.APPLICATION,
+            is_active=True,
+        )
+
+        client = Client()
+        client.force_login(company_user)
+        response = client.get("/api/v1/company/messages/contacts")
+
+        self.assertEqual(response.status_code, 200)
+        body = response.json()["data"]
+        self.assertEqual(body["contact_count"], 1)
+        self.assertEqual(body["contacts"][0]["participant_name"], "Student User")
+        self.assertEqual(body["contacts"][0]["role_label"], "Student")
+        self.assertEqual(body["contacts"][0]["participant_user_id"], student.id)
+        self.assertEqual(body["contacts"][0]["source"], CandidateReviewAccess.Source.APPLICATION)
+
+    def test_company_message_contacts_include_students_without_candidate_access(self):
+        company = Company.objects.create(name="Softverse", is_active=True)
+        student = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        company_user = User.objects.create_user(
+            email="company@example.com",
+            password="SecurePass123!",
+            full_name="Company User",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+
+        client = Client()
+        client.force_login(company_user)
+        response = client.get("/api/v1/company/messages/contacts")
+
+        self.assertEqual(response.status_code, 200)
+        body = response.json()["data"]
+        self.assertEqual(body["contact_count"], 1)
+        self.assertEqual(body["contacts"][0]["participant_name"], "Student User")
+        self.assertEqual(body["contacts"][0]["source"], "student_directory")
+
+    def test_company_can_create_mark_read_and_reply_to_thread(self):
+        company = Company.objects.create(name="Softverse", is_active=True)
+        student = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        StudentProfile.objects.create(user=student, profile_image="https://example.com/student-avatar.png")
+        company.profile_image = "https://example.com/company-avatar.png"
+        company.save(update_fields=["profile_image", "updated_at"])
+        company_user = User.objects.create_user(
+            email="company@example.com",
+            password="SecurePass123!",
+            full_name="Company User",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+        CompanyMember.objects.create(company=company, user=company_user, role=CompanyMember.MemberRole.ADMIN)
+        CandidateReviewAccess.objects.create(
+            company=company,
+            student=student,
+            source=CandidateReviewAccess.Source.APPLICATION,
+            is_active=True,
+        )
+
+        client, csrf_token = self.csrf_client()
+        client.force_login(company_user)
+        create_response = client.post(
+            "/api/v1/company/messages/threads",
+            data=json.dumps(
+                {
+                    "participant_user_id": student.id,
+                    "category": "applications",
+                    "message": "Thanks for your application.",
+                }
+            ),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+        self.assertEqual(create_response.status_code, 201)
+        thread = MessageThread.objects.get(student=student, participant_user=company_user)
+        self.assertEqual(thread.last_message_preview, "Thanks for your application.")
+        self.assertIsNotNone(thread.company_last_read_at)
+
+        inbound_message = Message.objects.create(
+            thread=thread,
+            sender=student,
+            sender_name=student.full_name,
+            body="Happy to continue the conversation.",
+        )
+        thread.last_message_preview = inbound_message.body
+        thread.last_message_at = inbound_message.created_at
+        thread.last_message_sender = student
+        thread.save(update_fields=["last_message_preview", "last_message_at", "last_message_sender", "updated_at"])
+
+        update_response = client.put(
+            f"/api/v1/company/messages/threads/{thread.id}",
+            data=json.dumps({"is_starred": True, "mark_as_read": True}),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+        self.assertEqual(update_response.status_code, 200)
+        thread.refresh_from_db()
+        self.assertTrue(thread.is_starred)
+        self.assertIsNotNone(thread.company_last_read_at)
+        self.assertFalse(update_response.json()["data"]["is_unread"])
+
+        reply_response = client.post(
+            f"/api/v1/company/messages/threads/{thread.id}/messages",
+            data=json.dumps({"body": "Great, let us schedule the next step."}),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+        self.assertEqual(reply_response.status_code, 200)
+        thread.refresh_from_db()
+        self.assertEqual(thread.last_message_preview, "Great, let us schedule the next step.")
+        self.assertEqual(thread.last_message_sender, company_user)
+        self.assertEqual(Message.objects.filter(thread=thread).count(), 3)
+        self.assertEqual(reply_response.json()["data"]["messages"][-1]["status"], "Sent")
+        self.assertEqual(reply_response.json()["data"]["messages"][-1]["sender_image"], "https://example.com/company-avatar.png")
+
+    def test_company_can_create_thread_with_student_directory_contact(self):
+        company = Company.objects.create(name="Softverse", is_active=True)
+        student = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        company_user = User.objects.create_user(
+            email="company@example.com",
+            password="SecurePass123!",
+            full_name="Company User",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+        CompanyMember.objects.create(company=company, user=company_user, role=CompanyMember.MemberRole.ADMIN)
+
+        client, csrf_token = self.csrf_client()
+        client.force_login(company_user)
+        create_response = client.post(
+            "/api/v1/company/messages/threads",
+            data=json.dumps(
+                {
+                    "participant_user_id": student.id,
+                    "category": "applications",
+                    "message": "Hello from the company inbox.",
+                }
+            ),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+
+        self.assertEqual(create_response.status_code, 201)
+        thread = MessageThread.objects.get(student=student, participant_user=company_user)
+        self.assertEqual(thread.last_message_preview, "Hello from the company inbox.")
 
     def test_student_dashboard_returns_summary_metrics(self):
         student = User.objects.create_user(
@@ -3002,6 +3240,13 @@ class ApiFoundationTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["data"]["name"], "Softverse")
         self.assertEqual(response.json()["data"]["description"], "")
+        self.assertIsNone(response.json()["data"]["profile_image"])
+        self.assertIsNone(response.json()["data"]["cover_image"])
+        self.assertEqual(response.json()["data"]["job_posting_id"], "")
+        self.assertEqual(response.json()["data"]["founder_name"], "")
+        self.assertEqual(response.json()["data"]["headquarters_address"], "")
+        self.assertEqual(response.json()["data"]["office_locations"], "")
+        self.assertEqual(response.json()["data"]["company_points"], [])
         self.assertFalse(response.json()["data"]["profile_complete"])
 
     def test_company_profile_put_updates_name_and_description(self):
@@ -3022,6 +3267,25 @@ class ApiFoundationTests(TestCase):
                 {
                     "name": "Softverse Japan",
                     "description": "We hire students for entry-level software roles in Japan.",
+                    "profile_image": "data:image/png;base64,company-profile",
+                    "cover_image": "data:image/png;base64,company-cover",
+                    "job_posting_id": "430351",
+                    "founder_name": "Jane Founder",
+                    "headquarters_address": "〒1500042\n東京都渋谷区宇田川町3-5Spark SHIBUYA 10階",
+                    "office_locations": "Primary\nSpark SHIBUYA 10F, 3-5 Udagawacho\nShibuya-ku, Tokyo 150-0042",
+                    "founded_at": "2019年3月",
+                    "website_url": "https://wunderbar.co.jp/",
+                    "industry": "インターネット",
+                    "company_points": ["副業可", "私服可", "自社サービス保有"],
+                    "business_domains": ["AI・ビッグデータ", "エンタメ"],
+                    "business_models": ["広告モデル（広告掲載収益）", "クリエイター経済モデル（コンテンツ制作／販売）"],
+                    "employee_count_label": "30 人",
+                    "market_category": "非上場（資金調達）",
+                    "capital_label": "7,000 万円",
+                    "revenue_label": "非公開",
+                    "tagline": "IPの可能性を広げ、人々に衝撃と感動を",
+                    "company_features": "Wunderbarには「素晴らしい」「驚くべき」という意味があります。",
+                    "additional_company_info": "主な株主：経営陣",
                 }
             ),
             content_type="application/json",
@@ -3032,6 +3296,16 @@ class ApiFoundationTests(TestCase):
         company.refresh_from_db()
         self.assertEqual(company.name, "Softverse Japan")
         self.assertEqual(company.description, "We hire students for entry-level software roles in Japan.")
+        self.assertEqual(company.profile_image, "data:image/png;base64,company-profile")
+        self.assertEqual(company.cover_image, "data:image/png;base64,company-cover")
+        self.assertEqual(company.job_posting_id, "430351")
+        self.assertEqual(company.founder_name, "Jane Founder")
+        self.assertEqual(company.headquarters_address, "〒1500042\n東京都渋谷区宇田川町3-5Spark SHIBUYA 10階")
+        self.assertEqual(company.office_locations, "Primary\nSpark SHIBUYA 10F, 3-5 Udagawacho\nShibuya-ku, Tokyo 150-0042")
+        self.assertEqual(company.company_points, ["副業可", "私服可", "自社サービス保有"])
+        self.assertEqual(response.json()["data"]["profile_image"], "data:image/png;base64,company-profile")
+        self.assertEqual(response.json()["data"]["cover_image"], "data:image/png;base64,company-cover")
+        self.assertEqual(response.json()["data"]["tagline"], "IPの可能性を広げ、人々に衝撃と感動を")
         self.assertTrue(response.json()["data"]["profile_complete"])
 
     def test_student_cannot_access_company_profile_endpoint(self):

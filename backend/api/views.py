@@ -242,6 +242,25 @@ def serialize_company_profile(user: User) -> dict:
         "company_id": company.id,
         "name": company.name,
         "description": company.description,
+        "profile_image": company.profile_image or None,
+        "cover_image": company.cover_image or None,
+        "job_posting_id": company.job_posting_id,
+        "founder_name": company.founder_name,
+        "headquarters_address": company.headquarters_address,
+        "office_locations": company.office_locations,
+        "founded_at": company.founded_at,
+        "website_url": company.website_url,
+        "industry": company.industry,
+        "company_points": company.company_points or [],
+        "business_domains": company.business_domains or [],
+        "business_models": company.business_models or [],
+        "employee_count_label": company.employee_count_label,
+        "market_category": company.market_category,
+        "capital_label": company.capital_label,
+        "revenue_label": company.revenue_label,
+        "tagline": company.tagline,
+        "company_features": company.company_features,
+        "additional_company_info": company.additional_company_info,
         "profile_complete": bool(company.name.strip() and company.description.strip()),
     }
 
@@ -723,12 +742,60 @@ def message_thread_role_label(thread: MessageThread) -> str:
     return "Contact"
 
 
+def message_thread_participant_name(thread: MessageThread, viewer: User) -> str:
+    if viewer.role == User.Role.COMPANY:
+        if thread.student.full_name.strip():
+            return thread.student.full_name
+        return thread.student.email
+    return thread.participant_name
+
+
+def message_thread_secondary_label(thread: MessageThread, viewer: User) -> tuple[str, str]:
+    if viewer.role == User.Role.COMPANY:
+        return (thread.category.replace("_", " ").title(), "Student")
+    return (message_thread_company_name(thread), message_thread_role_label(thread))
+
+
+def message_profile_image_for_user(user: User | None) -> str | None:
+    if user is None:
+        return None
+    if user.role == User.Role.STUDENT:
+        try:
+            return user.student_profile.profile_image or None
+        except StudentProfile.DoesNotExist:
+            return None
+    if user.role == User.Role.COMPANY and user.company is not None:
+        return user.company.profile_image or None
+    return None
+
+
+def message_thread_participant_image(thread: MessageThread, viewer: User) -> str | None:
+    if viewer.role == User.Role.COMPANY:
+        return message_profile_image_for_user(thread.student)
+    return message_profile_image_for_user(thread.participant_user)
+
+
+def message_thread_is_unread(thread: MessageThread, viewer: User) -> bool:
+    if thread.last_message_at is None:
+        return False
+
+    if viewer.role == User.Role.COMPANY:
+        if thread.last_message_sender_id == viewer.id:
+            return False
+        return thread.company_last_read_at is None or thread.company_last_read_at < thread.last_message_at
+
+    if thread.last_message_sender_id == thread.student_id:
+        return False
+    return thread.last_read_at is None or thread.last_read_at < thread.last_message_at
+
+
 def serialize_message_record(message: Message, viewer: User) -> dict:
     is_self = message.sender_id == viewer.id
     return {
         "id": message.id,
         "author": "self" if is_self else "other",
         "sender": message_sender_display_name(message, viewer),
+        "sender_image": message_profile_image_for_user(message.sender),
         "body": message.body,
         "sent_at": message.created_at.isoformat(),
         "status": message.get_delivery_status_display() if is_self else None,
@@ -736,17 +803,19 @@ def serialize_message_record(message: Message, viewer: User) -> dict:
 
 
 def serialize_message_thread(thread: MessageThread, *, viewer: User, include_messages: bool = True) -> dict:
+    secondary_label, role_label = message_thread_secondary_label(thread, viewer)
     data = {
         "id": thread.id,
-        "participant_name": thread.participant_name,
-        "company_name": message_thread_company_name(thread),
-        "role_label": message_thread_role_label(thread),
+        "participant_name": message_thread_participant_name(thread, viewer),
+        "company_name": secondary_label,
+        "role_label": role_label,
         "category": thread.category,
-        "is_unread": thread.is_unread,
+        "is_unread": message_thread_is_unread(thread, viewer),
         "is_pinned": thread.is_pinned,
         "is_starred": thread.is_starred,
         "last_activity": thread.last_message_at.isoformat() if thread.last_message_at else thread.updated_at.isoformat(),
         "preview": thread.last_message_preview,
+        "participant_image": message_thread_participant_image(thread, viewer),
     }
     if include_messages:
         data["messages"] = [serialize_message_record(message, viewer) for message in thread.messages.all()]
@@ -756,8 +825,17 @@ def serialize_message_thread(thread: MessageThread, *, viewer: User, include_mes
 def student_message_threads_queryset(user: User):
     return (
         MessageThread.objects.filter(student=user)
-        .select_related("participant_user", "participant_user__company", "last_message_sender")
-        .prefetch_related("messages__sender")
+        .select_related("student", "student__student_profile", "participant_user", "participant_user__company", "last_message_sender")
+        .prefetch_related("messages__sender", "messages__sender__company", "messages__sender__student_profile")
+        .order_by("-is_pinned", "-last_message_at", "-updated_at", "-id")
+    )
+
+
+def company_message_threads_queryset(user: User):
+    return (
+        MessageThread.objects.filter(participant_user=user)
+        .select_related("student", "student__student_profile", "participant_user", "participant_user__company", "last_message_sender")
+        .prefetch_related("messages__sender", "messages__sender__company", "messages__sender__student_profile")
         .order_by("-is_pinned", "-last_message_at", "-updated_at", "-id")
     )
 
@@ -768,6 +846,17 @@ def serialize_student_messages(user: User) -> dict:
         "student_id": user.id,
         "thread_count": len(threads),
         "unread_count": sum(1 for thread in threads if thread.is_unread),
+        "starred_count": sum(1 for thread in threads if thread.is_starred),
+        "threads": [serialize_message_thread(thread, viewer=user) for thread in threads],
+    }
+
+
+def serialize_company_messages(user: User) -> dict:
+    threads = list(company_message_threads_queryset(user))
+    return {
+        "company_id": user.company_id,
+        "thread_count": len(threads),
+        "unread_count": sum(1 for thread in threads if message_thread_is_unread(thread, user)),
         "starred_count": sum(1 for thread in threads if thread.is_starred),
         "threads": [serialize_message_thread(thread, viewer=user) for thread in threads],
     }
@@ -854,6 +943,63 @@ def serialize_student_message_compose_contacts(user: User) -> dict:
     }
 
 
+def serialize_company_message_compose_contacts(user: User) -> dict:
+    company = user.company
+    if company is None:
+        raise ValidationError({"company": ["Company context is required for company users."]})
+
+    contacts_by_key: dict[str, dict] = {}
+
+    students = matchable_students_queryset().only("id", "full_name", "email")
+    for student in students:
+        key = f"student:{student.id}"
+        contacts_by_key[key] = serialize_message_compose_contact(
+            participant_name=student.full_name or student.email,
+            company_name="Student directory",
+            role_label="Student",
+            participant_user_id=student.id,
+            source="student_directory",
+        )
+
+    threads = list(
+        MessageThread.objects.filter(participant_user=user)
+        .select_related("student")
+        .order_by("-updated_at", "-id")
+    )
+
+    for thread in threads:
+        key = f"student:{thread.student_id}"
+        contacts_by_key[key] = serialize_message_compose_contact(
+            participant_name=thread.student.full_name or thread.student.email,
+            company_name=thread.category.replace("_", " ").title(),
+            role_label="Student",
+            participant_user_id=thread.student_id,
+            source="thread",
+        )
+
+    candidate_accesses = (
+        CandidateReviewAccess.objects.filter(company=company, is_active=True)
+        .select_related("student")
+        .order_by("-updated_at", "-id")
+    )
+    for access in candidate_accesses:
+        key = f"student:{access.student_id}"
+        contacts_by_key[key] = serialize_message_compose_contact(
+            participant_name=access.student.full_name or access.student.email,
+            company_name=access.source.replace("_", " ").title(),
+            role_label="Student",
+            participant_user_id=access.student_id,
+            source=access.source,
+        )
+
+    contacts = sorted(contacts_by_key.values(), key=lambda item: (item["participant_name"].lower(), item["source"], item["participant_user_id"] or 0))
+    return {
+        "company_id": company.id,
+        "contact_count": len(contacts),
+        "contacts": contacts,
+    }
+
+
 def refresh_message_thread_activity(thread: MessageThread, message: Message) -> None:
     thread.last_message_preview = message.body[:255]
     thread.last_message_at = message.created_at
@@ -868,6 +1014,9 @@ def refresh_message_thread_activity(thread: MessageThread, message: Message) -> 
     if message.sender_id == thread.student_id:
         thread.last_read_at = message.created_at
         update_fields.append("last_read_at")
+    if message.sender_id == thread.participant_user_id:
+        thread.company_last_read_at = message.created_at
+        update_fields.append("company_last_read_at")
 
     thread.full_clean()
     thread.save(update_fields=update_fields)
@@ -2119,9 +2268,42 @@ def validate_student_availability_payload(payload: dict) -> dict:
 
 
 def validate_company_profile_payload(payload: dict) -> dict:
+    def validate_string_list(field_name: str) -> list[str]:
+        raw_value = payload.get(field_name, [])
+        if raw_value in (None, ""):
+            return []
+        if not isinstance(raw_value, list):
+            raise ValidationError({field_name: ["This field must be a list."]})
+
+        cleaned_values = []
+        for entry in raw_value:
+            cleaned_entry = str(entry).strip()
+            if cleaned_entry:
+                cleaned_values.append(cleaned_entry)
+        return cleaned_values
+
     cleaned = {
         "name": str(payload.get("name", "")).strip(),
         "description": str(payload.get("description", "")).strip(),
+        "profile_image": str(payload.get("profile_image", "")).strip(),
+        "cover_image": str(payload.get("cover_image", "")).strip(),
+        "job_posting_id": str(payload.get("job_posting_id", "")).strip(),
+        "founder_name": str(payload.get("founder_name", "")).strip(),
+        "headquarters_address": str(payload.get("headquarters_address", "")).strip(),
+        "office_locations": str(payload.get("office_locations", "")).strip(),
+        "founded_at": str(payload.get("founded_at", "")).strip(),
+        "website_url": str(payload.get("website_url", "")).strip(),
+        "industry": str(payload.get("industry", "")).strip(),
+        "company_points": validate_string_list("company_points"),
+        "business_domains": validate_string_list("business_domains"),
+        "business_models": validate_string_list("business_models"),
+        "employee_count_label": str(payload.get("employee_count_label", "")).strip(),
+        "market_category": str(payload.get("market_category", "")).strip(),
+        "capital_label": str(payload.get("capital_label", "")).strip(),
+        "revenue_label": str(payload.get("revenue_label", "")).strip(),
+        "tagline": str(payload.get("tagline", "")).strip(),
+        "company_features": str(payload.get("company_features", "")).strip(),
+        "additional_company_info": str(payload.get("additional_company_info", "")).strip(),
     }
     if not cleaned["name"]:
         raise ValidationError({"name": ["This field is required."]})
@@ -2296,6 +2478,58 @@ def validate_student_message_thread_update_payload(payload: dict) -> dict:
         raise ValidationError(errors)
 
     return cleaned
+
+
+def validate_company_message_thread_payload(payload: dict) -> dict:
+    cleaned = {}
+    errors = {}
+
+    student_user = None
+    raw_student_user_id = payload.get("participant_user_id")
+    if raw_student_user_id in (None, ""):
+        errors["participant_user_id"] = ["This field is required."]
+    else:
+        try:
+            student_user = User.objects.get(pk=int(raw_student_user_id), role=User.Role.STUDENT)
+        except (TypeError, ValueError):
+            errors["participant_user_id"] = ["A valid participant_user_id is required."]
+        except User.DoesNotExist:
+            errors["participant_user_id"] = ["Selected student does not exist."]
+
+    message = payload.get("message")
+    if not isinstance(message, str) or not message.strip():
+        errors["message"] = ["This field is required."]
+    else:
+        cleaned["message"] = message.strip()
+
+    category = payload.get("category", MessageThread.Category.APPLICATIONS)
+    valid_categories = {choice for choice, _ in MessageThread.Category.choices}
+    if category not in valid_categories:
+        errors["category"] = ["Category must be one of: applications, interviews, support."]
+    else:
+        cleaned["category"] = category
+
+    if errors:
+        raise ValidationError(errors)
+
+    cleaned["student_user"] = student_user
+    return cleaned
+
+
+def validate_company_message_compose_contact_access(user: User, student_user: User) -> None:
+    company = user.company
+    if company is None:
+        raise ValidationError({"company": ["Company context is required for company users."]})
+
+    if student_user.role != User.Role.STUDENT or not student_user.is_active:
+        raise ValidationError({"participant_user_id": ["Selected student is not available for company messaging."]})
+
+
+def company_message_thread_role_label(user: User) -> str:
+    membership = CompanyMember.objects.filter(company_id=user.company_id, user=user).only("role").first()
+    if membership is not None:
+        return membership.role.replace("_", " ").title()
+    return "Company contact"
 
 
 def validate_candidate_note_payload(payload: dict) -> dict:
@@ -4735,8 +4969,52 @@ def company_profile_view(request):
     payload = validate_company_profile_payload(parse_json_body(request))
     company.name = payload["name"]
     company.description = payload["description"]
+    company.profile_image = payload["profile_image"]
+    company.cover_image = payload["cover_image"]
+    company.job_posting_id = payload["job_posting_id"]
+    company.founder_name = payload["founder_name"]
+    company.headquarters_address = payload["headquarters_address"]
+    company.office_locations = payload["office_locations"]
+    company.founded_at = payload["founded_at"]
+    company.website_url = payload["website_url"]
+    company.industry = payload["industry"]
+    company.company_points = payload["company_points"]
+    company.business_domains = payload["business_domains"]
+    company.business_models = payload["business_models"]
+    company.employee_count_label = payload["employee_count_label"]
+    company.market_category = payload["market_category"]
+    company.capital_label = payload["capital_label"]
+    company.revenue_label = payload["revenue_label"]
+    company.tagline = payload["tagline"]
+    company.company_features = payload["company_features"]
+    company.additional_company_info = payload["additional_company_info"]
     company.full_clean()
-    company.save(update_fields=["name", "description", "updated_at"])
+    company.save(
+        update_fields=[
+            "name",
+            "description",
+            "profile_image",
+            "cover_image",
+            "job_posting_id",
+            "founder_name",
+            "headquarters_address",
+            "office_locations",
+            "founded_at",
+            "website_url",
+            "industry",
+            "company_points",
+            "business_domains",
+            "business_models",
+            "employee_count_label",
+            "market_category",
+            "capital_label",
+            "revenue_label",
+            "tagline",
+            "company_features",
+            "additional_company_info",
+            "updated_at",
+        ]
+    )
 
     return success_response(serialize_company_profile(request.user))
 
@@ -5092,9 +5370,19 @@ def student_messages_view(request):
     return success_response(serialize_student_messages(request.user))
 
 
+@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.COMPANY])
+def company_messages_view(request):
+    return success_response(serialize_company_messages(request.user))
+
+
 @api_endpoint(["GET"], authentication_required=True, roles=[User.Role.STUDENT])
 def student_message_compose_contacts_view(request):
     return success_response(serialize_student_message_compose_contacts(request.user))
+
+
+@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.COMPANY])
+def company_message_compose_contacts_view(request):
+    return success_response(serialize_company_message_compose_contacts(request.user))
 
 
 @api_endpoint(["POST"], authentication_required=True, roles=[User.Role.STUDENT])
@@ -5129,6 +5417,49 @@ def student_message_threads_view(request):
         refresh_message_thread_activity(thread, message)
 
     serialized_thread = student_message_threads_queryset(request.user).filter(pk=thread.id).first()
+    return success_response(serialize_message_thread(serialized_thread, viewer=request.user), status=201 if created else 200)
+
+
+@api_endpoint(["POST"], authentication_required=True, roles=[User.Role.COMPANY])
+def company_message_threads_view(request):
+    payload = validate_company_message_thread_payload(parse_json_body(request))
+    validate_company_message_compose_contact_access(request.user, payload["student_user"])
+
+    company = request.user.company
+    if company is None:
+        raise ValidationError({"company": ["Company context is required for company users."]})
+
+    with transaction.atomic():
+        thread = (
+            MessageThread.objects.filter(student=payload["student_user"], participant_user=request.user)
+            .order_by("-updated_at", "-id")
+            .first()
+        )
+        created = thread is None
+        if created:
+            thread = MessageThread(
+                student=payload["student_user"],
+                participant_user=request.user,
+                participant_name=request.user.full_name,
+                company_name=company.name,
+                role_label=company_message_thread_role_label(request.user),
+                category=payload["category"],
+            )
+            thread.full_clean()
+            thread.save()
+
+        message = Message(
+            thread=thread,
+            sender=request.user,
+            sender_name=request.user.full_name,
+            body=payload["message"],
+            delivery_status=Message.DeliveryStatus.SENT,
+        )
+        message.full_clean()
+        message.save()
+        refresh_message_thread_activity(thread, message)
+
+    serialized_thread = company_message_threads_queryset(request.user).filter(pk=thread.id).first()
     return success_response(serialize_message_thread(serialized_thread, viewer=request.user), status=201 if created else 200)
 
 
@@ -5167,6 +5498,41 @@ def student_message_thread_detail_view(request, thread_id: int):
     return success_response(serialize_message_thread(serialized_thread, viewer=request.user))
 
 
+@api_endpoint(["PUT", "DELETE"], authentication_required=True, roles=[User.Role.COMPANY])
+def company_message_thread_detail_view(request, thread_id: int):
+    thread = MessageThread.objects.filter(participant_user=request.user, pk=thread_id).first()
+    if thread is None:
+        return error_response(
+            request,
+            "NOT_FOUND",
+            "The requested message thread was not found.",
+            details={"thread_id": [str(thread_id)]},
+            status=404,
+        )
+
+    if request.method == "DELETE":
+        thread.delete()
+        return success_response({"thread_id": thread_id, "deleted": True})
+
+    payload = validate_student_message_thread_update_payload(parse_json_body(request))
+    update_fields = []
+
+    if "is_starred" in payload:
+        thread.is_starred = payload["is_starred"]
+        update_fields.append("is_starred")
+
+    if payload.get("mark_as_read"):
+        thread.company_last_read_at = timezone.now()
+        update_fields.append("company_last_read_at")
+
+    if update_fields:
+        thread.full_clean()
+        thread.save(update_fields=[*update_fields, "updated_at"])
+
+    serialized_thread = company_message_threads_queryset(request.user).filter(pk=thread.id).first()
+    return success_response(serialize_message_thread(serialized_thread, viewer=request.user))
+
+
 @api_endpoint(["POST"], authentication_required=True, roles=[User.Role.STUDENT])
 def student_message_thread_messages_view(request, thread_id: int):
     thread = MessageThread.objects.filter(student=request.user, pk=thread_id).first()
@@ -5194,6 +5560,36 @@ def student_message_thread_messages_view(request, thread_id: int):
         refresh_message_thread_activity(thread, message)
 
     serialized_thread = student_message_threads_queryset(request.user).filter(pk=thread.id).first()
+    return success_response(serialize_message_thread(serialized_thread, viewer=request.user))
+
+
+@api_endpoint(["POST"], authentication_required=True, roles=[User.Role.COMPANY])
+def company_message_thread_messages_view(request, thread_id: int):
+    thread = MessageThread.objects.filter(participant_user=request.user, pk=thread_id).first()
+    if thread is None:
+        return error_response(
+            request,
+            "NOT_FOUND",
+            "The requested message thread was not found.",
+            details={"thread_id": [str(thread_id)]},
+            status=404,
+        )
+
+    payload = validate_student_message_payload(parse_json_body(request))
+
+    with transaction.atomic():
+        message = Message(
+            thread=thread,
+            sender=request.user,
+            sender_name=request.user.full_name,
+            body=payload["body"],
+            delivery_status=Message.DeliveryStatus.SENT,
+        )
+        message.full_clean()
+        message.save()
+        refresh_message_thread_activity(thread, message)
+
+    serialized_thread = company_message_threads_queryset(request.user).filter(pk=thread.id).first()
     return success_response(serialize_message_thread(serialized_thread, viewer=request.user))
 
 
