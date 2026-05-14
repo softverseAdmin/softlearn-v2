@@ -50,6 +50,7 @@ urlpatterns = [
     path("v1/student/mock-exams/<int:exam_id>/submit", views.student_mock_exam_submit_view, name="api-student-mock-exam-submit"),
     path("v1/student/interviews", views.student_interviews_view, name="api-student-interviews"),
     path("v1/company/dashboard", views.company_dashboard_view, name="api-company-dashboard"),
+    path("v1/company/courses", views.company_courses_view, name="api-company-courses"),
     path("v1/company/profile", views.company_profile_view, name="api-company-profile"),
     path("v1/company/messages", views.company_messages_view, name="api-company-messages"),
     path("v1/company/messages/contacts", views.company_message_compose_contacts_view, name="api-company-message-compose-contacts"),

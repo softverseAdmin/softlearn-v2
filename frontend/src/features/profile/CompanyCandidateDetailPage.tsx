@@ -1,18 +1,14 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import { Award, BriefcaseBusiness, ChevronRight, Globe, GraduationCap, Mail, MapPin, ShieldCheck, Sparkles } from 'lucide-react'
+import { toast } from 'sonner'
 
 import { useAuth } from '../../auth/useAuth'
 import { ApiError, apiRequest } from '../../lib/api'
-import type {
-  CandidateInterviewsResponse,
-  CandidateNotesResponse,
-  CandidateShortlistResponse,
-  CompanyCandidatePreviewResponse,
-  CompanyCandidateRecordResponse,
-  ExamResultsSummary,
-  InterviewSummary,
-  LearningSummary,
-} from './types'
+import type { CompanyApplicationRecord, CompanyApplicationsResponse, CompanyCandidatePreviewResponse } from './types'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Card, CardContent } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 
 const emptyPreview: CompanyCandidatePreviewResponse = {
   candidate_access_id: 0,
@@ -24,52 +20,69 @@ const emptyPreview: CompanyCandidatePreviewResponse = {
   restrictions: [],
 }
 
-const emptyLearning: CompanyCandidateRecordResponse<LearningSummary> = {
-  candidate_access_id: 0,
-  visibility: 'hidden',
-  summary: {
-    student_id: 0,
-    total_courses: 0,
-    completed_courses: 0,
-    in_progress_courses: 0,
-    records: [],
-  },
-  restrictions: [],
+function formatLabel(value: string) {
+  return value
+    .replace(/[_-]+/g, ' ')
+    .trim()
+    .replace(/\b\w/g, (character) => character.toUpperCase())
 }
 
-const emptyExams: CompanyCandidateRecordResponse<ExamResultsSummary> = {
-  candidate_access_id: 0,
-  visibility: 'hidden',
-  summary: {
-    student_id: 0,
-    total_results: 0,
-    passed_results: 0,
-    average_score: null,
-    results: [],
-    available_exams: [],
-  },
-  restrictions: [],
+function getInitials(name: string) {
+  const parts = name
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+
+  if (parts.length === 0) {
+    return 'CA'
+  }
+
+  return parts.map((part) => part.charAt(0).toUpperCase()).join('')
+}
+
+function formatDateLabel(value: string | null) {
+  if (!value) {
+    return 'Present'
+  }
+
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) {
+    return value
+  }
+
+  return new Intl.DateTimeFormat(undefined, {
+    month: 'short',
+    year: 'numeric',
+  }).format(date)
 }
 
 export function CompanyCandidateDetailPage() {
   const { csrfToken } = useAuth()
   const params = useParams<{ candidateAccessId: string }>()
   const [preview, setPreview] = useState<CompanyCandidatePreviewResponse>(emptyPreview)
-  const [learning, setLearning] = useState<CompanyCandidateRecordResponse<LearningSummary>>(emptyLearning)
-  const [exams, setExams] = useState<CompanyCandidateRecordResponse<ExamResultsSummary>>(emptyExams)
+  const [relatedApplication, setRelatedApplication] = useState<CompanyApplicationRecord | null>(null)
   const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
-  const [interviews, setInterviews] = useState<InterviewSummary[]>([])
-  const [interviewPurpose, setInterviewPurpose] = useState('')
-  const [interviewRoleContext, setInterviewRoleContext] = useState('')
-  const [noteBody, setNoteBody] = useState('')
+  const [actionLoading, setActionLoading] = useState<'shortlist' | 'reject' | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
+
+  async function fetchCandidateContext(candidateAccessId: string) {
+    const [previewResponse, applicationsResponse] = await Promise.all([
+      apiRequest<CompanyCandidatePreviewResponse>(`/company/candidates/${candidateAccessId}/preview`),
+      apiRequest<CompanyApplicationsResponse>('/company/applications'),
+    ])
+
+    return {
+      previewResponse,
+      relatedApplication:
+        applicationsResponse.applications.find((application) => application.candidate_access_id === previewResponse.candidate_access_id) ?? null,
+    }
+  }
 
   useEffect(() => {
     let active = true
 
-    async function loadCandidate() {
+    async function loadCandidatePreview() {
       if (!params.candidateAccessId) {
         setError('Candidate context is missing.')
         setLoading(false)
@@ -77,26 +90,15 @@ export function CompanyCandidateDetailPage() {
       }
 
       try {
-        const [previewResponse, learningResponse, examResponse, interviewResponse] = await Promise.all([
-          apiRequest<CompanyCandidatePreviewResponse>(`/company/candidates/${params.candidateAccessId}/preview`),
-          apiRequest<CompanyCandidateRecordResponse<LearningSummary>>(
-            `/company/candidates/${params.candidateAccessId}/learning-record`,
-          ),
-          apiRequest<CompanyCandidateRecordResponse<ExamResultsSummary>>(
-            `/company/candidates/${params.candidateAccessId}/exam-results`,
-          ),
-          apiRequest<CandidateInterviewsResponse>(`/company/candidates/${params.candidateAccessId}/interviews`),
-        ])
-
+        const { previewResponse, relatedApplication } = await fetchCandidateContext(params.candidateAccessId)
         if (active) {
           setPreview(previewResponse)
-          setLearning(learningResponse)
-          setExams(examResponse)
-          setInterviews(interviewResponse.interviews)
+          setRelatedApplication(relatedApplication)
+          setError(null)
         }
       } catch (loadError) {
         if (active) {
-          setError(loadError instanceof ApiError ? loadError.message : 'Unable to load candidate review details.')
+          setError(loadError instanceof ApiError ? loadError.message : 'Unable to load candidate details.')
         }
       } finally {
         if (active) {
@@ -105,325 +107,492 @@ export function CompanyCandidateDetailPage() {
       }
     }
 
-    void loadCandidate()
+    void loadCandidatePreview()
+
     return () => {
       active = false
     }
   }, [params.candidateAccessId])
 
-  async function handleShortlistToggle() {
+  async function runCandidateAction(action: 'shortlist' | 'reject') {
     if (!params.candidateAccessId) {
+      toast.error('Candidate context is missing.')
       return
     }
 
-    setSaving(true)
-    setError(null)
-    setSuccess(null)
-
-    try {
-      const response = preview.shortlist
-        ? await apiRequest<CandidateShortlistResponse>(`/company/candidates/${params.candidateAccessId}/shortlist`, {
-            method: 'DELETE',
-            csrfToken,
-          })
-        : await apiRequest<CandidateShortlistResponse>(`/company/candidates/${params.candidateAccessId}/shortlist`, {
-            method: 'POST',
-            body: {},
-            csrfToken,
-          })
-
-      setPreview((current) => ({ ...current, shortlist: response.shortlist }))
-      setSuccess(response.is_shortlisted ? 'Candidate added to shortlist.' : 'Candidate removed from shortlist.')
-    } catch (saveError) {
-      setError(saveError instanceof ApiError ? saveError.message : 'Unable to update shortlist state.')
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  async function handleAddNote(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    if (!params.candidateAccessId) {
+    if (action === 'reject' && !relatedApplication) {
+      toast.error('Reject is available only for application-based candidate reviews.')
       return
     }
 
-    setSaving(true)
-    setError(null)
-    setSuccess(null)
+    setActionLoading(action)
 
     try {
-      const response = await apiRequest<CandidateNotesResponse>(`/company/candidates/${params.candidateAccessId}/notes`, {
-        method: 'POST',
-        body: { body: noteBody },
-        csrfToken,
-      })
-      setPreview((current) => ({ ...current, notes: response.notes }))
-      setNoteBody('')
-      setSuccess('Candidate note added.')
-    } catch (saveError) {
-      setError(saveError instanceof ApiError ? saveError.message : 'Unable to save candidate note.')
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  async function handleRequestInterview(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    if (!params.candidateAccessId) {
-      return
-    }
-
-    setSaving(true)
-    setError(null)
-    setSuccess(null)
-
-    try {
-      const response = await apiRequest<InterviewSummary & { availabilities?: unknown }>(
-        `/company/candidates/${params.candidateAccessId}/interviews`,
-        {
+      if (action === 'shortlist') {
+        await apiRequest(`/company/candidates/${params.candidateAccessId}/shortlist`, {
           method: 'POST',
-          body: {
-            purpose: interviewPurpose,
-            role_context: interviewRoleContext,
-          },
+          body: {},
           csrfToken,
-        },
-      )
-      setInterviews((current) => [response, ...current])
-      setInterviewPurpose('')
-      setInterviewRoleContext('')
-      setSuccess('Interview requested successfully.')
+        })
+      } else if (relatedApplication) {
+        await apiRequest(`/company/applications/${relatedApplication.application_id}/reject`, {
+          method: 'POST',
+          body: {},
+          csrfToken,
+        })
+      }
+
+      const { previewResponse, relatedApplication: nextRelatedApplication } = await fetchCandidateContext(params.candidateAccessId)
+      setPreview(previewResponse)
+      setRelatedApplication(nextRelatedApplication)
+      setError(null)
+      toast.success(action === 'shortlist' ? 'Candidate shortlisted successfully.' : 'Application rejected successfully.')
     } catch (saveError) {
-      setError(saveError instanceof ApiError ? saveError.message : 'Unable to request interview.')
+      toast.error(saveError instanceof ApiError ? saveError.message : 'Unable to update candidate status.')
     } finally {
-      setSaving(false)
+      setActionLoading(null)
     }
   }
+
+  const candidateName = preview.student?.name || 'Candidate Details'
+  const initials = getInitials(candidateName)
+  const skillSummary = preview.student?.skills.map((skill) => skill.skill_name).join(' | ') || ''
+  const aboutSummary = preview.student?.about_me?.trim() || ''
+  const shortlistLabel = preview.shortlist ? 'Shortlisted' : 'Shortlist'
+  const shortlistDisabled = Boolean(preview.shortlist) || actionLoading !== null
+  const rejectDisabled = !relatedApplication?.can_reject || actionLoading !== null
 
   if (loading) {
     return (
-      <section className="page">
-        <div className="card">Loading candidate review details…</div>
-      </section>
+      <div className="space-y-6 px-4 py-6 md:px-6 lg:px-8">
+        <div className="space-y-3">
+          <div className="h-5 w-40 animate-pulse rounded bg-muted" />
+          <div className="h-10 w-64 animate-pulse rounded bg-muted" />
+        </div>
+        <div className="h-52 animate-pulse rounded-[24px] border border-border bg-muted/20" />
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <div key={index} className="h-32 animate-pulse rounded-[24px] border border-border bg-muted/20" />
+          ))}
+        </div>
+      </div>
     )
   }
 
   return (
-    <section className="page">
-      <div className="page-header">
-        <div>
-          <p className="eyebrow">Company candidates</p>
-          <h1>{preview.student?.name ?? 'Candidate review detail'}</h1>
-          <p className="lead">This page preserves the privacy-safe split between profile preview, learning evidence, exam evidence, and company-internal notes.</p>
-        </div>
-        <div className="actions">
-          <button
-            className={preview.shortlist ? 'danger-button' : 'primary-button'}
-            type="button"
-            onClick={() => void handleShortlistToggle()}
-            disabled={saving}
-          >
-            {preview.shortlist ? 'Remove from shortlist' : 'Add to shortlist'}
-          </button>
-          <Link className="secondary-button" to="/company/candidates">
-            Back to candidates
-          </Link>
-        </div>
+    <div className="space-y-6 px-4 py-6 md:px-6 lg:px-8">
+      <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+        <Link to="/company" className="transition-colors hover:text-foreground">
+          Dashboard
+        </Link>
+        <ChevronRight className="h-4 w-4" />
+        <Link to="/company/candidates" className="transition-colors hover:text-foreground">
+          Candidates
+        </Link>
+        <ChevronRight className="h-4 w-4" />
+        <span className="font-medium text-foreground">{candidateName}</span>
       </div>
 
-      {error ? <div className="card form-error">{error}</div> : null}
-      {success ? <div className="card form-success">{success}</div> : null}
+      {error ? (
+        <Card className="border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950">
+          <CardContent className="px-6 py-4 text-sm text-red-800 dark:text-red-200">{error}</CardContent>
+        </Card>
+      ) : null}
 
-      <div className="card stack-card">
-        <h2>Profile preview</h2>
-        {preview.shortlist ? (
-          <p className="muted">
-            Shortlisted by {preview.shortlist.created_by_name} on {new Date(preview.shortlist.created_at).toLocaleString()}
-          </p>
-        ) : (
-          <p className="muted">This candidate is not shortlisted yet.</p>
-        )}
-        {preview.visibility === 'hidden' ? (
-          <p className="muted">{preview.restrictions[0] ?? 'Profile preview is not available.'}</p>
-        ) : (
-          <>
-            <div className="card-grid">
-              <article className="card info-card">
-                <h3>Desired job type</h3>
-                <p className="muted">{preview.student?.desired_job_type || 'Not shared'}</p>
-              </article>
-              <article className="card info-card">
-                <h3>Preferred location</h3>
-                <p className="muted">{preview.student?.desired_work_location || 'Not shared'}</p>
-              </article>
-              <article className="card info-card">
-                <h3>Languages</h3>
-                <p className="muted">
-                  JP: {preview.student?.japanese_level || 'Not shared'} · EN: {preview.student?.english_level || 'Not shared'}
+      {preview.visibility !== 'visible' || !preview.student ? (
+        <Card className="rounded-[28px] border border-border bg-background">
+          <CardContent className="space-y-4 px-6 py-6">
+            <div className="flex items-center gap-3">
+              <div className="rounded-2xl border border-border bg-muted/30 p-3 text-muted-foreground">
+                <ShieldCheck className="h-5 w-5" />
+              </div>
+              <div>
+                <h2 className="text-lg font-semibold text-foreground">Profile details are hidden</h2>
+                <p className="text-sm text-muted-foreground">
+                  This candidate has not shared their profile preview with your company.
                 </p>
-              </article>
+              </div>
             </div>
-            <div className="visibility-row">
-              {preview.student?.skills.length ? (
-                preview.student.skills.map((skill) => (
-                  <span key={skill.id} className="status-pill status-success">
-                    {skill.skill_name} · {skill.proficiency_level}
-                  </span>
-                ))
+
+            {preview.restrictions.length > 0 ? (
+              <div className="space-y-2">
+                {preview.restrictions.map((restriction) => (
+                  <div key={restriction} className="rounded-2xl border border-border bg-muted/20 px-4 py-3 text-sm text-muted-foreground">
+                    {restriction}
+                  </div>
+                ))}
+              </div>
+            ) : null}
+          </CardContent>
+        </Card>
+      ) : (
+        <>
+          <Card className="overflow-hidden border-slate-200 bg-white shadow-sm pt-0">
+            <div className="relative">
+              <div className="relative h-40 overflow-hidden bg-gradient-to-r from-slate-700 via-slate-600 to-sky-500 md:h-52">
+                {preview.student.cover_image ? (
+                  <img src={preview.student.cover_image} alt={`${candidateName} cover`} className="absolute inset-0 h-full w-full object-cover" />
+                ) : null}
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.22),transparent_32%),radial-gradient(circle_at_bottom_right,rgba(255,255,255,0.18),transparent_28%)]" />
+                <div className="absolute inset-y-0 right-0 w-1/3 bg-white/10" />
+              </div>
+
+              <div className="absolute left-6 top-full -translate-y-1/2">
+                <div className="relative rounded-full border-4 border-white bg-white shadow-lg">
+                  <Avatar className="h-28 w-28 md:h-32 md:w-32">
+                    {preview.student.profile_image ? <AvatarImage src={preview.student.profile_image} alt={`${candidateName} profile`} /> : null}
+                    <AvatarFallback className="bg-slate-100 text-3xl font-semibold text-slate-700">{initials}</AvatarFallback>
+                  </Avatar>
+                </div>
+              </div>
+            </div>
+
+            <CardContent className="pt-18 md:pt-20">
+              <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+                <div className="space-y-3">
+                  <div className="space-y-1">
+                    <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between md:gap-6">
+                      <h1
+                        className="inline-flex items-center gap-3 text-left text-5xl leading-none font-black tracking-tight text-slate-900 md:text-6xl lg:text-7xl"
+                        style={{ fontSize: 'xx-large' }}
+                      >
+                        <span>{candidateName}</span>
+                      </h1>
+                      <div className="flex flex-wrap items-center gap-3 md:justify-end">
+                        <Button
+                          type="button"
+                          onClick={() => void runCandidateAction('shortlist')}
+                          disabled={shortlistDisabled}
+                          className="rounded-full bg-emerald-600 px-5 text-white hover:bg-emerald-700 disabled:bg-emerald-200 disabled:text-emerald-700"
+                        >
+                          {actionLoading === 'shortlist' ? 'Saving…' : shortlistLabel}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => void runCandidateAction('reject')}
+                          disabled={rejectDisabled}
+                          className="rounded-full border-rose-200 px-5 text-rose-600 hover:bg-rose-50 hover:text-rose-700 disabled:border-rose-100 disabled:text-rose-300"
+                        >
+                          {actionLoading === 'reject' ? 'Rejecting…' : 'Reject'}
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-3 text-sm text-slate-500">
+                      <span className="inline-flex items-center gap-1.5">
+                        <Mail className="h-4 w-4" />
+                        Company candidate review
+                      </span>
+                      <span className="inline-flex items-center gap-1.5">
+                        <MapPin className="h-4 w-4" />
+                        {preview.student.desired_work_location || 'Location not shared'}
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap items-start gap-3 pt-1">
+                      <p className="max-w-3xl text-sm leading-7 text-slate-700">
+                        {skillSummary || 'No profile skills are shared in this preview.'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-slate-200 bg-white shadow-sm">
+            <CardContent className="space-y-5 pt-6">
+              <div className="space-y-1">
+                <h2 className="text-xl font-semibold text-slate-900">About</h2>
+              </div>
+              <div className="space-y-3">
+                <p className="whitespace-pre-line text-sm leading-7 text-slate-700">
+                  {aboutSummary || 'This candidate has not added an about section yet.'}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-slate-200 bg-white shadow-sm">
+            <CardContent className="space-y-5 pt-6">
+              <div>
+                <h2 className="text-xl font-semibold text-slate-900">Profile details</h2>
+                <p className="mt-1 text-sm text-slate-500">Shared student profile preferences and language levels.</p>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-600">
+                    <BriefcaseBusiness className="h-5 w-5" />
+                  </div>
+                  <p className="mt-4 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Desired Job Type</p>
+                  <p className="mt-2 text-sm font-semibold text-slate-900">{preview.student.desired_job_type || 'Not shared'}</p>
+                </div>
+
+                <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-600">
+                    <MapPin className="h-5 w-5" />
+                  </div>
+                  <p className="mt-4 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Preferred Location</p>
+                  <p className="mt-2 text-sm font-semibold text-slate-900">{preview.student.desired_work_location || 'Not shared'}</p>
+                </div>
+
+                <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-600">
+                    <Globe className="h-5 w-5" />
+                  </div>
+                  <p className="mt-4 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Japanese Level</p>
+                  <p className="mt-2 text-sm font-semibold text-slate-900">{preview.student.japanese_level || 'Not shared'}</p>
+                </div>
+
+                <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-600">
+                    <Globe className="h-5 w-5" />
+                  </div>
+                  <p className="mt-4 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">English Level</p>
+                  <p className="mt-2 text-sm font-semibold text-slate-900">{preview.student.english_level || 'Not shared'}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-slate-200 bg-white shadow-sm">
+            <CardContent className="space-y-5 px-6 py-6">
+              <div className="flex items-center gap-3">
+                <div className="rounded-2xl border border-slate-100 bg-slate-100 p-3 text-slate-600">
+                  <Sparkles className="h-5 w-5" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-semibold text-slate-900">Skills</h2>
+                  <p className="text-sm text-slate-500">Profile skills shared by this candidate.</p>
+                </div>
+              </div>
+
+              {preview.student.skills.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {preview.student.skills.map((skill) => (
+                    <span
+                      key={skill.id}
+                      className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-600 ring-1 ring-slate-200"
+                    >
+                      {skill.skill_name} · {formatLabel(skill.proficiency_level)}
+                    </span>
+                  ))}
+                </div>
               ) : (
-                <p className="muted">No skills shared in the preview.</p>
+                <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-5 py-10 text-center">
+                  <p className="text-sm font-medium text-slate-700">No skills are shared in this profile preview.</p>
+                </div>
               )}
-            </div>
-          </>
-        )}
-      </div>
+            </CardContent>
+          </Card>
 
-      <div className="card stack-card">
-        <h2>Company notes</h2>
-        <form className="form" onSubmit={handleAddNote}>
-          <label>
-            <span>Add a company-internal note</span>
-            <textarea
-              value={noteBody}
-              onChange={(event) => setNoteBody(event.target.value)}
-              rows={4}
-              placeholder="Capture recruiting context, next steps, or internal observations."
-              required
-            />
-          </label>
-          <button className="primary-button inline-button" type="submit" disabled={saving}>
-            {saving ? 'Saving…' : 'Add note'}
-          </button>
-        </form>
-        <div className="stack-list">
-          {preview.notes.map((note) => (
-            <article key={note.id} className="skill-card">
-              <div className="skill-card-header">
-                <div>
-                  <h3>{note.author_name}</h3>
-                  <p className="muted">{note.author_email}</p>
-                </div>
-                <p className="muted">{new Date(note.created_at).toLocaleString()}</p>
+          <Card className="border-slate-200 bg-white shadow-sm">
+            <CardContent className="space-y-5 pt-6">
+              <div>
+                <h2 className="text-xl font-semibold text-slate-900">Experience</h2>
+                <p className="mt-1 text-sm text-slate-500">Shared professional background, projects, and recent work.</p>
               </div>
-              <p>{note.body}</p>
-            </article>
-          ))}
-          {preview.notes.length === 0 ? <p className="muted">No company notes yet.</p> : null}
-        </div>
-      </div>
 
-      <div className="card stack-card">
-        <h2>Interview workflow</h2>
-        <form className="form" onSubmit={handleRequestInterview}>
-          <label>
-            <span>Interview purpose</span>
-            <input
-              value={interviewPurpose}
-              onChange={(event) => setInterviewPurpose(event.target.value)}
-              placeholder="Technical interview, culture interview, ..."
-              required
-            />
-          </label>
-          <label>
-            <span>Role context</span>
-            <input
-              value={interviewRoleContext}
-              onChange={(event) => setInterviewRoleContext(event.target.value)}
-              placeholder="Backend trainee, frontend intern, ..."
-            />
-          </label>
-          <button className="primary-button inline-button" type="submit" disabled={saving}>
-            {saving ? 'Saving…' : 'Request interview'}
-          </button>
-        </form>
-        <div className="stack-list">
-          {interviews.map((interview) => (
-            <article key={interview.id} className="skill-card">
-              <div className="skill-card-header">
-                <div>
-                  <h3>{interview.purpose}</h3>
-                  <p className="muted">{interview.role_context || 'General interview context'}</p>
-                </div>
-                <span className={`status-pill ${interview.status === 'confirmed' ? 'status-success' : 'status-muted'}`}>
-                  {interview.status}
-                </span>
-              </div>
-              <p className="muted">
-                {interview.scheduled_start && interview.scheduled_end
-                  ? `${new Date(interview.scheduled_start).toLocaleString()} - ${new Date(interview.scheduled_end).toLocaleString()}`
-                  : 'Awaiting schedule confirmation'}
-              </p>
-              <Link className="secondary-button inline-button" to={`/company/interviews/${interview.id}`}>
-                Open interview
-              </Link>
-            </article>
-          ))}
-          {interviews.length === 0 ? <p className="muted">No interview workflow started yet.</p> : null}
-        </div>
-      </div>
+              {preview.student.experience_records.length > 0 ? (
+                <div className="space-y-5">
+                  {preview.student.experience_records.map((record, index) => {
+                    const skillNames = record.skill_ids
+                      .map((skillId) => preview.student?.skills.find((skill) => skill.skill_id === skillId)?.skill_name)
+                      .filter((skillName): skillName is string => Boolean(skillName))
 
-      <div className="page-split">
-        <div className="card stack-card">
-          <h2>Learning record</h2>
-          {learning.visibility === 'hidden' ? (
-            <p className="muted">{learning.restrictions[0] ?? 'Learning record is not visible.'}</p>
-          ) : (
-            <>
-              <p className="muted">
-                {learning.summary.completed_courses} completed · {learning.summary.in_progress_courses} in progress
-              </p>
-              <div className="stack-list">
-                {learning.summary.records.map((record) => (
-                  <article key={record.id} className="skill-card">
-                    <div className="skill-card-header">
-                      <div>
-                        <h3>{record.course_title}</h3>
-                        <p className="muted">
-                          {record.category} · {record.status.replace('_', ' ')}
-                        </p>
+                    return (
+                      <div key={record.id} className="relative pl-14">
+                        {index < preview.student.experience_records.length - 1 ? (
+                          <div className="absolute left-[19px] top-12 h-[calc(100%-0.5rem)] w-px bg-slate-200" />
+                        ) : null}
+                        <div className="absolute left-0 top-0 flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-100 text-slate-600">
+                          <BriefcaseBusiness className="h-5 w-5" />
+                        </div>
+                        <div className="space-y-2 rounded-2xl border border-slate-100 bg-slate-50 px-4 py-4">
+                          <div className="flex items-start justify-between gap-3">
+                            <div>
+                              <div className="flex flex-wrap items-center gap-2">
+                                <p className="font-semibold text-slate-900">{record.role_title}</p>
+                                {record.is_current ? (
+                                  <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
+                                    Current
+                                  </span>
+                                ) : null}
+                              </div>
+                              <p className="text-sm text-slate-500">
+                                {record.organization} · {formatLabel(record.experience_type)}
+                              </p>
+                            </div>
+                            <span className="text-sm text-slate-500">
+                              {formatDateLabel(record.start_date)} - {record.is_current ? 'Present' : formatDateLabel(record.end_date)}
+                            </span>
+                          </div>
+                          <p className="text-sm leading-6 text-slate-600">{record.summary || 'No experience summary added yet.'}</p>
+                          {skillNames.length > 0 ? (
+                            <div className="flex flex-wrap gap-2 pt-1">
+                              {skillNames.map((skillName) => (
+                                <span
+                                  key={`${record.id}-${skillName}`}
+                                  className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-600 ring-1 ring-slate-200"
+                                >
+                                  {skillName}
+                                </span>
+                              ))}
+                            </div>
+                          ) : null}
+                        </div>
                       </div>
-                      <strong>{record.progress_percent}%</strong>
-                    </div>
-                  </article>
-                ))}
-                {learning.summary.records.length === 0 ? <p className="muted">No learning records available.</p> : null}
-              </div>
-            </>
-          )}
-        </div>
+                    )
+                  })}
+                </div>
+              ) : (
+                <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-5 py-10 text-center">
+                  <p className="text-sm font-medium text-slate-700">No experience added yet.</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
-        <div className="card stack-card">
-          <h2>Exam results</h2>
-          {exams.visibility === 'hidden' ? (
-            <p className="muted">{exams.restrictions[0] ?? 'Exam results are not visible.'}</p>
-          ) : (
-            <>
-              <p className="muted">
-                {exams.summary.passed_results} passed · Average score {exams.summary.average_score ?? 'N/A'}%
-              </p>
-              <div className="stack-list">
-                {exams.summary.results.map((result) => (
-                  <article key={result.id} className="skill-card">
-                    <div className="skill-card-header">
-                      <div>
-                        <h3>{result.exam_title}</h3>
-                        <p className="muted">
-                          {result.category} · Attempt {result.attempt_number}
-                        </p>
-                      </div>
-                      <strong>{result.score_percent}%</strong>
-                    </div>
-                    <p className={`status-pill ${result.passed ? 'status-success' : 'status-muted'}`}>
-                      {result.passed ? 'Passed' : 'Not passed'}
-                    </p>
-                  </article>
-                ))}
-                {exams.summary.results.length === 0 ? <p className="muted">No exam results available.</p> : null}
+          <Card className="border-slate-200 bg-white shadow-sm">
+            <CardContent className="space-y-5 pt-6">
+              <div>
+                <h2 className="text-xl font-semibold text-slate-900">Education</h2>
+                <p className="mt-1 text-sm text-slate-500">Shared academic background, training, and study achievements.</p>
               </div>
-            </>
-          )}
-        </div>
-      </div>
-    </section>
+
+              {preview.student.education_records.length > 0 ? (
+                <div className="space-y-5">
+                  {preview.student.education_records.map((record) => {
+                    const skillNames = record.skill_ids
+                      .map((skillId) => preview.student?.skills.find((skill) => skill.skill_id === skillId)?.skill_name)
+                      .filter((skillName): skillName is string => Boolean(skillName))
+
+                    return (
+                      <div key={record.id} className="flex gap-4 rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                        <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl bg-slate-100 text-slate-600">
+                          <GraduationCap className="h-6 w-6" />
+                        </div>
+                        <div className="min-w-0 flex-1 space-y-2">
+                          <div className="flex flex-wrap items-start justify-between gap-3">
+                            <div>
+                              <p className="text-lg font-semibold text-slate-900">{record.institution}</p>
+                              <p className="text-sm text-slate-600">{record.field_of_study}</p>
+                            </div>
+                            <div className="space-y-1 text-right">
+                              <p className="text-sm text-slate-500">
+                                {formatDateLabel(record.start_date)} - {record.end_date ? formatDateLabel(record.end_date) : 'Present'}
+                              </p>
+                              <span className="inline-flex rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-600 ring-1 ring-slate-200">
+                                {formatLabel(record.completion_status)}
+                              </span>
+                            </div>
+                          </div>
+
+                          {record.grade ? <p className="text-sm text-slate-700">Grade: {record.grade}</p> : null}
+                          {record.activities ? <p className="text-sm text-slate-700">Activities and societies: {record.activities}</p> : null}
+                          {record.description ? <p className="whitespace-pre-line text-sm leading-6 text-slate-600">{record.description}</p> : null}
+                          {skillNames.length > 0 ? (
+                            <div className="flex flex-wrap gap-2 pt-1">
+                              {skillNames.map((skillName) => (
+                                <span
+                                  key={`${record.id}-${skillName}`}
+                                  className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-600 ring-1 ring-slate-200"
+                                >
+                                  {skillName}
+                                </span>
+                              ))}
+                            </div>
+                          ) : null}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              ) : (
+                <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-5 py-10 text-center">
+                  <p className="text-sm font-medium text-slate-700">No education added yet.</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="border-slate-200 bg-white shadow-sm">
+            <CardContent className="space-y-5 pt-6">
+              <div>
+                <h2 className="text-xl font-semibold text-slate-900">Certificates</h2>
+                <p className="mt-1 text-sm text-slate-500">Shared certifications, licenses, and verified achievements.</p>
+              </div>
+
+              {preview.student.certificates.length > 0 ? (
+                <div className="space-y-5">
+                  {preview.student.certificates.map((certificate) => {
+                    const skillNames = certificate.skill_ids
+                      .map((skillId) => preview.student?.skills.find((skill) => skill.skill_id === skillId)?.skill_name)
+                      .filter((skillName): skillName is string => Boolean(skillName))
+
+                    return (
+                      <div key={certificate.id} className="flex gap-4 rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                        <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl bg-slate-100 text-slate-600">
+                          <Award className="h-6 w-6" />
+                        </div>
+                        <div className="min-w-0 flex-1 space-y-2">
+                          <div className="flex flex-wrap items-start justify-between gap-3">
+                            <div>
+                              <p className="text-lg font-semibold text-slate-900">{certificate.name}</p>
+                              <p className="text-sm text-slate-600">{certificate.issuer}</p>
+                            </div>
+                            <div className="space-y-1 text-right">
+                              <p className="text-sm text-slate-500">
+                                {formatDateLabel(certificate.issue_date)}
+                                {certificate.expiry_date ? ` - ${formatDateLabel(certificate.expiry_date)}` : ''}
+                              </p>
+                              {certificate.credential_id ? (
+                                <span className="inline-flex rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-600 ring-1 ring-slate-200">
+                                  ID: {certificate.credential_id}
+                                </span>
+                              ) : null}
+                            </div>
+                          </div>
+
+                          {certificate.description ? (
+                            <p className="whitespace-pre-line text-sm leading-6 text-slate-600">{certificate.description}</p>
+                          ) : null}
+                          {certificate.credential_url ? (
+                            <a
+                              href={certificate.credential_url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex text-sm font-medium text-primary transition hover:underline"
+                            >
+                              View credential
+                            </a>
+                          ) : null}
+                          {skillNames.length > 0 ? (
+                            <div className="flex flex-wrap gap-2 pt-1">
+                              {skillNames.map((skillName) => (
+                                <span
+                                  key={`${certificate.id}-${skillName}`}
+                                  className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-600 ring-1 ring-slate-200"
+                                >
+                                  {skillName}
+                                </span>
+                              ))}
+                            </div>
+                          ) : null}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              ) : (
+                <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-5 py-10 text-center">
+                  <p className="text-sm font-medium text-slate-700">No certificates added yet.</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </>
+      )}
+    </div>
   )
 }
