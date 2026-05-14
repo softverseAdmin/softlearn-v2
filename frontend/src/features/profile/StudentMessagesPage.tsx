@@ -14,7 +14,7 @@ import {
 import { Link, useSearchParams } from 'react-router-dom'
 
 import { useAuth } from '@/auth/useAuth'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { ConfirmationModal } from '@/components/ConfirmationModal'
@@ -51,6 +51,7 @@ function mapMessageRecord(message: ConversationThreadResponse['messages'][number
     id: message.id,
     author: message.author,
     sender: message.sender,
+    senderImage: message.sender_image,
     body: message.body,
     sentAt: message.sent_at,
     status: message.status ?? undefined,
@@ -69,6 +70,7 @@ function mapConversationThread(thread: ConversationThreadResponse): Conversation
     isStarred: thread.is_starred,
     lastActivity: thread.last_activity,
     preview: thread.preview,
+    participantImage: thread.participant_image,
     messages: thread.messages.map(mapMessageRecord),
   }
 }
@@ -476,6 +478,7 @@ export function StudentMessagesPage() {
             >
               <div className="flex items-start gap-3">
                 <Avatar>
+                  <AvatarImage src={thread.participantImage ?? undefined} alt={thread.participantName} />
                   <AvatarFallback>{getInitials(thread.participantName)}</AvatarFallback>
                 </Avatar>
 
@@ -518,6 +521,7 @@ export function StudentMessagesPage() {
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border/60 px-5 py-4">
           <div className="flex min-w-0 items-center gap-3">
             <Avatar>
+              <AvatarImage src={thread.participantImage ?? undefined} alt={thread.participantName} />
               <AvatarFallback>{getInitials(thread.participantName)}</AvatarFallback>
             </Avatar>
             <div className="min-w-0">
@@ -564,6 +568,7 @@ export function StudentMessagesPage() {
           {thread.messages.map((message) => (
             <div key={message.id} className="flex items-start gap-3">
               <Avatar size="sm" className="mt-1">
+                <AvatarImage src={message.senderImage ?? undefined} alt={message.sender} />
                 <AvatarFallback>{getInitials(message.sender)}</AvatarFallback>
               </Avatar>
               <div className="max-w-[min(100%,42rem)]">

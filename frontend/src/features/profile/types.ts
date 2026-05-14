@@ -90,6 +90,25 @@ export interface CompanyProfile {
   company_id: number
   name: string
   description: string
+  profile_image: string | null
+  cover_image: string | null
+  job_posting_id: string
+  founder_name: string
+  headquarters_address: string
+  office_locations: string
+  founded_at: string
+  website_url: string
+  industry: string
+  company_points: string[]
+  business_domains: string[]
+  business_models: string[]
+  employee_count_label: string
+  market_category: string
+  capital_label: string
+  revenue_label: string
+  tagline: string
+  company_features: string
+  additional_company_info: string
   profile_complete: boolean
 }
 

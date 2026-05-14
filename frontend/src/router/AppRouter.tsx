@@ -13,6 +13,7 @@ import { CompanyCandidateDetailPage } from '../features/profile/CompanyCandidate
 import { CompanyCandidatesPage } from '../features/profile/CompanyCandidatesPage'
 import { CompanyInterviewDetailPage } from '../features/profile/CompanyInterviewDetailPage'
 import { CompanyInterviewsPage } from '../features/profile/CompanyInterviewsPage'
+import { CompanyMessagesPage } from '../features/profile/CompanyMessagesPage'
 import { CompanyProfilePage } from '../features/profile/CompanyProfilePage'
 import { CompanyShortlistPage } from '../features/profile/CompanyShortlistPage'
 import { CompanyVacancyMatchesPage } from '../features/profile/CompanyVacancyMatchesPage'
@@ -104,6 +105,7 @@ export function AppRouter() {
           <Route element={<RoleGuard role="company" />}>
             <Route path="/company" element={<DashboardPage role="company" />} />
             <Route path="/company/notifications" element={<NotificationsPage />} />
+            <Route path="/company/messages" element={<CompanyMessagesPage />} />
             <Route path="/company/applications" element={<CompanyApplicationsPage />} />
             <Route path="/company/profile" element={<CompanyProfilePage />} />
             <Route path="/company/candidates" element={<CompanyCandidatesPage />} />
