@@ -4323,6 +4323,7 @@ class ApiFoundationTests(TestCase):
             desired_work_location="Tokyo",
             japanese_level="N3",
             english_level="B2",
+            profile_image="https://cdn.example.com/student-photo.png",
         )
         del get_profile
         skill = Skill.objects.create(name="Candidate Python")
@@ -4353,8 +4354,53 @@ class ApiFoundationTests(TestCase):
         self.assertEqual(response.status_code, 200)
         candidate = response.json()["data"]["candidates"][0]
         self.assertEqual(candidate["display_name"], "Student User")
+        self.assertEqual(candidate["profile_image"], "https://cdn.example.com/student-photo.png")
         self.assertEqual(candidate["visibility"]["exam_results"], "hidden")
         self.assertEqual(candidate["top_skills"], ["Candidate Python"])
+
+    def test_company_candidates_list_hides_profile_image_when_profile_preview_not_shared(self):
+        company = Company.objects.create(name="Softverse")
+        student = User.objects.create_user(
+            email="student-hidden@example.com",
+            password="SecurePass123!",
+            full_name="Private Student",
+            role=User.Role.STUDENT,
+        )
+        StudentProfile.objects.create(
+            user=student,
+            desired_job_type="backend",
+            desired_work_location="Tokyo",
+            japanese_level="N3",
+            english_level="B2",
+            profile_image="https://cdn.example.com/private-student.png",
+        )
+        CandidateReviewAccess.objects.create(
+            company=company,
+            student=student,
+            source=CandidateReviewAccess.Source.APPLICATION,
+        )
+        StudentVisibilitySettings.objects.create(
+            student=student,
+            share_profile_preview=False,
+            share_learning_record=True,
+            share_exam_results=False,
+        )
+        company_user = User.objects.create_user(
+            email="company-hidden@example.com",
+            password="SecurePass123!",
+            full_name="Company User",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+
+        client = Client()
+        client.force_login(company_user)
+        response = client.get("/api/v1/company/candidates")
+
+        self.assertEqual(response.status_code, 200)
+        candidate = response.json()["data"]["candidates"][0]
+        self.assertEqual(candidate["display_name"], "Private candidate")
+        self.assertIsNone(candidate["profile_image"])
 
     def test_company_candidate_preview_returns_hidden_state_when_profile_not_shared(self):
         company = Company.objects.create(name="Softverse")
@@ -4805,6 +4851,68 @@ class ApiFoundationTests(TestCase):
             ).count(),
             2,
         )
+
+    def test_company_can_schedule_interview_directly_from_candidate_context(self):
+        company = Company.objects.create(name="Softverse")
+        student = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        candidate_access = CandidateReviewAccess.objects.create(
+            company=company,
+            student=student,
+            source=CandidateReviewAccess.Source.SHORTLIST,
+        )
+        company_user = User.objects.create_user(
+            email="company@example.com",
+            password="SecurePass123!",
+            full_name="Company User",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+        scheduled_start = timezone.now() + timedelta(days=3)
+        scheduled_end = scheduled_start + timedelta(hours=1)
+
+        client, csrf_token = self.csrf_client()
+        client.force_login(company_user)
+
+        response = client.post(
+            f"/api/v1/company/candidates/{candidate_access.id}/interviews",
+            data=json.dumps(
+                {
+                    "purpose": "Portfolio review interview",
+                    "role_context": "Frontend trainee",
+                    "start_at": scheduled_start.isoformat(),
+                    "end_at": scheduled_end.isoformat(),
+                }
+            ),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+
+        self.assertEqual(response.status_code, 201)
+        interview = Interview.objects.get(candidate_access=candidate_access)
+        self.assertEqual(interview.status, Interview.Status.CONFIRMED)
+        self.assertEqual(interview.scheduled_start, scheduled_start)
+        self.assertEqual(interview.scheduled_end, scheduled_end)
+        self.assertIsNotNone(interview.confirmed_at)
+        self.assertEqual(InterviewEvent.objects.filter(interview=interview, event_type="requested").count(), 1)
+        self.assertEqual(InterviewEvent.objects.filter(interview=interview, event_type="confirmed").count(), 1)
+        self.assertEqual(
+            Notification.objects.filter(
+                entity_type="interview",
+                entity_id=interview.id,
+                notification_type=Notification.Type.INTERVIEW_CONFIRMED,
+            ).count(),
+            2,
+        )
+        student_client = Client()
+        student_client.force_login(student)
+        student_list_response = student_client.get("/api/v1/student/interviews")
+        self.assertEqual(student_list_response.status_code, 200)
+        self.assertEqual(student_list_response.json()["data"]["interviews"][0]["scheduled_start"], scheduled_start.isoformat())
 
     def test_match_only_candidate_context_cannot_request_interview_without_shortlist(self):
         company = Company.objects.create(name="Softverse")

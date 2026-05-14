@@ -363,6 +363,9 @@ export function CompanyApplicationsPage() {
               </TableHeader>
               <TableBody>
                 {filteredApplications.map((application) => {
+                  const canContactCandidate =
+                    application.status.toLowerCase() === 'shortlisted' && Boolean(application.candidate_access_id)
+
                   return (
                     <TableRow key={application.application_id}>
                       <TableCell className="px-6 py-4 align-top whitespace-normal">
@@ -399,7 +402,7 @@ export function CompanyApplicationsPage() {
                                 <MoreVertical className="h-5 w-5" />
                               </button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-40">
+                            <DropdownMenuContent align="end" className="w-44">
                               <DropdownMenuItem
                                 className="cursor-pointer"
                                 onClick={() => {
@@ -410,6 +413,17 @@ export function CompanyApplicationsPage() {
                                 disabled={!application.candidate_access_id}
                               >
                                 Review candidate
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                className="cursor-pointer"
+                                onClick={() => {
+                                  if (application.candidate_access_id) {
+                                    navigate(`/company/candidates/${application.candidate_access_id}`)
+                                  }
+                                }}
+                                disabled={!canContactCandidate}
+                              >
+                                Contact candidate
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 className="cursor-pointer"
@@ -439,6 +453,9 @@ export function CompanyApplicationsPage() {
 
           <div className="space-y-3 p-4 md:hidden">
             {filteredApplications.map((application) => {
+              const canContactCandidate =
+                application.status.toLowerCase() === 'shortlisted' && Boolean(application.candidate_access_id)
+
               return (
                 <div key={application.application_id} className="rounded-[24px] border border-border bg-muted/20 p-4">
                   <div className="flex items-start justify-between gap-3">
@@ -459,7 +476,7 @@ export function CompanyApplicationsPage() {
                             <MoreVertical className="h-5 w-5" />
                           </button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-40">
+                        <DropdownMenuContent align="end" className="w-44">
                           <DropdownMenuItem
                             className="cursor-pointer"
                             onClick={() => {
@@ -470,6 +487,17 @@ export function CompanyApplicationsPage() {
                             disabled={!application.candidate_access_id}
                           >
                             Review candidate
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            className="cursor-pointer"
+                            onClick={() => {
+                              if (application.candidate_access_id) {
+                                navigate(`/company/candidates/${application.candidate_access_id}`)
+                              }
+                            }}
+                            disabled={!canContactCandidate}
+                          >
+                            Contact candidate
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             className="cursor-pointer"

@@ -24,6 +24,7 @@ export const navigationItemsByRole: Record<UserRole, NavigationItem[]> = {
     { label: 'Post Jobs', to: '/company/jobs' },
     { label: 'Courses', to: '/company/courses' },
     { label: 'Applications', to: '/company/applications' },
+    { label: 'Candidates', to: '/company/candidates' },
     { label: 'Profile', to: '/company/profile' },
   ],
   admin: [
