@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { cn } from '@/lib/utils'
+import { getAllCourseMediaOverrides } from './courseMediaStorage'
 
 const emptyCatalog: CourseCatalogResponse = {
   result_count: 0,
@@ -70,6 +71,7 @@ function getCourseRecommendationScore(course: CourseCatalogRecord, favoriteCours
 
 export function StudentCourseCatalogPage() {
   const [catalog, setCatalog] = useState<CourseCatalogResponse>(emptyCatalog)
+  const [courseMediaOverrides] = useState(() => getAllCourseMediaOverrides())
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
@@ -354,6 +356,8 @@ export function StudentCourseCatalogPage() {
           {filteredCourses.map((course) => {
             const meta = getCourseMockMeta(course)
             const isFavorite = favoriteCourseIds.includes(course.course_id)
+            const mediaOverride = courseMediaOverrides[String(course.course_id)]
+            const courseThumbnail = mediaOverride?.thumbnailImage || mediaOverride?.previewImage || ''
 
             return (
               <article
@@ -361,16 +365,26 @@ export function StudentCourseCatalogPage() {
                 className="flex min-h-[420px] flex-col overflow-hidden rounded-2xl border border-border bg-muted/20"
               >
                 <div className={cn('relative h-48 bg-gradient-to-br p-4 text-white', meta.background)}>
+                  {courseThumbnail ? (
+                    <>
+                      <img
+                        src={courseThumbnail}
+                        alt={mediaOverride?.thumbnailAltText || `${course.title} thumbnail`}
+                        className="absolute inset-0 h-full w-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-black/10" />
+                    </>
+                  ) : null}
                   <button
                     type="button"
                     onClick={() => toggleFavorite(course.course_id)}
-                    className="absolute right-4 top-4 inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-white/30 bg-black/20 text-white backdrop-blur-sm transition hover:bg-black/30"
+                    className="absolute right-4 top-4 z-10 inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-white/30 bg-black/20 text-white backdrop-blur-sm transition hover:bg-black/30"
                     aria-label={isFavorite ? 'Remove from favorite courses' : 'Add to favorite courses'}
                   >
                     <Heart className={cn('h-5 w-5', isFavorite && 'fill-current')} />
                   </button>
 
-                  <div className="flex h-full flex-col justify-between">
+                  <div className="relative z-10 flex h-full flex-col justify-between">
                     <Badge variant="secondary" className="w-fit rounded-full bg-white/15 text-white hover:bg-white/15">
                       {formatCategoryLabel(course.category)}
                     </Badge>

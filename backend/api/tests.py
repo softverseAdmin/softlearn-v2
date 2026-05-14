@@ -3850,7 +3850,7 @@ class ApiFoundationTests(TestCase):
 
         self.assertEqual(response.status_code, 403)
 
-    def test_company_user_can_access_company_courses_catalog(self):
+    def test_company_user_can_access_company_course_management_list(self):
         company = Company.objects.create(name="Softverse")
         company_user = User.objects.create_user(
             email="company@example.com",
@@ -3890,11 +3890,137 @@ class ApiFoundationTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         body = response.json()["data"]
-        self.assertEqual(body["result_count"], 1)
-        self.assertEqual(body["courses"][0]["title"], "Backend Foundations")
-        self.assertEqual(body["courses"][0]["lesson_count"], 1)
-        self.assertEqual(body["courses"][0]["is_enrolled"], False)
-        self.assertEqual(body["courses"][0]["next_step_href"], "/company/courses")
+        self.assertEqual(len(body["courses"]), 2)
+        backend_course = next(course for course in body["courses"] if course["title"] == "Backend Foundations")
+        self.assertEqual(backend_course["lesson_count"], 1)
+        self.assertEqual(backend_course["learning_record_count"], 0)
+
+    def test_company_user_can_create_update_and_retire_course(self):
+        company = Company.objects.create(name="Softverse")
+        company_user = User.objects.create_user(
+            email="company-course-manager@example.com",
+            password="SecurePass123!",
+            full_name="Company User",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+
+        client, csrf_token = self.csrf_client()
+        client.force_login(company_user)
+        create_response = client.post(
+            "/api/v1/company/courses",
+            data=json.dumps(
+                {
+                    "title": "Company Auth Course",
+                    "description": "Security basics",
+                    "category": "security",
+                    "difficulty_level": "beginner",
+                    "estimated_hours": 6,
+                    "status": "active",
+                }
+            ),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+
+        self.assertEqual(create_response.status_code, 201)
+        course_id = create_response.json()["data"]["course_id"]
+        self.assertTrue(Course.objects.filter(pk=course_id, title="Company Auth Course").exists())
+
+        update_response = client.put(
+            f"/api/v1/company/courses/{course_id}",
+            data=json.dumps(
+                {
+                    "title": "Company Auth Course Updated",
+                    "description": "Security basics updated",
+                    "category": "security",
+                    "difficulty_level": "intermediate",
+                    "estimated_hours": 8,
+                    "status": "draft",
+                }
+            ),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+
+        self.assertEqual(update_response.status_code, 200)
+        retired_response = client.delete(
+            f"/api/v1/company/courses/{course_id}",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+        self.assertEqual(retired_response.status_code, 200)
+
+        course = Course.objects.get(pk=course_id)
+        self.assertEqual(course.title, "Company Auth Course Updated")
+        self.assertEqual(course.difficulty_level, "intermediate")
+        self.assertEqual(course.status, Course.Status.INACTIVE)
+
+    def test_company_user_can_manage_course_lessons(self):
+        company = Company.objects.create(name="Softverse")
+        company_user = User.objects.create_user(
+            email="company-lessons@example.com",
+            password="SecurePass123!",
+            full_name="Company User",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+        course = Course.objects.create(
+            title="Company Course",
+            description="Shared catalog course",
+            category="backend",
+            difficulty_level="beginner",
+            estimated_hours=10,
+            status=Course.Status.ACTIVE,
+        )
+
+        client, csrf_token = self.csrf_client()
+        client.force_login(company_user)
+        create_response = client.post(
+            f"/api/v1/company/courses/{course.id}/lessons",
+            data=json.dumps(
+                {
+                    "title": "Lesson One",
+                    "summary": "Summary",
+                    "content": "Content",
+                    "sequence_number": 1,
+                    "status": "active",
+                }
+            ),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+
+        self.assertEqual(create_response.status_code, 201)
+        lesson_id = create_response.json()["data"]["lesson_id"]
+
+        update_response = client.put(
+            f"/api/v1/company/lessons/{lesson_id}",
+            data=json.dumps(
+                {
+                    "title": "Lesson One Updated",
+                    "summary": "Updated summary",
+                    "content": "Updated content",
+                    "sequence_number": 1,
+                    "status": "draft",
+                }
+            ),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+        self.assertEqual(update_response.status_code, 200)
+
+        list_response = client.get(f"/api/v1/company/courses/{course.id}/lessons")
+        self.assertEqual(list_response.status_code, 200)
+        self.assertEqual(len(list_response.json()["data"]["lessons"]), 1)
+
+        retire_response = client.delete(
+            f"/api/v1/company/lessons/{lesson_id}",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+        self.assertEqual(retire_response.status_code, 200)
+        lesson = Lesson.objects.get(pk=lesson_id)
+        self.assertEqual(lesson.title, "Lesson One Updated")
+        self.assertEqual(lesson.status, Lesson.Status.INACTIVE)
 
     def test_company_user_cannot_enroll_in_student_course(self):
         company = Company.objects.create(name="Softverse")

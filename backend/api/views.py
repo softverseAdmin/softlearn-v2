@@ -4738,27 +4738,144 @@ def student_courses_view(request):
     )
 
 
-@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.COMPANY])
+@api_endpoint(["GET", "POST"], authentication_required=True, roles=[User.Role.COMPANY])
 def company_courses_view(request):
-    courses = list(visible_student_courses_queryset())
-    lesson_counts = {
-        item["course_id"]: item["lesson_count"]
-        for item in Lesson.objects.filter(course_id__in=[course.id for course in courses], status=Lesson.Status.ACTIVE)
-        .values("course_id")
-        .annotate(lesson_count=Count("id"))
-    }
-    return success_response(
-        {
-            "result_count": len(courses),
-            "courses": [
-                serialize_company_course_summary(
-                    course,
-                    lesson_count=lesson_counts.get(course.id, 0),
-                )
-                for course in courses
-            ],
-        }
+    if request.method == "GET":
+        courses = list(Course.objects.order_by("-updated_at", "-id"))
+        return success_response({"courses": [serialize_admin_course(course) for course in courses]})
+
+    payload = validate_admin_course_payload(parse_json_body(request))
+    course = Course(
+        title=payload["title"],
+        description=payload["description"],
+        category=payload["category"],
+        difficulty_level=payload["difficulty_level"],
+        estimated_hours=payload["estimated_hours"],
+        status=payload["status"],
     )
+    course.full_clean()
+    course.save()
+    return success_response(serialize_admin_course(course), status=201)
+
+
+@api_endpoint(["PUT", "DELETE"], authentication_required=True, roles=[User.Role.COMPANY])
+def company_course_detail_view(request, course_id: int):
+    course = get_admin_course(course_id)
+    if course is None:
+        return error_response(
+            request,
+            "NOT_FOUND",
+            "The requested course was not found.",
+            details={"course_id": [str(course_id)]},
+            status=404,
+        )
+
+    if request.method == "DELETE":
+        course.status = Course.Status.INACTIVE
+        course.full_clean()
+        course.save(update_fields=["status", "updated_at"])
+        return success_response(serialize_admin_course(course))
+
+    payload = validate_admin_course_payload(parse_json_body(request))
+    course.title = payload["title"]
+    course.description = payload["description"]
+    course.category = payload["category"]
+    course.difficulty_level = payload["difficulty_level"]
+    course.estimated_hours = payload["estimated_hours"]
+    course.status = payload["status"]
+    course.full_clean()
+    course.save(
+        update_fields=[
+            "title",
+            "description",
+            "category",
+            "difficulty_level",
+            "estimated_hours",
+            "status",
+            "updated_at",
+        ]
+    )
+    return success_response(serialize_admin_course(course))
+
+
+@api_endpoint(["GET", "POST"], authentication_required=True, roles=[User.Role.COMPANY])
+def company_course_lessons_view(request, course_id: int):
+    course = get_admin_course(course_id)
+    if course is None:
+        return error_response(
+            request,
+            "NOT_FOUND",
+            "The requested course was not found.",
+            details={"course_id": [str(course_id)]},
+            status=404,
+        )
+
+    if request.method == "GET":
+        lessons = list(
+            Lesson.objects.filter(course=course)
+            .select_related("course")
+            .order_by("sequence_number", "id")
+        )
+        return success_response(
+            {
+                "course": serialize_admin_course(course),
+                "lessons": [serialize_admin_lesson(lesson) for lesson in lessons],
+            }
+        )
+
+    payload = validate_admin_lesson_payload(parse_json_body(request))
+    lesson = Lesson(
+        course=course,
+        title=payload["title"],
+        summary=payload["summary"],
+        content=payload["content"],
+        sequence_number=payload["sequence_number"],
+        status=payload["status"],
+    )
+    lesson.full_clean()
+    lesson.save()
+    lesson = get_admin_lesson(lesson.id)
+    return success_response(serialize_admin_lesson(lesson), status=201)
+
+
+@api_endpoint(["PUT", "DELETE"], authentication_required=True, roles=[User.Role.COMPANY])
+def company_lesson_detail_view(request, lesson_id: int):
+    lesson = get_admin_lesson(lesson_id)
+    if lesson is None:
+        return error_response(
+            request,
+            "NOT_FOUND",
+            "The requested lesson was not found.",
+            details={"lesson_id": [str(lesson_id)]},
+            status=404,
+        )
+
+    if request.method == "DELETE":
+        lesson.status = Lesson.Status.INACTIVE
+        lesson.full_clean()
+        lesson.save(update_fields=["status", "updated_at"])
+        lesson = get_admin_lesson(lesson.id)
+        return success_response(serialize_admin_lesson(lesson))
+
+    payload = validate_admin_lesson_payload(parse_json_body(request))
+    lesson.title = payload["title"]
+    lesson.summary = payload["summary"]
+    lesson.content = payload["content"]
+    lesson.sequence_number = payload["sequence_number"]
+    lesson.status = payload["status"]
+    lesson.full_clean()
+    lesson.save(
+        update_fields=[
+            "title",
+            "summary",
+            "content",
+            "sequence_number",
+            "status",
+            "updated_at",
+        ]
+    )
+    lesson = get_admin_lesson(lesson.id)
+    return success_response(serialize_admin_lesson(lesson))
 
 
 @api_endpoint(["GET"], authentication_required=True, roles=[User.Role.STUDENT])
