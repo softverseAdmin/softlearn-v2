@@ -12,6 +12,7 @@ from users.models import (
     CandidateReviewAccess,
     CandidateShortlist,
     Company,
+    CompanyMember,
     Course,
     Exam,
     ExamAnswerOption,
@@ -27,6 +28,8 @@ from users.models import (
     Lesson,
     LessonProgress,
     LearningRecord,
+    Message,
+    MessageThread,
     MockExam,
     MockExamAttempt,
     MockExamAttemptAnswer,
@@ -358,6 +361,365 @@ class ApiFoundationTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["data"]["unread_count"], 0)
         self.assertTrue(all(item["is_read"] for item in response.json()["data"]["notifications"]))
+
+    def test_student_messages_get_returns_threads_and_counts(self):
+        student = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        other_user = User.objects.create_user(
+            email="recruiter@example.com",
+            password="SecurePass123!",
+            full_name="Recruiter User",
+            role=User.Role.ADMIN,
+        )
+        thread = MessageThread.objects.create(
+            student=student,
+            participant_name="Recruiter User",
+            company_name="Softverse",
+            role_label="Recruiter",
+            category=MessageThread.Category.APPLICATIONS,
+            is_starred=True,
+        )
+        message = Message.objects.create(
+            thread=thread,
+            sender=other_user,
+            sender_name=other_user.full_name,
+            body="Can you share your availability?",
+        )
+        thread.last_message_preview = message.body
+        thread.last_message_at = message.created_at
+        thread.last_message_sender = other_user
+        thread.save(update_fields=["last_message_preview", "last_message_at", "last_message_sender", "updated_at"])
+
+        client = Client()
+        client.force_login(student)
+        response = client.get("/api/v1/student/messages")
+
+        self.assertEqual(response.status_code, 200)
+        body = response.json()["data"]
+        self.assertEqual(body["thread_count"], 1)
+        self.assertEqual(body["unread_count"], 1)
+        self.assertEqual(body["starred_count"], 1)
+        self.assertEqual(body["threads"][0]["participant_name"], "Recruiter User")
+        self.assertEqual(body["threads"][0]["messages"][0]["author"], "other")
+
+    def test_student_can_create_thread_and_initial_message(self):
+        student = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        client, csrf_token = self.csrf_client()
+        client.force_login(student)
+
+        response = client.post(
+            "/api/v1/student/messages/threads",
+            data=json.dumps(
+                {
+                    "participant_name": "Chetana Ramgade",
+                    "company_name": "Jobmiru",
+                    "role_label": "Recruiter",
+                    "category": "applications",
+                    "message": "Hi, I am interested in this role.",
+                }
+            ),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(MessageThread.objects.filter(student=student).count(), 1)
+        thread = MessageThread.objects.get(student=student)
+        self.assertEqual(thread.participant_name, "Chetana Ramgade")
+        self.assertEqual(thread.last_message_preview, "Hi, I am interested in this role.")
+        self.assertEqual(Message.objects.filter(thread=thread).count(), 1)
+        self.assertEqual(response.json()["data"]["messages"][0]["author"], "self")
+
+    def test_student_reuses_existing_thread_for_same_recipient(self):
+        company = Company.objects.create(name="Jobmiru", is_active=True)
+        student = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        recruiter = User.objects.create_user(
+            email="recruiter@example.com",
+            password="SecurePass123!",
+            full_name="Chetana Ramgade",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+        vacancy = Vacancy.objects.create(
+            company=company,
+            created_by=recruiter,
+            title="Backend Engineer",
+            description="Build APIs.",
+            employment_type="full_time",
+            experience_level="junior",
+            location="Tokyo",
+            status=Vacancy.Status.ACTIVE,
+        )
+        Application.objects.create(
+            company=company,
+            vacancy=vacancy,
+            student=student,
+            status=Application.Status.SUBMITTED,
+        )
+        existing_thread = MessageThread.objects.create(
+            student=student,
+            participant_user=recruiter,
+            participant_name=recruiter.full_name,
+            company_name=company.name,
+            role_label="Recruiter",
+            category=MessageThread.Category.APPLICATIONS,
+        )
+        existing_message = Message.objects.create(
+            thread=existing_thread,
+            sender=recruiter,
+            sender_name=recruiter.full_name,
+            body="Initial recruiter message.",
+        )
+        existing_thread.last_message_preview = existing_message.body
+        existing_thread.last_message_at = existing_message.created_at
+        existing_thread.last_message_sender = recruiter
+        existing_thread.save(update_fields=["last_message_preview", "last_message_at", "last_message_sender", "updated_at"])
+
+        client, csrf_token = self.csrf_client()
+        client.force_login(student)
+        response = client.post(
+            "/api/v1/student/messages/threads",
+            data=json.dumps(
+                {
+                    "participant_user_id": recruiter.id,
+                    "participant_name": recruiter.full_name,
+                    "company_name": company.name,
+                    "role_label": "Recruiter",
+                    "category": "applications",
+                    "message": "Following up on the same thread.",
+                }
+            ),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(MessageThread.objects.filter(student=student).count(), 1)
+        existing_thread.refresh_from_db()
+        self.assertEqual(existing_thread.last_message_preview, "Following up on the same thread.")
+        self.assertEqual(Message.objects.filter(thread=existing_thread).count(), 2)
+        self.assertEqual(response.json()["data"]["id"], existing_thread.id)
+
+    def test_student_message_contacts_returns_related_company_users(self):
+        company = Company.objects.create(name="Jobmiru", is_active=True)
+        student = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        recruiter = User.objects.create_user(
+            email="recruiter@example.com",
+            password="SecurePass123!",
+            full_name="Chetana Ramgade",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+        CompanyMember.objects.create(company=company, user=recruiter, role=CompanyMember.MemberRole.ADMIN)
+        vacancy = Vacancy.objects.create(
+            company=company,
+            created_by=recruiter,
+            title="Backend Engineer",
+            description="Build APIs.",
+            employment_type="full_time",
+            experience_level="junior",
+            location="Tokyo",
+            status=Vacancy.Status.ACTIVE,
+        )
+        Application.objects.create(
+            company=company,
+            vacancy=vacancy,
+            student=student,
+            status=Application.Status.SUBMITTED,
+        )
+
+        client = Client()
+        client.force_login(student)
+        response = client.get("/api/v1/student/messages/contacts")
+
+        self.assertEqual(response.status_code, 200)
+        body = response.json()["data"]
+        self.assertEqual(body["contact_count"], 1)
+        self.assertEqual(body["contacts"][0]["participant_name"], "Chetana Ramgade")
+        self.assertEqual(body["contacts"][0]["company_name"], "Jobmiru")
+        self.assertEqual(body["contacts"][0]["role_label"], "Admin")
+        self.assertEqual(body["contacts"][0]["participant_user_id"], recruiter.id)
+
+    def test_student_can_star_mark_read_and_reply_to_thread(self):
+        student = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        other_user = User.objects.create_user(
+            email="support@example.com",
+            password="SecurePass123!",
+            full_name="Support User",
+            role=User.Role.ADMIN,
+        )
+        thread = MessageThread.objects.create(
+            student=student,
+            participant_name="Support User",
+            company_name="SoftLearn",
+            role_label="Support",
+            category=MessageThread.Category.SUPPORT,
+        )
+        inbound_message = Message.objects.create(
+            thread=thread,
+            sender=other_user,
+            sender_name=other_user.full_name,
+            body="Your checklist is ready.",
+        )
+        thread.last_message_preview = inbound_message.body
+        thread.last_message_at = inbound_message.created_at
+        thread.last_message_sender = other_user
+        thread.save(update_fields=["last_message_preview", "last_message_at", "last_message_sender", "updated_at"])
+
+        client, csrf_token = self.csrf_client()
+        client.force_login(student)
+
+        update_response = client.put(
+            f"/api/v1/student/messages/threads/{thread.id}",
+            data=json.dumps({"is_starred": True, "mark_as_read": True}),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+        self.assertEqual(update_response.status_code, 200)
+        thread.refresh_from_db()
+        self.assertTrue(thread.is_starred)
+        self.assertIsNotNone(thread.last_read_at)
+        self.assertFalse(update_response.json()["data"]["is_unread"])
+
+        reply_response = client.post(
+            f"/api/v1/student/messages/threads/{thread.id}/messages",
+            data=json.dumps({"body": "Thanks, I will review it today."}),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+        self.assertEqual(reply_response.status_code, 200)
+        thread.refresh_from_db()
+        self.assertEqual(thread.last_message_preview, "Thanks, I will review it today.")
+        self.assertEqual(thread.last_message_sender, student)
+        self.assertEqual(Message.objects.filter(thread=thread).count(), 2)
+        self.assertEqual(reply_response.json()["data"]["messages"][-1]["status"], "Sent")
+
+    def test_student_can_delete_thread(self):
+        student = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        thread = MessageThread.objects.create(
+            student=student,
+            participant_name="Recruiter User",
+            company_name="Jobmiru",
+            role_label="Recruiter",
+            category=MessageThread.Category.APPLICATIONS,
+        )
+        Message.objects.create(
+            thread=thread,
+            sender=student,
+            sender_name=student.full_name,
+            body="Hello there.",
+        )
+
+        client, csrf_token = self.csrf_client()
+        client.force_login(student)
+        response = client.delete(
+            f"/api/v1/student/messages/threads/{thread.id}",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(MessageThread.objects.filter(pk=thread.id).exists())
+        self.assertFalse(Message.objects.filter(thread_id=thread.id).exists())
+        self.assertTrue(response.json()["data"]["deleted"])
+
+    def test_student_can_create_thread_with_related_contact_user(self):
+        company = Company.objects.create(name="Jobmiru", is_active=True)
+        student = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        recruiter = User.objects.create_user(
+            email="recruiter@example.com",
+            password="SecurePass123!",
+            full_name="Chetana Ramgade",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+        vacancy = Vacancy.objects.create(
+            company=company,
+            created_by=recruiter,
+            title="Backend Engineer",
+            description="Build APIs.",
+            employment_type="full_time",
+            experience_level="junior",
+            location="Tokyo",
+            status=Vacancy.Status.ACTIVE,
+        )
+        Application.objects.create(
+            company=company,
+            vacancy=vacancy,
+            student=student,
+            status=Application.Status.SUBMITTED,
+        )
+        client, csrf_token = self.csrf_client()
+        client.force_login(student)
+
+        response = client.post(
+            "/api/v1/student/messages/threads",
+            data=json.dumps(
+                {
+                    "participant_user_id": recruiter.id,
+                    "participant_name": recruiter.full_name,
+                    "company_name": company.name,
+                    "role_label": "Admin",
+                    "category": "applications",
+                    "message": "Hi, I would like to discuss the role.",
+                }
+            ),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+
+        self.assertEqual(response.status_code, 201)
+        thread = MessageThread.objects.get(student=student)
+        self.assertEqual(thread.participant_user, recruiter)
+
+    def test_company_user_cannot_access_student_messages_endpoint(self):
+        company = Company.objects.create(name="Softverse")
+        company_user = User.objects.create_user(
+            email="company@example.com",
+            password="SecurePass123!",
+            full_name="Company User",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+
+        client = Client()
+        client.force_login(company_user)
+        response = client.get("/api/v1/student/messages")
+
+        self.assertEqual(response.status_code, 403)
 
     def test_student_dashboard_returns_summary_metrics(self):
         student = User.objects.create_user(

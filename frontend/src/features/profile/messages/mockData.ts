@@ -1,0 +1,118 @@
+import type { ConversationThread, MessageFilter } from './types'
+
+export const messageFilters: Array<{ key: MessageFilter; label: string }> = [
+  { key: 'all', label: 'Focused' },
+  { key: 'unread', label: 'Unread' },
+  { key: 'starred', label: 'Starred' },
+  { key: 'applications', label: 'Applications' },
+]
+
+export const initialThreads: ConversationThread[] = [
+  {
+    id: 1,
+    participantName: 'Chetana Ramgade',
+    companyName: 'Jobmiru',
+    roleLabel: 'Recruiter',
+    category: 'applications',
+    isUnread: true,
+    isPinned: true,
+    isStarred: true,
+    lastActivity: '2026-05-14T07:42:00.000Z',
+    preview: 'JLPT is required. Would you like to apply for this Tokyo role?',
+    messages: [
+      {
+        id: 101,
+        author: 'other',
+        sender: 'Chetana Ramgade',
+        body: 'Hello Rabin-san, we have an urgent requirement for a Java or any developer with design experience and Japanese business communication.',
+        sentAt: '2026-05-14T06:58:00.000Z',
+      },
+      {
+        id: 102,
+        author: 'self',
+        sender: 'You',
+        body: 'Thank you. Please share the JD and interview process details.',
+        sentAt: '2026-05-14T07:05:00.000Z',
+        status: 'Read',
+      },
+      {
+        id: 103,
+        author: 'other',
+        sender: 'Chetana Ramgade',
+        body: 'JLPT is required. The location is Tokyo and the budget is open. Would you like to apply?',
+        sentAt: '2026-05-14T07:42:00.000Z',
+      },
+    ],
+  },
+  {
+    id: 2,
+    participantName: 'Yuya Iwama',
+    companyName: 'LiNKX',
+    roleLabel: 'Hiring partner',
+    category: 'applications',
+    isUnread: false,
+    isPinned: true,
+    isStarred: false,
+    lastActivity: '2026-05-13T14:20:00.000Z',
+    preview: 'I wanted to share a remote-first global engineering role for your review.',
+    messages: [
+      {
+        id: 201,
+        author: 'other',
+        sender: 'Yuya Iwama',
+        body: 'I wanted to share a remote-first global engineering role with a fintech modernization team. Please review it when you have time.',
+        sentAt: '2026-05-13T14:20:00.000Z',
+      },
+    ],
+  },
+  {
+    id: 3,
+    participantName: 'Pallavi Pawar',
+    companyName: 'Global Talent',
+    roleLabel: 'Staffing specialist',
+    category: 'interviews',
+    isUnread: true,
+    isPinned: false,
+    isStarred: false,
+    lastActivity: '2026-05-13T10:12:00.000Z',
+    preview: 'I noted your relocation flexibility for Canada and wanted to keep that on file.',
+    messages: [
+      {
+        id: 301,
+        author: 'other',
+        sender: 'Pallavi Pawar',
+        body: 'I noted that if a Canadian company from Vancouver offers sponsorship, you are willing to relocate.',
+        sentAt: '2026-05-13T10:12:00.000Z',
+      },
+    ],
+  },
+  {
+    id: 4,
+    participantName: 'SoftLearn Support',
+    companyName: 'SoftLearn',
+    roleLabel: 'Student support',
+    category: 'support',
+    isUnread: false,
+    isPinned: false,
+    isStarred: true,
+    lastActivity: '2026-05-12T03:15:00.000Z',
+    preview: 'Your interview prep checklist is unlocked and ready in the dashboard.',
+    messages: [
+      {
+        id: 401,
+        author: 'other',
+        sender: 'SoftLearn Support',
+        body: 'Your interview prep checklist is unlocked and ready in the dashboard.',
+        sentAt: '2026-05-12T03:15:00.000Z',
+      },
+      {
+        id: 402,
+        author: 'self',
+        sender: 'You',
+        body: 'Thanks. I will review it before my next recruiter call.',
+        sentAt: '2026-05-12T03:29:00.000Z',
+        status: 'Delivered',
+      },
+    ],
+  },
+]
