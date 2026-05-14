@@ -3,16 +3,17 @@ import { Link } from 'react-router-dom'
 import { BookOpen, ChevronRight, Clock3, Search, SlidersHorizontal, Star } from 'lucide-react'
 
 import { ApiError, apiRequest } from '../../lib/api'
-import type { CourseCatalogRecord, CourseCatalogResponse } from './types'
+import type { AdminCourseRecord, AdminCoursesResponse } from '../admin/types'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { cn } from '@/lib/utils'
+import { getAllCourseMediaOverrides } from './courseMediaStorage'
 
-const emptyCatalog: CourseCatalogResponse = {
-  result_count: 0,
+const emptyCoursesResponse: AdminCoursesResponse = {
   courses: [],
 }
 
@@ -41,7 +42,7 @@ function formatDifficultyLabel(value: string) {
   return value ? formatCategoryLabel(value) : 'General'
 }
 
-function getCourseMockMeta(course: CourseCatalogRecord) {
+function getCourseMockMeta(course: AdminCourseRecord) {
   const teacherName = teacherNames[course.course_id % teacherNames.length]
   const rating = (4.2 + ((course.course_id % 7) * 0.1)).toFixed(1)
   const background = thumbnailBackgrounds[course.course_id % thumbnailBackgrounds.length]
@@ -58,12 +59,24 @@ function getCourseMockMeta(course: CourseCatalogRecord) {
   }
 }
 
-function getCourseScore(course: CourseCatalogRecord) {
-  return course.lesson_count * 10 + (course.estimated_hours || 0) + course.readiness_cues.length * 5
+function getCourseScore(course: AdminCourseRecord) {
+  return course.lesson_count * 10 + course.estimated_hours + course.learning_record_count * 3
+}
+
+function getStatusBadgeClassName(status: string) {
+  switch (status) {
+    case 'active':
+      return 'border-transparent bg-emerald-100 text-emerald-800 hover:bg-emerald-100 dark:bg-emerald-950 dark:text-emerald-200'
+    case 'inactive':
+      return 'border-transparent bg-slate-200 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200'
+    default:
+      return 'border-transparent bg-amber-100 text-amber-800 hover:bg-amber-100 dark:bg-amber-950 dark:text-amber-200'
+  }
 }
 
 export function CompanyCourseCatalogPage() {
-  const [catalog, setCatalog] = useState<CourseCatalogResponse>(emptyCatalog)
+  const [data, setData] = useState<AdminCoursesResponse>(emptyCoursesResponse)
+  const [courseMediaOverrides] = useState(() => getAllCourseMediaOverrides())
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
@@ -76,9 +89,9 @@ export function CompanyCourseCatalogPage() {
 
     async function loadCourses() {
       try {
-        const response = await apiRequest<CourseCatalogResponse>('/company/courses')
+        const response = await apiRequest<AdminCoursesResponse>('/company/courses')
         if (active) {
-          setCatalog(response)
+          setData(response)
           setError(null)
         }
       } catch (loadError) {
@@ -102,22 +115,22 @@ export function CompanyCourseCatalogPage() {
   const categoryOptions = useMemo(() => {
     const categories = Array.from(
       new Set(
-        catalog.courses
+        data.courses
           .map((course) => course.category.trim())
           .filter((value) => value.length > 0)
       )
     ).sort((left, right) => formatCategoryLabel(left).localeCompare(formatCategoryLabel(right)))
 
     return ['All Categories', ...categories]
-  }, [catalog.courses])
+  }, [data.courses])
 
   const filteredCourses = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase()
 
-    const filtered = catalog.courses.filter((course) => {
+    const filtered = data.courses.filter((course) => {
       const matchesQuery =
         !normalizedQuery ||
-        [course.title, course.description, course.category]
+        [course.title, course.description, course.category, course.status]
           .join(' ')
           .toLowerCase()
           .includes(normalizedQuery)
@@ -138,12 +151,12 @@ export function CompanyCourseCatalogPage() {
       }
 
       if (sortBy === 'Popular') {
-        return right.lesson_count - left.lesson_count || (right.estimated_hours || 0) - (left.estimated_hours || 0)
+        return right.lesson_count - left.lesson_count || right.learning_record_count - left.learning_record_count
       }
 
       return getCourseScore(right) - getCourseScore(left)
     })
-  }, [catalog.courses, category, level, searchQuery, sortBy])
+  }, [data.courses, category, level, searchQuery, sortBy])
 
   return (
     <div className="space-y-6 px-4 py-6 md:px-6 lg:px-8">
@@ -155,10 +168,25 @@ export function CompanyCourseCatalogPage() {
         <span className="font-medium text-foreground">Courses</span>
       </div>
 
-      <h1 className="text-3xl font-bold tracking-tight md:text-4xl">All Courses</h1>
-      <p className="text-base text-muted-foreground">
-        Review the learning catalog available to candidates using the same browsing pattern as the student course page.
-      </p>
+      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <div className="space-y-2">
+          <h1 className="text-3xl font-bold tracking-tight md:text-4xl">All Courses</h1>
+          <p className="text-base text-muted-foreground">
+            Review the full shared course catalog, then jump into dedicated pages to create courses, edit course details, and manage lessons.
+          </p>
+        </div>
+        <Button asChild className="rounded-none !text-white hover:!text-white [&_*]:!text-white">
+          <Link className="!text-white hover:!text-white" to="/company/courses/new">
+            Add course
+          </Link>
+        </Button>
+      </div>
+
+      {error ? (
+        <Card className="border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950">
+          <CardContent className="px-6 py-4 text-sm text-red-800 dark:text-red-200">{error}</CardContent>
+        </Card>
+      ) : null}
 
       <div className="flex gap-3 md:hidden">
         <div className="relative flex-1">
@@ -312,26 +340,38 @@ export function CompanyCourseCatalogPage() {
             </div>
           ))}
         </div>
-      ) : error ? (
-        <div className="border border-destructive/20 bg-destructive/5 px-6 py-10 text-center">
-          <p className="text-lg font-semibold text-foreground">Unable to load courses</p>
-          <p className="mt-2 text-sm text-muted-foreground">{error}</p>
-        </div>
       ) : filteredCourses.length > 0 ? (
         <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
           {filteredCourses.map((course) => {
             const meta = getCourseMockMeta(course)
+            const mediaOverride = courseMediaOverrides[String(course.course_id)]
+            const courseThumbnail = mediaOverride?.thumbnailImage || mediaOverride?.previewImage || ''
 
             return (
               <article
                 key={course.course_id}
-                className="flex min-h-[420px] flex-col overflow-hidden rounded-2xl border border-border bg-muted/20"
+                className="flex min-h-[460px] flex-col overflow-hidden rounded-2xl border border-border bg-muted/20"
               >
                 <div className={cn('relative h-48 bg-gradient-to-br p-4 text-white', meta.background)}>
-                  <div className="flex h-full flex-col justify-between">
-                    <Badge variant="secondary" className="w-fit rounded-full bg-white/15 text-white hover:bg-white/15">
-                      {formatCategoryLabel(course.category)}
-                    </Badge>
+                  {courseThumbnail ? (
+                    <>
+                      <img
+                        src={courseThumbnail}
+                        alt={mediaOverride?.thumbnailAltText || `${course.title} thumbnail`}
+                        className="absolute inset-0 h-full w-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-black/10" />
+                    </>
+                  ) : null}
+                  <div className="relative z-10 flex h-full flex-col justify-between">
+                    <div className="flex items-start justify-between gap-2">
+                      <Badge variant="secondary" className="w-fit rounded-full bg-white/15 text-white hover:bg-white/15">
+                        {formatCategoryLabel(course.category)}
+                      </Badge>
+                      <Badge variant="secondary" className={cn('rounded-full', getStatusBadgeClassName(course.status))}>
+                        {formatCategoryLabel(course.status)}
+                      </Badge>
+                    </div>
                     <div className="space-y-2">
                       <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-white/30 bg-white/10">
                         <BookOpen className="h-6 w-6" />
@@ -341,7 +381,7 @@ export function CompanyCourseCatalogPage() {
                   </div>
                 </div>
 
-                <div className="p-4">
+                <div className="flex flex-1 flex-col p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="space-y-1">
                       <p className="block text-sm font-semibold text-foreground">{course.title}</p>
@@ -357,7 +397,7 @@ export function CompanyCourseCatalogPage() {
                       WebkitLineClamp: 3,
                     }}
                   >
-                    {course.description || 'Build practical skills with guided lessons and structured progress.'}
+                    {course.description || 'Build practical skills with guided lessons and structured student progress.'}
                   </p>
 
                   <div className="mt-4 flex items-center gap-3">
@@ -382,6 +422,21 @@ export function CompanyCourseCatalogPage() {
                     <Badge variant="secondary" className="flex-none rounded-full whitespace-nowrap">
                       {formatDifficultyLabel(course.difficulty_level)}
                     </Badge>
+                  </div>
+
+                  <div className="mt-4 text-xs text-muted-foreground">
+                    {course.learning_record_count} student learning records
+                  </div>
+
+                  <div className="mt-auto flex flex-wrap gap-2 pt-5">
+                    <Button asChild variant="outline" size="sm">
+                      <Link to={`/company/courses/${course.course_id}/edit`}>Edit</Link>
+                    </Button>
+                    <Button asChild size="sm">
+                      <Link className="text-white hover:text-white" to={`/company/courses/${course.course_id}/lessons`}>
+                        Lessons
+                      </Link>
+                    </Button>
                   </div>
                 </div>
               </article>
