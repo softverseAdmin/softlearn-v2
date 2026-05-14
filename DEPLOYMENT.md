@@ -147,10 +147,12 @@ POSTGRES_PORT=5432
 REDIS_URL=redis://localhost:6379/1
 
 # Security
-CSRF_TRUSTED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173,https://yourdomain.com
+DJANGO_CSRF_TRUSTED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173,https://yourdomain.com
 DJANGO_CORS_ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173,https://yourdomain.com
-SESSION_COOKIE_SECURE=True
-CSRF_COOKIE_SECURE=True
+DJANGO_SESSION_COOKIE_SECURE=True
+DJANGO_CSRF_COOKIE_SECURE=True
+DJANGO_SESSION_COOKIE_SAMESITE=None
+DJANGO_CSRF_COOKIE_SAMESITE=None
 
 # Sentry (Error Tracking)
 SENTRY_DSN=https://your-sentry-dsn@sentry.io/project-id
@@ -173,8 +175,9 @@ DJANGO_LOG_LEVEL=INFO
    - Enable security middleware
 
 2. **HTTPS**
-   - Use `SESSION_COOKIE_SECURE = True` in production
-   - Use `CSRF_COOKIE_SECURE = True` in production
+   - Use `DJANGO_SESSION_COOKIE_SECURE=True` in production
+   - Use `DJANGO_CSRF_COOKIE_SECURE=True` in production
+   - Use `DJANGO_SESSION_COOKIE_SAMESITE=None` and `DJANGO_CSRF_COOKIE_SAMESITE=None` for cross-site frontend deployments
    - Configure HSTS headers
 
 3. **Rate Limiting**
