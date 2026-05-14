@@ -10,7 +10,7 @@ export interface MessageRecord {
   id: number
   author: MessageAuthor
   sender: string
-  senderImage: string | null
+  senderImage?: string | null
   body: string
   sentAt: string
   status?: MessageDeliveryStatus
@@ -27,7 +27,7 @@ export interface ConversationThread {
   isStarred: boolean
   lastActivity: string
   preview: string
-  participantImage: string | null
+  participantImage?: string | null
   messages: MessageRecord[]
 }
 
