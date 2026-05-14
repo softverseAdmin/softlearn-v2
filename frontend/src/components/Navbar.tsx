@@ -18,6 +18,7 @@ export interface NavbarProps {
   onSearch?: (query: string) => void
   showNotifications?: boolean
   notificationCount?: number
+  messageCount?: number
   showThemeToggle?: boolean
   notificationsHref?: string
   messagesHref?: string
@@ -37,6 +38,7 @@ export function Navbar({
   onSearch,
   showNotifications = true,
   notificationCount = 0,
+  messageCount = 0,
   showThemeToggle = true,
   notificationsHref,
   messagesHref,
@@ -88,7 +90,7 @@ export function Navbar({
                 <Link to={notificationsHref}>
                   <Bell className="h-5 w-5" />
                   {notificationCount > 0 && (
-                    <span className="absolute top-0 right-0 inline-flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-xs font-bold text-destructive-foreground">
+                    <span className="absolute top-0 right-0 inline-flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-xs font-bold text-white">
                       {notificationCount > 9 ? '9+' : notificationCount}
                     </span>
                   )}
@@ -97,9 +99,9 @@ export function Navbar({
                 <>
                   <Bell className="h-5 w-5" />
                   {notificationCount > 0 && (
-                    <span className="absolute top-0 right-0 inline-flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-xs font-bold text-destructive-foreground">
-                      {notificationCount > 9 ? '9+' : notificationCount}
-                    </span>
+                      <span className="absolute top-0 right-0 inline-flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-xs font-bold text-white">
+                        {notificationCount > 9 ? '9+' : notificationCount}
+                      </span>
                   )}
                 </>
               )}
@@ -111,15 +113,27 @@ export function Navbar({
             type="button"
             variant="ghost"
             size="icon-lg"
-            className="rounded-2xl border border-slate-200 bg-slate-50 text-slate-600 hover:border-primary/20 hover:bg-primary/5 hover:text-primary"
+            className="relative rounded-2xl border border-slate-200 bg-slate-50 text-slate-600 hover:border-primary/20 hover:bg-primary/5 hover:text-primary"
             aria-label="Messages"
           >
             {messagesHref ? (
               <Link to={messagesHref}>
                 <Mail className="h-5 w-5" />
+                {messageCount > 0 && (
+                  <span className="absolute top-0 right-0 inline-flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-xs font-bold text-white">
+                    {messageCount > 9 ? '9+' : messageCount}
+                  </span>
+                )}
               </Link>
             ) : (
-              <Mail className="h-5 w-5" />
+              <>
+                <Mail className="h-5 w-5" />
+                {messageCount > 0 && (
+                  <span className="absolute top-0 right-0 inline-flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-xs font-bold text-white">
+                    {messageCount > 9 ? '9+' : messageCount}
+                  </span>
+                )}
+              </>
             )}
           </Button>
 

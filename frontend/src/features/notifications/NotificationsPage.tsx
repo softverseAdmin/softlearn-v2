@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Bell, BriefcaseBusiness, ChevronRight, FileBadge2, LoaderCircle, Mail, Search, Sparkles, Workflow } from 'lucide-react'
+import { Bell, BriefcaseBusiness, ChevronRight, FileBadge2, LoaderCircle, Mail, Search, SlidersHorizontal, Sparkles, Workflow } from 'lucide-react'
 import { Link, useNavigate, useOutletContext } from 'react-router-dom'
 
 import { useAuth } from '@/auth/useAuth'
@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { ApiError, apiRequest } from '@/lib/api'
 import { cn } from '@/lib/utils'
 import type { AppLayoutOutletContext } from '@/router/AppLayoutWrapper'
@@ -124,6 +125,18 @@ function formatRelativeDate(value: string) {
   }
 
   return new Date(value).toLocaleDateString()
+}
+
+function getNotificationFilterLabel(filter: NotificationFilter) {
+  if (filter === 'all') {
+    return 'All'
+  }
+
+  if (filter === 'unread') {
+    return 'Unread'
+  }
+
+  return filter.charAt(0).toUpperCase() + filter.slice(1)
 }
 
 function getNotificationCategory(notification: Pick<NotificationFeedItem, 'notification_type' | 'title' | 'message' | 'link'>): NotificationCategory {
@@ -317,7 +330,8 @@ export function NotificationsPage() {
 
   const role = user?.role ?? 'student'
   const roleLabel = role.charAt(0).toUpperCase() + role.slice(1)
-  const setUnreadNotificationCount = outletContext?.setUnreadNotificationCount ?? (() => {})
+  const setUnreadNotificationCount = outletContext?.setUnreadNotificationCount
+  const setUnreadMessageCount = outletContext?.setUnreadMessageCount
 
   useEffect(() => {
     if (role !== 'student' || !user) {
@@ -445,8 +459,17 @@ export function NotificationsPage() {
   )
 
   useEffect(() => {
-    setUnreadNotificationCount(summary.unread)
+    setUnreadNotificationCount?.(summary.unread)
   }, [setUnreadNotificationCount, summary.unread])
+
+  useEffect(() => {
+    if (role === 'student' || role === 'company') {
+      setUnreadMessageCount?.(messagesData.unread_count)
+      return
+    }
+
+    setUnreadMessageCount?.(0)
+  }, [messagesData.unread_count, role, setUnreadMessageCount])
 
   function updateSeenMatchIds(nextSeenMatchIds: Set<number>) {
     setSeenMatchIds(nextSeenMatchIds)
@@ -621,17 +644,44 @@ export function NotificationsPage() {
                 <p className="text-sm text-muted-foreground">Search, scan unread activity, and open the relevant workspace from each alert.</p>
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 sm:gap-3">
                 <div className="relative min-w-0 flex-1 sm:min-w-[280px]">
                   <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
                     value={searchQuery}
                     onChange={(event) => setSearchQuery(event.target.value)}
-                    className="rounded-full pl-9"
+                    className="h-7 rounded-none pl-9"
                     placeholder="Search notifications"
                     aria-label="Search notifications"
                   />
                 </div>
+                <Sheet>
+                  <SheetTrigger asChild>
+                    <Button type="button" variant="outline" size="icon-sm" className="rounded-none md:hidden" aria-label="Filter notifications">
+                      <SlidersHorizontal />
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent side="right" className="w-full max-w-sm rounded-none px-6">
+                    <SheetHeader className="px-0">
+                      <SheetTitle>Filter notifications</SheetTitle>
+                      <SheetDescription>Refine the notification center by unread, messages, jobs, applications, interviews, or exams.</SheetDescription>
+                    </SheetHeader>
+
+                    <div className="mt-6 space-y-3">
+                      {availableFilters.map((filter) => (
+                        <Button
+                          key={filter}
+                          type="button"
+                          variant={activeFilter === filter ? 'default' : 'outline'}
+                          className="w-full justify-start"
+                          onClick={() => setActiveFilter(filter)}
+                        >
+                          {getNotificationFilterLabel(filter)}
+                        </Button>
+                      ))}
+                    </div>
+                  </SheetContent>
+                </Sheet>
                 <Button
                   type="button"
                   size="sm"
@@ -644,16 +694,10 @@ export function NotificationsPage() {
             </div>
           </div>
 
-          <div className="border-b border-border/60 px-4 py-3">
+          <div className="hidden border-b border-border/60 px-4 py-3 md:block">
             <div className="flex flex-wrap gap-2">
               {availableFilters.map((filter) => {
                 const isActive = activeFilter === filter
-                const label =
-                  filter === 'all'
-                    ? 'All'
-                    : filter === 'unread'
-                      ? 'Unread'
-                      : filter.charAt(0).toUpperCase() + filter.slice(1)
 
                 return (
                   <Button
@@ -664,7 +708,7 @@ export function NotificationsPage() {
                     className="rounded-none"
                     onClick={() => setActiveFilter(filter)}
                   >
-                    {label}
+                    {getNotificationFilterLabel(filter)}
                   </Button>
                 )
               })}
