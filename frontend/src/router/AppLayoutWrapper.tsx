@@ -1,4 +1,4 @@
-import { useEffect, useState, type Dispatch, type SetStateAction } from 'react'
+import { useCallback, useEffect, useState, type Dispatch, type SetStateAction } from 'react'
 import { Outlet, useNavigate } from 'react-router-dom'
 import {
   Award,
@@ -24,23 +24,81 @@ import { ApiError, apiRequest } from '@/lib/api'
 import { PROFILE_IMAGES_UPDATED_EVENT, type StoredProfileImages } from '@/lib/profileImages'
 import { AppLayout } from '@/components/AppLayout'
 import { Button } from '@/components/ui/button'
+import type { CompanyMessagesResponse, StudentMessagesResponse } from '@/features/profile/messages/types'
+import type { StudentMatchesResponse } from '@/features/profile/types'
 import type { NavItem } from '@/components/Sidebar'
 import { navigationItemsByRole } from '@/router/navigation'
 
 export type AppLayoutOutletContext = {
   unreadNotificationCount: number
+  unreadMessageCount: number
   setUnreadNotificationCount: Dispatch<SetStateAction<number>>
+  setUnreadMessageCount: Dispatch<SetStateAction<number>>
   refreshUnreadNotificationCount: () => Promise<void>
+  refreshUnreadMessageCount: () => Promise<void>
+}
+
+function readSeenMatchIds(userId: number) {
+  if (typeof window === 'undefined') {
+    return new Set<number>()
+  }
+
+  try {
+    const rawValue = window.localStorage.getItem(`softlearn:student-seen-match-notifications:${userId}`)
+    if (!rawValue) {
+      return new Set<number>()
+    }
+
+    const parsedValue = JSON.parse(rawValue)
+    if (!Array.isArray(parsedValue)) {
+      return new Set<number>()
+    }
+
+    return new Set(
+      parsedValue
+        .map((item) => Number(item))
+        .filter((item) => Number.isInteger(item) && item > 0),
+    )
+  } catch {
+    return new Set<number>()
+  }
 }
 
 export function AppLayoutWrapper() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const [unreadNotificationCount, setUnreadNotificationCount] = useState(0)
+  const [unreadMessageCount, setUnreadMessageCount] = useState(0)
   const [profileAvatar, setProfileAvatar] = useState<string | undefined>(undefined)
 
-  async function refreshUnreadNotificationCount() {
+  const refreshUnreadNotificationCount = useCallback(async () => {
     try {
+      if (!user) {
+        setUnreadNotificationCount(0)
+        return
+      }
+
+      if (user.role === 'student') {
+        const [notificationsResponse, studentMessagesResponse, studentMatchesResponse] = await Promise.all([
+          apiRequest<{ unread_count: number }>('/notifications'),
+          apiRequest<StudentMessagesResponse>('/student/messages'),
+          apiRequest<StudentMatchesResponse>('/student/matches'),
+        ])
+        const seenMatchIds = readSeenMatchIds(user.user_id)
+        const unreadMatchCount = studentMatchesResponse.matches.filter((match) => !seenMatchIds.has(match.vacancy_id)).length
+        setUnreadNotificationCount(notificationsResponse.unread_count + studentMessagesResponse.unread_count + unreadMatchCount)
+        return
+      }
+
+      if (user.role === 'company') {
+        const [notificationsResponse, companyMessagesResponse] = await Promise.all([
+          apiRequest<{ unread_count: number }>('/notifications'),
+          apiRequest<CompanyMessagesResponse>('/company/messages'),
+        ])
+        setUnreadNotificationCount(notificationsResponse.unread_count + companyMessagesResponse.unread_count)
+        return
+      }
+
       const response = await apiRequest<{ unread_count: number }>('/notifications')
       setUnreadNotificationCount(response.unread_count)
     } catch (error) {
@@ -48,16 +106,39 @@ export function AppLayoutWrapper() {
         console.error('Unable to refresh notification count', error)
       }
     }
-  }
+  }, [user])
+
+  const refreshUnreadMessageCount = useCallback(async () => {
+    if (!user || (user.role !== 'student' && user.role !== 'company')) {
+      setUnreadMessageCount(0)
+      return
+    }
+
+    try {
+      const endpoint = user.role === 'student' ? '/student/messages' : '/company/messages'
+      const response = await apiRequest<{ unread_count: number }>(endpoint)
+      setUnreadMessageCount(response.unread_count)
+    } catch (error) {
+      if (!(error instanceof ApiError)) {
+        console.error('Unable to refresh message count', error)
+      }
+    }
+  }, [user])
 
   useEffect(() => {
     if (!user) {
       return
     }
     void refreshUnreadNotificationCount()
-  }, [user.user_id])
+    void refreshUnreadMessageCount()
+  }, [refreshUnreadMessageCount, refreshUnreadNotificationCount, user])
 
   useEffect(() => {
+    if (!user) {
+      setProfileAvatar(undefined)
+      return
+    }
+
     if (user.role !== 'student' && user.role !== 'company') {
       setProfileAvatar(undefined)
       return
@@ -89,7 +170,7 @@ export function AppLayoutWrapper() {
     return () => {
       window.removeEventListener(PROFILE_IMAGES_UPDATED_EVENT, handleProfileImagesUpdated)
     }
-  }, [user.role, user.user_id])
+  }, [user])
 
   if (!user) return null
 
@@ -174,6 +255,7 @@ export function AppLayoutWrapper() {
         onSearch: (query) => console.log('Search:', query),
         showNotifications: true,
         notificationCount: unreadNotificationCount,
+        messageCount: unreadMessageCount,
         showThemeToggle: false,
         notificationsHref:
           user.role === 'student'
@@ -206,8 +288,11 @@ export function AppLayoutWrapper() {
       <Outlet
         context={{
           unreadNotificationCount,
+          unreadMessageCount,
           setUnreadNotificationCount,
+          setUnreadMessageCount,
           refreshUnreadNotificationCount,
+          refreshUnreadMessageCount,
         } satisfies AppLayoutOutletContext}
       />
     </AppLayout>

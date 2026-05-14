@@ -11,7 +11,7 @@ import {
   Star,
   Trash2,
 } from 'lucide-react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useOutletContext, useSearchParams } from 'react-router-dom'
 
 import { useAuth } from '@/auth/useAuth'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -25,6 +25,7 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTr
 import { Textarea } from '@/components/ui/textarea'
 import { ApiError, apiRequest } from '@/lib/api'
 import { cn } from '@/lib/utils'
+import type { AppLayoutOutletContext } from '@/router/AppLayoutWrapper'
 
 import { messageFilters } from './messages/mockData'
 import type {
@@ -81,6 +82,7 @@ function upsertThread(currentThreads: ConversationThread[], nextThread: Conversa
 
 export function StudentMessagesPage() {
   const { csrfToken } = useAuth()
+  const outletContext = useOutletContext<AppLayoutOutletContext | undefined>()
   const [searchParams, setSearchParams] = useSearchParams()
   const [threads, setThreads] = useState<ConversationThread[]>([])
   const [composeContacts, setComposeContacts] = useState<ComposeContact[]>([])
@@ -108,6 +110,7 @@ export function StudentMessagesPage() {
   const [updatingThreadId, setUpdatingThreadId] = useState<number | null>(null)
   const [threadPendingDeletion, setThreadPendingDeletion] = useState<ConversationThread | null>(null)
   const [deletingThreadId, setDeletingThreadId] = useState<number | null>(null)
+  const setUnreadMessageCount = outletContext?.setUnreadMessageCount
 
   const filteredThreads = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase()
@@ -227,6 +230,10 @@ export function StudentMessagesPage() {
     }),
     [threads],
   )
+
+  useEffect(() => {
+    setUnreadMessageCount?.(inboxSummary.unread)
+  }, [inboxSummary.unread, setUnreadMessageCount])
 
   const composeCompanies = useMemo(
     () =>
@@ -875,7 +882,7 @@ export function StudentMessagesPage() {
                   <Input
                     value={searchQuery}
                     onChange={(event) => setSearchQuery(event.target.value)}
-                    className="rounded-full pl-9"
+                    className="h-7 rounded-none pl-9"
                     placeholder="Search messages"
                     aria-label="Search messages"
                   />
