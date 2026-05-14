@@ -11,7 +11,7 @@ import {
   Star,
   Trash2,
 } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 
 import { useAuth } from '@/auth/useAuth'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -79,6 +79,7 @@ function upsertThread(currentThreads: ConversationThread[], nextThread: Conversa
 
 export function StudentMessagesPage() {
   const { csrfToken } = useAuth()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [threads, setThreads] = useState<ConversationThread[]>([])
   const [composeContacts, setComposeContacts] = useState<ComposeContact[]>([])
   const [activeThreadId, setActiveThreadId] = useState<number | null>(null)
@@ -136,6 +137,11 @@ export function StudentMessagesPage() {
       .sort(sortThreads)
   }, [activeFilter, searchQuery, threads])
 
+  const requestedThreadId = useMemo(() => {
+    const value = Number(searchParams.get('thread'))
+    return Number.isInteger(value) && value > 0 ? value : null
+  }, [searchParams])
+
   useEffect(() => {
     let active = true
 
@@ -179,10 +185,17 @@ export function StudentMessagesPage() {
       return
     }
 
+    if (requestedThreadId && filteredThreads.some((thread) => thread.id === requestedThreadId)) {
+      if (activeThreadId !== requestedThreadId) {
+        setActiveThreadId(requestedThreadId)
+      }
+      return
+    }
+
     if (!activeThreadId || !filteredThreads.some((thread) => thread.id === activeThreadId)) {
       setActiveThreadId(filteredThreads[0].id)
     }
-  }, [activeThreadId, filteredThreads, threads])
+  }, [activeThreadId, filteredThreads, requestedThreadId, threads])
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(min-width: 1024px)')
@@ -293,6 +306,11 @@ export function StudentMessagesPage() {
 
   function handleSelectThread(threadId: number) {
     setActiveThreadId(threadId)
+    setSearchParams((current) => {
+      const next = new URLSearchParams(current)
+      next.set('thread', String(threadId))
+      return next
+    }, { replace: true })
     const selectedThread = threads.find((thread) => thread.id === threadId)
 
     if (selectedThread?.isUnread) {

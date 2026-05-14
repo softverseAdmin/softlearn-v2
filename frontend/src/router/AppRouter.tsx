@@ -30,7 +30,6 @@ import { StudentLessonPage } from '../features/profile/StudentLessonPage'
 import { StudentLearningPage } from '../features/profile/StudentLearningPage'
 import { StudentMatchesPage } from '../features/profile/StudentMatchesPage'
 import { StudentMockExamPage } from '../features/profile/StudentMockExamPage'
-import { StudentInboxPlaceholderPage } from '../features/profile/StudentInboxPlaceholderPage'
 import { StudentMessagesPage } from '../features/profile/StudentMessagesPage'
 import { StudentPreparationPage } from '../features/profile/StudentPreparationPage'
 import { StudentPrivacySettingsPage } from '../features/profile/StudentPrivacySettingsPage'
@@ -70,7 +69,7 @@ export function AppRouter() {
         <Route element={<AppLayoutWrapper />}>
           <Route element={<RoleGuard role="student" />}>
             <Route path="/student" element={<DashboardPage role="student" />} />
-            <Route path="/student/notifications" element={<StudentInboxPlaceholderPage eyebrow="Student notifications" title="Notifications" />} />
+            <Route path="/student/notifications" element={<NotificationsPage />} />
             <Route path="/student/messages" element={<StudentMessagesPage />} />
             <Route path="/student/matches" element={<StudentMatchesPage />} />
             <Route path="/student/applications" element={<StudentApplicationsPage />} />
