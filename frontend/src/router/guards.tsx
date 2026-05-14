@@ -1,4 +1,4 @@
-import { Navigate, Outlet, useLocation } from 'react-router-dom'
+import { Navigate, Outlet, useLocation, useOutletContext } from 'react-router-dom'
 
 import { useAuth } from '../auth/useAuth'
 import { FullPageState } from '../components/FullPageState'
@@ -36,6 +36,7 @@ export function ProtectedGuard() {
 
 export function RoleGuard({ role }: { role: UserRole }) {
   const { user } = useAuth()
+  const outletContext = useOutletContext()
 
   if (!user) {
     return <Navigate to="/login" replace />
@@ -45,5 +46,5 @@ export function RoleGuard({ role }: { role: UserRole }) {
     return <Navigate to="/unauthorized" replace />
   }
 
-  return <Outlet />
+  return <Outlet context={outletContext} />
 }
