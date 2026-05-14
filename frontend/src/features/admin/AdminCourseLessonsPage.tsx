@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import { toast } from 'sonner'
 
 import { useAuth } from '../../auth/useAuth'
 import { ApiError, apiRequest } from '../../lib/api'
@@ -35,7 +36,6 @@ export function AdminCourseLessonsPage() {
   const [sequenceNumber, setSequenceNumber] = useState('1')
   const [status, setStatus] = useState('draft')
   const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
 
   const selectedLesson = useMemo(
     () => data.lessons.find((lesson) => lesson.lesson_id === selectedLessonId) ?? null,
@@ -76,7 +76,9 @@ export function AdminCourseLessonsPage() {
         }
       } catch (loadError) {
         if (active) {
-          setError(loadError instanceof ApiError ? loadError.message : 'Unable to load lessons.')
+          const message = loadError instanceof ApiError ? loadError.message : 'Unable to load lessons.'
+          setError(message)
+          toast.error(message)
         }
       } finally {
         if (active) {
@@ -107,7 +109,6 @@ export function AdminCourseLessonsPage() {
 
     setSaving(true)
     setError(null)
-    setSuccess(null)
 
     try {
       const body = {
@@ -124,14 +125,14 @@ export function AdminCourseLessonsPage() {
           body,
           csrfToken,
         })
-        setSuccess('Lesson updated successfully.')
+        toast.success('Lesson updated successfully.')
       } else {
         await apiRequest<AdminLessonRecord>(`/admin/courses/${courseId}/lessons`, {
           method: 'POST',
           body,
           csrfToken,
         })
-        setSuccess('Lesson created successfully.')
+        toast.success('Lesson created successfully.')
       }
 
       await refreshLessons()
@@ -139,7 +140,7 @@ export function AdminCourseLessonsPage() {
         setSelectedLessonId(null)
       }
     } catch (saveError) {
-      setError(saveError instanceof ApiError ? saveError.message : 'Unable to save lesson.')
+      toast.error(saveError instanceof ApiError ? saveError.message : 'Unable to save lesson.')
     } finally {
       setSaving(false)
     }
@@ -148,7 +149,6 @@ export function AdminCourseLessonsPage() {
   async function handleRetire(lessonId: number) {
     setSaving(true)
     setError(null)
-    setSuccess(null)
 
     try {
       await apiRequest<AdminLessonRecord>(`/admin/lessons/${lessonId}`, {
@@ -159,9 +159,9 @@ export function AdminCourseLessonsPage() {
       if (selectedLessonId === lessonId) {
         setSelectedLessonId(null)
       }
-      setSuccess('Lesson retired successfully.')
+      toast.success('Lesson retired successfully.')
     } catch (saveError) {
-      setError(saveError instanceof ApiError ? saveError.message : 'Unable to retire lesson.')
+      toast.error(saveError instanceof ApiError ? saveError.message : 'Unable to retire lesson.')
     } finally {
       setSaving(false)
     }
@@ -187,7 +187,6 @@ export function AdminCourseLessonsPage() {
       </div>
 
       {error ? <div className="card form-error">{error}</div> : null}
-      {success ? <div className="card form-success">{success}</div> : null}
 
       <div className="page-split">
         <div className="card stack-card">
