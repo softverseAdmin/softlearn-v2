@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Briefcase, ChevronRight, Clock3, Globe2, MoreVertical, PencilLine, Plus, Trash2 } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { toast } from 'sonner'
 
 import { useAuth } from '@/auth/useAuth'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -387,12 +388,12 @@ export function CompanyPostJobsPage() {
   const [maxSalary, setMaxSalary] = useState('')
   const [postingDetails, setPostingDetails] = useState<VacancyPostingDetails>(emptyPostingDetails)
   const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
 
   const selectedVacancy = useMemo(
     () => data.vacancies.find((vacancy) => vacancy.vacancy_id === selectedVacancyId) ?? null,
     [data.vacancies, selectedVacancyId],
   )
+  const isEditing = isFormOpen && selectedVacancy !== null
 
   useEffect(() => {
     let active = true
@@ -464,14 +465,12 @@ export function CompanyPostJobsPage() {
     setSelectedVacancyId(null)
     setIsFormOpen(true)
     setError(null)
-    setSuccess(null)
   }
 
   function openEditForm(vacancy: VacancyRecord) {
     setSelectedVacancyId(vacancy.vacancy_id)
     setIsFormOpen(true)
     setError(null)
-    setSuccess(null)
   }
 
   function closeForm() {
@@ -491,7 +490,6 @@ export function CompanyPostJobsPage() {
     event.preventDefault()
     setSaving(true)
     setError(null)
-    setSuccess(null)
 
     const body = {
       title: title.trim(),
@@ -521,20 +519,20 @@ export function CompanyPostJobsPage() {
           body,
           csrfToken,
         })
-        setSuccess('Job post updated successfully.')
+        toast.success('Job post updated successfully.')
       } else {
         await apiRequest<VacancyRecord>('/company/vacancies', {
           method: 'POST',
           body,
           csrfToken,
         })
-        setSuccess('Job post created successfully.')
+        toast.success('Job post created successfully.')
       }
 
       await refreshVacancies()
       closeForm()
     } catch (saveError) {
-      setError(saveError instanceof ApiError ? saveError.message : 'Unable to save this job post.')
+      toast.error(saveError instanceof ApiError ? saveError.message : 'Unable to save this job post.')
     } finally {
       setSaving(false)
     }
@@ -543,7 +541,6 @@ export function CompanyPostJobsPage() {
   async function handleDelete(vacancyId: number) {
     setSaving(true)
     setError(null)
-    setSuccess(null)
 
     try {
       await apiRequest<VacancyRecord>(`/company/vacancies/${vacancyId}`, {
@@ -554,9 +551,9 @@ export function CompanyPostJobsPage() {
       if (selectedVacancyId === vacancyId) {
         closeForm()
       }
-      setSuccess('Job post retired successfully.')
+      toast.success('Job post retired successfully.')
     } catch (saveError) {
-      setError(saveError instanceof ApiError ? saveError.message : 'Unable to retire this job post.')
+      toast.error(saveError instanceof ApiError ? saveError.message : 'Unable to retire this job post.')
     } finally {
       setSaving(false)
     }
@@ -573,15 +570,25 @@ export function CompanyPostJobsPage() {
           Dashboard
         </Link>
         <ChevronRight className="h-4 w-4" />
-        <span className="font-medium text-foreground">Post Jobs</span>
+        <span className="transition-colors hover:text-foreground">Post Jobs</span>
+        {isEditing ? (
+          <>
+            <ChevronRight className="h-4 w-4" />
+            <span className="font-medium text-foreground">{selectedVacancy.title}</span>
+          </>
+        ) : null}
       </div>
 
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div className="space-y-2">
           <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Company hiring</p>
-          <h1 className="text-3xl font-bold tracking-tight md:text-4xl">Post Jobs</h1>
+          <h1 className="text-3xl font-bold tracking-tight md:text-4xl">
+            {isEditing ? `Edit ${selectedVacancy.title}` : 'Post Jobs'}
+          </h1>
           <p className="max-w-2xl text-base text-muted-foreground">
-            Create and manage job posts with the same protected company workflow used across the app.
+            {isEditing
+              ? 'Update this job post without the distraction of the jobs list.'
+              : 'Create and manage job posts with the same protected company workflow used across the app.'}
           </p>
         </div>
         <Button onClick={openCreateForm} className="gap-2 self-start md:self-auto">
@@ -593,11 +600,6 @@ export function CompanyPostJobsPage() {
       {error ? (
         <Card className="border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950">
           <CardContent className="px-5 py-4 text-sm text-red-700 dark:text-red-200">{error}</CardContent>
-        </Card>
-      ) : null}
-      {success ? (
-        <Card className="border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950">
-          <CardContent className="px-5 py-4 text-sm text-green-700 dark:text-green-200">{success}</CardContent>
         </Card>
       ) : null}
 
@@ -747,161 +749,147 @@ export function CompanyPostJobsPage() {
         </Card>
       ) : null}
 
-      <div className="flex items-center justify-between gap-3">
-        <p className="text-sm text-muted-foreground">
-          {data.vacancies.length} job listing{data.vacancies.length === 1 ? '' : 's'}
-        </p>
-      </div>
+      {!isEditing ? (
+        <>
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm text-muted-foreground">
+              {data.vacancies.length} job listing{data.vacancies.length === 1 ? '' : 's'}
+            </p>
+          </div>
 
-      {data.vacancies.length > 0 ? (
-        <div className="space-y-4">
-          {data.vacancies.map((vacancy) => (
-            <Card
-              key={vacancy.vacancy_id}
-              className="rounded-[24px] border border-slate-200/80 bg-white shadow-sm transition-all hover:border-slate-300 hover:shadow-md"
-            >
-              <CardContent className="px-4 py-4 sm:px-6 sm:py-5">
-                <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                  <div className="flex min-w-0 gap-3 sm:gap-4">
-                    <Avatar size="lg" className="border border-slate-200 bg-white shadow-sm">
-                      <AvatarImage src={vacancy.company_profile_image ?? undefined} alt={vacancy.company_name} />
-                      <AvatarFallback className="bg-white font-semibold text-slate-700">
-                        {getCompanyInitials(vacancy.company_name)}
-                      </AvatarFallback>
-                    </Avatar>
+          {data.vacancies.length > 0 ? (
+            <div className="space-y-4">
+              {data.vacancies.map((vacancy) => (
+                <Card
+                  key={vacancy.vacancy_id}
+                  className="rounded-[24px] border border-slate-200/80 bg-white shadow-sm transition-all hover:border-slate-300 hover:shadow-md"
+                >
+                  <CardContent className="relative px-4 py-4 sm:px-6 sm:py-5">
+                    <div className="absolute right-4 top-4 sm:hidden">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button
+                            type="button"
+                            className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition hover:border-slate-300 hover:text-slate-700"
+                            aria-label={`More actions for ${vacancy.title}`}
+                          >
+                            <MoreVertical className="h-5 w-5" />
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-40">
+                          <DropdownMenuItem onClick={() => openEditForm(vacancy)} className="cursor-pointer">
+                            <PencilLine className="h-4 w-4" />
+                            Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleDelete(vacancy.vacancy_id)}
+                            disabled={saving}
+                            variant="destructive"
+                            className="cursor-pointer"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
 
-                    <div className="min-w-0 flex-1 space-y-2">
-                      <h2 className="text-xl font-bold tracking-tight text-slate-950 sm:text-2xl">{vacancy.title}</h2>
-                      <p className="text-sm font-medium text-slate-700 sm:text-base">
-                        {vacancy.company_name} · {vacancy.location}
-                      </p>
+                    <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                      <div className="flex min-w-0 gap-3 pr-12 sm:gap-4 sm:pr-0">
+                        <Avatar size="lg" className="border border-slate-200 bg-white shadow-sm">
+                          <AvatarImage src={vacancy.company_profile_image ?? undefined} alt={vacancy.company_name} />
+                          <AvatarFallback className="bg-white font-semibold text-slate-700">
+                            {getCompanyInitials(vacancy.company_name)}
+                          </AvatarFallback>
+                        </Avatar>
 
-                      <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-slate-600">
-                        <span className="inline-flex items-center gap-2">
-                          <Clock3 className="h-4 w-4" />
-                          {formatLabel(vacancy.experience_level)}
-                        </span>
-                        <span className="inline-flex items-center gap-2">
-                          <Briefcase className="h-4 w-4" />
-                          {formatSalary(vacancy.min_salary, vacancy.max_salary)}
-                        </span>
-                        <span className="inline-flex items-center gap-2">
-                          <Globe2 className="h-4 w-4" />
-                          {vacancy.work_style_label}
-                        </span>
+                        <div className="min-w-0 flex-1 space-y-2">
+                          <h2 className="text-xl font-bold tracking-tight text-slate-950 sm:text-2xl">{vacancy.title}</h2>
+                          <p className="text-sm font-medium text-slate-700 sm:text-base">
+                            {vacancy.company_name} · {vacancy.location}
+                          </p>
+
+                          <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-slate-600">
+                            <span className="inline-flex items-center gap-2">
+                              <Clock3 className="h-4 w-4" />
+                              {formatLabel(vacancy.experience_level)}
+                            </span>
+                            <span className="inline-flex items-center gap-2">
+                              <Briefcase className="h-4 w-4" />
+                              {formatSalary(vacancy.min_salary, vacancy.max_salary)}
+                            </span>
+                            <span className="inline-flex items-center gap-2">
+                              <Globe2 className="h-4 w-4" />
+                              {vacancy.work_style_label}
+                            </span>
+                          </div>
+
+                          <p className="text-sm text-slate-600">
+                            Skills: <span className="text-slate-700">{formatSkillsSummary(vacancy)}</span>
+                          </p>
+                        </div>
                       </div>
 
-                      <p className="text-sm text-slate-600">
-                        Skills: <span className="text-slate-700">{formatSkillsSummary(vacancy)}</span>
-                      </p>
+                      <div className="hidden sm:flex sm:flex-row sm:items-start sm:justify-between sm:gap-4 lg:min-w-[140px] lg:flex-col lg:items-end">
+                        <div className="text-sm font-medium text-emerald-700">{formatRelativeDate(vacancy.updated_at)}</div>
+
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <button
+                              type="button"
+                              className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition hover:border-slate-300 hover:text-slate-700"
+                              aria-label={`More actions for ${vacancy.title}`}
+                            >
+                              <MoreVertical className="h-5 w-5" />
+                            </button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-40">
+                            <DropdownMenuItem onClick={() => openEditForm(vacancy)} className="cursor-pointer">
+                              <PencilLine className="h-4 w-4" />
+                              Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleDelete(vacancy.vacancy_id)}
+                              disabled={saving}
+                              variant="destructive"
+                              className="cursor-pointer"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+
+                        <div className="flex flex-wrap items-center gap-2 lg:justify-end">
+                          <Badge className="border-transparent bg-blue-100 text-blue-700 hover:bg-blue-100">
+                            {formatLabel(vacancy.status)}
+                          </Badge>
+                          {vacancy.relocation_support ? (
+                            <Badge variant="outline" className="bg-white">
+                              Relocation support
+                            </Badge>
+                          ) : null}
+                        </div>
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="hidden sm:flex sm:flex-row sm:items-start sm:justify-between sm:gap-4 lg:min-w-[140px] lg:flex-col lg:items-end">
-                    <div className="text-sm font-medium text-emerald-700">{formatRelativeDate(vacancy.updated_at)}</div>
-
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <button
-                          type="button"
-                          className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition hover:border-slate-300 hover:text-slate-700"
-                          aria-label={`More actions for ${vacancy.title}`}
-                        >
-                          <MoreVertical className="h-5 w-5" />
-                        </button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-40">
-                        <DropdownMenuItem onClick={() => openEditForm(vacancy)} className="cursor-pointer">
-                          <PencilLine className="h-4 w-4" />
-                          Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => handleDelete(vacancy.vacancy_id)}
-                          disabled={saving}
-                          variant="destructive"
-                          className="cursor-pointer"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-
-                    <div className="flex flex-wrap items-center gap-2 lg:justify-end">
-                      <Badge className="border-transparent bg-blue-100 text-blue-700 hover:bg-blue-100">
-                        {formatLabel(vacancy.status)}
-                      </Badge>
-                      {vacancy.relocation_support ? (
-                        <Badge variant="outline" className="bg-white">
-                          Relocation support
-                        </Badge>
-                      ) : null}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-4 flex flex-col gap-3 border-t border-slate-200 pt-4 sm:hidden">
-                  <div className="flex items-center justify-between gap-3">
-                    <p className="text-sm font-medium text-emerald-700">{formatRelativeDate(vacancy.updated_at)}</p>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <button
-                          type="button"
-                          className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition hover:border-slate-300 hover:text-slate-700"
-                          aria-label={`More actions for ${vacancy.title}`}
-                        >
-                          <MoreVertical className="h-5 w-5" />
-                        </button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-40">
-                        <DropdownMenuItem onClick={() => openEditForm(vacancy)} className="cursor-pointer">
-                          <PencilLine className="h-4 w-4" />
-                          Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => handleDelete(vacancy.vacancy_id)}
-                          disabled={saving}
-                          variant="destructive"
-                          className="cursor-pointer"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Badge className="border-transparent bg-blue-100 text-blue-700 hover:bg-blue-100">
-                      {formatLabel(vacancy.status)}
-                    </Badge>
-                    {vacancy.relocation_support ? (
-                      <Badge variant="outline" className="bg-white">
-                        Relocation support
-                      </Badge>
-                    ) : null}
-                  </div>
-
-                  <p className="text-sm text-slate-500">
-                    {vacancy.created_by_name} is hiring · {formatLabel(vacancy.status)}
-                  </p>
-                </div>
-
-                <p className="mt-4 hidden text-sm text-slate-500 sm:block">
-                  {vacancy.created_by_name} is hiring · {formatLabel(vacancy.status)}
-                </p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      ) : (
-        <div className="border border-border bg-muted/10 px-6 py-10 text-center">
-          <p className="text-lg font-semibold text-foreground">No jobs yet</p>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Use <span className="font-medium text-foreground">Post a job</span> to create your first company listing.
-          </p>
-        </div>
-      )}
+                    <p className="mt-4 hidden text-sm text-slate-500 sm:block">
+                      {vacancy.created_by_name} is hiring · {formatLabel(vacancy.status)}
+                    </p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="border border-border bg-muted/10 px-6 py-10 text-center">
+              <p className="text-lg font-semibold text-foreground">No jobs yet</p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Use <span className="font-medium text-foreground">Post a job</span> to create your first company listing.
+              </p>
+            </div>
+          )}
+        </>
+      ) : null}
     </div>
   )
 }
