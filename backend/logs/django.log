@@ -92102,3 +92102,505 @@ django.db.utils.OperationalError: database is locked
 [INFO] 2026-05-14 13:14:10,208 basehttp 22765 6132690944 "GET /api/v1/student/dashboard-data HTTP/1.1" 200 1172
 [INFO] 2026-05-14 13:14:10,210 logging 22765 6166343680 [req_9b8e380416e7] GET /api/v1/student/dashboard
 [INFO] 2026-05-14 13:14:10,210 basehttp 22765 6166343680 "GET /api/v1/student/dashboard HTTP/1.1" 200 1219
+[INFO] 2026-05-14 13:15:46,115 logging 22765 6166343680 [req_ff2b70895186] GET /api/v1/student/courses
+[INFO] 2026-05-14 13:15:46,115 basehttp 22765 6166343680 "GET /api/v1/student/courses HTTP/1.1" 200 1192
+[INFO] 2026-05-14 13:15:46,124 logging 22765 6132690944 [req_0a6d1a1102af] GET /api/v1/student/dashboard-data
+[INFO] 2026-05-14 13:15:46,125 basehttp 22765 6132690944 "GET /api/v1/student/dashboard-data HTTP/1.1" 200 1172
+[INFO] 2026-05-14 13:15:46,126 logging 22765 6149517312 [req_1f2cd91ce2fb] GET /api/v1/student/dashboard
+[INFO] 2026-05-14 13:15:46,126 basehttp 22765 6149517312 "GET /api/v1/student/dashboard HTTP/1.1" 200 1219
+[INFO] 2026-05-14 13:15:54,851 logging 22765 6132690944 [req_9edc936a958d] GET /api/v1/student/courses
+[INFO] 2026-05-14 13:15:54,851 basehttp 22765 6132690944 "GET /api/v1/student/courses HTTP/1.1" 200 1192
+[INFO] 2026-05-14 13:15:54,858 logging 22765 6132690944 [req_b5525843286a] GET /api/v1/student/courses
+[INFO] 2026-05-14 13:15:54,858 basehttp 22765 6132690944 "GET /api/v1/student/courses HTTP/1.1" 200 1192
+[INFO] 2026-05-14 13:15:57,557 logging 22765 6166343680 [req_318e612d0c34] GET /api/v1/student/courses
+[INFO] 2026-05-14 13:15:57,557 basehttp 22765 6166343680 "GET /api/v1/student/courses HTTP/1.1" 200 1192
+[INFO] 2026-05-14 13:15:57,565 logging 22765 6166343680 [req_fe206dc1b80e] GET /api/v1/student/courses
+[INFO] 2026-05-14 13:15:57,565 basehttp 22765 6166343680 "GET /api/v1/student/courses HTTP/1.1" 200 1192
+[INFO] 2026-05-14 13:15:57,572 logging 22765 6149517312 [req_eba40f104020] GET /api/v1/student/dashboard
+[INFO] 2026-05-14 13:15:57,572 basehttp 22765 6149517312 "GET /api/v1/student/dashboard HTTP/1.1" 200 1219
+[INFO] 2026-05-14 13:15:57,590 logging 22765 6149517312 [req_c4a6f5ae6291] GET /api/v1/student/dashboard
+[INFO] 2026-05-14 13:15:57,590 basehttp 22765 6149517312 "GET /api/v1/student/dashboard HTTP/1.1" 200 1219
+[ERROR] 2026-05-14 13:15:57,596 log 22765 6132690944 Internal Server Error: /api/v1/student/dashboard-data
+Traceback (most recent call last):
+  File "/Users/adhikarirabin/Desktop/softlearn-v2/.venv/lib/python3.12/site-packages/django/db/backends/utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/adhikarirabin/Desktop/softlearn-v2/.venv/lib/python3.12/site-packages/django/db/backends/sqlite3/base.py", line 360, in execute
+    return super().execute(query, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+sqlite3.OperationalError: database is locked
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/adhikarirabin/Desktop/softlearn-v2/.venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/adhikarirabin/Desktop/softlearn-v2/.venv/lib/python3.12/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/adhikarirabin/Desktop/softlearn-v2/backend/common/decorators.py", line 51, in wrapped
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/adhikarirabin/Desktop/softlearn-v2/backend/api/views.py", line 8766, in student_dashboard_data_view
+    data = AnalyticsService.get_student_dashboard_data(profile)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/adhikarirabin/Desktop/softlearn-v2/backend/services/analytics.py", line 216, in get_student_dashboard_data
+    metric = AnalyticsService.calculate_student_metrics(student_profile)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/adhikarirabin/Desktop/softlearn-v2/backend/services/analytics.py", line 102, in calculate_student_metrics
+    metric, _ = StudentDashboardMetric.objects.update_or_create(
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/adhikarirabin/Desktop/softlearn-v2/.venv/lib/python3.12/site-packages/django/db/models/manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/adhikarirabin/Desktop/softlearn-v2/.venv/lib/python3.12/site-packages/django/db/models/query.py", line 1014, in update_or_create
+    obj.save(using=self.db, update_fields=update_fields)
+  File "/Users/adhikarirabin/Desktop/softlearn-v2/.venv/lib/python3.12/site-packages/django/db/models/base.py", line 902, in save
+    self.save_base(
+  File "/Users/adhikarirabin/Desktop/softlearn-v2/.venv/lib/python3.12/site-packages/django/db/models/base.py", line 1008, in save_base
+    updated = self._save_table(
+              ^^^^^^^^^^^^^^^^^
+  File "/Users/adhikarirabin/Desktop/softlearn-v2/.venv/lib/python3.12/site-packages/django/db/models/base.py", line 1138, in _save_table
+    updated = self._do_update(
+              ^^^^^^^^^^^^^^^^
+  File "/Users/adhikarirabin/Desktop/softlearn-v2/.venv/lib/python3.12/site-packages/django/db/models/base.py", line 1203, in _do_update
+    return filtered._update(values) > 0
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/adhikarirabin/Desktop/softlearn-v2/.venv/lib/python3.12/site-packages/django/db/models/query.py", line 1288, in _update
+    return query.get_compiler(self.db).execute_sql(ROW_COUNT)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/adhikarirabin/Desktop/softlearn-v2/.venv/lib/python3.12/site-packages/django/db/models/sql/compiler.py", line 2060, in execute_sql
+    row_count = super().execute_sql(result_type)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/adhikarirabin/Desktop/softlearn-v2/.venv/lib/python3.12/site-packages/django/db/models/sql/compiler.py", line 1623, in execute_sql
+    cursor.execute(sql, params)
+  File "/Users/adhikarirabin/Desktop/softlearn-v2/.venv/lib/python3.12/site-packages/django/db/backends/utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/adhikarirabin/Desktop/softlearn-v2/.venv/lib/python3.12/site-packages/django/db/backends/utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/adhikarirabin/Desktop/softlearn-v2/.venv/lib/python3.12/site-packages/django/db/backends/utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/adhikarirabin/Desktop/softlearn-v2/.venv/lib/python3.12/site-packages/django/db/backends/utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/adhikarirabin/Desktop/softlearn-v2/.venv/lib/python3.12/site-packages/django/db/utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/Users/adhikarirabin/Desktop/softlearn-v2/.venv/lib/python3.12/site-packages/django/db/backends/utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/adhikarirabin/Desktop/softlearn-v2/.venv/lib/python3.12/site-packages/django/db/backends/sqlite3/base.py", line 360, in execute
+    return super().execute(query, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.OperationalError: database is locked
+[INFO] 2026-05-14 13:15:57,597 logging 22765 6132690944 [req_c99dd2a079bc] GET /api/v1/student/dashboard-data
+[ERROR] 2026-05-14 13:15:57,597 basehttp 22765 6132690944 "GET /api/v1/student/dashboard-data HTTP/1.1" 500 23060
+[INFO] 2026-05-14 13:15:57,604 logging 22765 6132690944 [req_007ebfe5d006] GET /api/v1/student/dashboard-data
+[INFO] 2026-05-14 13:15:57,605 basehttp 22765 6132690944 "GET /api/v1/student/dashboard-data HTTP/1.1" 200 1172
+[INFO] 2026-05-14 13:16:47,984 logging 22765 6132690944 [req_beed6296ed76] GET /api/v1/auth/session
+[INFO] 2026-05-14 13:16:47,984 basehttp 22765 6132690944 "GET /api/v1/auth/session HTTP/1.1" 200 266
+[INFO] 2026-05-14 13:16:47,991 logging 22765 6132690944 [req_1131e668ace4] GET /api/v1/auth/session
+[INFO] 2026-05-14 13:16:47,991 basehttp 22765 6132690944 "GET /api/v1/auth/session HTTP/1.1" 200 266
+[INFO] 2026-05-14 13:16:48,049 logging 22765 6166343680 [req_57cd27ad7d87] GET /api/v1/student/courses
+[INFO] 2026-05-14 13:16:48,050 basehttp 22765 6166343680 "GET /api/v1/student/courses HTTP/1.1" 200 1192
+[INFO] 2026-05-14 13:16:48,055 logging 22765 6183170048 [req_18f6d6fcbddf] GET /api/v1/notifications
+[INFO] 2026-05-14 13:16:48,055 basehttp 22765 6183170048 "GET /api/v1/notifications HTTP/1.1" 200 2331
+[INFO] 2026-05-14 13:16:48,065 logging 22765 6199996416 [req_360533f32dd2] GET /api/v1/student/messages
+[INFO] 2026-05-14 13:16:48,067 basehttp 22765 6199996416 "GET /api/v1/student/messages HTTP/1.1" 200 757887
+[INFO] 2026-05-14 13:16:48,072 logging 22765 6166343680 [req_1ad0e9de0d6b] GET /api/v1/student/courses
+[INFO] 2026-05-14 13:16:48,072 basehttp 22765 6166343680 "GET /api/v1/student/courses HTTP/1.1" 200 1192
+[INFO] 2026-05-14 13:16:48,075 logging 22765 6149517312 [req_2b6170613573] GET /api/v1/student/dashboard
+[INFO] 2026-05-14 13:16:48,075 basehttp 22765 6149517312 "GET /api/v1/student/dashboard HTTP/1.1" 200 1219
+[INFO] 2026-05-14 13:16:48,081 logging 22765 6183170048 [req_9ab6133a4a22] GET /api/v1/notifications
+[INFO] 2026-05-14 13:16:48,081 basehttp 22765 6183170048 "GET /api/v1/notifications HTTP/1.1" 200 2331
+[INFO] 2026-05-14 13:16:48,082 logging 22765 6132690944 [req_a0965b04c76c] GET /api/v1/student/dashboard-data
+[INFO] 2026-05-14 13:16:48,083 basehttp 22765 6132690944 "GET /api/v1/student/dashboard-data HTTP/1.1" 200 1172
+[INFO] 2026-05-14 13:16:48,089 logging 22765 6199996416 [req_9b423e6d73d4] GET /api/v1/student/messages
+[INFO] 2026-05-14 13:16:48,089 basehttp 22765 6199996416 "GET /api/v1/student/messages HTTP/1.1" 200 757887
+[INFO] 2026-05-14 13:16:48,091 logging 22765 6216822784 [req_3b2dc30d8b49] GET /api/v1/student/matches
+[INFO] 2026-05-14 13:16:48,091 basehttp 22765 6216822784 "GET /api/v1/student/matches HTTP/1.1" 200 16137
+[INFO] 2026-05-14 13:16:48,108 logging 22765 6233649152 [req_6701d447448c] GET /api/v1/student/profile
+[INFO] 2026-05-14 13:16:48,108 basehttp 22765 6233649152 "GET /api/v1/student/profile HTTP/1.1" 200 187299
+[INFO] 2026-05-14 13:16:48,126 logging 22765 6132690944 [req_64c12f7afc30] GET /api/v1/student/messages
+[INFO] 2026-05-14 13:16:48,127 basehttp 22765 6132690944 "GET /api/v1/student/messages HTTP/1.1" 200 757887
+[INFO] 2026-05-14 13:16:48,129 logging 22765 6166343680 [req_f2c97a076853] GET /api/v1/student/dashboard
+[INFO] 2026-05-14 13:16:48,130 basehttp 22765 6166343680 "GET /api/v1/student/dashboard HTTP/1.1" 200 1219
+[INFO] 2026-05-14 13:16:48,133 logging 22765 6183170048 [req_799e500379c5] GET /api/v1/student/matches
+[INFO] 2026-05-14 13:16:48,133 basehttp 22765 6183170048 "GET /api/v1/student/matches HTTP/1.1" 200 16137
+[INFO] 2026-05-14 13:16:48,150 logging 22765 6199996416 [req_ef616e1ac022] GET /api/v1/student/profile
+[INFO] 2026-05-14 13:16:48,150 basehttp 22765 6199996416 "GET /api/v1/student/profile HTTP/1.1" 200 187299
+[INFO] 2026-05-14 13:16:48,155 logging 22765 6233649152 [req_0289deef7966] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:48,155 log 22765 6233649152 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:48,155 basehttp 22765 6233649152 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 46932
+[INFO] 2026-05-14 13:16:48,162 logging 22765 6166343680 [req_16085d2f562b] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:48,162 log 22765 6166343680 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:48,162 basehttp 22765 6166343680 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 46932
+[INFO] 2026-05-14 13:16:48,170 logging 22765 6199996416 [req_8f50de02bace] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:48,170 log 22765 6199996416 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:48,170 basehttp 22765 6199996416 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 46932
+[INFO] 2026-05-14 13:16:48,178 logging 22765 6183170048 [req_7e8a41317f80] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:48,178 log 22765 6183170048 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:48,178 basehttp 22765 6183170048 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 46932
+[INFO] 2026-05-14 13:16:48,180 logging 22765 6199996416 [req_0b00fb0200b2] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:48,180 log 22765 6199996416 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:48,180 basehttp 22765 6199996416 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 46932
+[INFO] 2026-05-14 13:16:48,186 logging 22765 6166343680 [req_837718ed1c81] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:48,186 log 22765 6166343680 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:48,186 basehttp 22765 6166343680 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 46932
+[INFO] 2026-05-14 13:16:48,188 logging 22765 6183170048 [req_0068d384e0d2] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:48,188 log 22765 6183170048 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:48,188 basehttp 22765 6183170048 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 46932
+[INFO] 2026-05-14 13:16:48,195 logging 22765 6216822784 [req_e60da2561081] GET /api/v1/student/messages
+[INFO] 2026-05-14 13:16:48,196 basehttp 22765 6216822784 "GET /api/v1/student/messages HTTP/1.1" 200 757887
+[INFO] 2026-05-14 13:16:48,200 logging 22765 6199996416 [req_aa1e5a8676d0] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:48,200 log 22765 6199996416 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:48,200 basehttp 22765 6199996416 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 46932
+[INFO] 2026-05-14 13:16:48,207 logging 22765 6233649152 [req_89ffb441a819] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:48,207 log 22765 6233649152 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:48,207 basehttp 22765 6233649152 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 46932
+[INFO] 2026-05-14 13:16:48,210 logging 22765 6183170048 [req_bc76abac2583] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:48,210 log 22765 6183170048 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:48,211 basehttp 22765 6183170048 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 46932
+[INFO] 2026-05-14 13:16:48,222 logging 22765 6183170048 [req_e175b9d3cea7] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:48,222 log 22765 6183170048 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:48,222 basehttp 22765 6183170048 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 46932
+[INFO] 2026-05-14 13:16:48,226 logging 22765 6216822784 [req_1ba6fc244d23] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:48,226 log 22765 6216822784 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:48,226 basehttp 22765 6216822784 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 46932
+[INFO] 2026-05-14 13:16:48,233 logging 22765 6199996416 [req_c6b927ac82c8] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:48,234 log 22765 6199996416 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:48,234 basehttp 22765 6199996416 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 46932
+[INFO] 2026-05-14 13:16:48,234 logging 22765 6183170048 [req_3b739e1fbab0] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:48,234 log 22765 6183170048 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:48,234 basehttp 22765 6183170048 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 46932
+[ERROR] 2026-05-14 13:16:48,237 log 22765 6149517312 Internal Server Error: /api/v1/student/dashboard-data
+Traceback (most recent call last):
+  File "/Users/adhikarirabin/Desktop/softlearn-v2/.venv/lib/python3.12/site-packages/django/db/backends/utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/adhikarirabin/Desktop/softlearn-v2/.venv/lib/python3.12/site-packages/django/db/backends/sqlite3/base.py", line 360, in execute
+    return super().execute(query, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+sqlite3.OperationalError: database is locked
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/adhikarirabin/Desktop/softlearn-v2/.venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/adhikarirabin/Desktop/softlearn-v2/.venv/lib/python3.12/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/adhikarirabin/Desktop/softlearn-v2/backend/common/decorators.py", line 51, in wrapped
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/adhikarirabin/Desktop/softlearn-v2/backend/api/views.py", line 8766, in student_dashboard_data_view
+    data = AnalyticsService.get_student_dashboard_data(profile)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/adhikarirabin/Desktop/softlearn-v2/backend/services/analytics.py", line 216, in get_student_dashboard_data
+    metric = AnalyticsService.calculate_student_metrics(student_profile)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/adhikarirabin/Desktop/softlearn-v2/backend/services/analytics.py", line 102, in calculate_student_metrics
+    metric, _ = StudentDashboardMetric.objects.update_or_create(
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/adhikarirabin/Desktop/softlearn-v2/.venv/lib/python3.12/site-packages/django/db/models/manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/adhikarirabin/Desktop/softlearn-v2/.venv/lib/python3.12/site-packages/django/db/models/query.py", line 1014, in update_or_create
+    obj.save(using=self.db, update_fields=update_fields)
+  File "/Users/adhikarirabin/Desktop/softlearn-v2/.venv/lib/python3.12/site-packages/django/db/models/base.py", line 902, in save
+    self.save_base(
+  File "/Users/adhikarirabin/Desktop/softlearn-v2/.venv/lib/python3.12/site-packages/django/db/models/base.py", line 1008, in save_base
+    updated = self._save_table(
+              ^^^^^^^^^^^^^^^^^
+  File "/Users/adhikarirabin/Desktop/softlearn-v2/.venv/lib/python3.12/site-packages/django/db/models/base.py", line 1138, in _save_table
+    updated = self._do_update(
+              ^^^^^^^^^^^^^^^^
+  File "/Users/adhikarirabin/Desktop/softlearn-v2/.venv/lib/python3.12/site-packages/django/db/models/base.py", line 1203, in _do_update
+    return filtered._update(values) > 0
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/adhikarirabin/Desktop/softlearn-v2/.venv/lib/python3.12/site-packages/django/db/models/query.py", line 1288, in _update
+    return query.get_compiler(self.db).execute_sql(ROW_COUNT)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/adhikarirabin/Desktop/softlearn-v2/.venv/lib/python3.12/site-packages/django/db/models/sql/compiler.py", line 2060, in execute_sql
+    row_count = super().execute_sql(result_type)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/adhikarirabin/Desktop/softlearn-v2/.venv/lib/python3.12/site-packages/django/db/models/sql/compiler.py", line 1623, in execute_sql
+    cursor.execute(sql, params)
+  File "/Users/adhikarirabin/Desktop/softlearn-v2/.venv/lib/python3.12/site-packages/django/db/backends/utils.py", line 122, in execute
+    return super().execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/adhikarirabin/Desktop/softlearn-v2/.venv/lib/python3.12/site-packages/django/db/backends/utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/adhikarirabin/Desktop/softlearn-v2/.venv/lib/python3.12/site-packages/django/db/backends/utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/adhikarirabin/Desktop/softlearn-v2/.venv/lib/python3.12/site-packages/django/db/backends/utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/adhikarirabin/Desktop/softlearn-v2/.venv/lib/python3.12/site-packages/django/db/utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/Users/adhikarirabin/Desktop/softlearn-v2/.venv/lib/python3.12/site-packages/django/db/backends/utils.py", line 105, in _execute
+    return self.cursor.execute(sql, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/adhikarirabin/Desktop/softlearn-v2/.venv/lib/python3.12/site-packages/django/db/backends/sqlite3/base.py", line 360, in execute
+    return super().execute(query, params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.OperationalError: database is locked
+[INFO] 2026-05-14 13:16:48,239 logging 22765 6216822784 [req_9e9f91d43290] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:48,239 log 22765 6216822784 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:48,239 basehttp 22765 6216822784 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 46932
+[INFO] 2026-05-14 13:16:48,240 logging 22765 6149517312 [req_399d176ad5aa] GET /api/v1/student/dashboard-data
+[ERROR] 2026-05-14 13:16:48,240 basehttp 22765 6149517312 "GET /api/v1/student/dashboard-data HTTP/1.1" 500 23060
+[INFO] 2026-05-14 13:16:48,245 logging 22765 6199996416 [req_7acbf2fc2aa4] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:48,245 log 22765 6199996416 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:48,245 basehttp 22765 6199996416 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 46932
+[INFO] 2026-05-14 13:16:48,262 logging 22765 6166343680 [req_325f5deff1a1] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:48,262 log 22765 6166343680 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:48,262 basehttp 22765 6166343680 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 46932
+[INFO] 2026-05-14 13:16:48,269 logging 22765 6132690944 [req_e8273db63a2e] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:48,269 log 22765 6132690944 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:48,270 basehttp 22765 6132690944 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 46932
+[INFO] 2026-05-14 13:16:50,291 logging 22765 6132690944 [req_334fc4c48552] GET /api/v1/auth/session
+[INFO] 2026-05-14 13:16:50,291 basehttp 22765 6132690944 "GET /api/v1/auth/session HTTP/1.1" 200 266
+[INFO] 2026-05-14 13:16:50,296 logging 22765 6132690944 [req_3e6c61fea8d8] GET /api/v1/auth/session
+[INFO] 2026-05-14 13:16:50,296 basehttp 22765 6132690944 "GET /api/v1/auth/session HTTP/1.1" 200 266
+[INFO] 2026-05-14 13:16:50,333 logging 22765 6166343680 [req_4569c45aa40e] GET /api/v1/student/courses
+[INFO] 2026-05-14 13:16:50,335 basehttp 22765 6166343680 "GET /api/v1/student/courses HTTP/1.1" 200 1192
+[INFO] 2026-05-14 13:16:50,338 logging 22765 6199996416 [req_962208e1fa3e] GET /api/v1/student/messages
+[INFO] 2026-05-14 13:16:50,339 basehttp 22765 6199996416 "GET /api/v1/student/messages HTTP/1.1" 200 757887
+[INFO] 2026-05-14 13:16:50,349 logging 22765 6132690944 [req_a5fc3cbbd207] GET /api/v1/student/dashboard-data
+[INFO] 2026-05-14 13:16:50,349 basehttp 22765 6132690944 "GET /api/v1/student/dashboard-data HTTP/1.1" 200 1172
+[INFO] 2026-05-14 13:16:50,350 logging 22765 6216822784 [req_36e6af31075f] GET /api/v1/student/matches
+[INFO] 2026-05-14 13:16:50,351 basehttp 22765 6216822784 "GET /api/v1/student/matches HTTP/1.1" 200 16137
+[INFO] 2026-05-14 13:16:50,354 logging 22765 6149517312 [req_deaa34429ba5] GET /api/v1/student/dashboard
+[INFO] 2026-05-14 13:16:50,354 basehttp 22765 6149517312 "GET /api/v1/student/dashboard HTTP/1.1" 200 1219
+[INFO] 2026-05-14 13:16:50,358 logging 22765 6166343680 [req_f2da3b2d9a4b] GET /api/v1/student/courses
+[INFO] 2026-05-14 13:16:50,359 basehttp 22765 6166343680 "GET /api/v1/student/courses HTTP/1.1" 200 1192
+[INFO] 2026-05-14 13:16:50,365 logging 22765 6233649152 [req_b373a4d7b234] GET /api/v1/student/profile
+[INFO] 2026-05-14 13:16:50,365 basehttp 22765 6233649152 "GET /api/v1/student/profile HTTP/1.1" 200 187299
+[INFO] 2026-05-14 13:16:50,369 logging 22765 6183170048 [req_de4583bd3fab] GET /api/v1/notifications
+[INFO] 2026-05-14 13:16:50,369 basehttp 22765 6183170048 "GET /api/v1/notifications HTTP/1.1" 200 2331
+[INFO] 2026-05-14 13:16:50,388 logging 22765 6132690944 [req_6844318e9e75] GET /api/v1/student/messages
+[INFO] 2026-05-14 13:16:50,388 basehttp 22765 6132690944 "GET /api/v1/student/messages HTTP/1.1" 200 757887
+[INFO] 2026-05-14 13:16:50,396 logging 22765 6166343680 [req_fab3d134ce22] GET /api/v1/student/profile
+[INFO] 2026-05-14 13:16:50,396 basehttp 22765 6166343680 "GET /api/v1/student/profile HTTP/1.1" 200 187299
+[INFO] 2026-05-14 13:16:50,405 logging 22765 6149517312 [req_716d03d3c2cd] GET /api/v1/student/dashboard
+[INFO] 2026-05-14 13:16:50,406 basehttp 22765 6149517312 "GET /api/v1/student/dashboard HTTP/1.1" 200 1219
+[INFO] 2026-05-14 13:16:50,409 logging 22765 6132690944 [req_87802c2a7950] GET /api/v1/student/messages
+[INFO] 2026-05-14 13:16:50,410 basehttp 22765 6132690944 "GET /api/v1/student/messages HTTP/1.1" 200 757887
+[INFO] 2026-05-14 13:16:50,413 logging 22765 6166343680 [req_453a6b00f61e] GET /api/v1/student/profile
+[INFO] 2026-05-14 13:16:50,414 basehttp 22765 6166343680 "GET /api/v1/student/profile HTTP/1.1" 200 187299
+[INFO] 2026-05-14 13:16:50,415 logging 22765 6199996416 [req_a68063cdd00e] GET /api/v1/student/dashboard-data
+[INFO] 2026-05-14 13:16:50,415 basehttp 22765 6199996416 "GET /api/v1/student/dashboard-data HTTP/1.1" 200 1172
+[INFO] 2026-05-14 13:16:50,421 logging 22765 6149517312 [req_536688913a6b] GET /api/v1/student/messages
+[INFO] 2026-05-14 13:16:50,421 basehttp 22765 6149517312 "GET /api/v1/student/messages HTTP/1.1" 200 757887
+[INFO] 2026-05-14 13:16:50,424 logging 22765 6216822784 [req_534ea9456fbb] GET /api/v1/student/matches
+[INFO] 2026-05-14 13:16:50,424 basehttp 22765 6216822784 "GET /api/v1/student/matches HTTP/1.1" 200 16137
+[INFO] 2026-05-14 13:16:50,436 logging 22765 6132690944 [req_e61a94db15fc] GET /api/v1/student/messages
+[INFO] 2026-05-14 13:16:50,436 basehttp 22765 6132690944 "GET /api/v1/student/messages HTTP/1.1" 200 757887
+[INFO] 2026-05-14 13:16:50,440 logging 22765 6166343680 [req_099c6c02d9e6] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:50,440 log 22765 6166343680 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:50,440 basehttp 22765 6166343680 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 46932
+[INFO] 2026-05-14 13:16:50,449 logging 22765 6233649152 [req_1a491dcad29f] GET /api/v1/notifications
+[INFO] 2026-05-14 13:16:50,449 basehttp 22765 6233649152 "GET /api/v1/notifications HTTP/1.1" 200 2331
+[INFO] 2026-05-14 13:16:50,452 logging 22765 6183170048 [req_131925340a7c] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:50,452 log 22765 6183170048 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:50,452 basehttp 22765 6183170048 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 46932
+[INFO] 2026-05-14 13:16:50,469 logging 22765 6216822784 [req_7c2de3485309] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:50,469 log 22765 6216822784 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:50,469 basehttp 22765 6216822784 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 46932
+[INFO] 2026-05-14 13:16:50,471 logging 22765 6149517312 [req_b4d5c79e5c4b] GET /api/v1/student/matches
+[INFO] 2026-05-14 13:16:50,471 basehttp 22765 6149517312 "GET /api/v1/student/matches HTTP/1.1" 200 16137
+[INFO] 2026-05-14 13:16:50,473 logging 22765 6233649152 [req_b823870c435c] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:50,474 log 22765 6233649152 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:50,474 basehttp 22765 6233649152 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 46932
+[INFO] 2026-05-14 13:16:50,483 logging 22765 6166343680 [req_d73f05f92a37] GET /api/v1/notifications
+[INFO] 2026-05-14 13:16:50,483 basehttp 22765 6166343680 "GET /api/v1/notifications HTTP/1.1" 200 2331
+[INFO] 2026-05-14 13:16:50,484 logging 22765 6183170048 [req_9fe3008711be] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:50,484 log 22765 6183170048 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:50,484 basehttp 22765 6183170048 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 46932
+[INFO] 2026-05-14 13:16:50,488 logging 22765 6216822784 [req_8ebf0f1ea259] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:50,488 log 22765 6216822784 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:50,488 basehttp 22765 6216822784 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 46932
+[INFO] 2026-05-14 13:16:50,491 logging 22765 6149517312 [req_ff87c083ad83] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:50,492 log 22765 6149517312 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:50,492 basehttp 22765 6149517312 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 46932
+[INFO] 2026-05-14 13:16:50,494 logging 22765 6132690944 [req_0777226ec18c] GET /api/v1/student/messages
+[INFO] 2026-05-14 13:16:50,494 basehttp 22765 6132690944 "GET /api/v1/student/messages HTTP/1.1" 200 757887
+[INFO] 2026-05-14 13:16:50,501 logging 22765 6166343680 [req_3d0ac1497639] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:50,501 log 22765 6166343680 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:50,504 basehttp 22765 6166343680 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 46932
+[INFO] 2026-05-14 13:16:50,506 logging 22765 6183170048 [req_a8668680410d] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:50,507 log 22765 6183170048 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:50,507 basehttp 22765 6183170048 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 46932
+[INFO] 2026-05-14 13:16:50,508 logging 22765 6132690944 [req_dd572b0501a6] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:50,509 log 22765 6132690944 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:50,509 basehttp 22765 6132690944 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 46932
+[INFO] 2026-05-14 13:16:50,520 logging 22765 6149517312 [req_8bfa0b3b9bfb] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:50,520 log 22765 6149517312 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:50,520 basehttp 22765 6149517312 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 46932
+[INFO] 2026-05-14 13:16:50,522 logging 22765 6233649152 [req_4290bb1ed1a5] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:50,522 log 22765 6233649152 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:50,522 basehttp 22765 6233649152 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 46932
+[INFO] 2026-05-14 13:16:50,523 logging 22765 6166343680 [req_6176c3bff1f8] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:50,523 log 22765 6166343680 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:50,523 basehttp 22765 6166343680 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 46932
+[INFO] 2026-05-14 13:16:50,528 logging 22765 6216822784 [req_4c73f1ab4f18] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:50,528 log 22765 6216822784 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:50,529 basehttp 22765 6216822784 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 46932
+[INFO] 2026-05-14 13:16:50,542 logging 22765 6132690944 [req_9bfdcc4a38c0] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:50,542 log 22765 6132690944 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:50,542 basehttp 22765 6132690944 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 46932
+[INFO] 2026-05-14 13:16:50,543 logging 22765 6233649152 [req_a24b903e7de4] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:50,543 log 22765 6233649152 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:50,543 basehttp 22765 6233649152 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 46932
+[INFO] 2026-05-14 13:16:50,546 logging 22765 6166343680 [req_63c88faeff87] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:50,546 log 22765 6166343680 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:50,546 basehttp 22765 6166343680 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 46932
+[INFO] 2026-05-14 13:16:50,552 logging 22765 6183170048 [req_dfa35d8be0d9] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:50,552 log 22765 6183170048 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:50,552 basehttp 22765 6183170048 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 46932
+[INFO] 2026-05-14 13:16:50,558 logging 22765 6199996416 [req_ae13f5660dbb] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:50,558 log 22765 6199996416 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:50,558 basehttp 22765 6199996416 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 46932
+[INFO] 2026-05-14 13:16:50,563 logging 22765 6149517312 [req_0a03d52859b5] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:50,563 log 22765 6149517312 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 13:16:50,564 basehttp 22765 6149517312 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 46932
+[INFO] 2026-05-14 13:17:04,443 logging 22765 6132690944 [req_324b75f8b1ce] GET /api/v1/student/courses
+[INFO] 2026-05-14 13:17:04,444 basehttp 22765 6132690944 "GET /api/v1/student/courses HTTP/1.1" 200 1192
+[INFO] 2026-05-14 13:17:04,455 logging 22765 6132690944 [req_5d71526d5592] GET /api/v1/student/courses
+[INFO] 2026-05-14 13:17:04,455 basehttp 22765 6132690944 "GET /api/v1/student/courses HTTP/1.1" 200 1192
+[INFO] 2026-05-14 13:17:06,358 logging 22765 6132690944 [req_74944e0f9dc3] GET /api/v1/student/jobs
+[INFO] 2026-05-14 13:17:06,359 basehttp 22765 6132690944 "GET /api/v1/student/jobs HTTP/1.1" 200 15845
+[INFO] 2026-05-14 13:17:06,372 logging 22765 6132690944 [req_c0209ebfbcb4] GET /api/v1/student/jobs
+[INFO] 2026-05-14 13:17:06,372 basehttp 22765 6132690944 "GET /api/v1/student/jobs HTTP/1.1" 200 15845
+[INFO] 2026-05-14 13:17:07,329 logging 22765 6149517312 [req_a359ee6f4f5c] GET /api/v1/student/skills
+[INFO] 2026-05-14 13:17:07,329 basehttp 22765 6149517312 "GET /api/v1/student/skills HTTP/1.1" 200 1892
+[INFO] 2026-05-14 13:17:07,337 logging 22765 6132690944 [req_71a7915622fc] GET /api/v1/student/profile
+[INFO] 2026-05-14 13:17:07,337 basehttp 22765 6132690944 "GET /api/v1/student/profile HTTP/1.1" 200 187299
+[INFO] 2026-05-14 13:17:07,347 logging 22765 6149517312 [req_61f63419eb92] GET /api/v1/student/skills
+[INFO] 2026-05-14 13:17:07,347 basehttp 22765 6149517312 "GET /api/v1/student/skills HTTP/1.1" 200 1892
+[INFO] 2026-05-14 13:17:07,355 logging 22765 6132690944 [req_ed405406e914] GET /api/v1/student/profile
+[INFO] 2026-05-14 13:17:07,355 basehttp 22765 6132690944 "GET /api/v1/student/profile HTTP/1.1" 200 187299
+[INFO] 2026-05-14 13:17:08,290 logging 22765 6132690944 [req_faeb8c735324] GET /api/v1/student/privacy-settings
+[INFO] 2026-05-14 13:17:08,290 basehttp 22765 6132690944 "GET /api/v1/student/privacy-settings HTTP/1.1" 200 1346
+[INFO] 2026-05-14 13:17:08,300 logging 22765 6132690944 [req_6606238a2578] GET /api/v1/student/privacy-settings
+[INFO] 2026-05-14 13:17:08,301 basehttp 22765 6132690944 "GET /api/v1/student/privacy-settings HTTP/1.1" 200 1346
+[INFO] 2026-05-14 13:17:08,963 logging 22765 6149517312 [req_b3ef92f95e12] GET /api/v1/student/skills
+[INFO] 2026-05-14 13:17:08,963 basehttp 22765 6149517312 "GET /api/v1/student/skills HTTP/1.1" 200 1892
+[INFO] 2026-05-14 13:17:08,974 logging 22765 6132690944 [req_366c9d494925] GET /api/v1/student/profile
+[INFO] 2026-05-14 13:17:08,975 basehttp 22765 6132690944 "GET /api/v1/student/profile HTTP/1.1" 200 187299
+[INFO] 2026-05-14 13:17:08,979 logging 22765 6149517312 [req_b603b97da385] GET /api/v1/student/skills
+[INFO] 2026-05-14 13:17:08,979 basehttp 22765 6149517312 "GET /api/v1/student/skills HTTP/1.1" 200 1892
+[INFO] 2026-05-14 13:17:08,987 logging 22765 6132690944 [req_8b185a2f1a67] GET /api/v1/student/profile
+[INFO] 2026-05-14 13:17:08,987 basehttp 22765 6132690944 "GET /api/v1/student/profile HTTP/1.1" 200 187299
+[INFO] 2026-05-14 13:17:12,821 logging 22765 6132690944 [req_c651135458af] GET /api/v1/student/jobs
+[INFO] 2026-05-14 13:17:12,821 basehttp 22765 6132690944 "GET /api/v1/student/jobs HTTP/1.1" 200 15845
+[INFO] 2026-05-14 13:17:12,828 logging 22765 6132690944 [req_f1b8da9583e7] GET /api/v1/student/jobs
+[INFO] 2026-05-14 13:17:12,829 basehttp 22765 6132690944 "GET /api/v1/student/jobs HTTP/1.1" 200 15845
+[INFO] 2026-05-14 13:17:13,596 logging 22765 6132690944 [req_43feba74c9f3] GET /api/v1/student/courses
+[INFO] 2026-05-14 13:17:13,596 basehttp 22765 6132690944 "GET /api/v1/student/courses HTTP/1.1" 200 1192
+[INFO] 2026-05-14 13:17:13,604 logging 22765 6132690944 [req_00c2285d6ca0] GET /api/v1/student/courses
+[INFO] 2026-05-14 13:17:13,604 basehttp 22765 6132690944 "GET /api/v1/student/courses HTTP/1.1" 200 1192
+[INFO] 2026-05-14 13:17:14,670 logging 22765 6166343680 [req_f385224da3eb] GET /api/v1/student/courses
+[INFO] 2026-05-14 13:17:14,670 basehttp 22765 6166343680 "GET /api/v1/student/courses HTTP/1.1" 200 1192
+[INFO] 2026-05-14 13:17:14,679 logging 22765 6166343680 [req_001c3833453c] GET /api/v1/student/courses
+[INFO] 2026-05-14 13:17:14,679 basehttp 22765 6166343680 "GET /api/v1/student/courses HTTP/1.1" 200 1192
+[INFO] 2026-05-14 13:17:14,680 logging 22765 6132690944 [req_fcb408fd7ed0] GET /api/v1/student/dashboard-data
+[INFO] 2026-05-14 13:17:14,680 basehttp 22765 6132690944 "GET /api/v1/student/dashboard-data HTTP/1.1" 200 1172
+[INFO] 2026-05-14 13:17:14,689 logging 22765 6132690944 [req_8963bcc29d5a] GET /api/v1/student/dashboard-data
+[INFO] 2026-05-14 13:17:14,689 basehttp 22765 6132690944 "GET /api/v1/student/dashboard-data HTTP/1.1" 200 1172
+[INFO] 2026-05-14 13:17:14,693 logging 22765 6149517312 [req_9cff17505c78] GET /api/v1/student/dashboard
+[INFO] 2026-05-14 13:17:14,693 basehttp 22765 6149517312 "GET /api/v1/student/dashboard HTTP/1.1" 200 1219
+[INFO] 2026-05-14 13:17:14,700 logging 22765 6132690944 [req_b34dafe8ba46] GET /api/v1/student/dashboard
+[INFO] 2026-05-14 13:17:14,700 basehttp 22765 6132690944 "GET /api/v1/student/dashboard HTTP/1.1" 200 1219
+[INFO] 2026-05-14 13:17:33,968 logging 22765 6132690944 [req_d5b25be8ead3] POST /api/v1/auth/logout
+[INFO] 2026-05-14 13:17:33,968 basehttp 22765 6132690944 "POST /api/v1/auth/logout HTTP/1.1" 200 49
+[INFO] 2026-05-14 13:17:33,978 logging 22765 6132690944 [req_3ea002295324] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:17:33,978 basehttp 22765 6132690944 "GET /api/v1/auth/csrf HTTP/1.1" 200 92
+[INFO] 2026-05-14 13:17:36,801 logging 22765 6132690944 [req_ba17bf251e6a] POST /api/v1/auth/login
+[INFO] 2026-05-14 13:17:36,802 basehttp 22765 6132690944 "POST /api/v1/auth/login HTTP/1.1" 200 233
+[INFO] 2026-05-14 13:17:36,838 logging 22765 6166343680 [req_da55411b572c] GET /api/v1/student/courses
+[INFO] 2026-05-14 13:17:36,838 basehttp 22765 6166343680 "GET /api/v1/student/courses HTTP/1.1" 200 1192
+[INFO] 2026-05-14 13:17:36,848 logging 22765 6183170048 [req_22fa7b582081] GET /api/v1/notifications
+[INFO] 2026-05-14 13:17:36,848 basehttp 22765 6183170048 "GET /api/v1/notifications HTTP/1.1" 200 2331
+[INFO] 2026-05-14 13:17:36,851 logging 22765 6199996416 [req_ba06acf83d7d] GET /api/v1/student/messages
+[INFO] 2026-05-14 13:17:36,852 basehttp 22765 6199996416 "GET /api/v1/student/messages HTTP/1.1" 200 757887
+[INFO] 2026-05-14 13:17:36,859 logging 22765 6132690944 [req_d4e57c1a47d0] GET /api/v1/student/dashboard-data
+[INFO] 2026-05-14 13:17:36,860 basehttp 22765 6132690944 "GET /api/v1/student/dashboard-data HTTP/1.1" 200 1172
+[INFO] 2026-05-14 13:17:36,864 logging 22765 6183170048 [req_0f965ae14ff9] GET /api/v1/student/courses
+[INFO] 2026-05-14 13:17:36,864 basehttp 22765 6183170048 "GET /api/v1/student/courses HTTP/1.1" 200 1192
+[INFO] 2026-05-14 13:17:36,870 logging 22765 6216822784 [req_41567d1cf78d] GET /api/v1/student/matches
+[INFO] 2026-05-14 13:17:36,871 basehttp 22765 6216822784 "GET /api/v1/student/matches HTTP/1.1" 200 16137
+[INFO] 2026-05-14 13:17:36,872 logging 22765 6149517312 [req_19a47a658777] GET /api/v1/student/dashboard
+[INFO] 2026-05-14 13:17:36,872 basehttp 22765 6149517312 "GET /api/v1/student/dashboard HTTP/1.1" 200 1219
+[INFO] 2026-05-14 13:17:36,880 logging 22765 6166343680 [req_dcae3ec09671] GET /api/v1/student/profile
+[INFO] 2026-05-14 13:17:36,880 basehttp 22765 6166343680 "GET /api/v1/student/profile HTTP/1.1" 200 187299
+[INFO] 2026-05-14 13:17:36,884 logging 22765 6199996416 [req_9fec637aefa9] GET /api/v1/student/messages
+[INFO] 2026-05-14 13:17:36,884 basehttp 22765 6199996416 "GET /api/v1/student/messages HTTP/1.1" 200 757887
+[INFO] 2026-05-14 13:17:36,887 logging 22765 6233649152 [req_30e12707968b] GET /api/v1/notifications
+[INFO] 2026-05-14 13:17:36,888 basehttp 22765 6233649152 "GET /api/v1/notifications HTTP/1.1" 200 2331
+[INFO] 2026-05-14 13:17:36,897 logging 22765 6132690944 [req_b24f3c1b177d] GET /api/v1/student/dashboard-data
+[INFO] 2026-05-14 13:17:36,898 basehttp 22765 6132690944 "GET /api/v1/student/dashboard-data HTTP/1.1" 200 1172
+[INFO] 2026-05-14 13:17:36,901 logging 22765 6183170048 [req_17a3887cad0a] GET /api/v1/student/matches
+[INFO] 2026-05-14 13:17:36,902 basehttp 22765 6183170048 "GET /api/v1/student/matches HTTP/1.1" 200 16137
+[INFO] 2026-05-14 13:17:36,906 logging 22765 6216822784 [req_d7e727210662] GET /api/v1/student/profile
+[INFO] 2026-05-14 13:17:36,906 basehttp 22765 6216822784 "GET /api/v1/student/profile HTTP/1.1" 200 187299
+[INFO] 2026-05-14 13:17:36,908 logging 22765 6166343680 [req_d96c167fccae] GET /api/v1/student/messages
+[INFO] 2026-05-14 13:17:36,908 basehttp 22765 6166343680 "GET /api/v1/student/messages HTTP/1.1" 200 757887
+[INFO] 2026-05-14 13:17:36,912 logging 22765 6149517312 [req_be3e6a997ae8] GET /api/v1/student/dashboard
+[INFO] 2026-05-14 13:17:36,912 basehttp 22765 6149517312 "GET /api/v1/student/dashboard HTTP/1.1" 200 1219
+[INFO] 2026-05-14 13:17:36,919 logging 22765 6132690944 [req_cc3af57b2744] GET /api/v1/student/messages
+[INFO] 2026-05-14 13:17:36,919 basehttp 22765 6132690944 "GET /api/v1/student/messages HTTP/1.1" 200 757887
+[INFO] 2026-05-14 13:17:44,273 logging 22765 6132690944 [req_8b9adee4fe45] GET /api/v1/student/courses
+[INFO] 2026-05-14 13:17:44,273 basehttp 22765 6132690944 "GET /api/v1/student/courses HTTP/1.1" 200 1192
+[INFO] 2026-05-14 13:17:44,284 logging 22765 6132690944 [req_3ec8cffe0a83] GET /api/v1/student/courses
+[INFO] 2026-05-14 13:17:44,284 basehttp 22765 6132690944 "GET /api/v1/student/courses HTTP/1.1" 200 1192
+[INFO] 2026-05-14 13:17:46,427 logging 22765 6132690944 [req_8f4799efd7a2] GET /api/v1/student/jobs
+[INFO] 2026-05-14 13:17:46,428 basehttp 22765 6132690944 "GET /api/v1/student/jobs HTTP/1.1" 200 15845
+[INFO] 2026-05-14 13:17:46,439 logging 22765 6132690944 [req_4f9ebae15eed] GET /api/v1/student/jobs
+[INFO] 2026-05-14 13:17:46,440 basehttp 22765 6132690944 "GET /api/v1/student/jobs HTTP/1.1" 200 15845
+[INFO] 2026-05-14 13:17:48,843 logging 22765 6149517312 [req_0b0c2dae31b8] GET /api/v1/student/skills
+[INFO] 2026-05-14 13:17:48,843 basehttp 22765 6149517312 "GET /api/v1/student/skills HTTP/1.1" 200 1892
+[INFO] 2026-05-14 13:17:48,855 logging 22765 6132690944 [req_9afea3899aef] GET /api/v1/student/profile
+[INFO] 2026-05-14 13:17:48,855 basehttp 22765 6132690944 "GET /api/v1/student/profile HTTP/1.1" 200 187299
+[INFO] 2026-05-14 13:17:48,858 logging 22765 6149517312 [req_9b8a885dbb49] GET /api/v1/student/skills
+[INFO] 2026-05-14 13:17:48,859 basehttp 22765 6149517312 "GET /api/v1/student/skills HTTP/1.1" 200 1892
+[INFO] 2026-05-14 13:17:48,868 logging 22765 6132690944 [req_3771c300882f] GET /api/v1/student/profile
+[INFO] 2026-05-14 13:17:48,868 basehttp 22765 6132690944 "GET /api/v1/student/profile HTTP/1.1" 200 187299
+[INFO] 2026-05-14 13:17:49,389 logging 22765 6132690944 [req_887c5d1c3c9d] GET /api/v1/student/privacy-settings
+[INFO] 2026-05-14 13:17:49,389 basehttp 22765 6132690944 "GET /api/v1/student/privacy-settings HTTP/1.1" 200 1346
+[INFO] 2026-05-14 13:17:49,397 logging 22765 6132690944 [req_6b4a47594a95] GET /api/v1/student/privacy-settings
+[INFO] 2026-05-14 13:17:49,398 basehttp 22765 6132690944 "GET /api/v1/student/privacy-settings HTTP/1.1" 200 1346
+[INFO] 2026-05-14 13:17:53,028 logging 22765 6132690944 [req_1f6731cb8eed] POST /api/v1/auth/logout
+[INFO] 2026-05-14 13:17:53,029 basehttp 22765 6132690944 "POST /api/v1/auth/logout HTTP/1.1" 200 49
+[INFO] 2026-05-14 13:17:53,039 logging 22765 6132690944 [req_d1da2979dfb9] GET /api/v1/auth/csrf
+[INFO] 2026-05-14 13:17:53,039 basehttp 22765 6132690944 "GET /api/v1/auth/csrf HTTP/1.1" 200 92
+[INFO] 2026-05-14 13:17:59,285 logging 22765 6132690944 [req_dfefbce5ec3a] POST /api/v1/auth/login
+[INFO] 2026-05-14 13:17:59,285 basehttp 22765 6132690944 "POST /api/v1/auth/login HTTP/1.1" 200 221
+[INFO] 2026-05-14 13:17:59,316 logging 22765 6183170048 [req_fdc3ce2f6fb5] GET /api/v1/company/profile
+[INFO] 2026-05-14 13:17:59,316 basehttp 22765 6183170048 "GET /api/v1/company/profile HTTP/1.1" 200 69755
+[INFO] 2026-05-14 13:17:59,317 logging 22765 6149517312 [req_6121eff5e402] GET /api/v1/notifications
+[INFO] 2026-05-14 13:17:59,319 basehttp 22765 6149517312 "GET /api/v1/notifications HTTP/1.1" 200 2331
+[INFO] 2026-05-14 13:17:59,322 logging 22765 6166343680 [req_f09a96403b16] GET /api/v1/company/messages
+[INFO] 2026-05-14 13:17:59,323 basehttp 22765 6166343680 "GET /api/v1/company/messages HTTP/1.1" 200 338863
+[INFO] 2026-05-14 13:17:59,328 logging 22765 6183170048 [req_1c6309ab5a2e] GET /api/v1/company/profile
+[INFO] 2026-05-14 13:17:59,329 basehttp 22765 6183170048 "GET /api/v1/company/profile HTTP/1.1" 200 69755
+[INFO] 2026-05-14 13:17:59,331 logging 22765 6199996416 [req_47386baae942] GET /api/v1/notifications
+[INFO] 2026-05-14 13:17:59,331 basehttp 22765 6199996416 "GET /api/v1/notifications HTTP/1.1" 200 2331
+[INFO] 2026-05-14 13:17:59,334 logging 22765 6149517312 [req_ec6443dfffac] GET /api/v1/company/messages
+[INFO] 2026-05-14 13:17:59,334 basehttp 22765 6149517312 "GET /api/v1/company/messages HTTP/1.1" 200 338863
+[INFO] 2026-05-14 13:17:59,343 logging 22765 6149517312 [req_c9f308e85f30] GET /api/v1/company/messages
+[INFO] 2026-05-14 13:17:59,343 basehttp 22765 6149517312 "GET /api/v1/company/messages HTTP/1.1" 200 338863
+[INFO] 2026-05-14 13:17:59,352 logging 22765 6149517312 [req_f1f4c2fe0cae] GET /api/v1/company/messages
+[INFO] 2026-05-14 13:17:59,352 basehttp 22765 6149517312 "GET /api/v1/company/messages HTTP/1.1" 200 338863
+[INFO] 2026-05-14 13:17:59,357 logging 22765 6132690944 [req_d9a9c852cb86] GET /api/v1/company/dashboard
+[INFO] 2026-05-14 13:17:59,357 basehttp 22765 6132690944 "GET /api/v1/company/dashboard HTTP/1.1" 200 2574
+[INFO] 2026-05-14 13:17:59,371 logging 22765 6132690944 [req_d37126dc53e9] GET /api/v1/company/dashboard
+[INFO] 2026-05-14 13:17:59,371 basehttp 22765 6132690944 "GET /api/v1/company/dashboard HTTP/1.1" 200 2574

@@ -22,6 +22,7 @@ import { containerVariants, itemVariants } from '@/lib/animations'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { cn } from '@/lib/utils'
 import {
   formatInterviewDate,
   formatInterviewStatus,
@@ -33,10 +34,20 @@ import {
 
 import type { StudentAnalyticsDashboardData, StudentDashboardResponse } from './types'
 import type { CourseCatalogRecord, CourseCatalogResponse } from '../profile/types'
+import { getCourseMediaOverrideForCourse } from '../profile/courseMediaStorage'
 
 type StudentDashboardProps = {
   userName: string
 }
+
+const dashboardThumbnailBackgrounds = [
+  'from-violet-600 via-indigo-600 to-blue-500',
+  'from-cyan-500 via-sky-600 to-indigo-700',
+  'from-fuchsia-500 via-pink-500 to-rose-500',
+  'from-orange-400 via-amber-500 to-yellow-400',
+  'from-emerald-500 via-teal-600 to-cyan-600',
+  'from-slate-700 via-slate-800 to-slate-900',
+]
 
 function formatLearningStatus(status: StudentDashboardResponse['continue_learning']['status']) {
   return status
@@ -58,6 +69,13 @@ function formatCourseDifficulty(value: string) {
   if (normalized.includes('advanced')) return 'Advanced'
   if (normalized.includes('intermediate')) return 'Intermediate'
 
+  return value
+    .replace(/[_-]+/g, ' ')
+    .trim()
+    .replace(/\b\w/g, (character) => character.toUpperCase())
+}
+
+function formatCourseCategory(value: string) {
   return value
     .replace(/[_-]+/g, ' ')
     .trim()
@@ -576,53 +594,87 @@ export function StudentDashboard({ userName }: StudentDashboardProps) {
                           className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
                         >
                           {recommendedCourses.map((course) => (
-                            <article
-                              key={course.course_id}
-                              className="flex min-h-[250px] w-[280px] shrink-0 snap-start flex-col rounded-2xl border border-border bg-muted/20 p-4"
-                            >
-                              <div className="flex items-start justify-between gap-3">
-                                <div className="space-y-1">
-                                  <p className="text-sm font-semibold">{course.title}</p>
-                                  <p className="text-xs text-muted-foreground">{course.category}</p>
-                                </div>
-                                <Badge variant="outline" className="rounded-full">
-                                  {formatCourseDifficulty(course.difficulty_level)}
-                                </Badge>
-                              </div>
+                            (() => {
+                              const mediaOverride = getCourseMediaOverrideForCourse(course.course_id, course.title)
+                              const courseThumbnail = mediaOverride?.thumbnailImage || mediaOverride?.previewImage || ''
+                              const background =
+                                dashboardThumbnailBackgrounds[course.course_id % dashboardThumbnailBackgrounds.length]
 
-                              <p className="mt-3 line-clamp-3 text-sm text-muted-foreground">
-                                {course.description || 'Build practical skills with guided lessons and structured progress.'}
-                              </p>
+                              return (
+                                <article
+                                  key={course.course_id}
+                                  className="flex min-h-[320px] w-[280px] shrink-0 snap-start flex-col overflow-hidden rounded-2xl border border-border bg-muted/20"
+                                >
+                                  <div className={cn('relative h-36 bg-gradient-to-br p-4 text-white', background)}>
+                                    {courseThumbnail ? (
+                                      <>
+                                        <img
+                                          src={courseThumbnail}
+                                          alt={mediaOverride?.thumbnailAltText || `${course.title} thumbnail`}
+                                          className="absolute inset-0 h-full w-full object-cover"
+                                        />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-black/10" />
+                                      </>
+                                    ) : null}
+                                    <div className="relative z-10 flex h-full flex-col justify-between">
+                                      <div className="flex items-start justify-between gap-3">
+                                        <Badge variant="secondary" className="w-fit rounded-full bg-white/15 text-white hover:bg-white/15">
+                                          {formatCourseCategory(course.category)}
+                                        </Badge>
+                                        <Badge variant="outline" className="rounded-full border-white/30 bg-black/20 text-white">
+                                          {formatCourseDifficulty(course.difficulty_level)}
+                                        </Badge>
+                                      </div>
+                                      <div className="space-y-1">
+                                        <p className="text-sm text-white/80">{course.lesson_count} lessons</p>
+                                      </div>
+                                    </div>
+                                  </div>
 
-                              <div className="mt-4 flex flex-wrap gap-2">
-                                <Badge variant="secondary" className="rounded-full">
-                                  {course.lesson_count} lessons
-                                </Badge>
-                                <Badge variant="secondary" className="rounded-full">
-                                  {course.estimated_hours || 0} hrs
-                                </Badge>
-                              </div>
+                                  <div className="flex flex-1 flex-col p-4">
+                                    <div className="space-y-1">
+                                      <p className="text-sm font-semibold">{course.title}</p>
+                                      <p className="text-xs text-muted-foreground">{formatCourseCategory(course.category)}</p>
+                                    </div>
 
-                              <div className="mt-4 min-h-14 space-y-2">
-                                {course.readiness_cues.slice(0, 2).map((cue) => (
-                                  <Badge key={cue} variant="outline" className="mr-2 h-auto max-w-full rounded-full py-1">
-                                    <span className="line-clamp-1">{cue}</span>
-                                  </Badge>
-                                ))}
-                                {course.readiness_cues.length === 0 ? (
-                                  <p className="text-sm text-muted-foreground">A good next step when you are ready for a new track.</p>
-                                ) : null}
-                              </div>
+                                    <p className="mt-3 line-clamp-3 text-sm text-muted-foreground">
+                                      {course.description || 'Build practical skills with guided lessons and structured progress.'}
+                                    </p>
 
-                              <div className="mt-auto pt-4">
-                                <Button asChild className="w-full">
-                                  <Link to={course.next_step_href}>
-                                    {course.next_step_label || 'View course'}
-                                    <ArrowRight className="h-4 w-4" />
-                                  </Link>
-                                </Button>
-                              </div>
-                            </article>
+                                    <div className="mt-4 flex flex-wrap gap-2">
+                                      <Badge variant="secondary" className="rounded-full">
+                                        {course.lesson_count} lessons
+                                      </Badge>
+                                      <Badge variant="secondary" className="rounded-full">
+                                        {course.estimated_hours || 0} hrs
+                                      </Badge>
+                                    </div>
+
+                                    <div className="mt-4 min-h-14 space-y-2">
+                                      {course.readiness_cues.slice(0, 2).map((cue) => (
+                                        <Badge key={cue} variant="outline" className="mr-2 h-auto max-w-full rounded-full py-1">
+                                          <span className="line-clamp-1">{cue}</span>
+                                        </Badge>
+                                      ))}
+                                      {course.readiness_cues.length === 0 ? (
+                                        <p className="text-sm text-muted-foreground">
+                                          A good next step when you are ready for a new track.
+                                        </p>
+                                      ) : null}
+                                    </div>
+
+                                    <div className="mt-auto pt-4">
+                                      <Button asChild className="w-full !text-white hover:!text-white [&_*]:!text-white">
+                                        <Link to={course.next_step_href}>
+                                          {course.next_step_label || 'View course'}
+                                          <ArrowRight className="h-4 w-4" />
+                                        </Link>
+                                      </Button>
+                                    </div>
+                                  </div>
+                                </article>
+                              )
+                            })()
                           ))}
                         </div>
                       ) : null}
