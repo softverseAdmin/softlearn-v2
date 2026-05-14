@@ -1933,6 +1933,7 @@ def serialize_vacancy(vacancy: Vacancy, *, bookmarked_vacancy_ids: set[int] | No
         "vacancy_id": vacancy.id,
         "company_id": vacancy.company_id,
         "company_name": vacancy.company.name,
+        "company_profile_image": vacancy.company.profile_image or None,
         "title": vacancy.title,
         "description": vacancy.description,
         "employment_type": vacancy.employment_type,

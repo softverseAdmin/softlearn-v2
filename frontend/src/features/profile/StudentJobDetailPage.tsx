@@ -13,7 +13,7 @@ import {
 import { useAuth } from '../../auth/useAuth'
 import { ApiError, apiRequest } from '../../lib/api'
 import type { StudentApplicationRecord, StudentJobsResponse } from './types'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -281,6 +281,7 @@ export function StudentJobDetailPage() {
           <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
             <div className="flex min-w-0 gap-4">
               <Avatar size="lg" className="border border-slate-200 bg-white shadow-sm">
+                <AvatarImage src={vacancy.company_profile_image ?? undefined} alt={vacancy.company_name} />
                 <AvatarFallback className="bg-white font-semibold text-slate-700">
                   {getCompanyInitials(vacancy.company_name)}
                 </AvatarFallback>

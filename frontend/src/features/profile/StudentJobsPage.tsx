@@ -15,11 +15,12 @@ import {
 
 import { useAuth } from '../../auth/useAuth'
 import { ApiError, apiRequest } from '../../lib/api'
-import type { StudentJobsResponse, VacancyRecord } from './types'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import type { StudentApplicationRecord, StudentJobsResponse, VacancyRecord } from './types'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { cn } from '@/lib/utils'
@@ -121,6 +122,7 @@ export function StudentJobsPage() {
   const [jobs, setJobs] = useState<StudentJobsResponse>(emptyJobsResponse)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [skill, setSkill] = useState('All Skills')
   const [language, setLanguage] = useState('All Languages')
@@ -129,6 +131,7 @@ export function StudentJobsPage() {
   const [sortBy, setSortBy] = useState('Newest')
   const [page, setPage] = useState(1)
   const [bookmarkingVacancyId, setBookmarkingVacancyId] = useState<number | null>(null)
+  const [applyingVacancyId, setApplyingVacancyId] = useState<number | null>(null)
 
   useEffect(() => {
     let active = true
@@ -257,6 +260,8 @@ export function StudentJobsPage() {
 
   async function handleBookmarkToggle(vacancy: VacancyRecord) {
     setBookmarkingVacancyId(vacancy.vacancy_id)
+    setError(null)
+    setSuccess(null)
 
     try {
       await apiRequest(`/student/jobs/${vacancy.vacancy_id}/bookmark`, {
@@ -277,6 +282,25 @@ export function StudentJobsPage() {
       setError(saveError instanceof ApiError ? saveError.message : 'Unable to update bookmark.')
     } finally {
       setBookmarkingVacancyId(null)
+    }
+  }
+
+  async function handleApply(vacancyId: number) {
+    setApplyingVacancyId(vacancyId)
+    setError(null)
+    setSuccess(null)
+
+    try {
+      await apiRequest<StudentApplicationRecord>('/student/applications', {
+        method: 'POST',
+        body: { vacancy_id: vacancyId },
+        csrfToken,
+      })
+      setSuccess('Application submitted successfully.')
+    } catch (applyError) {
+      setError(applyError instanceof ApiError ? applyError.message : 'Unable to submit application.')
+    } finally {
+      setApplyingVacancyId(null)
     }
   }
 
@@ -316,6 +340,11 @@ export function StudentJobsPage() {
       {error ? (
         <Card className="border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950">
           <CardContent className="px-6 py-4 text-sm text-red-800 dark:text-red-200">{error}</CardContent>
+        </Card>
+      ) : null}
+      {success ? (
+        <Card className="border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950">
+          <CardContent className="px-6 py-4 text-sm text-green-800 dark:text-green-200">{success}</CardContent>
         </Card>
       ) : null}
 
@@ -583,6 +612,7 @@ export function StudentJobsPage() {
                   <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                     <div className="flex min-w-0 gap-3 sm:gap-4">
                       <Avatar size="lg" className="border border-slate-200 bg-white shadow-sm">
+                        <AvatarImage src={vacancy.company_profile_image ?? undefined} alt={vacancy.company_name} />
                         <AvatarFallback className="bg-white font-semibold text-slate-700">
                           {getCompanyInitials(vacancy.company_name)}
                         </AvatarFallback>
@@ -631,14 +661,28 @@ export function StudentJobsPage() {
                         >
                           {isSaved ? <BookmarkCheck className="h-5 w-5 text-primary" /> : <Bookmark className="h-5 w-5" />}
                         </button>
-                        <button
-                          type="button"
-                          onClick={(event) => event.stopPropagation()}
-                          className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white transition hover:border-slate-300 hover:text-slate-700"
-                          aria-label="More actions"
-                        >
-                          <MoreVertical className="h-5 w-5" />
-                        </button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <button
+                              type="button"
+                              onClick={(event) => event.stopPropagation()}
+                              onKeyDown={(event) => event.stopPropagation()}
+                              className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white transition hover:border-slate-300 hover:text-slate-700"
+                              aria-label="More actions"
+                            >
+                              <MoreVertical className="h-5 w-5" />
+                            </button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-40">
+                            <DropdownMenuItem
+                              onClick={() => void handleApply(vacancy.vacancy_id)}
+                              disabled={applyingVacancyId === vacancy.vacancy_id}
+                              className="cursor-pointer"
+                            >
+                              Easy Apply
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
 
                       <div className="flex flex-wrap items-center gap-2 lg:justify-end">
@@ -668,14 +712,28 @@ export function StudentJobsPage() {
                         >
                           {isSaved ? <BookmarkCheck className="h-5 w-5 text-primary" /> : <Bookmark className="h-5 w-5" />}
                         </button>
-                        <button
-                          type="button"
-                          onClick={(event) => event.stopPropagation()}
-                          className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white transition hover:border-slate-300 hover:text-slate-700"
-                          aria-label="More actions"
-                        >
-                          <MoreVertical className="h-5 w-5" />
-                        </button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <button
+                              type="button"
+                              onClick={(event) => event.stopPropagation()}
+                              onKeyDown={(event) => event.stopPropagation()}
+                              className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white transition hover:border-slate-300 hover:text-slate-700"
+                              aria-label="More actions"
+                            >
+                              <MoreVertical className="h-5 w-5" />
+                            </button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-40">
+                            <DropdownMenuItem
+                              onClick={() => void handleApply(vacancy.vacancy_id)}
+                              disabled={applyingVacancyId === vacancy.vacancy_id}
+                              className="cursor-pointer"
+                            >
+                              Easy Apply
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
                     </div>
 

@@ -160,6 +160,7 @@ export interface VacancyRecord {
   vacancy_id: number
   company_id: number
   company_name: string
+  company_profile_image: string | null
   title: string
   description: string
   employment_type: string

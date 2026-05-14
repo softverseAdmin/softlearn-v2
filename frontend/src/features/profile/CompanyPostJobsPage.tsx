@@ -1,10 +1,13 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
-import { ChevronRight, PencilLine, Plus, Trash2 } from 'lucide-react'
+import { Briefcase, ChevronRight, Clock3, Globe2, MoreVertical, PencilLine, Plus, Trash2 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 import { useAuth } from '@/auth/useAuth'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
 import {
   Select,
@@ -48,6 +51,52 @@ const statusOptions = [
   { value: 'inactive', label: 'Inactive' },
 ]
 
+type FormOption = {
+  value: string
+  label: string
+}
+
+const contractRenewalOptions: FormOption[] = [
+  { value: 'not_applicable', label: 'Not applicable' },
+  { value: 'renewable', label: 'Renewable' },
+  { value: 'fixed_term_no_renewal', label: 'Fixed term, no renewal' },
+]
+
+const breakTimeOptions: FormOption[] = [
+  { value: '45_minutes', label: '45 minutes' },
+  { value: '60_minutes', label: '60 minutes' },
+  { value: '90_minutes', label: '90 minutes' },
+  { value: 'custom', label: 'Custom arrangement' },
+]
+
+const compensationTypeOptions: FormOption[] = [
+  { value: 'annual_salary', label: 'Annual salary' },
+  { value: 'monthly_salary', label: 'Monthly salary' },
+  { value: 'hourly_rate', label: 'Hourly rate' },
+  { value: 'daily_rate', label: 'Daily rate' },
+]
+
+const interviewRoundsOptions: FormOption[] = [
+  { value: '1_round', label: '1 round' },
+  { value: '2_rounds', label: '2 rounds' },
+  { value: '3_rounds', label: '3 rounds' },
+  { value: '4_plus_rounds', label: '4+ rounds' },
+]
+
+const selectionMethodOptions: FormOption[] = [
+  { value: 'interviews_only', label: 'Interviews only' },
+  { value: 'document_screening_and_interviews', label: 'Document screening + interviews' },
+  { value: 'test_and_interviews', label: 'Test + interviews' },
+  { value: 'assignment_and_interviews', label: 'Assignment + interviews' },
+]
+
+const locationChangeScopeOptions: FormOption[] = [
+  { value: 'no_relocation', label: 'No relocation expected' },
+  { value: 'company_defined_sites', label: 'Company-defined work sites' },
+  { value: 'domestic_relocation_possible', label: 'Domestic relocation possible' },
+  { value: 'global_relocation_possible', label: 'Global relocation possible' },
+]
+
 const emptyPostingDetails: VacancyPostingDetails = {
   job_highlights: '',
   responsibilities: '',
@@ -78,15 +127,20 @@ const emptyPostingDetails: VacancyPostingDetails = {
 
 type PostingDetailField = keyof VacancyPostingDetails
 
+type PostingDetailConfig = {
+  key: PostingDetailField
+  label: string
+  placeholder: string
+  description?: string
+  textarea?: boolean
+  options?: FormOption[]
+  className?: string
+}
+
 const postingDetailSections: Array<{
   title: string
   description: string
-  fields: Array<{
-    key: PostingDetailField
-    label: string
-    placeholder: string
-    textarea?: boolean
-  }>
+  fields: PostingDetailConfig[]
 }> = [
   {
     title: 'Requirements',
@@ -97,6 +151,7 @@ const postingDetailSections: Array<{
         label: 'Required experience and qualifications',
         placeholder:
           'Software engineering experience, business-level English, native/business Japanese, distributed team experience, AI-assisted translation and documentation experience.',
+        description: 'List the must-have experience, skills, and compliance expectations.',
         textarea: true,
       },
       {
@@ -104,6 +159,7 @@ const postingDetailSections: Array<{
         label: 'Preferred experience',
         placeholder:
           '3+ years engineering experience, Philippines work experience, PM/PdM background, technical specification writing.',
+        description: 'Show what gives a candidate an edge without blocking strong applicants.',
         textarea: true,
       },
     ],
@@ -116,62 +172,77 @@ const postingDetailSections: Array<{
         key: 'employment_term',
         label: 'Employment term',
         placeholder: 'No fixed term.',
+        description: 'Clarify whether this role is permanent, fixed-term, or project-based.',
       },
       {
         key: 'probation_period',
         label: 'Probation period',
         placeholder: '3 months.',
+        description: 'Keep the timeline short and easy to scan.',
       },
       {
         key: 'probation_conditions',
         label: 'Probation conditions',
         placeholder: 'No special conditions.',
+        description: 'Mention if salary, role scope, or benefits differ during probation.',
       },
       {
         key: 'contract_renewal',
         label: 'Contract renewal',
-        placeholder: 'Not applicable.',
+        placeholder: 'Select a contract renewal policy',
+        description: 'Use a predefined option so the terms stay consistent.',
+        options: contractRenewalOptions,
       },
       {
         key: 'working_hours',
         label: 'Working hours',
         placeholder: '9:00-18:00',
+        description: 'Use the expected daily schedule or core hours.',
       },
       {
         key: 'break_time',
         label: 'Break time',
-        placeholder: '60 minutes',
+        placeholder: 'Select a break arrangement',
+        description: 'Choose the standard break duration for this role.',
+        options: breakTimeOptions,
       },
       {
         key: 'flex_time',
         label: 'Flex time',
         placeholder: 'Available, core time 11:00-17:00, flexible time 8:00-11:00 / 17:00-22:00.',
+        description: 'Describe the flex policy only if the team offers one.',
         textarea: true,
       },
       {
         key: 'overtime',
         label: 'Overtime',
         placeholder: 'Overtime available.',
+        description: 'Add the general expectation or recent average.',
       },
       {
         key: 'compensation_type',
         label: 'Compensation type',
-        placeholder: 'Monthly salary system.',
+        placeholder: 'Select the pay structure',
+        description: 'Standardize the primary pay model.',
+        options: compensationTypeOptions,
       },
       {
         key: 'planned_annual_salary',
         label: 'Planned annual salary',
         placeholder: 'JPY 3.78M - JPY 5.58M',
+        description: 'Use a simple range if the exact package varies.',
       },
       {
         key: 'monthly_salary',
         label: 'Monthly salary',
         placeholder: 'JPY 310k - JPY 460k',
+        description: 'Optional when you want to mirror the annual range in monthly terms.',
       },
       {
         key: 'overtime_pay',
         label: 'Overtime pay',
         placeholder: 'Included or paid separately.',
+        description: 'Clarify whether overtime is included, capped, or paid separately.',
       },
     ],
   },
@@ -182,50 +253,105 @@ const postingDetailSections: Array<{
       {
         key: 'interview_rounds',
         label: 'Interview rounds',
-        placeholder: '3 rounds',
+        placeholder: 'Select the interview count',
+        description: 'Pick the usual hiring loop for this role.',
+        options: interviewRoundsOptions,
       },
       {
         key: 'selection_method',
         label: 'Selection method',
-        placeholder: '2-3 interviews.',
+        placeholder: 'Select the selection method',
+        description: 'Keep the hiring flow consistent and easy to compare.',
+        options: selectionMethodOptions,
       },
       {
         key: 'location_change_scope',
         label: 'Scope of work location changes',
-        placeholder: 'Work locations defined by the company.',
+        placeholder: 'Select the relocation scope',
+        description: 'Tell candidates whether relocation could happen later.',
+        options: locationChangeScopeOptions,
       },
       {
         key: 'nearest_station',
         label: 'Nearest station',
         placeholder: 'Shibuya',
+        description: 'Useful when the role is not fully remote.',
       },
       {
         key: 'allowances',
         label: 'Allowances',
         placeholder: 'Commuting allowance.',
+        description: 'Mention commuting, remote setup, visa, or language support if relevant.',
       },
       {
         key: 'insurance',
         label: 'Insurance',
         placeholder: 'Health insurance, pension, employment insurance, workers compensation.',
+        description: 'List the coverage candidates should expect from day one.',
         textarea: true,
       },
       {
         key: 'notes',
         label: 'Notes',
         placeholder: 'Shibuya office or remote. Full remote available.',
+        description: 'Use this for short operational notes that do not fit elsewhere.',
         textarea: true,
       },
     ],
   },
 ]
 
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat(undefined, {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  }).format(new Date(value))
+function formatSalary(minSalary: number | null, maxSalary: number | null) {
+  if (minSalary === null && maxSalary === null) {
+    return 'Salary shared after screening'
+  }
+
+  const formatter = new Intl.NumberFormat(undefined, {
+    maximumFractionDigits: 0,
+  })
+
+  if (minSalary !== null && maxSalary !== null) {
+    return `${formatter.format(minSalary)} - ${formatter.format(maxSalary)} JPY`
+  }
+
+  if (minSalary !== null) {
+    return `From ${formatter.format(minSalary)} JPY`
+  }
+
+  return `Up to ${formatter.format(maxSalary ?? 0)} JPY`
+}
+
+function formatLabel(value: string) {
+  return value
+    .replace(/[_-]+/g, ' ')
+    .trim()
+    .replace(/\b\w/g, (character) => character.toUpperCase())
+}
+
+function getCompanyInitials(companyName: string) {
+  return companyName
+    .split(' ')
+    .map((part) => part.charAt(0))
+    .join('')
+    .slice(0, 2)
+    .toUpperCase()
+}
+
+function formatRelativeDate(value: string) {
+  const now = new Date()
+  const date = new Date(value)
+  const diffInHours = Math.max(1, Math.round((now.getTime() - date.getTime()) / (1000 * 60 * 60)))
+
+  if (diffInHours < 24) {
+    return `${diffInHours}h ago`
+  }
+
+  const diffInDays = Math.round(diffInHours / 24)
+  return `${diffInDays}d ago`
+}
+
+function formatSkillsSummary(vacancy: VacancyRecord) {
+  return vacancy.skill_requirements.map((requirement) => requirement.skill_name).join(', ')
 }
 
 function normalizePostingDetails(details?: VacancyPostingDetails | null): VacancyPostingDetails {
@@ -233,6 +359,14 @@ function normalizePostingDetails(details?: VacancyPostingDetails | null): Vacanc
     ...emptyPostingDetails,
     ...details,
   }
+}
+
+function getSelectOptionsWithCurrentValue(options: FormOption[], value: string) {
+  if (!value || options.some((option) => option.value === value)) {
+    return options
+  }
+
+  return [{ value, label: `Current value: ${value}` }, ...options]
 }
 
 export function CompanyPostJobsPage() {
@@ -477,81 +611,112 @@ export function CompanyPostJobsPage() {
           </CardHeader>
           <CardContent>
             <form className="space-y-8" onSubmit={handleSubmit}>
-              <div className="grid gap-4 md:grid-cols-2">
-                <FormField
-                  label="Role title"
-                  placeholder="Full Remote Bridge Engineering (Japan x Philippines product development)"
-                  value={title}
-                  onChange={setTitle}
-                />
-                <FormSelect
-                  label="Employment type"
-                  value={employmentType}
-                  onValueChange={setEmploymentType}
-                  options={employmentTypeOptions}
-                />
-                <FormSelect
-                  label="Experience level"
-                  value={experienceLevel}
-                  onValueChange={setExperienceLevel}
-                  options={experienceLevelOptions}
-                />
-                <FormField
-                  label="Work location"
-                  placeholder="Full remote (company-designated work location)"
-                  value={location}
-                  onChange={setLocation}
-                />
-                <FormSelect
-                  label="Work style"
-                  value={workStyle}
-                  onValueChange={setWorkStyle}
-                  options={workStyleOptions}
-                />
-                <FormSelect
-                  label="Publishing status"
-                  value={status}
-                  onValueChange={setStatus}
-                  options={statusOptions}
-                />
-                <FormField
-                  label="Annual salary minimum (JPY)"
-                  placeholder="3780000"
-                  value={minSalary}
-                  onChange={setMinSalary}
-                  inputMode="numeric"
-                />
-                <FormField
-                  label="Annual salary maximum (JPY)"
-                  placeholder="5580000"
-                  value={maxSalary}
-                  onChange={setMaxSalary}
-                  inputMode="numeric"
-                />
-                <ToggleField
-                  label="Relocation support"
-                  description="Mark this on if the company supports relocation."
-                  checked={relocationSupport}
-                  onCheckedChange={setRelocationSupport}
-                />
-              </div>
+              <section className="rounded-[28px] border border-slate-200/80 bg-slate-50/70 p-5 shadow-sm sm:p-6">
+                <div className="mb-5 space-y-1">
+                  <h2 className="text-lg font-semibold tracking-tight text-slate-950">Role overview</h2>
+                  <p className="text-sm text-slate-600">
+                    Set the details candidates see first, including title, work mode, status, and headline compensation.
+                  </p>
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  <FormField
+                    label="Role title"
+                    placeholder="Full Remote Bridge Engineering (Japan x Philippines product development)"
+                    value={title}
+                    onChange={setTitle}
+                    description="Use a specific title that helps students quickly understand the role."
+                    className="md:col-span-2"
+                  />
+                  <FormSelect
+                    label="Employment type"
+                    value={employmentType}
+                    onValueChange={setEmploymentType}
+                    options={employmentTypeOptions}
+                    description="Choose the main contract model for the opening."
+                  />
+                  <FormSelect
+                    label="Experience level"
+                    value={experienceLevel}
+                    onValueChange={setExperienceLevel}
+                    options={experienceLevelOptions}
+                    description="Match the role to the expected seniority."
+                  />
+                  <FormField
+                    label="Work location"
+                    placeholder="Full remote (company-designated work location)"
+                    value={location}
+                    onChange={setLocation}
+                    description="State the primary work location or the main remote base."
+                  />
+                  <FormSelect
+                    label="Work style"
+                    value={workStyle}
+                    onValueChange={setWorkStyle}
+                    options={workStyleOptions}
+                    description="Show whether the role is onsite, hybrid, or remote."
+                  />
+                  <FormSelect
+                    label="Publishing status"
+                    value={status}
+                    onValueChange={setStatus}
+                    options={statusOptions}
+                    description="Keep drafts private until the post is ready."
+                  />
+                  <FormField
+                    label="Annual salary minimum (JPY)"
+                    placeholder="3780000"
+                    value={minSalary}
+                    onChange={setMinSalary}
+                    inputMode="numeric"
+                    description="Numbers only. Leave blank if you do not want to publish a minimum."
+                  />
+                  <FormField
+                    label="Annual salary maximum (JPY)"
+                    placeholder="5580000"
+                    value={maxSalary}
+                    onChange={setMaxSalary}
+                    inputMode="numeric"
+                    description="Numbers only. Leave blank if you do not want to publish a maximum."
+                  />
+                  <ToggleField
+                    label="Relocation support"
+                    description="Turn this on when the company can assist with relocation."
+                    checked={relocationSupport}
+                    onCheckedChange={setRelocationSupport}
+                    className="md:col-span-2"
+                  />
+                </div>
+              </section>
 
               {postingDetailSections.map((section) => (
-                <div key={section.title} className="space-y-4">
+                <section key={section.title} className="rounded-[28px] border border-slate-200/80 bg-white p-5 shadow-sm sm:p-6">
                   <div className="space-y-1">
-                    <h2 className="text-lg font-semibold tracking-tight">{section.title}</h2>
-                    <p className="text-sm text-muted-foreground">{section.description}</p>
+                    <h2 className="text-lg font-semibold tracking-tight text-slate-950">{section.title}</h2>
+                    <p className="text-sm text-slate-600">{section.description}</p>
                   </div>
-                  <div className="grid gap-4 md:grid-cols-2">
+                  <div className="mt-5 grid gap-4 md:grid-cols-2">
                     {section.fields.map((field) =>
-                      field.textarea ? (
+                      field.options ? (
+                        <FormSelect
+                          key={field.key}
+                          label={field.label}
+                          placeholder={field.placeholder}
+                          value={postingDetails[field.key]}
+                          onValueChange={(value) => updatePostingDetail(field.key, value)}
+                          options={getSelectOptionsWithCurrentValue(field.options, postingDetails[field.key])}
+                          description={field.description}
+                          className={field.className}
+                        />
+                      ) : field.textarea ? (
                         <FormTextarea
                           key={field.key}
                           label={field.label}
                           placeholder={field.placeholder}
                           value={postingDetails[field.key]}
                           onChange={(value) => updatePostingDetail(field.key, value)}
-                          className="md:col-span-2"
+                          description={field.description}
+                          className={field.className ?? 'md:col-span-2'}
                         />
                       ) : (
                         <FormField
@@ -560,11 +725,13 @@ export function CompanyPostJobsPage() {
                           placeholder={field.placeholder}
                           value={postingDetails[field.key]}
                           onChange={(value) => updatePostingDetail(field.key, value)}
+                          description={field.description}
+                          className={field.className}
                         />
                       ),
                     )}
                   </div>
-                </div>
+                </section>
               ))}
 
               <div className="flex flex-wrap gap-3">
@@ -580,57 +747,161 @@ export function CompanyPostJobsPage() {
         </Card>
       ) : null}
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.4fr)_minmax(320px,0.8fr)]">
-        <Card>
-          <CardHeader className="space-y-2">
-            <CardTitle>Existing job posts</CardTitle>
-            <CardDescription>Edit active drafts and retire roles you no longer want to show.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {data.vacancies.length === 0 ? (
-              <div className="rounded-xl border border-dashed px-5 py-10 text-center text-sm text-muted-foreground">
-                No job posts yet. Use <span className="font-medium text-foreground">Post a job</span> to create the first one.
-              </div>
-            ) : (
-              data.vacancies.map((vacancy) => (
-                <div
-                  key={vacancy.vacancy_id}
-                  className="flex flex-col gap-4 rounded-xl border px-4 py-4 md:flex-row md:items-start md:justify-between"
-                >
-                  <div className="space-y-2">
-                    <div className="space-y-1">
-                      <h3 className="text-base font-semibold tracking-tight">{vacancy.title}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {vacancy.location} · {vacancy.work_style_label} · {vacancy.status.replace('_', ' ')}
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-sm text-muted-foreground">
+          {data.vacancies.length} job listing{data.vacancies.length === 1 ? '' : 's'}
+        </p>
+      </div>
+
+      {data.vacancies.length > 0 ? (
+        <div className="space-y-4">
+          {data.vacancies.map((vacancy) => (
+            <Card
+              key={vacancy.vacancy_id}
+              className="rounded-[24px] border border-slate-200/80 bg-white shadow-sm transition-all hover:border-slate-300 hover:shadow-md"
+            >
+              <CardContent className="px-4 py-4 sm:px-6 sm:py-5">
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                  <div className="flex min-w-0 gap-3 sm:gap-4">
+                    <Avatar size="lg" className="border border-slate-200 bg-white shadow-sm">
+                      <AvatarImage src={vacancy.company_profile_image ?? undefined} alt={vacancy.company_name} />
+                      <AvatarFallback className="bg-white font-semibold text-slate-700">
+                        {getCompanyInitials(vacancy.company_name)}
+                      </AvatarFallback>
+                    </Avatar>
+
+                    <div className="min-w-0 flex-1 space-y-2">
+                      <h2 className="text-xl font-bold tracking-tight text-slate-950 sm:text-2xl">{vacancy.title}</h2>
+                      <p className="text-sm font-medium text-slate-700 sm:text-base">
+                        {vacancy.company_name} · {vacancy.location}
+                      </p>
+
+                      <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-slate-600">
+                        <span className="inline-flex items-center gap-2">
+                          <Clock3 className="h-4 w-4" />
+                          {formatLabel(vacancy.experience_level)}
+                        </span>
+                        <span className="inline-flex items-center gap-2">
+                          <Briefcase className="h-4 w-4" />
+                          {formatSalary(vacancy.min_salary, vacancy.max_salary)}
+                        </span>
+                        <span className="inline-flex items-center gap-2">
+                          <Globe2 className="h-4 w-4" />
+                          {vacancy.work_style_label}
+                        </span>
+                      </div>
+
+                      <p className="text-sm text-slate-600">
+                        Skills: <span className="text-slate-700">{formatSkillsSummary(vacancy)}</span>
                       </p>
                     </div>
-                    <p className="line-clamp-2 max-w-2xl text-sm text-muted-foreground">
-                      {vacancy.posting_details.responsibilities || vacancy.description}
-                    </p>
-                    <p className="text-xs text-muted-foreground">Updated {formatDate(vacancy.updated_at)}</p>
                   </div>
-                  <div className="flex flex-wrap gap-2">
-                    <Button type="button" variant="outline" size="sm" onClick={() => openEditForm(vacancy)}>
-                      <PencilLine className="mr-2 h-4 w-4" />
-                      Edit
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDelete(vacancy.vacancy_id)}
-                      disabled={saving}
-                    >
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Retire
-                    </Button>
+
+                  <div className="hidden sm:flex sm:flex-row sm:items-start sm:justify-between sm:gap-4 lg:min-w-[140px] lg:flex-col lg:items-end">
+                    <div className="text-sm font-medium text-emerald-700">{formatRelativeDate(vacancy.updated_at)}</div>
+
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button
+                          type="button"
+                          className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition hover:border-slate-300 hover:text-slate-700"
+                          aria-label={`More actions for ${vacancy.title}`}
+                        >
+                          <MoreVertical className="h-5 w-5" />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-40">
+                        <DropdownMenuItem onClick={() => openEditForm(vacancy)} className="cursor-pointer">
+                          <PencilLine className="h-4 w-4" />
+                          Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => handleDelete(vacancy.vacancy_id)}
+                          disabled={saving}
+                          variant="destructive"
+                          className="cursor-pointer"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+
+                    <div className="flex flex-wrap items-center gap-2 lg:justify-end">
+                      <Badge className="border-transparent bg-blue-100 text-blue-700 hover:bg-blue-100">
+                        {formatLabel(vacancy.status)}
+                      </Badge>
+                      {vacancy.relocation_support ? (
+                        <Badge variant="outline" className="bg-white">
+                          Relocation support
+                        </Badge>
+                      ) : null}
+                    </div>
                   </div>
                 </div>
-              ))
-            )}
-          </CardContent>
-        </Card>
-      </div>
+
+                <div className="mt-4 flex flex-col gap-3 border-t border-slate-200 pt-4 sm:hidden">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-sm font-medium text-emerald-700">{formatRelativeDate(vacancy.updated_at)}</p>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button
+                          type="button"
+                          className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition hover:border-slate-300 hover:text-slate-700"
+                          aria-label={`More actions for ${vacancy.title}`}
+                        >
+                          <MoreVertical className="h-5 w-5" />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-40">
+                        <DropdownMenuItem onClick={() => openEditForm(vacancy)} className="cursor-pointer">
+                          <PencilLine className="h-4 w-4" />
+                          Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => handleDelete(vacancy.vacancy_id)}
+                          disabled={saving}
+                          variant="destructive"
+                          className="cursor-pointer"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge className="border-transparent bg-blue-100 text-blue-700 hover:bg-blue-100">
+                      {formatLabel(vacancy.status)}
+                    </Badge>
+                    {vacancy.relocation_support ? (
+                      <Badge variant="outline" className="bg-white">
+                        Relocation support
+                      </Badge>
+                    ) : null}
+                  </div>
+
+                  <p className="text-sm text-slate-500">
+                    {vacancy.created_by_name} is hiring · {formatLabel(vacancy.status)}
+                  </p>
+                </div>
+
+                <p className="mt-4 hidden text-sm text-slate-500 sm:block">
+                  {vacancy.created_by_name} is hiring · {formatLabel(vacancy.status)}
+                </p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <div className="border border-border bg-muted/10 px-6 py-10 text-center">
+          <p className="text-lg font-semibold text-foreground">No jobs yet</p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Use <span className="font-medium text-foreground">Post a job</span> to create your first company listing.
+          </p>
+        </div>
+      )}
     </div>
   )
 }
@@ -640,16 +911,26 @@ type FormFieldProps = {
   value: string
   onChange: (value: string) => void
   placeholder?: string
+  description?: string
   className?: string
   inputMode?: React.ComponentProps<typeof Input>['inputMode']
 }
 
-function FormField({ label, value, onChange, placeholder, className, inputMode }: FormFieldProps) {
+function FormField({ label, value, onChange, placeholder, description, className, inputMode }: FormFieldProps) {
   return (
     <div className={className ?? ''}>
-      <div className="space-y-2">
-        <p className="text-sm font-medium text-foreground">{label}</p>
-        <Input value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} inputMode={inputMode} />
+      <div className="space-y-2.5">
+        <div className="space-y-1">
+          <p className="text-sm font-medium text-slate-900">{label}</p>
+          {description ? <p className="text-xs leading-5 text-slate-500">{description}</p> : null}
+        </div>
+        <Input
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          placeholder={placeholder}
+          inputMode={inputMode}
+          className="h-11 rounded-xl border-slate-200 bg-white shadow-sm"
+        />
       </div>
     </div>
   )
@@ -660,15 +941,24 @@ type FormTextareaProps = {
   value: string
   onChange: (value: string) => void
   placeholder?: string
+  description?: string
   className?: string
 }
 
-function FormTextarea({ label, value, onChange, placeholder, className }: FormTextareaProps) {
+function FormTextarea({ label, value, onChange, placeholder, description, className }: FormTextareaProps) {
   return (
     <div className={className ?? ''}>
-      <div className="space-y-2">
-        <p className="text-sm font-medium text-foreground">{label}</p>
-        <Textarea value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} className="min-h-28" />
+      <div className="space-y-2.5">
+        <div className="space-y-1">
+          <p className="text-sm font-medium text-slate-900">{label}</p>
+          {description ? <p className="text-xs leading-5 text-slate-500">{description}</p> : null}
+        </div>
+        <Textarea
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          placeholder={placeholder}
+          className="min-h-28 rounded-2xl border-slate-200 bg-white shadow-sm"
+        />
       </div>
     </div>
   )
@@ -678,25 +968,33 @@ type FormSelectProps = {
   label: string
   value: string
   onValueChange: (value: string) => void
-  options: Array<{ value: string; label: string }>
+  options: FormOption[]
+  placeholder?: string
+  description?: string
+  className?: string
 }
 
-function FormSelect({ label, value, onValueChange, options }: FormSelectProps) {
+function FormSelect({ label, value, onValueChange, options, placeholder, description, className }: FormSelectProps) {
   return (
-    <div className="space-y-2">
-      <p className="text-sm font-medium text-foreground">{label}</p>
-      <Select value={value} onValueChange={onValueChange}>
-        <SelectTrigger className="w-full">
-          <SelectValue placeholder={label} />
-        </SelectTrigger>
-        <SelectContent>
-          {options.map((option) => (
-            <SelectItem key={option.value} value={option.value}>
-              {option.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+    <div className={className ?? ''}>
+      <div className="space-y-2.5">
+        <div className="space-y-1">
+          <p className="text-sm font-medium text-slate-900">{label}</p>
+          {description ? <p className="text-xs leading-5 text-slate-500">{description}</p> : null}
+        </div>
+        <Select value={value} onValueChange={onValueChange}>
+          <SelectTrigger className="h-11 w-full rounded-xl border-slate-200 bg-white shadow-sm">
+            <SelectValue placeholder={placeholder ?? label} />
+          </SelectTrigger>
+          <SelectContent>
+            {options.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
     </div>
   )
 }
@@ -706,21 +1004,24 @@ type ToggleFieldProps = {
   description: string
   checked: boolean
   onCheckedChange: (checked: boolean) => void
+  className?: string
 }
 
-function ToggleField({ label, description, checked, onCheckedChange }: ToggleFieldProps) {
+function ToggleField({ label, description, checked, onCheckedChange, className }: ToggleFieldProps) {
   return (
-    <label className="flex min-h-full cursor-pointer items-start gap-3 rounded-xl border px-4 py-3">
-      <input
-        type="checkbox"
-        className="mt-1 h-4 w-4 rounded border-input"
-        checked={checked}
-        onChange={(event) => onCheckedChange(event.target.checked)}
-      />
-      <span className="space-y-1">
-        <span className="block text-sm font-medium text-foreground">{label}</span>
-        <span className="block text-sm text-muted-foreground">{description}</span>
-      </span>
-    </label>
+    <div className={className ?? ''}>
+      <label className="flex min-h-full cursor-pointer items-start gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-sm">
+        <input
+          type="checkbox"
+          className="mt-1 h-4 w-4 rounded border-input"
+          checked={checked}
+          onChange={(event) => onCheckedChange(event.target.checked)}
+        />
+        <span className="space-y-1">
+          <span className="block text-sm font-medium text-slate-900">{label}</span>
+          <span className="block text-sm text-slate-500">{description}</span>
+        </span>
+      </label>
+    </div>
   )
 }
