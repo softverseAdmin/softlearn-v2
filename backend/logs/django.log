@@ -77331,3 +77331,969 @@ django.db.utils.OperationalError: database is locked
 [INFO] 2026-05-14 06:58:24,095 basehttp 3289 6194556928 "GET /api/v1/company/vacancies HTTP/1.1" 200 16257
 [INFO] 2026-05-14 06:58:24,105 logging 3289 6194556928 [req_114efc44e964] GET /api/v1/company/vacancies
 [INFO] 2026-05-14 06:58:24,106 basehttp 3289 6194556928 "GET /api/v1/company/vacancies HTTP/1.1" 200 16257
+[INFO] 2026-05-14 06:59:29,343 logging 3289 6194556928 [req_7ad93dbb3769] GET /api/v1/company/dashboard
+[INFO] 2026-05-14 06:59:29,343 basehttp 3289 6194556928 "GET /api/v1/company/dashboard HTTP/1.1" 200 1866
+[INFO] 2026-05-14 06:59:29,364 logging 3289 6194556928 [req_b5860916824b] GET /api/v1/company/dashboard
+[INFO] 2026-05-14 06:59:29,364 basehttp 3289 6194556928 "GET /api/v1/company/dashboard HTTP/1.1" 200 1866
+[INFO] 2026-05-14 07:00:16,080 logging 3289 6194556928 [req_5d5cd8309480] GET /api/v1/company/vacancies
+[INFO] 2026-05-14 07:00:16,080 basehttp 3289 6194556928 "GET /api/v1/company/vacancies HTTP/1.1" 200 16257
+[INFO] 2026-05-14 07:00:16,092 logging 3289 6194556928 [req_70e66483dfe4] GET /api/v1/company/vacancies
+[INFO] 2026-05-14 07:00:16,093 basehttp 3289 6194556928 "GET /api/v1/company/vacancies HTTP/1.1" 200 16257
+[INFO] 2026-05-14 07:01:15,249 logging 3289 6194556928 [req_7add84ef4547] GET /api/v1/company/dashboard
+[INFO] 2026-05-14 07:01:15,249 basehttp 3289 6194556928 "GET /api/v1/company/dashboard HTTP/1.1" 200 1866
+[INFO] 2026-05-14 07:01:15,265 logging 3289 6194556928 [req_7d91aca14c3f] GET /api/v1/company/dashboard
+[INFO] 2026-05-14 07:01:15,265 basehttp 3289 6194556928 "GET /api/v1/company/dashboard HTTP/1.1" 200 1866
+[INFO] 2026-05-14 07:01:18,394 logging 3289 6194556928 [req_158d8d229cd7] GET /api/v1/company/vacancies
+[INFO] 2026-05-14 07:01:18,395 basehttp 3289 6194556928 "GET /api/v1/company/vacancies HTTP/1.1" 200 16257
+[INFO] 2026-05-14 07:01:18,405 logging 3289 6194556928 [req_9396593ada9a] GET /api/v1/company/vacancies
+[INFO] 2026-05-14 07:01:18,406 basehttp 3289 6194556928 "GET /api/v1/company/vacancies HTTP/1.1" 200 16257
+[INFO] 2026-05-14 07:01:20,286 logging 3289 6194556928 [req_56bfba909581] GET /api/v1/auth/session
+[INFO] 2026-05-14 07:01:20,286 basehttp 3289 6194556928 "GET /api/v1/auth/session HTTP/1.1" 200 254
+[INFO] 2026-05-14 07:01:20,290 logging 3289 6194556928 [req_92d211a13080] GET /api/v1/auth/session
+[INFO] 2026-05-14 07:01:20,290 basehttp 3289 6194556928 "GET /api/v1/auth/session HTTP/1.1" 200 254
+[INFO] 2026-05-14 07:01:20,310 logging 3289 6211383296 [req_85b71a9f4559] GET /api/v1/notifications
+[INFO] 2026-05-14 07:01:20,311 basehttp 3289 6211383296 "GET /api/v1/notifications HTTP/1.1" 200 427
+[INFO] 2026-05-14 07:01:20,313 logging 3289 6194556928 [req_d1fbaf31e833] GET /api/v1/company/vacancies
+[INFO] 2026-05-14 07:01:20,313 basehttp 3289 6194556928 "GET /api/v1/company/vacancies HTTP/1.1" 200 16257
+[INFO] 2026-05-14 07:01:20,314 logging 3289 6228209664 [req_8cfb0c2d2e26] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:01:20,314 basehttp 3289 6228209664 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:01:20,320 logging 3289 6245036032 [req_5955ff08da7b] GET /api/v1/company/profile
+[INFO] 2026-05-14 07:01:20,320 basehttp 3289 6245036032 "GET /api/v1/company/profile HTTP/1.1" 200 69755
+[INFO] 2026-05-14 07:01:20,325 logging 3289 6261862400 [req_420fed70b75c] GET /api/v1/notifications
+[INFO] 2026-05-14 07:01:20,325 basehttp 3289 6261862400 "GET /api/v1/notifications HTTP/1.1" 200 427
+[INFO] 2026-05-14 07:01:20,330 logging 3289 6194556928 [req_0527e1acf859] GET /api/v1/company/vacancies
+[INFO] 2026-05-14 07:01:20,330 basehttp 3289 6194556928 "GET /api/v1/company/vacancies HTTP/1.1" 200 16257
+[INFO] 2026-05-14 07:01:20,333 logging 3289 6245036032 [req_036d198e3347] GET /api/v1/notifications
+[INFO] 2026-05-14 07:01:20,333 basehttp 3289 6245036032 "GET /api/v1/notifications HTTP/1.1" 200 427
+[INFO] 2026-05-14 07:01:20,335 logging 3289 6211383296 [req_62adedbcf06c] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:01:20,335 basehttp 3289 6211383296 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:01:20,335 logging 3289 6228209664 [req_42710e39dc77] GET /api/v1/company/profile
+[INFO] 2026-05-14 07:01:20,336 basehttp 3289 6228209664 "GET /api/v1/company/profile HTTP/1.1" 200 69755
+[INFO] 2026-05-14 07:01:20,341 logging 3289 6211383296 [req_e9e6f8bda7fe] GET /api/v1/company/profile
+[INFO] 2026-05-14 07:01:20,341 basehttp 3289 6211383296 "GET /api/v1/company/profile HTTP/1.1" 200 69755
+[INFO] 2026-05-14 07:01:20,347 logging 3289 6194556928 [req_f1f12e48486f] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:01:20,348 basehttp 3289 6194556928 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:01:20,358 logging 3289 6211383296 [req_19a7854d0393] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:01:20,358 log 3289 6211383296 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:01:20,358 basehttp 3289 6211383296 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:01:20,360 logging 3289 6228209664 [req_6146ed6e2cc1] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:01:20,360 log 3289 6228209664 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:01:20,360 basehttp 3289 6228209664 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:01:20,368 logging 3289 6194556928 [req_370e82eb05cd] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:01:20,368 basehttp 3289 6194556928 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:01:20,378 logging 3289 6194556928 [req_b7b4c6581d22] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:01:20,378 basehttp 3289 6194556928 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:01:20,387 logging 3289 6228209664 [req_b9a81032b289] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:01:20,387 log 3289 6228209664 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:01:20,387 basehttp 3289 6228209664 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:01:20,389 logging 3289 6211383296 [req_945ac1a254a4] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:01:20,389 log 3289 6211383296 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:01:20,389 basehttp 3289 6211383296 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:01:20,393 logging 3289 6194556928 [req_8b504d70e12f] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:01:20,393 basehttp 3289 6194556928 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:01:40,614 logging 3289 6194556928 [req_f2c9e4c25427] GET /api/v1/auth/session
+[INFO] 2026-05-14 07:01:40,614 basehttp 3289 6194556928 "GET /api/v1/auth/session HTTP/1.1" 200 254
+[INFO] 2026-05-14 07:01:40,619 logging 3289 6194556928 [req_63a57b301c63] GET /api/v1/auth/session
+[INFO] 2026-05-14 07:01:40,619 basehttp 3289 6194556928 "GET /api/v1/auth/session HTTP/1.1" 200 254
+[INFO] 2026-05-14 07:01:40,634 logging 3289 6194556928 [req_a7c1b4d79aeb] GET /api/v1/company/vacancies
+[INFO] 2026-05-14 07:01:40,634 basehttp 3289 6194556928 "GET /api/v1/company/vacancies HTTP/1.1" 200 16257
+[INFO] 2026-05-14 07:01:40,638 logging 3289 6211383296 [req_668f5e376ca0] GET /api/v1/notifications
+[INFO] 2026-05-14 07:01:40,638 basehttp 3289 6211383296 "GET /api/v1/notifications HTTP/1.1" 200 427
+[INFO] 2026-05-14 07:01:40,639 logging 3289 6228209664 [req_b46c733ac3de] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:01:40,639 basehttp 3289 6228209664 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:01:40,645 logging 3289 6245036032 [req_473411f7c2b3] GET /api/v1/company/profile
+[INFO] 2026-05-14 07:01:40,645 basehttp 3289 6245036032 "GET /api/v1/company/profile HTTP/1.1" 200 69755
+[INFO] 2026-05-14 07:01:40,655 logging 3289 6211383296 [req_a9253783cbdd] GET /api/v1/notifications
+[INFO] 2026-05-14 07:01:40,655 basehttp 3289 6211383296 "GET /api/v1/notifications HTTP/1.1" 200 427
+[INFO] 2026-05-14 07:01:40,656 logging 3289 6194556928 [req_9236ca90551a] GET /api/v1/company/vacancies
+[INFO] 2026-05-14 07:01:40,657 basehttp 3289 6194556928 "GET /api/v1/company/vacancies HTTP/1.1" 200 16257
+[INFO] 2026-05-14 07:01:40,659 logging 3289 6245036032 [req_689b0730b498] GET /api/v1/company/profile
+[INFO] 2026-05-14 07:01:40,659 basehttp 3289 6245036032 "GET /api/v1/company/profile HTTP/1.1" 200 69755
+[INFO] 2026-05-14 07:01:40,663 logging 3289 6228209664 [req_01bfb42eb9b7] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:01:40,664 basehttp 3289 6228209664 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:01:40,665 logging 3289 6211383296 [req_5becc9114cfb] GET /api/v1/notifications
+[INFO] 2026-05-14 07:01:40,666 basehttp 3289 6211383296 "GET /api/v1/notifications HTTP/1.1" 200 427
+[INFO] 2026-05-14 07:01:40,668 logging 3289 6194556928 [req_d52dabec8728] GET /api/v1/company/profile
+[INFO] 2026-05-14 07:01:40,668 basehttp 3289 6194556928 "GET /api/v1/company/profile HTTP/1.1" 200 69755
+[INFO] 2026-05-14 07:01:40,671 logging 3289 6245036032 [req_3292b7474d95] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:01:40,672 basehttp 3289 6245036032 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:01:40,686 logging 3289 6228209664 [req_287cd5761670] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:01:40,686 log 3289 6228209664 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:01:40,686 basehttp 3289 6228209664 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:01:40,687 logging 3289 6194556928 [req_67d50e22d787] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:01:40,687 basehttp 3289 6194556928 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:01:40,690 logging 3289 6211383296 [req_fb3531503ce3] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:01:40,690 log 3289 6211383296 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:01:40,691 basehttp 3289 6211383296 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:01:40,694 logging 3289 6194556928 [req_3738e69f281d] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:01:40,694 basehttp 3289 6194556928 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:01:40,700 logging 3289 6194556928 [req_298574f7f7b7] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:01:40,700 basehttp 3289 6194556928 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:01:40,716 logging 3289 6194556928 [req_00c3edbfbf64] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:01:40,716 log 3289 6194556928 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:01:40,716 basehttp 3289 6194556928 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:01:40,717 logging 3289 6211383296 [req_25586e381edb] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:01:40,717 log 3289 6211383296 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:01:40,718 basehttp 3289 6211383296 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:01:57,668 logging 3289 6194556928 [req_4db9e1145d46] GET /api/v1/company/vacancies
+[INFO] 2026-05-14 07:01:57,668 basehttp 3289 6194556928 "GET /api/v1/company/vacancies HTTP/1.1" 200 16257
+[INFO] 2026-05-14 07:01:57,674 logging 3289 6228209664 [req_37c4ba57e66a] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:01:57,674 log 3289 6228209664 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:01:57,675 basehttp 3289 6228209664 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:01:57,675 logging 3289 6211383296 [req_1b05ad4c4a1b] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:01:57,675 log 3289 6211383296 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:01:57,675 basehttp 3289 6211383296 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:02:25,605 logging 3289 6194556928 [req_bdebb6fe8ea6] GET /api/v1/auth/session
+[INFO] 2026-05-14 07:02:25,606 basehttp 3289 6194556928 "GET /api/v1/auth/session HTTP/1.1" 200 254
+[INFO] 2026-05-14 07:02:25,611 logging 3289 6194556928 [req_0077b0d420a8] GET /api/v1/auth/session
+[INFO] 2026-05-14 07:02:25,612 basehttp 3289 6194556928 "GET /api/v1/auth/session HTTP/1.1" 200 254
+[INFO] 2026-05-14 07:02:25,634 logging 3289 6245036032 [req_a3690adb5182] GET /api/v1/company/profile
+[INFO] 2026-05-14 07:02:25,635 basehttp 3289 6245036032 "GET /api/v1/company/profile HTTP/1.1" 200 69755
+[INFO] 2026-05-14 07:02:25,636 logging 3289 6194556928 [req_aecfc609c6ff] GET /api/v1/company/vacancies
+[INFO] 2026-05-14 07:02:25,636 basehttp 3289 6194556928 "GET /api/v1/company/vacancies HTTP/1.1" 200 16257
+[INFO] 2026-05-14 07:02:25,639 logging 3289 6228209664 [req_f1525f818736] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:02:25,640 basehttp 3289 6228209664 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:02:25,646 logging 3289 6261862400 [req_c8013e5f4140] GET /api/v1/company/profile
+[INFO] 2026-05-14 07:02:25,646 basehttp 3289 6261862400 "GET /api/v1/company/profile HTTP/1.1" 200 69755
+[INFO] 2026-05-14 07:02:25,655 logging 3289 6228209664 [req_62b1bd871155] GET /api/v1/company/profile
+[INFO] 2026-05-14 07:02:25,655 basehttp 3289 6228209664 "GET /api/v1/company/profile HTTP/1.1" 200 69755
+[INFO] 2026-05-14 07:02:25,656 logging 3289 6194556928 [req_894d4f65da93] GET /api/v1/company/vacancies
+[INFO] 2026-05-14 07:02:25,656 basehttp 3289 6194556928 "GET /api/v1/company/vacancies HTTP/1.1" 200 16257
+[INFO] 2026-05-14 07:02:25,658 logging 3289 6245036032 [req_80417803774a] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:02:25,658 basehttp 3289 6245036032 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:02:25,664 logging 3289 6194556928 [req_e1638ec97217] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:02:25,664 basehttp 3289 6194556928 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:02:25,670 logging 3289 6194556928 [req_82faf6f609c4] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:02:25,670 basehttp 3289 6194556928 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:02:25,674 logging 3289 6211383296 [req_8526352b5805] GET /api/v1/notifications
+[INFO] 2026-05-14 07:02:25,674 basehttp 3289 6211383296 "GET /api/v1/notifications HTTP/1.1" 200 427
+[INFO] 2026-05-14 07:02:25,686 logging 3289 6228209664 [req_9f8b8ae17a68] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:02:25,686 log 3289 6228209664 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:02:25,686 basehttp 3289 6228209664 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:02:25,689 logging 3289 6211383296 [req_606889eb058c] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:02:25,689 log 3289 6211383296 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:02:25,689 basehttp 3289 6211383296 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:02:25,691 logging 3289 6194556928 [req_35425e868277] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:02:25,692 basehttp 3289 6194556928 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:02:25,694 logging 3289 6245036032 [req_ca022a29cdca] GET /api/v1/notifications
+[INFO] 2026-05-14 07:02:25,694 basehttp 3289 6245036032 "GET /api/v1/notifications HTTP/1.1" 200 427
+[INFO] 2026-05-14 07:02:25,703 logging 3289 6211383296 [req_b33eb0d098a2] GET /api/v1/notifications
+[INFO] 2026-05-14 07:02:25,703 basehttp 3289 6211383296 "GET /api/v1/notifications HTTP/1.1" 200 427
+[INFO] 2026-05-14 07:02:25,707 logging 3289 6194556928 [req_a7db2cc51490] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:02:25,707 basehttp 3289 6194556928 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:02:25,718 logging 3289 6211383296 [req_ba04ee660705] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:02:25,718 log 3289 6211383296 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:02:25,718 basehttp 3289 6211383296 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:02:25,720 logging 3289 6194556928 [req_7658e35bb128] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:02:25,720 log 3289 6194556928 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:02:25,720 basehttp 3289 6194556928 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:02:49,916 logging 3289 6194556928 [req_d81c81d7f6c8] GET /api/v1/auth/session
+[INFO] 2026-05-14 07:02:49,917 basehttp 3289 6194556928 "GET /api/v1/auth/session HTTP/1.1" 200 254
+[INFO] 2026-05-14 07:02:49,924 logging 3289 6194556928 [req_68c3de41a6fd] GET /api/v1/auth/session
+[INFO] 2026-05-14 07:02:49,924 basehttp 3289 6194556928 "GET /api/v1/auth/session HTTP/1.1" 200 254
+[INFO] 2026-05-14 07:02:49,940 logging 3289 6211383296 [req_af12c5adb3d2] GET /api/v1/notifications
+[INFO] 2026-05-14 07:02:49,940 basehttp 3289 6211383296 "GET /api/v1/notifications HTTP/1.1" 200 427
+[INFO] 2026-05-14 07:02:49,942 logging 3289 6228209664 [req_0b778ce80dee] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:02:49,942 basehttp 3289 6228209664 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:02:49,945 logging 3289 6245036032 [req_0dc1a092e698] GET /api/v1/company/profile
+[INFO] 2026-05-14 07:02:49,945 basehttp 3289 6245036032 "GET /api/v1/company/profile HTTP/1.1" 200 69755
+[INFO] 2026-05-14 07:02:49,948 logging 3289 6194556928 [req_2b6d12934b1e] GET /api/v1/company/vacancies
+[INFO] 2026-05-14 07:02:49,949 basehttp 3289 6194556928 "GET /api/v1/company/vacancies HTTP/1.1" 200 16257
+[INFO] 2026-05-14 07:02:49,968 logging 3289 6228209664 [req_ab5c926403f7] GET /api/v1/company/profile
+[INFO] 2026-05-14 07:02:49,968 basehttp 3289 6228209664 "GET /api/v1/company/profile HTTP/1.1" 200 69755
+[INFO] 2026-05-14 07:02:49,976 logging 3289 6211383296 [req_10563465210b] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:02:49,976 basehttp 3289 6211383296 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:02:49,978 logging 3289 6194556928 [req_4e79f86132a1] GET /api/v1/notifications
+[INFO] 2026-05-14 07:02:49,979 basehttp 3289 6194556928 "GET /api/v1/notifications HTTP/1.1" 200 427
+[INFO] 2026-05-14 07:02:49,979 logging 3289 6245036032 [req_e5c4e2dff0e6] GET /api/v1/company/vacancies
+[INFO] 2026-05-14 07:02:49,979 basehttp 3289 6245036032 "GET /api/v1/company/vacancies HTTP/1.1" 200 16257
+[INFO] 2026-05-14 07:02:50,016 logging 3289 6194556928 [req_bec0889198e4] GET /api/v1/company/profile
+[INFO] 2026-05-14 07:02:50,017 basehttp 3289 6194556928 "GET /api/v1/company/profile HTTP/1.1" 200 69755
+[INFO] 2026-05-14 07:02:50,021 logging 3289 6228209664 [req_9654ea08570d] GET /api/v1/notifications
+[INFO] 2026-05-14 07:02:50,021 basehttp 3289 6228209664 "GET /api/v1/notifications HTTP/1.1" 200 427
+[INFO] 2026-05-14 07:02:50,024 logging 3289 6211383296 [req_cff1a1226cd9] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:02:50,024 basehttp 3289 6211383296 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:02:50,038 logging 3289 6245036032 [req_f7aea24a8b16] GET /api/v1/company/vacancies
+[INFO] 2026-05-14 07:02:50,039 basehttp 3289 6245036032 "GET /api/v1/company/vacancies HTTP/1.1" 200 16257
+[INFO] 2026-05-14 07:02:50,039 logging 3289 6194556928 [req_9b44757c3ee7] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:02:50,040 log 3289 6194556928 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:02:50,040 basehttp 3289 6194556928 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:02:50,041 logging 3289 6211383296 [req_3c484602635b] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:02:50,042 basehttp 3289 6211383296 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:02:50,048 logging 3289 6228209664 [req_cc9c89e53b58] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:02:50,048 log 3289 6228209664 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:02:50,048 basehttp 3289 6228209664 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:02:50,058 logging 3289 6194556928 [req_1ebef97264d2] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:02:50,058 log 3289 6194556928 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:02:50,058 basehttp 3289 6194556928 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:02:50,062 logging 3289 6245036032 [req_9ccfa4e17560] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:02:50,062 log 3289 6245036032 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:02:50,062 basehttp 3289 6245036032 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:02:50,065 logging 3289 6261862400 [req_5720ec3a8cdd] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:02:50,065 basehttp 3289 6261862400 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:02:50,070 logging 3289 6194556928 [req_3045b74d5523] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:02:50,070 basehttp 3289 6194556928 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:04:18,768 logging 3289 6194556928 [req_67483aa4a128] GET /api/v1/auth/session
+[INFO] 2026-05-14 07:04:18,769 basehttp 3289 6194556928 "GET /api/v1/auth/session HTTP/1.1" 200 254
+[INFO] 2026-05-14 07:04:18,774 logging 3289 6194556928 [req_84424c69c16a] GET /api/v1/auth/session
+[INFO] 2026-05-14 07:04:18,774 basehttp 3289 6194556928 "GET /api/v1/auth/session HTTP/1.1" 200 254
+[INFO] 2026-05-14 07:04:18,794 logging 3289 6245036032 [req_38c9926a8d3f] GET /api/v1/company/profile
+[INFO] 2026-05-14 07:04:18,795 basehttp 3289 6245036032 "GET /api/v1/company/profile HTTP/1.1" 200 69755
+[INFO] 2026-05-14 07:04:18,799 logging 3289 6211383296 [req_dd4c2e365f4f] GET /api/v1/notifications
+[INFO] 2026-05-14 07:04:18,799 basehttp 3289 6211383296 "GET /api/v1/notifications HTTP/1.1" 200 427
+[INFO] 2026-05-14 07:04:18,803 logging 3289 6194556928 [req_f722996beec0] GET /api/v1/company/vacancies
+[INFO] 2026-05-14 07:04:18,804 basehttp 3289 6194556928 "GET /api/v1/company/vacancies HTTP/1.1" 200 16257
+[INFO] 2026-05-14 07:04:18,807 logging 3289 6245036032 [req_fb05e9fb0d7d] GET /api/v1/company/profile
+[INFO] 2026-05-14 07:04:18,807 basehttp 3289 6245036032 "GET /api/v1/company/profile HTTP/1.1" 200 69755
+[INFO] 2026-05-14 07:04:18,810 logging 3289 6228209664 [req_2d5da8bc2773] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:04:18,811 basehttp 3289 6228209664 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:04:18,814 logging 3289 6261862400 [req_8d18edc5b669] GET /api/v1/company/profile
+[INFO] 2026-05-14 07:04:18,814 basehttp 3289 6261862400 "GET /api/v1/company/profile HTTP/1.1" 200 69755
+[INFO] 2026-05-14 07:04:18,819 logging 3289 6211383296 [req_2805dbbb45d7] GET /api/v1/notifications
+[INFO] 2026-05-14 07:04:18,819 basehttp 3289 6211383296 "GET /api/v1/notifications HTTP/1.1" 200 427
+[INFO] 2026-05-14 07:04:18,825 logging 3289 6228209664 [req_a50215352a29] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:04:18,825 basehttp 3289 6228209664 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:04:18,829 logging 3289 6211383296 [req_cbe42541a038] GET /api/v1/notifications
+[INFO] 2026-05-14 07:04:18,829 basehttp 3289 6211383296 "GET /api/v1/notifications HTTP/1.1" 200 427
+[INFO] 2026-05-14 07:04:18,838 logging 3289 6194556928 [req_09a0801880ef] GET /api/v1/company/vacancies
+[INFO] 2026-05-14 07:04:18,838 basehttp 3289 6194556928 "GET /api/v1/company/vacancies HTTP/1.1" 200 16257
+[INFO] 2026-05-14 07:04:18,840 logging 3289 6228209664 [req_563be0055cb4] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:04:18,840 basehttp 3289 6228209664 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:04:18,847 logging 3289 6211383296 [req_efbe190dc927] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:18,847 log 3289 6211383296 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:18,848 basehttp 3289 6211383296 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:04:18,854 logging 3289 6194556928 [req_376d0e714695] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:18,854 log 3289 6194556928 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:18,855 basehttp 3289 6194556928 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:04:18,857 logging 3289 6245036032 [req_1bafd18b001c] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:18,857 log 3289 6245036032 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:18,857 basehttp 3289 6245036032 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:04:18,861 logging 3289 6228209664 [req_8becf28676ef] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:04:18,862 basehttp 3289 6228209664 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:04:18,870 logging 3289 6211383296 [req_4c73c269eb85] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:18,870 log 3289 6211383296 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:18,871 basehttp 3289 6211383296 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:04:18,871 logging 3289 6194556928 [req_0410b550a4c7] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:18,871 log 3289 6194556928 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:18,871 basehttp 3289 6194556928 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:04:18,877 logging 3289 6261862400 [req_6de5e04ca077] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:18,877 log 3289 6261862400 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:18,878 basehttp 3289 6261862400 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:04:18,880 logging 3289 6278688768 [req_0c71244b5557] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:18,882 log 3289 6278688768 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:18,883 basehttp 3289 6278688768 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:04:18,888 logging 3289 6211383296 [req_f97047cdabe4] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:18,888 log 3289 6211383296 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:18,888 basehttp 3289 6211383296 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:04:18,894 logging 3289 6228209664 [req_9eda1eb316d4] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:18,894 log 3289 6228209664 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:18,894 basehttp 3289 6228209664 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:04:18,900 logging 3289 6194556928 [req_f00a4420dade] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:18,900 log 3289 6194556928 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:18,900 basehttp 3289 6194556928 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:04:18,900 logging 3289 6245036032 [req_376bae2ecf24] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:04:18,901 basehttp 3289 6245036032 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:04:18,906 logging 3289 6261862400 [req_e2e48c2057e7] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:18,907 log 3289 6261862400 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:18,907 basehttp 3289 6261862400 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:04:18,916 logging 3289 6295515136 [req_04d28e42140e] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:18,916 log 3289 6295515136 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:18,916 basehttp 3289 6295515136 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:04:18,928 logging 3289 6194556928 [req_6b46b59b077a] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:18,928 log 3289 6194556928 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:18,928 basehttp 3289 6194556928 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:04:18,934 logging 3289 6228209664 [req_fa28b4044189] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:04:18,934 basehttp 3289 6228209664 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:04:18,935 logging 3289 6245036032 [req_867b7f792d9f] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:18,935 log 3289 6245036032 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:18,935 basehttp 3289 6245036032 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:04:18,940 logging 3289 6194556928 [req_ff90610495f3] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:18,940 log 3289 6194556928 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:18,940 basehttp 3289 6194556928 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:04:18,946 logging 3289 6261862400 [req_1a6b37a98af1] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:18,946 log 3289 6261862400 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:18,946 basehttp 3289 6261862400 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:04:18,947 logging 3289 6278688768 [req_41ddd1802d30] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:18,947 log 3289 6278688768 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:18,947 basehttp 3289 6278688768 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:04:18,949 logging 3289 6245036032 [req_9c7a5f550437] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:18,950 log 3289 6245036032 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:18,950 basehttp 3289 6245036032 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:04:18,958 logging 3289 6211383296 [req_1cf1abaaf235] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:18,958 log 3289 6211383296 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:18,958 basehttp 3289 6211383296 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:04:18,959 logging 3289 6261862400 [req_0b88da4b807f] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:18,960 log 3289 6261862400 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:18,960 basehttp 3289 6261862400 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:04:18,960 logging 3289 6194556928 [req_42ad0ea76891] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:18,960 log 3289 6194556928 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:18,960 basehttp 3289 6194556928 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:04:18,969 logging 3289 6228209664 [req_9308c523a84a] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:18,969 log 3289 6228209664 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:18,969 basehttp 3289 6228209664 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:04:41,776 logging 3289 6194556928 [req_ae0a12f00c27] GET /api/v1/auth/session
+[INFO] 2026-05-14 07:04:41,776 basehttp 3289 6194556928 "GET /api/v1/auth/session HTTP/1.1" 200 254
+[INFO] 2026-05-14 07:04:41,781 logging 3289 6194556928 [req_f6ac42891a4d] GET /api/v1/auth/session
+[INFO] 2026-05-14 07:04:41,781 basehttp 3289 6194556928 "GET /api/v1/auth/session HTTP/1.1" 200 254
+[INFO] 2026-05-14 07:04:41,799 logging 3289 6211383296 [req_f677f2cb54c4] GET /api/v1/notifications
+[INFO] 2026-05-14 07:04:41,799 basehttp 3289 6211383296 "GET /api/v1/notifications HTTP/1.1" 200 427
+[INFO] 2026-05-14 07:04:41,802 logging 3289 6245036032 [req_d8e0df0026f0] GET /api/v1/company/profile
+[INFO] 2026-05-14 07:04:41,802 basehttp 3289 6245036032 "GET /api/v1/company/profile HTTP/1.1" 200 69755
+[INFO] 2026-05-14 07:04:41,808 logging 3289 6228209664 [req_90cba05414ee] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:04:41,809 basehttp 3289 6228209664 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:04:41,810 logging 3289 6211383296 [req_36bb61650c8f] GET /api/v1/company/profile
+[INFO] 2026-05-14 07:04:41,810 basehttp 3289 6211383296 "GET /api/v1/company/profile HTTP/1.1" 200 69755
+[INFO] 2026-05-14 07:04:41,812 logging 3289 6261862400 [req_41ff07c3ce49] GET /api/v1/notifications
+[INFO] 2026-05-14 07:04:41,812 basehttp 3289 6261862400 "GET /api/v1/notifications HTTP/1.1" 200 427
+[INFO] 2026-05-14 07:04:41,820 logging 3289 6211383296 [req_c884a9388dfe] GET /api/v1/company/profile
+[INFO] 2026-05-14 07:04:41,820 basehttp 3289 6211383296 "GET /api/v1/company/profile HTTP/1.1" 200 69755
+[INFO] 2026-05-14 07:04:41,822 logging 3289 6228209664 [req_6799a8a6cc97] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:04:41,822 basehttp 3289 6228209664 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:04:41,825 logging 3289 6245036032 [req_408f1358a766] GET /api/v1/notifications
+[INFO] 2026-05-14 07:04:41,825 basehttp 3289 6245036032 "GET /api/v1/notifications HTTP/1.1" 200 427
+[INFO] 2026-05-14 07:04:41,830 logging 3289 6211383296 [req_15c7ed46e648] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:04:41,830 basehttp 3289 6211383296 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:04:41,841 logging 3289 6228209664 [req_72bda345d504] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:41,842 log 3289 6228209664 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:41,842 basehttp 3289 6228209664 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:04:41,844 logging 3289 6211383296 [req_42bb988e5576] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:04:41,844 basehttp 3289 6211383296 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:04:41,850 logging 3289 6194556928 [req_877fd57a337f] GET /api/v1/company/vacancies
+[INFO] 2026-05-14 07:04:41,851 basehttp 3289 6194556928 "GET /api/v1/company/vacancies HTTP/1.1" 200 16257
+[INFO] 2026-05-14 07:04:41,863 logging 3289 6261862400 [req_42a2732101f3] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:41,863 log 3289 6261862400 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:41,863 basehttp 3289 6261862400 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:04:41,870 logging 3289 6228209664 [req_53138fca68a6] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:41,870 log 3289 6228209664 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:41,870 basehttp 3289 6228209664 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:04:41,876 logging 3289 6245036032 [req_ed82b5a100ae] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:04:41,876 basehttp 3289 6245036032 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:04:41,882 logging 3289 6194556928 [req_1524b7a7ad30] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:41,882 log 3289 6194556928 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:41,882 basehttp 3289 6194556928 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:04:41,889 logging 3289 6261862400 [req_4f816c6cc211] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:41,889 log 3289 6261862400 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:41,889 basehttp 3289 6261862400 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:04:41,897 logging 3289 6278688768 [req_f6b981f15f16] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:41,897 log 3289 6278688768 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:41,897 basehttp 3289 6278688768 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:04:41,897 logging 3289 6228209664 [req_d783b899a45d] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:04:41,898 basehttp 3289 6228209664 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:04:41,904 logging 3289 6245036032 [req_1829a2ac2137] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:41,904 log 3289 6245036032 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:41,905 basehttp 3289 6245036032 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:04:41,908 logging 3289 6194556928 [req_3d2592c1dd4b] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:41,908 log 3289 6194556928 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:41,911 basehttp 3289 6194556928 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:04:41,913 logging 3289 6295515136 [req_b20994e3ae2f] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:41,913 log 3289 6295515136 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:41,913 basehttp 3289 6295515136 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:04:41,918 logging 3289 6261862400 [req_92ea2f8b70f9] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:41,918 log 3289 6261862400 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:41,918 basehttp 3289 6261862400 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:04:41,924 logging 3289 6278688768 [req_f090c3cbb17e] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:41,924 log 3289 6278688768 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:41,925 basehttp 3289 6278688768 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:04:41,929 logging 3289 6194556928 [req_79735b61918b] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:41,929 log 3289 6194556928 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:41,929 basehttp 3289 6194556928 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:04:41,935 logging 3289 6228209664 [req_36d695a94361] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:41,935 log 3289 6228209664 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:41,935 basehttp 3289 6228209664 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:04:41,937 logging 3289 6261862400 [req_a52c50e873e0] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:41,938 log 3289 6261862400 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:41,938 basehttp 3289 6261862400 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:04:41,942 logging 3289 6295515136 [req_5de691e0e891] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:41,942 log 3289 6295515136 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:41,943 basehttp 3289 6295515136 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:04:41,947 logging 3289 6245036032 [req_1de38279324a] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:41,947 log 3289 6245036032 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:41,947 basehttp 3289 6245036032 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:04:41,948 logging 3289 6228209664 [req_173f9fac23a9] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:41,949 log 3289 6228209664 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:41,949 basehttp 3289 6228209664 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:04:41,955 logging 3289 6194556928 [req_fdaee2943cea] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:41,955 log 3289 6194556928 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:41,955 basehttp 3289 6194556928 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:04:41,962 logging 3289 6245036032 [req_9fcfdb09708d] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:41,962 log 3289 6245036032 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:41,962 basehttp 3289 6245036032 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:04:41,963 logging 3289 6228209664 [req_6de24473ce0e] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:41,963 log 3289 6228209664 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:41,963 basehttp 3289 6228209664 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:04:41,968 logging 3289 6211383296 [req_9a7bad8f062b] GET /api/v1/company/vacancies
+[INFO] 2026-05-14 07:04:41,968 basehttp 3289 6211383296 "GET /api/v1/company/vacancies HTTP/1.1" 200 16257
+[INFO] 2026-05-14 07:04:42,023 logging 3289 6194556928 [req_0dc657157268] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:42,023 log 3289 6194556928 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:42,023 basehttp 3289 6194556928 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:04:42,024 logging 3289 6211383296 [req_c1523f00600c] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:42,024 log 3289 6211383296 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:04:42,024 basehttp 3289 6211383296 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:05:07,334 logging 3289 6194556928 [req_49002e11f035] GET /api/v1/company/vacancies
+[INFO] 2026-05-14 07:05:07,334 basehttp 3289 6194556928 "GET /api/v1/company/vacancies HTTP/1.1" 200 16257
+[INFO] 2026-05-14 07:05:11,467 logging 3289 6194556928 [req_0a0835ab3010] GET /api/v1/auth/session
+[INFO] 2026-05-14 07:05:11,467 basehttp 3289 6194556928 "GET /api/v1/auth/session HTTP/1.1" 200 254
+[INFO] 2026-05-14 07:05:11,472 logging 3289 6194556928 [req_10667ac2a16b] GET /api/v1/auth/session
+[INFO] 2026-05-14 07:05:11,472 basehttp 3289 6194556928 "GET /api/v1/auth/session HTTP/1.1" 200 254
+[INFO] 2026-05-14 07:05:11,490 logging 3289 6245036032 [req_4ba0e275b903] GET /api/v1/company/profile
+[INFO] 2026-05-14 07:05:11,490 basehttp 3289 6245036032 "GET /api/v1/company/profile HTTP/1.1" 200 69755
+[INFO] 2026-05-14 07:05:11,494 logging 3289 6194556928 [req_c76e620c510d] GET /api/v1/company/vacancies
+[INFO] 2026-05-14 07:05:11,495 basehttp 3289 6194556928 "GET /api/v1/company/vacancies HTTP/1.1" 200 16257
+[INFO] 2026-05-14 07:05:11,496 logging 3289 6245036032 [req_1ff3a9e282a5] GET /api/v1/company/profile
+[INFO] 2026-05-14 07:05:11,496 basehttp 3289 6245036032 "GET /api/v1/company/profile HTTP/1.1" 200 69755
+[INFO] 2026-05-14 07:05:11,499 logging 3289 6228209664 [req_42c6c65d5099] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:05:11,499 basehttp 3289 6228209664 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:05:11,505 logging 3289 6245036032 [req_13be8c7e91a9] GET /api/v1/company/profile
+[INFO] 2026-05-14 07:05:11,505 basehttp 3289 6245036032 "GET /api/v1/company/profile HTTP/1.1" 200 69755
+[INFO] 2026-05-14 07:05:11,509 logging 3289 6261862400 [req_4b3bc3c39129] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:05:11,509 basehttp 3289 6261862400 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:05:11,511 logging 3289 6211383296 [req_da4219dab55c] GET /api/v1/notifications
+[INFO] 2026-05-14 07:05:11,511 basehttp 3289 6211383296 "GET /api/v1/notifications HTTP/1.1" 200 427
+[INFO] 2026-05-14 07:05:11,516 logging 3289 6194556928 [req_ff6daca127c4] GET /api/v1/company/vacancies
+[INFO] 2026-05-14 07:05:11,517 basehttp 3289 6194556928 "GET /api/v1/company/vacancies HTTP/1.1" 200 16257
+[INFO] 2026-05-14 07:05:11,521 logging 3289 6211383296 [req_7712a956ca99] GET /api/v1/notifications
+[INFO] 2026-05-14 07:05:11,522 basehttp 3289 6211383296 "GET /api/v1/notifications HTTP/1.1" 200 427
+[INFO] 2026-05-14 07:05:11,526 logging 3289 6228209664 [req_7f6e5dc8a789] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:05:11,526 basehttp 3289 6228209664 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:05:11,533 logging 3289 6194556928 [req_925c7a5521fc] GET /api/v1/notifications
+[INFO] 2026-05-14 07:05:11,533 basehttp 3289 6194556928 "GET /api/v1/notifications HTTP/1.1" 200 427
+[INFO] 2026-05-14 07:05:11,543 logging 3289 6245036032 [req_d7c2a6b9cfec] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:11,543 log 3289 6245036032 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:11,545 basehttp 3289 6245036032 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:05:11,547 logging 3289 6211383296 [req_3d7d1079c480] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:11,547 log 3289 6211383296 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:11,548 basehttp 3289 6211383296 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:05:11,548 logging 3289 6261862400 [req_04eddfb4a05c] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:11,548 log 3289 6261862400 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:11,548 basehttp 3289 6261862400 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:05:11,555 logging 3289 6228209664 [req_8560bd7bda54] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:05:11,558 basehttp 3289 6228209664 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:05:11,560 logging 3289 6194556928 [req_be7e708fe87f] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:11,561 log 3289 6194556928 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:11,562 basehttp 3289 6194556928 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:05:11,564 logging 3289 6245036032 [req_e0ef05abc4c3] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:11,564 log 3289 6245036032 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:11,564 basehttp 3289 6245036032 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:05:11,570 logging 3289 6211383296 [req_a2924927b987] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:11,570 log 3289 6211383296 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:11,570 basehttp 3289 6211383296 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:05:11,571 logging 3289 6278688768 [req_5089e44044d2] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:11,572 log 3289 6278688768 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:11,572 basehttp 3289 6278688768 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:05:11,581 logging 3289 6211383296 [req_6f5ad48a89a2] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:11,581 log 3289 6211383296 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:11,582 basehttp 3289 6211383296 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:05:11,585 logging 3289 6295515136 [req_1751282b50fe] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:11,585 log 3289 6295515136 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:11,586 basehttp 3289 6295515136 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:05:11,588 logging 3289 6194556928 [req_0bf0261accdd] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:11,588 log 3289 6194556928 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:11,588 basehttp 3289 6194556928 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:05:11,594 logging 3289 6228209664 [req_e9909881da6f] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:11,594 log 3289 6228209664 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:11,594 basehttp 3289 6228209664 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:05:11,599 logging 3289 6261862400 [req_b3ca9913bb0e] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:05:11,602 basehttp 3289 6261862400 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:05:11,604 logging 3289 6211383296 [req_e885d3cdf9ee] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:11,604 log 3289 6211383296 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:11,604 basehttp 3289 6211383296 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:05:11,609 logging 3289 6194556928 [req_b349f09061d5] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:11,609 log 3289 6194556928 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:11,609 basehttp 3289 6194556928 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:05:11,615 logging 3289 6278688768 [req_30c52596fc8e] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:11,615 log 3289 6278688768 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:11,616 basehttp 3289 6278688768 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:05:11,617 logging 3289 6245036032 [req_80bb435ae953] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:11,618 log 3289 6245036032 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:11,618 basehttp 3289 6245036032 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:05:11,623 logging 3289 6228209664 [req_e0e4551e9023] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:11,623 log 3289 6228209664 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:11,623 basehttp 3289 6228209664 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:05:11,630 logging 3289 6211383296 [req_fda186d1aeab] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:11,630 log 3289 6211383296 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:11,630 basehttp 3289 6211383296 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:05:11,631 logging 3289 6261862400 [req_19c313857b73] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:05:11,631 basehttp 3289 6261862400 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:05:11,634 logging 3289 6194556928 [req_8d0005d29f0d] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:11,634 log 3289 6194556928 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:11,635 basehttp 3289 6194556928 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:05:11,642 logging 3289 6211383296 [req_b9cf71cdc1c4] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:11,642 log 3289 6211383296 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:11,642 basehttp 3289 6211383296 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:05:11,645 logging 3289 6228209664 [req_1056e47cf116] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:11,645 log 3289 6228209664 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:11,645 basehttp 3289 6228209664 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:05:11,659 logging 3289 6194556928 [req_09859d29f30d] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:11,659 log 3289 6194556928 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:11,659 basehttp 3289 6194556928 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:05:11,660 logging 3289 6211383296 [req_2f7823354ad0] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:11,660 log 3289 6211383296 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:11,660 basehttp 3289 6211383296 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:05:20,300 logging 3289 6194556928 [req_b5d96618133b] PUT /api/v1/company/vacancies/1
+[INFO] 2026-05-14 07:05:20,301 basehttp 3289 6194556928 "PUT /api/v1/company/vacancies/1 HTTP/1.1" 200 15543
+[INFO] 2026-05-14 07:05:20,312 logging 3289 6194556928 [req_2154483a26c5] GET /api/v1/company/vacancies
+[INFO] 2026-05-14 07:05:20,312 basehttp 3289 6194556928 "GET /api/v1/company/vacancies HTTP/1.1" 200 16241
+[INFO] 2026-05-14 07:05:51,586 logging 3289 6194556928 [req_43aa9cf8d0af] GET /api/v1/auth/session
+[INFO] 2026-05-14 07:05:51,586 basehttp 3289 6194556928 "GET /api/v1/auth/session HTTP/1.1" 200 254
+[INFO] 2026-05-14 07:05:51,592 logging 3289 6194556928 [req_d1f62ec559cc] GET /api/v1/auth/session
+[INFO] 2026-05-14 07:05:51,592 basehttp 3289 6194556928 "GET /api/v1/auth/session HTTP/1.1" 200 254
+[INFO] 2026-05-14 07:05:51,613 logging 3289 6245036032 [req_e7178f7d2b51] GET /api/v1/company/profile
+[INFO] 2026-05-14 07:05:51,613 basehttp 3289 6245036032 "GET /api/v1/company/profile HTTP/1.1" 200 69755
+[INFO] 2026-05-14 07:05:51,615 logging 3289 6211383296 [req_7e6bff804301] GET /api/v1/notifications
+[INFO] 2026-05-14 07:05:51,615 basehttp 3289 6211383296 "GET /api/v1/notifications HTTP/1.1" 200 427
+[INFO] 2026-05-14 07:05:51,619 logging 3289 6194556928 [req_54dcbb310d5f] GET /api/v1/company/vacancies
+[INFO] 2026-05-14 07:05:51,620 basehttp 3289 6194556928 "GET /api/v1/company/vacancies HTTP/1.1" 200 16241
+[INFO] 2026-05-14 07:05:51,625 logging 3289 6228209664 [req_8d64ead420c7] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:05:51,625 basehttp 3289 6228209664 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:05:51,629 logging 3289 6245036032 [req_0830d4d19d23] GET /api/v1/company/profile
+[INFO] 2026-05-14 07:05:51,629 basehttp 3289 6245036032 "GET /api/v1/company/profile HTTP/1.1" 200 69755
+[INFO] 2026-05-14 07:05:51,631 logging 3289 6261862400 [req_350beeba947c] GET /api/v1/notifications
+[INFO] 2026-05-14 07:05:51,631 basehttp 3289 6261862400 "GET /api/v1/notifications HTTP/1.1" 200 427
+[INFO] 2026-05-14 07:05:51,641 logging 3289 6194556928 [req_3f1a664438ea] GET /api/v1/company/vacancies
+[INFO] 2026-05-14 07:05:51,641 basehttp 3289 6194556928 "GET /api/v1/company/vacancies HTTP/1.1" 200 16241
+[INFO] 2026-05-14 07:05:51,643 logging 3289 6245036032 [req_5ee771f6d6e3] GET /api/v1/notifications
+[INFO] 2026-05-14 07:05:51,643 basehttp 3289 6245036032 "GET /api/v1/notifications HTTP/1.1" 200 427
+[INFO] 2026-05-14 07:05:51,644 logging 3289 6211383296 [req_0f86f07f5ef8] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:05:51,644 basehttp 3289 6211383296 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:05:51,654 logging 3289 6228209664 [req_e26b3f82510d] GET /api/v1/company/profile
+[INFO] 2026-05-14 07:05:51,655 basehttp 3289 6228209664 "GET /api/v1/company/profile HTTP/1.1" 200 69755
+[INFO] 2026-05-14 07:05:51,657 logging 3289 6211383296 [req_3bae43d29d35] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:51,657 log 3289 6211383296 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:51,657 basehttp 3289 6211383296 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:05:51,663 logging 3289 6194556928 [req_4929f5277ab7] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:05:51,663 basehttp 3289 6194556928 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:05:51,671 logging 3289 6228209664 [req_8a07246e3e64] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:51,671 log 3289 6228209664 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:51,672 basehttp 3289 6228209664 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:05:51,679 logging 3289 6245036032 [req_a7e3bd8b50c7] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:51,679 log 3289 6245036032 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:51,679 basehttp 3289 6245036032 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:05:51,683 logging 3289 6211383296 [req_3852ffbbd15f] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:51,684 log 3289 6211383296 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:51,685 basehttp 3289 6211383296 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:05:51,687 logging 3289 6228209664 [req_fac9c0cf2808] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:51,687 log 3289 6228209664 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:51,687 basehttp 3289 6228209664 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:05:51,696 logging 3289 6194556928 [req_494050c18f41] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:05:51,698 basehttp 3289 6194556928 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:05:51,699 logging 3289 6261862400 [req_90ca6fb2c897] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:51,699 log 3289 6261862400 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:51,699 basehttp 3289 6261862400 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:05:51,703 logging 3289 6211383296 [req_e8d171de9910] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:51,703 log 3289 6211383296 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:51,703 basehttp 3289 6211383296 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:05:51,705 logging 3289 6245036032 [req_586b8d983356] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:51,705 log 3289 6245036032 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:51,705 basehttp 3289 6245036032 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:05:51,714 logging 3289 6261862400 [req_f49aee031652] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:51,714 log 3289 6261862400 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:51,716 basehttp 3289 6261862400 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:05:51,725 logging 3289 6278688768 [req_eec51d746cd6] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:51,725 log 3289 6278688768 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:51,725 basehttp 3289 6278688768 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:05:51,732 logging 3289 6245036032 [req_970062c4bd98] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:51,732 log 3289 6245036032 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:51,732 basehttp 3289 6245036032 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:05:51,734 logging 3289 6194556928 [req_1abad8d67810] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:05:51,734 basehttp 3289 6194556928 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:05:51,746 logging 3289 6245036032 [req_dedc78838e64] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:51,746 log 3289 6245036032 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:51,746 basehttp 3289 6245036032 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:05:51,748 logging 3289 6261862400 [req_f8d52be275ca] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:51,748 log 3289 6261862400 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:51,748 basehttp 3289 6261862400 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:05:51,756 logging 3289 6245036032 [req_d07069ddd32e] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:51,756 log 3289 6245036032 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:51,756 basehttp 3289 6245036032 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:05:51,756 logging 3289 6261862400 [req_95ae164126b5] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:51,756 log 3289 6261862400 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:51,757 basehttp 3289 6261862400 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:05:51,758 logging 3289 6194556928 [req_2e396ac3450d] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:05:51,758 basehttp 3289 6194556928 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:05:51,765 logging 3289 6228209664 [req_14e17aa20e63] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:51,765 log 3289 6228209664 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:51,765 basehttp 3289 6228209664 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:05:51,766 logging 3289 6261862400 [req_eaf9d71e9a9a] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:51,766 log 3289 6261862400 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:51,766 basehttp 3289 6261862400 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:05:51,767 logging 3289 6245036032 [req_b4238b2d5cfb] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:51,767 log 3289 6245036032 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:51,767 basehttp 3289 6245036032 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:05:51,777 logging 3289 6278688768 [req_02cf3af9e611] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:51,777 log 3289 6278688768 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:51,778 basehttp 3289 6278688768 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:05:51,780 logging 3289 6194556928 [req_c3758f3d041f] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:51,780 log 3289 6194556928 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:51,780 basehttp 3289 6194556928 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:05:51,786 logging 3289 6228209664 [req_1d19f8eaf328] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:51,786 log 3289 6228209664 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:51,786 basehttp 3289 6228209664 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:05:51,817 logging 3289 6211383296 [req_53b95665ff06] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:51,817 log 3289 6211383296 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:05:51,817 basehttp 3289 6211383296 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:06:04,885 logging 3289 6194556928 [req_b2359c57137e] GET /api/v1/company/vacancies
+[INFO] 2026-05-14 07:06:04,886 basehttp 3289 6194556928 "GET /api/v1/company/vacancies HTTP/1.1" 200 16241
+[INFO] 2026-05-14 07:06:04,892 logging 3289 6194556928 [req_a2b1b175d509] GET /api/v1/company/vacancies
+[INFO] 2026-05-14 07:06:04,892 basehttp 3289 6194556928 "GET /api/v1/company/vacancies HTTP/1.1" 200 16241
+[INFO] 2026-05-14 07:06:16,303 logging 3289 6194556928 [req_42ce54a70f2e] PUT /api/v1/company/vacancies/1
+[INFO] 2026-05-14 07:06:16,303 basehttp 3289 6194556928 "PUT /api/v1/company/vacancies/1 HTTP/1.1" 200 15543
+[INFO] 2026-05-14 07:06:16,315 logging 3289 6194556928 [req_e2286435c775] GET /api/v1/company/vacancies
+[INFO] 2026-05-14 07:06:16,316 basehttp 3289 6194556928 "GET /api/v1/company/vacancies HTTP/1.1" 200 16241
+[INFO] 2026-05-14 07:06:24,975 logging 3289 6194556928 [req_4268ea287783] DELETE /api/v1/company/vacancies/1
+[INFO] 2026-05-14 07:06:24,976 basehttp 3289 6194556928 "DELETE /api/v1/company/vacancies/1 HTTP/1.1" 200 15545
+[INFO] 2026-05-14 07:06:24,994 logging 3289 6194556928 [req_3f35b1a545ac] GET /api/v1/company/vacancies
+[INFO] 2026-05-14 07:06:24,994 basehttp 3289 6194556928 "GET /api/v1/company/vacancies HTTP/1.1" 200 16243
+[INFO] 2026-05-14 07:06:47,946 logging 3289 6194556928 [req_aee6fa132f7b] PUT /api/v1/company/vacancies/1
+[INFO] 2026-05-14 07:06:47,946 basehttp 3289 6194556928 "PUT /api/v1/company/vacancies/1 HTTP/1.1" 200 15543
+[INFO] 2026-05-14 07:06:47,961 logging 3289 6194556928 [req_970ff231a90e] GET /api/v1/company/vacancies
+[INFO] 2026-05-14 07:06:47,961 basehttp 3289 6194556928 "GET /api/v1/company/vacancies HTTP/1.1" 200 16241
+[INFO] 2026-05-14 07:06:50,004 logging 3289 6194556928 [req_a14217bde101] GET /api/v1/auth/session
+[INFO] 2026-05-14 07:06:50,005 basehttp 3289 6194556928 "GET /api/v1/auth/session HTTP/1.1" 200 254
+[INFO] 2026-05-14 07:06:50,010 logging 3289 6194556928 [req_0ddd6782e961] GET /api/v1/auth/session
+[INFO] 2026-05-14 07:06:50,010 basehttp 3289 6194556928 "GET /api/v1/auth/session HTTP/1.1" 200 254
+[INFO] 2026-05-14 07:06:50,031 logging 3289 6211383296 [req_c270b934efc8] GET /api/v1/notifications
+[INFO] 2026-05-14 07:06:50,032 basehttp 3289 6211383296 "GET /api/v1/notifications HTTP/1.1" 200 427
+[INFO] 2026-05-14 07:06:50,033 logging 3289 6245036032 [req_1f1fe547de2f] GET /api/v1/company/profile
+[INFO] 2026-05-14 07:06:50,033 basehttp 3289 6245036032 "GET /api/v1/company/profile HTTP/1.1" 200 69755
+[INFO] 2026-05-14 07:06:50,037 logging 3289 6194556928 [req_154551243b78] GET /api/v1/company/vacancies
+[INFO] 2026-05-14 07:06:50,038 basehttp 3289 6194556928 "GET /api/v1/company/vacancies HTTP/1.1" 200 16241
+[INFO] 2026-05-14 07:06:50,041 logging 3289 6228209664 [req_b4476157978c] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:06:50,042 basehttp 3289 6228209664 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:06:50,045 logging 3289 6245036032 [req_302b84a3077a] GET /api/v1/company/profile
+[INFO] 2026-05-14 07:06:50,045 basehttp 3289 6245036032 "GET /api/v1/company/profile HTTP/1.1" 200 69755
+[INFO] 2026-05-14 07:06:50,050 logging 3289 6211383296 [req_700a392f1ccf] GET /api/v1/notifications
+[INFO] 2026-05-14 07:06:50,050 basehttp 3289 6211383296 "GET /api/v1/notifications HTTP/1.1" 200 427
+[INFO] 2026-05-14 07:06:50,051 logging 3289 6228209664 [req_1dfa61151197] GET /api/v1/company/profile
+[INFO] 2026-05-14 07:06:50,051 basehttp 3289 6228209664 "GET /api/v1/company/profile HTTP/1.1" 200 69755
+[INFO] 2026-05-14 07:06:50,055 logging 3289 6261862400 [req_13f5540fc89e] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:06:50,055 basehttp 3289 6261862400 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:06:50,062 logging 3289 6211383296 [req_c00769b39c69] GET /api/v1/notifications
+[INFO] 2026-05-14 07:06:50,062 basehttp 3289 6211383296 "GET /api/v1/notifications HTTP/1.1" 200 427
+[INFO] 2026-05-14 07:06:50,069 logging 3289 6228209664 [req_dcba96069a98] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:06:50,069 basehttp 3289 6228209664 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:06:50,071 logging 3289 6211383296 [req_703c6dbb3127] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:06:50,071 log 3289 6211383296 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:06:50,072 basehttp 3289 6211383296 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:06:50,084 logging 3289 6245036032 [req_4652cf109a8e] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:06:50,085 log 3289 6245036032 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:06:50,085 basehttp 3289 6245036032 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:06:50,090 logging 3289 6261862400 [req_b7e91ea47a52] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:06:50,090 log 3289 6261862400 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:06:50,090 basehttp 3289 6261862400 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:06:50,097 logging 3289 6228209664 [req_2532bd6f22f4] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:06:50,097 basehttp 3289 6228209664 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:06:50,103 logging 3289 6194556928 [req_4f9920dc438c] GET /api/v1/company/vacancies
+[INFO] 2026-05-14 07:06:50,103 basehttp 3289 6194556928 "GET /api/v1/company/vacancies HTTP/1.1" 200 16241
+[INFO] 2026-05-14 07:06:50,110 logging 3289 6245036032 [req_ed9de5340749] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:06:50,110 log 3289 6245036032 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:06:50,110 basehttp 3289 6245036032 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:06:50,115 logging 3289 6278688768 [req_7a3d8282b8c2] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:06:50,116 log 3289 6278688768 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:06:50,116 basehttp 3289 6278688768 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:06:50,116 logging 3289 6194556928 [req_9b1e0f6a9f3c] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:06:50,116 log 3289 6194556928 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:06:50,117 basehttp 3289 6194556928 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:06:50,120 logging 3289 6211383296 [req_9460a93a2a41] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:06:50,120 log 3289 6211383296 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:06:50,124 basehttp 3289 6211383296 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:06:50,128 logging 3289 6261862400 [req_80bba45742b9] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:06:50,128 basehttp 3289 6261862400 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:06:50,131 logging 3289 6245036032 [req_a28e6a729718] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:06:50,131 log 3289 6245036032 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:06:50,132 basehttp 3289 6245036032 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:06:50,136 logging 3289 6278688768 [req_cee818025185] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:06:50,137 log 3289 6278688768 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:06:50,137 basehttp 3289 6278688768 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:06:50,141 logging 3289 6228209664 [req_6ec219924d0e] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:06:50,142 log 3289 6228209664 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:06:50,142 basehttp 3289 6228209664 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:06:50,147 logging 3289 6194556928 [req_ec4bd106a880] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:06:50,150 log 3289 6194556928 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:06:50,150 basehttp 3289 6194556928 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:06:50,155 logging 3289 6312341504 [req_a2806b5d3e34] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:06:50,155 log 3289 6312341504 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:06:50,155 basehttp 3289 6312341504 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:06:50,161 logging 3289 6211383296 [req_94b771db7cbb] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:06:50,161 log 3289 6211383296 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:06:50,161 basehttp 3289 6211383296 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:06:50,168 logging 3289 6228209664 [req_753a58699a5c] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:06:50,169 log 3289 6228209664 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:06:50,169 basehttp 3289 6228209664 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:06:50,170 logging 3289 6295515136 [req_16c8fd91669e] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:06:50,170 basehttp 3289 6295515136 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:06:50,177 logging 3289 6261862400 [req_4216c2e4a362] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:06:50,177 log 3289 6261862400 Not Found: /api/v1/metrics/web-vitals
+[INFO] 2026-05-14 07:06:50,180 logging 3289 6211383296 [req_3acf4affa2e6] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:06:50,180 log 3289 6211383296 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:06:50,180 basehttp 3289 6261862400 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[WARNING] 2026-05-14 07:06:50,180 basehttp 3289 6211383296 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:06:50,181 logging 3289 6278688768 [req_9093779bbf5e] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:06:50,181 log 3289 6278688768 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:06:50,181 basehttp 3289 6278688768 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:06:50,182 logging 3289 6228209664 [req_5ecee754183b] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:06:50,182 log 3289 6228209664 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:06:50,182 basehttp 3289 6228209664 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:06:50,189 logging 3289 6194556928 [req_7f75cd22757d] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:06:50,189 log 3289 6194556928 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:06:50,189 basehttp 3289 6194556928 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:06:50,196 logging 3289 6228209664 [req_2cce6478f9b3] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:06:50,196 log 3289 6228209664 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:06:50,196 basehttp 3289 6228209664 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:06:50,197 logging 3289 6211383296 [req_c459f1aa2377] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:06:50,197 log 3289 6211383296 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:06:50,197 basehttp 3289 6211383296 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:06:50,200 logging 3289 6245036032 [req_262c4ddbeee5] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:06:50,200 log 3289 6245036032 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:06:50,200 basehttp 3289 6245036032 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:06:57,492 logging 3289 6194556928 [req_a1fc28470a6d] GET /api/v1/company/dashboard
+[INFO] 2026-05-14 07:06:57,492 basehttp 3289 6194556928 "GET /api/v1/company/dashboard HTTP/1.1" 200 1866
+[INFO] 2026-05-14 07:06:57,514 logging 3289 6194556928 [req_d36405a798cc] GET /api/v1/company/dashboard
+[INFO] 2026-05-14 07:06:57,514 basehttp 3289 6194556928 "GET /api/v1/company/dashboard HTTP/1.1" 200 1866
+[INFO] 2026-05-14 07:07:00,352 logging 3289 6194556928 [req_365540226e58] GET /api/v1/company/vacancies
+[INFO] 2026-05-14 07:07:00,353 basehttp 3289 6194556928 "GET /api/v1/company/vacancies HTTP/1.1" 200 16241
+[INFO] 2026-05-14 07:07:00,364 logging 3289 6194556928 [req_1c758fcc6160] GET /api/v1/company/vacancies
+[INFO] 2026-05-14 07:07:00,364 basehttp 3289 6194556928 "GET /api/v1/company/vacancies HTTP/1.1" 200 16241
+[INFO] 2026-05-14 07:07:03,207 logging 3289 6194556928 [req_105ad1260449] GET /api/v1/company/dashboard
+[INFO] 2026-05-14 07:07:03,207 basehttp 3289 6194556928 "GET /api/v1/company/dashboard HTTP/1.1" 200 1866
+[INFO] 2026-05-14 07:07:03,228 logging 3289 6194556928 [req_65e31f7f01cd] GET /api/v1/company/dashboard
+[INFO] 2026-05-14 07:07:03,228 basehttp 3289 6194556928 "GET /api/v1/company/dashboard HTTP/1.1" 200 1866
+[INFO] 2026-05-14 07:08:05,456 logging 3289 6194556928 [req_0deb1d9dd6fe] GET /api/v1/auth/session
+[INFO] 2026-05-14 07:08:05,457 basehttp 3289 6194556928 "GET /api/v1/auth/session HTTP/1.1" 200 254
+[INFO] 2026-05-14 07:08:05,461 logging 3289 6194556928 [req_b0bb0f0addeb] GET /api/v1/auth/session
+[INFO] 2026-05-14 07:08:05,461 basehttp 3289 6194556928 "GET /api/v1/auth/session HTTP/1.1" 200 254
+[INFO] 2026-05-14 07:08:05,481 logging 3289 6245036032 [req_416626449099] GET /api/v1/company/profile
+[INFO] 2026-05-14 07:08:05,481 basehttp 3289 6245036032 "GET /api/v1/company/profile HTTP/1.1" 200 69755
+[INFO] 2026-05-14 07:08:05,485 logging 3289 6211383296 [req_89aed3298826] GET /api/v1/notifications
+[INFO] 2026-05-14 07:08:05,485 basehttp 3289 6211383296 "GET /api/v1/notifications HTTP/1.1" 200 427
+[INFO] 2026-05-14 07:08:05,490 logging 3289 6228209664 [req_9250aa493463] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:08:05,491 basehttp 3289 6228209664 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:08:05,493 logging 3289 6261862400 [req_3a2340e4be2b] GET /api/v1/company/profile
+[INFO] 2026-05-14 07:08:05,493 basehttp 3289 6261862400 "GET /api/v1/company/profile HTTP/1.1" 200 69755
+[INFO] 2026-05-14 07:08:05,498 logging 3289 6245036032 [req_4225ebf4b5ff] GET /api/v1/notifications
+[INFO] 2026-05-14 07:08:05,498 basehttp 3289 6245036032 "GET /api/v1/notifications HTTP/1.1" 200 427
+[INFO] 2026-05-14 07:08:05,505 logging 3289 6228209664 [req_e6fab1c3d11a] GET /api/v1/company/profile
+[INFO] 2026-05-14 07:08:05,506 basehttp 3289 6228209664 "GET /api/v1/company/profile HTTP/1.1" 200 69755
+[INFO] 2026-05-14 07:08:05,522 logging 3289 6245036032 [req_228ecbe7305f] GET /api/v1/notifications
+[INFO] 2026-05-14 07:08:05,522 basehttp 3289 6245036032 "GET /api/v1/notifications HTTP/1.1" 200 427
+[INFO] 2026-05-14 07:08:05,523 logging 3289 6211383296 [req_8fa1dd123d89] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:08:05,523 basehttp 3289 6211383296 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:08:05,530 logging 3289 6194556928 [req_3ef3c73ed4a1] GET /api/v1/company/dashboard
+[INFO] 2026-05-14 07:08:05,530 basehttp 3289 6194556928 "GET /api/v1/company/dashboard HTTP/1.1" 200 1866
+[INFO] 2026-05-14 07:08:05,532 logging 3289 6211383296 [req_9cac43791680] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:08:05,532 basehttp 3289 6211383296 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:08:05,541 logging 3289 6194556928 [req_a1a3f30f538a] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:05,541 log 3289 6194556928 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:05,541 basehttp 3289 6194556928 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:08:05,553 logging 3289 6211383296 [req_fa2a25427fa0] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:05,553 log 3289 6211383296 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:05,553 basehttp 3289 6211383296 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:08:05,555 logging 3289 6245036032 [req_01bcb8e8c7ba] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:08:05,556 basehttp 3289 6245036032 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:08:05,557 logging 3289 6194556928 [req_e836492f2f52] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:05,557 log 3289 6194556928 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:05,558 basehttp 3289 6194556928 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:08:05,566 logging 3289 6211383296 [req_db4c7b9ccc2d] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:05,566 log 3289 6211383296 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:05,566 basehttp 3289 6211383296 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:08:05,567 logging 3289 6278688768 [req_0371edc57042] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:05,567 log 3289 6278688768 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:05,567 basehttp 3289 6278688768 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:08:05,575 logging 3289 6245036032 [req_14778314757e] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:05,575 log 3289 6245036032 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:05,576 basehttp 3289 6245036032 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:08:05,587 logging 3289 6211383296 [req_44e2fc4dfefb] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:05,588 log 3289 6211383296 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:05,588 basehttp 3289 6211383296 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:08:05,589 logging 3289 6194556928 [req_b9f731f924da] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:05,589 log 3289 6194556928 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:05,589 basehttp 3289 6194556928 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:08:05,593 logging 3289 6245036032 [req_c22dc399a580] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:05,593 log 3289 6245036032 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:05,594 basehttp 3289 6245036032 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:08:05,601 logging 3289 6261862400 [req_7f40f5690789] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:08:05,602 basehttp 3289 6261862400 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:08:05,610 logging 3289 6194556928 [req_279f22a92691] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:05,610 log 3289 6194556928 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:05,610 basehttp 3289 6194556928 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:08:05,615 logging 3289 6278688768 [req_08dcd5a80767] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:05,615 log 3289 6278688768 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:05,620 basehttp 3289 6278688768 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:08:05,634 logging 3289 6295515136 [req_958ba34c4648] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:05,634 log 3289 6295515136 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:05,634 basehttp 3289 6295515136 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:08:05,635 logging 3289 6194556928 [req_717953798bd9] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:05,635 log 3289 6194556928 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:05,636 basehttp 3289 6194556928 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:08:05,642 logging 3289 6245036032 [req_e3da37f645e9] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:08:05,642 basehttp 3289 6245036032 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:08:05,651 logging 3289 6261862400 [req_669584d4bf6e] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:05,651 log 3289 6261862400 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:05,654 basehttp 3289 6261862400 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:08:05,656 logging 3289 6295515136 [req_59d48195ea37] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:05,656 log 3289 6295515136 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:05,656 basehttp 3289 6295515136 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:08:05,661 logging 3289 6194556928 [req_ad13996ce7bf] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:05,661 log 3289 6194556928 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:05,661 basehttp 3289 6194556928 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:08:05,669 logging 3289 6245036032 [req_5ca9eebd8107] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:05,669 log 3289 6245036032 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:05,669 basehttp 3289 6245036032 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:08:05,673 logging 3289 6261862400 [req_7db4a37d18c3] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:05,673 log 3289 6261862400 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:05,673 basehttp 3289 6261862400 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:08:05,673 logging 3289 6278688768 [req_e5bb29c2e044] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:05,674 log 3289 6278688768 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:05,674 basehttp 3289 6278688768 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:08:05,677 logging 3289 6228209664 [req_137fcb27db94] GET /api/v1/company/dashboard
+[INFO] 2026-05-14 07:08:05,677 basehttp 3289 6228209664 "GET /api/v1/company/dashboard HTTP/1.1" 200 1866
+[INFO] 2026-05-14 07:08:05,691 logging 3289 6211383296 [req_e7cea919d734] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:05,691 log 3289 6211383296 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:05,691 basehttp 3289 6211383296 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:08:05,740 logging 3289 6194556928 [req_51d66d9d9bcd] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:05,740 log 3289 6194556928 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:05,740 basehttp 3289 6194556928 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:08:05,743 logging 3289 6211383296 [req_f0bafbaca7ca] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:05,743 log 3289 6211383296 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:05,743 basehttp 3289 6211383296 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:08:25,622 logging 3289 6194556928 [req_a78fcc97a197] GET /api/v1/auth/session
+[INFO] 2026-05-14 07:08:25,622 basehttp 3289 6194556928 "GET /api/v1/auth/session HTTP/1.1" 200 254
+[INFO] 2026-05-14 07:08:25,627 logging 3289 6194556928 [req_656d9f0ae945] GET /api/v1/auth/session
+[INFO] 2026-05-14 07:08:25,627 basehttp 3289 6194556928 "GET /api/v1/auth/session HTTP/1.1" 200 254
+[INFO] 2026-05-14 07:08:25,648 logging 3289 6245036032 [req_76474edd551e] GET /api/v1/company/profile
+[INFO] 2026-05-14 07:08:25,648 basehttp 3289 6245036032 "GET /api/v1/company/profile HTTP/1.1" 200 69755
+[INFO] 2026-05-14 07:08:25,649 logging 3289 6211383296 [req_fb043daa7bf5] GET /api/v1/notifications
+[INFO] 2026-05-14 07:08:25,649 basehttp 3289 6211383296 "GET /api/v1/notifications HTTP/1.1" 200 427
+[INFO] 2026-05-14 07:08:25,653 logging 3289 6228209664 [req_4e356e88b1e1] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:08:25,654 basehttp 3289 6228209664 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:08:25,662 logging 3289 6245036032 [req_342425582f1a] GET /api/v1/company/profile
+[INFO] 2026-05-14 07:08:25,662 basehttp 3289 6245036032 "GET /api/v1/company/profile HTTP/1.1" 200 69755
+[INFO] 2026-05-14 07:08:25,666 logging 3289 6261862400 [req_7abb0bc4cdc9] GET /api/v1/notifications
+[INFO] 2026-05-14 07:08:25,666 basehttp 3289 6261862400 "GET /api/v1/notifications HTTP/1.1" 200 427
+[INFO] 2026-05-14 07:08:25,667 logging 3289 6211383296 [req_b3e37a115848] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:08:25,667 basehttp 3289 6211383296 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:08:25,672 logging 3289 6228209664 [req_85e43f81384f] GET /api/v1/company/profile
+[INFO] 2026-05-14 07:08:25,673 basehttp 3289 6228209664 "GET /api/v1/company/profile HTTP/1.1" 200 69755
+[INFO] 2026-05-14 07:08:25,674 logging 3289 6211383296 [req_f35097c7e679] GET /api/v1/notifications
+[INFO] 2026-05-14 07:08:25,674 basehttp 3289 6211383296 "GET /api/v1/notifications HTTP/1.1" 200 427
+[INFO] 2026-05-14 07:08:25,689 logging 3289 6245036032 [req_4bb980ee9138] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:08:25,689 basehttp 3289 6245036032 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:08:25,700 logging 3289 6228209664 [req_21c117a8d1f6] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:25,700 log 3289 6228209664 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:25,701 basehttp 3289 6228209664 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:08:25,705 logging 3289 6211383296 [req_096d090a12ae] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:08:25,706 basehttp 3289 6211383296 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:08:25,714 logging 3289 6228209664 [req_96012229348e] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:25,714 log 3289 6228209664 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:25,714 basehttp 3289 6228209664 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:08:25,721 logging 3289 6194556928 [req_8720f4c0794a] GET /api/v1/company/dashboard
+[INFO] 2026-05-14 07:08:25,721 basehttp 3289 6194556928 "GET /api/v1/company/dashboard HTTP/1.1" 200 1866
+[INFO] 2026-05-14 07:08:25,727 logging 3289 6245036032 [req_e0d4d1704a07] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:25,727 log 3289 6245036032 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:25,727 basehttp 3289 6245036032 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:08:25,740 logging 3289 6211383296 [req_646fa13b6bf8] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:08:25,740 basehttp 3289 6211383296 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:08:25,741 logging 3289 6194556928 [req_a829d84bdfe4] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:25,741 log 3289 6194556928 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:25,741 basehttp 3289 6194556928 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:08:25,744 logging 3289 6228209664 [req_5130e12036d1] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:25,744 log 3289 6228209664 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:25,744 basehttp 3289 6228209664 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:08:25,750 logging 3289 6245036032 [req_1c583b7dd6d9] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:25,750 log 3289 6245036032 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:25,750 basehttp 3289 6245036032 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:08:25,767 logging 3289 6228209664 [req_c83d0ec2c651] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:25,767 log 3289 6228209664 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:25,767 basehttp 3289 6228209664 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:08:25,771 logging 3289 6278688768 [req_a0a09332c585] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:25,772 log 3289 6278688768 Not Found: /api/v1/metrics/web-vitals
+[INFO] 2026-05-14 07:08:25,773 logging 3289 6194556928 [req_c0010e224b19] GET /api/v1/company/messages
+[WARNING] 2026-05-14 07:08:25,773 basehttp 3289 6278688768 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:08:25,775 basehttp 3289 6194556928 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:08:25,777 logging 3289 6295515136 [req_7bebfeeaa594] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:25,777 log 3289 6295515136 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:25,777 basehttp 3289 6295515136 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:08:25,792 logging 3289 6228209664 [req_242c02e29fda] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:25,792 log 3289 6228209664 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:25,793 basehttp 3289 6228209664 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:08:25,795 logging 3289 6211383296 [req_c8b233a9c60c] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:25,795 log 3289 6211383296 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:25,795 basehttp 3289 6211383296 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:08:25,800 logging 3289 6245036032 [req_fea3d570b1cb] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:25,801 log 3289 6245036032 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:25,801 basehttp 3289 6245036032 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:08:25,807 logging 3289 6194556928 [req_63546388e365] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:25,808 log 3289 6194556928 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:25,808 basehttp 3289 6194556928 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:08:25,812 logging 3289 6312341504 [req_cde731c1422f] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:25,812 log 3289 6312341504 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:25,814 basehttp 3289 6312341504 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:08:25,816 logging 3289 6211383296 [req_41c1994b47f9] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:25,816 log 3289 6211383296 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:25,816 basehttp 3289 6211383296 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:08:25,824 logging 3289 6278688768 [req_ff686befde32] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:25,824 log 3289 6278688768 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:25,826 basehttp 3289 6278688768 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:08:25,827 logging 3289 6295515136 [req_f38d10521119] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:25,827 log 3289 6295515136 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:25,827 basehttp 3289 6295515136 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:08:25,830 logging 3289 6194556928 [req_3dab2f6f6f71] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:25,830 log 3289 6194556928 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:25,830 basehttp 3289 6194556928 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:08:25,832 logging 3289 6245036032 [req_45d4ed5344d4] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:25,832 log 3289 6245036032 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:25,832 basehttp 3289 6245036032 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:08:25,835 logging 3289 6261862400 [req_1066a6035218] GET /api/v1/company/dashboard
+[INFO] 2026-05-14 07:08:25,835 basehttp 3289 6261862400 "GET /api/v1/company/dashboard HTTP/1.1" 200 1866
+[INFO] 2026-05-14 07:08:25,835 logging 3289 6228209664 [req_f03d102d5728] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:25,836 log 3289 6228209664 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:25,836 basehttp 3289 6228209664 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:08:25,891 logging 3289 6194556928 [req_e13283cc4c7d] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:25,892 log 3289 6194556928 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:25,892 basehttp 3289 6194556928 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:08:25,893 logging 3289 6211383296 [req_38871b3ac11c] POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:25,893 log 3289 6211383296 Not Found: /api/v1/metrics/web-vitals
+[WARNING] 2026-05-14 07:08:25,893 basehttp 3289 6211383296 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 45707
+[INFO] 2026-05-14 07:08:48,971 logging 3289 6194556928 [req_1c13643eee27] GET /api/v1/company/vacancies
+[INFO] 2026-05-14 07:08:48,971 basehttp 3289 6194556928 "GET /api/v1/company/vacancies HTTP/1.1" 200 16241
+[INFO] 2026-05-14 07:08:48,981 logging 3289 6194556928 [req_b6ec7d1a45be] GET /api/v1/company/vacancies
+[INFO] 2026-05-14 07:08:48,982 basehttp 3289 6194556928 "GET /api/v1/company/vacancies HTTP/1.1" 200 16241
+[INFO] 2026-05-14 07:09:04,782 logging 3289 6194556928 [req_609a5a942b52] GET /api/v1/company/dashboard
+[INFO] 2026-05-14 07:09:04,782 basehttp 3289 6194556928 "GET /api/v1/company/dashboard HTTP/1.1" 200 1866
+[INFO] 2026-05-14 07:09:04,804 logging 3289 6194556928 [req_e9de3940dba4] GET /api/v1/company/dashboard
+[INFO] 2026-05-14 07:09:04,804 basehttp 3289 6194556928 "GET /api/v1/company/dashboard HTTP/1.1" 200 1866
+[INFO] 2026-05-14 07:09:13,716 logging 3289 6194556928 [req_ad75b2290f46] GET /api/v1/company/vacancies
+[INFO] 2026-05-14 07:09:13,717 basehttp 3289 6194556928 "GET /api/v1/company/vacancies HTTP/1.1" 200 16241
+[INFO] 2026-05-14 07:09:13,727 logging 3289 6194556928 [req_6d4c90297234] GET /api/v1/company/vacancies
+[INFO] 2026-05-14 07:09:13,728 basehttp 3289 6194556928 "GET /api/v1/company/vacancies HTTP/1.1" 200 16241
+[INFO] 2026-05-14 07:09:15,710 logging 3289 6194556928 [req_accdfd6720a9] GET /api/v1/company/dashboard
+[INFO] 2026-05-14 07:09:15,710 basehttp 3289 6194556928 "GET /api/v1/company/dashboard HTTP/1.1" 200 1866
+[INFO] 2026-05-14 07:09:15,732 logging 3289 6194556928 [req_7d0f779c439f] GET /api/v1/company/dashboard
+[INFO] 2026-05-14 07:09:15,732 basehttp 3289 6194556928 "GET /api/v1/company/dashboard HTTP/1.1" 200 1866
+[INFO] 2026-05-14 07:09:20,502 logging 3289 6194556928 [req_23aecb80a004] GET /api/v1/company/vacancies
+[INFO] 2026-05-14 07:09:20,502 basehttp 3289 6194556928 "GET /api/v1/company/vacancies HTTP/1.1" 200 16241
+[INFO] 2026-05-14 07:09:20,513 logging 3289 6194556928 [req_01d046dde65f] GET /api/v1/company/vacancies
+[INFO] 2026-05-14 07:09:20,513 basehttp 3289 6194556928 "GET /api/v1/company/vacancies HTTP/1.1" 200 16241
+[INFO] 2026-05-14 07:09:23,866 logging 3289 6211383296 [req_0c7a4138264e] GET /api/v1/notifications
+[INFO] 2026-05-14 07:09:23,869 basehttp 3289 6211383296 "GET /api/v1/notifications HTTP/1.1" 200 427
+[INFO] 2026-05-14 07:09:23,875 logging 3289 6245036032 [req_27ff3d6ab557] GET /api/v1/company/profile
+[INFO] 2026-05-14 07:09:23,875 basehttp 3289 6245036032 "GET /api/v1/company/profile HTTP/1.1" 200 69755
+[INFO] 2026-05-14 07:09:23,884 logging 3289 6228209664 [req_0cf39b54559d] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:09:23,885 basehttp 3289 6228209664 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:09:23,894 logging 3289 6261862400 [req_1d1417caa38a] GET /api/v1/notifications
+[INFO] 2026-05-14 07:09:23,895 basehttp 3289 6261862400 "GET /api/v1/notifications HTTP/1.1" 200 427
+[INFO] 2026-05-14 07:09:23,900 logging 3289 6211383296 [req_3135fc13695f] GET /api/v1/company/profile
+[INFO] 2026-05-14 07:09:23,900 basehttp 3289 6211383296 "GET /api/v1/company/profile HTTP/1.1" 200 69755
+[INFO] 2026-05-14 07:09:23,905 logging 3289 6228209664 [req_feeb16d71795] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:09:23,905 basehttp 3289 6228209664 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:09:23,927 logging 3289 6211383296 [req_1a43cdc890db] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:09:23,927 basehttp 3289 6211383296 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:09:23,935 logging 3289 6194556928 [req_77d5e4f99797] GET /api/v1/company/dashboard
+[INFO] 2026-05-14 07:09:23,935 basehttp 3289 6194556928 "GET /api/v1/company/dashboard HTTP/1.1" 200 1866
+[INFO] 2026-05-14 07:09:23,936 logging 3289 6211383296 [req_2ee8c6df99ed] GET /api/v1/company/messages
+[INFO] 2026-05-14 07:09:23,937 basehttp 3289 6211383296 "GET /api/v1/company/messages HTTP/1.1" 200 226014
+[INFO] 2026-05-14 07:09:23,952 logging 3289 6194556928 [req_242c9418ea38] GET /api/v1/company/dashboard
+[INFO] 2026-05-14 07:09:23,952 basehttp 3289 6194556928 "GET /api/v1/company/dashboard HTTP/1.1" 200 1866
+[INFO] 2026-05-14 07:09:25,067 logging 3289 6194556928 [req_23841d53a6c4] GET /api/v1/company/vacancies
+[INFO] 2026-05-14 07:09:25,067 basehttp 3289 6194556928 "GET /api/v1/company/vacancies HTTP/1.1" 200 16241
+[INFO] 2026-05-14 07:09:25,076 logging 3289 6194556928 [req_2655dceeef29] GET /api/v1/company/vacancies
+[INFO] 2026-05-14 07:09:25,077 basehttp 3289 6194556928 "GET /api/v1/company/vacancies HTTP/1.1" 200 16241

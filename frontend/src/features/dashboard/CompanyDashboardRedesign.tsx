@@ -27,6 +27,12 @@ type CompanyDashboardRedesignProps = {
 
 const APPLICATION_STATUS_COLORS = ['#2563eb', '#7c3aed', '#10b981', '#ef4444', '#94a3b8']
 
+type ApplicationStatusDatum = {
+  name: string
+  value: number
+  color: string
+}
+
 function formatJobStatus(status: string) {
   return status
     .split('_')
@@ -256,43 +262,74 @@ export function CompanyDashboardRedesign({ loading, error, data }: CompanyDashbo
               <CardContent className="space-y-4">
                 {applicationStatusData.length > 0 ? (
                   <>
-                    <div className="relative h-[280px] w-full">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                          <Pie
-                            data={applicationStatusData}
-                            dataKey="value"
-                            nameKey="name"
-                            cx="50%"
-                            cy="50%"
-                            innerRadius={72}
-                            outerRadius={104}
-                            paddingAngle={3}
-                            strokeWidth={0}
-                          >
-                            {applicationStatusData.map((entry) => (
-                              <Cell key={entry.name} fill={entry.color} />
-                            ))}
-                          </Pie>
-                          <Tooltip formatter={(value) => [value, 'Applications']} />
-                        </PieChart>
-                      </ResponsiveContainer>
-                      <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
-                        <span className="text-3xl font-bold tracking-tight">{totalApplications}</span>
-                        <span className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">Applications</span>
-                      </div>
-                    </div>
+                    <div className="grid gap-6 md:grid-cols-[minmax(0,300px)_minmax(220px,1fr)] md:items-center">
+                      <div className="relative h-[280px] w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <PieChart>
+                            <Pie
+                              data={applicationStatusData}
+                              dataKey="value"
+                              nameKey="name"
+                              cx="50%"
+                              cy="50%"
+                              innerRadius={72}
+                              outerRadius={104}
+                              paddingAngle={3}
+                              strokeWidth={0}
+                            >
+                              {applicationStatusData.map((entry) => (
+                                <Cell key={entry.name} fill={entry.color} />
+                              ))}
+                            </Pie>
+                            <Tooltip
+                              content={({ active, payload }) => {
+                                if (!active || !payload?.length) {
+                                  return null
+                                }
 
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      {applicationStatusData.map((item) => (
-                        <div key={item.name} className="flex items-center justify-between rounded-xl border border-border bg-muted/20 px-3 py-2">
-                          <div className="flex items-center gap-2">
-                            <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: item.color }} />
-                            <span className="text-sm text-muted-foreground">{item.name}</span>
-                          </div>
-                          <span className="text-sm font-semibold">{item.value}</span>
+                                const item = payload[0]?.payload
+                                if (
+                                  !item ||
+                                  typeof item !== 'object' ||
+                                  !('name' in item) ||
+                                  !('value' in item) ||
+                                  !('color' in item)
+                                ) {
+                                  return null
+                                }
+
+                                const datum = item as ApplicationStatusDatum
+
+                                return (
+                                  <div className="rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-lg">
+                                    <div className="flex items-center gap-2">
+                                      <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: datum.color }} />
+                                      <span className="text-sm font-medium text-slate-900">{datum.name}</span>
+                                    </div>
+                                    <p className="mt-1 text-xs text-slate-500">{datum.value} applications</p>
+                                  </div>
+                                )
+                              }}
+                            />
+                          </PieChart>
+                        </ResponsiveContainer>
+                        <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
+                          <span className="text-3xl font-bold tracking-tight">{totalApplications}</span>
+                          <span className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">Applications</span>
                         </div>
-                      ))}
+                      </div>
+
+                      <div className="space-y-3">
+                        {applicationStatusData.map((item) => (
+                          <div key={item.name} className="flex items-center justify-between rounded-xl border border-border bg-muted/20 px-3 py-2">
+                            <div className="flex items-center gap-2">
+                              <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: item.color }} />
+                              <span className="text-sm text-muted-foreground">{item.name}</span>
+                            </div>
+                            <span className="text-sm font-semibold">{item.value}</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </>
                 ) : (
