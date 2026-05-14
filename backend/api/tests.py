@@ -3850,6 +3850,52 @@ class ApiFoundationTests(TestCase):
 
         self.assertEqual(response.status_code, 403)
 
+    def test_company_user_can_access_company_courses_catalog(self):
+        company = Company.objects.create(name="Softverse")
+        company_user = User.objects.create_user(
+            email="company@example.com",
+            password="SecurePass123!",
+            full_name="Company User",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+        active_course = Course.objects.create(
+            title="Backend Foundations",
+            description="Backend path",
+            category="backend",
+            difficulty_level="beginner",
+            estimated_hours=12,
+            status=Course.Status.ACTIVE,
+        )
+        Lesson.objects.create(
+            course=active_course,
+            title="Intro to APIs",
+            summary="Overview",
+            content="Content",
+            sequence_number=1,
+            status=Lesson.Status.ACTIVE,
+        )
+        Course.objects.create(
+            title="Hidden Draft Course",
+            description="Draft",
+            category="backend",
+            difficulty_level="advanced",
+            estimated_hours=8,
+            status=Course.Status.DRAFT,
+        )
+
+        client = Client()
+        client.force_login(company_user)
+        response = client.get("/api/v1/company/courses")
+
+        self.assertEqual(response.status_code, 200)
+        body = response.json()["data"]
+        self.assertEqual(body["result_count"], 1)
+        self.assertEqual(body["courses"][0]["title"], "Backend Foundations")
+        self.assertEqual(body["courses"][0]["lesson_count"], 1)
+        self.assertEqual(body["courses"][0]["is_enrolled"], False)
+        self.assertEqual(body["courses"][0]["next_step_href"], "/company/courses")
+
     def test_company_user_cannot_enroll_in_student_course(self):
         company = Company.objects.create(name="Softverse")
         company_user = User.objects.create_user(
@@ -4617,6 +4663,59 @@ class ApiFoundationTests(TestCase):
             share_learning_record=True,
             share_exam_results=False,
         )
+        profile = StudentProfile.objects.create(
+            user=student,
+            about_me="Focused on backend engineering.",
+            profile_image="data:image/png;base64,profile",
+            cover_image="data:image/png;base64,cover",
+        )
+        skill, _ = Skill.objects.get_or_create(name="Python")
+        StudentSkill.objects.create(student=student, skill=skill, proficiency_level=StudentSkill.Proficiency.ADVANCED)
+        StudentEducation.objects.create(
+            student=student,
+            institution="Softlearn University",
+            field_of_study="Computer Science",
+            start_date="2022-01-01",
+            completion_status=StudentEducation.CompletionStatus.IN_PROGRESS,
+            grade="A",
+            activities="Tech club",
+            description="Studied backend development.",
+        )
+        education = StudentEducation.objects.get(student=student)
+        education.skills.add(skill)
+        StudentExperience.objects.create(
+            student=student,
+            organization="Softverse",
+            role_title="Intern",
+            experience_type=StudentExperience.ExperienceType.INTERNSHIP,
+            start_date="2024-01-01",
+            summary="Worked on student-facing flows.",
+        )
+        experience = StudentExperience.objects.get(student=student)
+        experience.skills.add(skill)
+        certificate = StudentCertificate.objects.create(
+            student=student,
+            name="Cloud Basics",
+            issuer="Softlearn Academy",
+            issue_date="2024-06-01",
+            credential_id="CERT-1",
+            credential_url="https://example.com/certificates/1",
+            description="Foundational cloud certification.",
+        )
+        certificate.skills.add(skill)
+        StudentResume.objects.create(
+            student=student,
+            display_name="Main Resume",
+            file_name="resume.pdf",
+            source_type=StudentResume.SourceType.UPLOADED,
+            is_active=True,
+        )
+        StudentAvailabilityProfile.objects.create(
+            student=student,
+            job_search_status=StudentAvailabilityProfile.JobSearchStatus.OPEN_TO_OFFERS,
+            earliest_start_date="2025-06-01",
+            interview_availability="Weekday evenings",
+        )
         candidate_access = CandidateReviewAccess.objects.create(
             company=company,
             student=student,
@@ -4651,6 +4750,17 @@ class ApiFoundationTests(TestCase):
         body = response.json()["data"]
         self.assertIsNotNone(body["shortlist"])
         self.assertEqual(len(body["notes"]), 1)
+        self.assertEqual(body["visibility"], "visible")
+        self.assertEqual(body["student"]["about_me"], profile.about_me)
+        self.assertEqual(body["student"]["profile_image"], profile.profile_image)
+        self.assertEqual(body["student"]["cover_image"], profile.cover_image)
+        self.assertEqual(len(body["student"]["education_records"]), 1)
+        self.assertEqual(len(body["student"]["experience_records"]), 1)
+        self.assertEqual(len(body["student"]["certificates"]), 1)
+        self.assertEqual(len(body["student"]["resumes"]), 1)
+        self.assertTrue(body["student"]["availability"]["availability_set"])
+        self.assertTrue(body["student"]["profile_extension_summary"]["has_active_resume"])
+        self.assertEqual(body["student"]["skills"][0]["skill_name"], "Python")
 
     def test_company_can_request_interview_from_shortlisted_candidate_context(self):
         company = Company.objects.create(name="Softverse")

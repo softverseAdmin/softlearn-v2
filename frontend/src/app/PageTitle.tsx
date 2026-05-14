@@ -29,6 +29,7 @@ const titledRoutes = [
   { path: '/company', title: 'Company dashboard' },
   { path: '/company/notifications', title: 'Company notifications' },
   { path: '/company/applications', title: 'Company applications' },
+  { path: '/company/courses', title: 'Company courses' },
   { path: '/company/profile', title: 'Company profile' },
   { path: '/company/candidates', title: 'Candidates' },
   { path: '/company/candidates/:candidateAccessId', title: 'Candidate details' },

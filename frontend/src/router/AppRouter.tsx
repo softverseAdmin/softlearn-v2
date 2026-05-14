@@ -11,6 +11,7 @@ import { NotificationsPage } from '../features/notifications/NotificationsPage'
 import { CompanyApplicationsPage } from '../features/profile/CompanyApplicationsPage'
 import { CompanyCandidateDetailPage } from '../features/profile/CompanyCandidateDetailPage'
 import { CompanyCandidatesPage } from '../features/profile/CompanyCandidatesPage'
+import { CompanyCourseCatalogPage } from '../features/profile/CompanyCourseCatalogPage'
 import { CompanyInterviewDetailPage } from '../features/profile/CompanyInterviewDetailPage'
 import { CompanyInterviewsPage } from '../features/profile/CompanyInterviewsPage'
 import { CompanyMessagesPage } from '../features/profile/CompanyMessagesPage'
@@ -108,6 +109,7 @@ export function AppRouter() {
             <Route path="/company/notifications" element={<NotificationsPage />} />
             <Route path="/company/messages" element={<CompanyMessagesPage />} />
             <Route path="/company/applications" element={<CompanyApplicationsPage />} />
+            <Route path="/company/courses" element={<CompanyCourseCatalogPage />} />
             <Route path="/company/jobs" element={<CompanyPostJobsPage />} />
             <Route path="/company/profile" element={<CompanyProfilePage />} />
             <Route path="/company/candidates" element={<CompanyCandidatesPage />} />

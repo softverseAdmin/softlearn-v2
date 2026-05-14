@@ -1560,6 +1560,30 @@ def serialize_student_course_summary(
     }
 
 
+def serialize_company_course_summary(
+    course: Course,
+    *,
+    lesson_count: int = 0,
+) -> dict:
+    return {
+        "course_id": course.id,
+        "title": course.title,
+        "description": course.description,
+        "category": course.category,
+        "difficulty_level": course.difficulty_level,
+        "estimated_hours": course.estimated_hours,
+        "status": course.status,
+        "lesson_count": lesson_count,
+        "is_enrolled": False,
+        "enrollment_status": None,
+        "progress_percent": None,
+        "readiness_cues": build_course_readiness_cues(course),
+        "detail_href": "/company/courses",
+        "next_step_label": "View course",
+        "next_step_href": "/company/courses",
+    }
+
+
 def serialize_student_course_detail(
     course: Course,
     *,
@@ -4687,6 +4711,29 @@ def student_courses_view(request):
     )
 
 
+@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.COMPANY])
+def company_courses_view(request):
+    courses = list(visible_student_courses_queryset())
+    lesson_counts = {
+        item["course_id"]: item["lesson_count"]
+        for item in Lesson.objects.filter(course_id__in=[course.id for course in courses], status=Lesson.Status.ACTIVE)
+        .values("course_id")
+        .annotate(lesson_count=Count("id"))
+    }
+    return success_response(
+        {
+            "result_count": len(courses),
+            "courses": [
+                serialize_company_course_summary(
+                    course,
+                    lesson_count=lesson_counts.get(course.id, 0),
+                )
+                for course in courses
+            ],
+        }
+    )
+
+
 @api_endpoint(["GET"], authentication_required=True, roles=[User.Role.STUDENT])
 def student_course_detail_view(request, course_id: int):
     course = get_visible_student_course(course_id)
@@ -6259,24 +6306,19 @@ def company_candidate_preview_view(request, candidate_access_id: int):
             }
         )
 
-    student_profile = get_student_profile(candidate_access.student)
     student_skills = list(
         StudentSkill.objects.filter(student=candidate_access.student)
         .select_related("skill")
         .order_by("skill__name")
     )
+    serialized_profile = serialize_student_profile(candidate_access.student)
     return success_response(
         {
             "candidate_access_id": candidate_access.id,
             "source": candidate_access.source,
             "visibility": "visible",
             "student": {
-                "student_id": candidate_access.student_id,
-                "name": candidate_access.student.full_name,
-                "desired_job_type": student_profile.desired_job_type,
-                "desired_work_location": student_profile.desired_work_location,
-                "japanese_level": student_profile.japanese_level,
-                "english_level": student_profile.english_level,
+                **serialized_profile,
                 "skills": [serialize_student_skill(student_skill) for student_skill in student_skills],
             },
             "shortlist": serialize_candidate_shortlist(shortlist_entry),

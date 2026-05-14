@@ -718,15 +718,7 @@ export interface CompanyCandidatePreviewResponse {
   visibility: string
   shortlist: CandidateShortlist | null
   notes: CandidateNote[]
-  student: {
-    student_id: number
-    name: string
-    desired_job_type: string
-    desired_work_location: string
-    japanese_level: string
-    english_level: string
-    skills: StudentSkill[]
-  } | null
+  student: (StudentProfile & { skills: StudentSkill[] }) | null
   restrictions: string[]
 }
 
