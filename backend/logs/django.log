@@ -47455,3 +47455,23 @@ django.db.utils.OperationalError: database is locked
 [INFO] 2026-05-14 01:00:39,535 logging 73013 6128119808 [req_75e1bd8285f5] POST /api/v1/metrics/web-vitals
 [WARNING] 2026-05-14 01:00:39,535 log 73013 6128119808 Not Found: /api/v1/metrics/web-vitals
 [WARNING] 2026-05-14 01:00:39,535 basehttp 73013 6128119808 "POST /api/v1/metrics/web-vitals HTTP/1.1" 404 44145
+[INFO] 2026-05-14 01:01:02,631 logging 73013 6128119808 [req_77e9a2bba3ca] GET /api/v1/auth/session
+[INFO] 2026-05-14 01:01:02,632 basehttp 73013 6128119808 "GET /api/v1/auth/session HTTP/1.1" 200 266
+[INFO] 2026-05-14 01:01:02,647 logging 73013 6128119808 [req_565cd99887a1] GET /api/v1/auth/session
+[INFO] 2026-05-14 01:01:02,647 basehttp 73013 6128119808 "GET /api/v1/auth/session HTTP/1.1" 200 266
+[INFO] 2026-05-14 01:01:02,665 logging 73013 6128119808 [req_08c1c21af961] GET /api/v1/student/messages
+[INFO] 2026-05-14 01:01:02,665 basehttp 73013 6128119808 "GET /api/v1/student/messages HTTP/1.1" 200 1020
+[INFO] 2026-05-14 01:01:02,672 logging 73013 6144946176 [req_4a16b72cf755] GET /api/v1/student/messages/contacts
+[INFO] 2026-05-14 01:01:02,672 basehttp 73013 6144946176 "GET /api/v1/student/messages/contacts HTTP/1.1" 200 206
+[INFO] 2026-05-14 01:01:02,678 logging 73013 6144946176 [req_26d075a676a6] GET /api/v1/student/messages/contacts
+[INFO] 2026-05-14 01:01:02,678 basehttp 73013 6144946176 "GET /api/v1/student/messages/contacts HTTP/1.1" 200 206
+[INFO] 2026-05-14 01:01:02,682 logging 73013 6161772544 [req_50459e5bbda4] GET /api/v1/notifications
+[INFO] 2026-05-14 01:01:02,682 basehttp 73013 6161772544 "GET /api/v1/notifications HTTP/1.1" 200 50
+[INFO] 2026-05-14 01:01:02,685 logging 73013 6128119808 [req_ccc1a25f9f8b] GET /api/v1/student/messages
+[INFO] 2026-05-14 01:01:02,685 basehttp 73013 6128119808 "GET /api/v1/student/messages HTTP/1.1" 200 1020
+[INFO] 2026-05-14 01:01:02,691 logging 73013 6178598912 [req_0c2e338e17bb] GET /api/v1/student/profile
+[INFO] 2026-05-14 01:01:02,691 basehttp 73013 6178598912 "GET /api/v1/student/profile HTTP/1.1" 200 187299
+[INFO] 2026-05-14 01:01:02,696 logging 73013 6144946176 [req_f275f587634e] GET /api/v1/notifications
+[INFO] 2026-05-14 01:01:02,696 basehttp 73013 6144946176 "GET /api/v1/notifications HTTP/1.1" 200 50
+[INFO] 2026-05-14 01:01:02,699 logging 73013 6128119808 [req_440def60bbbf] GET /api/v1/student/profile
+[INFO] 2026-05-14 01:01:02,700 basehttp 73013 6128119808 "GET /api/v1/student/profile HTTP/1.1" 200 187299
