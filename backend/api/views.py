@@ -35,6 +35,8 @@ from users.models import (
     Lesson,
     LessonProgress,
     LearningRecord,
+    Message,
+    MessageThread,
     MockExam,
     MockExamAttempt,
     MockExamAttemptAnswer,
@@ -695,6 +697,180 @@ def recent_notifications_for_user(user: User, *, limit: int = 5) -> list[dict]:
         .order_by("-created_at", "-id")[:limit]
     )
     return [serialize_notification(notification) for notification in notifications]
+
+
+def message_sender_display_name(message: Message, viewer: User) -> str:
+    if message.sender_id == viewer.id:
+        return "You"
+    if message.sender is not None and message.sender.full_name.strip():
+        return message.sender.full_name
+    return message.sender_name
+
+
+def message_thread_company_name(thread: MessageThread) -> str:
+    if thread.company_name.strip():
+        return thread.company_name
+    if thread.participant_user is not None and thread.participant_user.company is not None:
+        return thread.participant_user.company.name
+    return "External conversation"
+
+
+def message_thread_role_label(thread: MessageThread) -> str:
+    if thread.role_label.strip():
+        return thread.role_label
+    if thread.participant_user is not None:
+        return thread.participant_user.role.replace("_", " ").title()
+    return "Contact"
+
+
+def serialize_message_record(message: Message, viewer: User) -> dict:
+    is_self = message.sender_id == viewer.id
+    return {
+        "id": message.id,
+        "author": "self" if is_self else "other",
+        "sender": message_sender_display_name(message, viewer),
+        "body": message.body,
+        "sent_at": message.created_at.isoformat(),
+        "status": message.get_delivery_status_display() if is_self else None,
+    }
+
+
+def serialize_message_thread(thread: MessageThread, *, viewer: User, include_messages: bool = True) -> dict:
+    data = {
+        "id": thread.id,
+        "participant_name": thread.participant_name,
+        "company_name": message_thread_company_name(thread),
+        "role_label": message_thread_role_label(thread),
+        "category": thread.category,
+        "is_unread": thread.is_unread,
+        "is_pinned": thread.is_pinned,
+        "is_starred": thread.is_starred,
+        "last_activity": thread.last_message_at.isoformat() if thread.last_message_at else thread.updated_at.isoformat(),
+        "preview": thread.last_message_preview,
+    }
+    if include_messages:
+        data["messages"] = [serialize_message_record(message, viewer) for message in thread.messages.all()]
+    return data
+
+
+def student_message_threads_queryset(user: User):
+    return (
+        MessageThread.objects.filter(student=user)
+        .select_related("participant_user", "participant_user__company", "last_message_sender")
+        .prefetch_related("messages__sender")
+        .order_by("-is_pinned", "-last_message_at", "-updated_at", "-id")
+    )
+
+
+def serialize_student_messages(user: User) -> dict:
+    threads = list(student_message_threads_queryset(user))
+    return {
+        "student_id": user.id,
+        "thread_count": len(threads),
+        "unread_count": sum(1 for thread in threads if thread.is_unread),
+        "starred_count": sum(1 for thread in threads if thread.is_starred),
+        "threads": [serialize_message_thread(thread, viewer=user) for thread in threads],
+    }
+
+
+def compose_contact_role_label_for_user(user: User, member_roles: dict[int, str]) -> str:
+    member_role = member_roles.get(user.id)
+    if member_role:
+        return member_role.replace("_", " ").title()
+    return "Company contact"
+
+
+def serialize_message_compose_contact(
+    *,
+    participant_name: str,
+    company_name: str,
+    role_label: str,
+    participant_user_id: int | None = None,
+    source: str,
+) -> dict:
+    return {
+        "participant_name": participant_name,
+        "company_name": company_name,
+        "role_label": role_label,
+        "participant_user_id": participant_user_id,
+        "source": source,
+    }
+
+
+def serialize_student_message_compose_contacts(user: User) -> dict:
+    contacts_by_key: dict[str, dict] = {}
+    threads = list(
+        MessageThread.objects.filter(student=user)
+        .select_related("participant_user", "participant_user__company")
+        .order_by("-updated_at", "-id")
+    )
+
+    for thread in threads:
+        participant_user_id = thread.participant_user_id
+        key = f"user:{participant_user_id}" if participant_user_id else f"thread:{thread.participant_name}:{thread.company_name}:{thread.role_label}"
+        contacts_by_key[key] = serialize_message_compose_contact(
+            participant_name=thread.participant_name,
+            company_name=message_thread_company_name(thread),
+            role_label=message_thread_role_label(thread),
+            participant_user_id=participant_user_id,
+            source="thread",
+        )
+
+    application_company_ids = set(Application.objects.filter(student=user).values_list("company_id", flat=True))
+    interview_company_ids = set(Interview.objects.filter(student=user).values_list("company_id", flat=True))
+    company_ids = application_company_ids | interview_company_ids
+
+    if company_ids:
+        member_roles = {
+            member.user_id: member.role
+            for member in CompanyMember.objects.filter(company_id__in=company_ids).only("user_id", "role")
+        }
+        company_users = list(
+            User.objects.filter(role=User.Role.COMPANY, company_id__in=company_ids, is_active=True)
+            .select_related("company")
+            .order_by("full_name", "id")
+        )
+
+        for company_user in company_users:
+            if company_user.company is None:
+                continue
+            key = f"user:{company_user.id}"
+            contacts_by_key[key] = serialize_message_compose_contact(
+                participant_name=company_user.full_name,
+                company_name=company_user.company.name,
+                role_label=compose_contact_role_label_for_user(company_user, member_roles),
+                participant_user_id=company_user.id,
+                source="company_directory",
+            )
+
+    contacts = sorted(
+        contacts_by_key.values(),
+        key=lambda item: (item["participant_name"].lower(), item["company_name"].lower(), item["role_label"].lower()),
+    )
+    return {
+        "student_id": user.id,
+        "contact_count": len(contacts),
+        "contacts": contacts,
+    }
+
+
+def refresh_message_thread_activity(thread: MessageThread, message: Message) -> None:
+    thread.last_message_preview = message.body[:255]
+    thread.last_message_at = message.created_at
+    thread.last_message_sender = message.sender
+
+    update_fields = [
+        "last_message_preview",
+        "last_message_at",
+        "last_message_sender",
+        "updated_at",
+    ]
+    if message.sender_id == thread.student_id:
+        thread.last_read_at = message.created_at
+        update_fields.append("last_read_at")
+
+    thread.full_clean()
+    thread.save(update_fields=update_fields)
 
 
 def roadmap_title_for_record(record: LearningRecord) -> str:
@@ -1994,6 +2170,127 @@ def validate_student_privacy_settings_payload(payload: dict) -> dict:
             errors[field] = ["This field must be a boolean."]
         else:
             cleaned[field] = value
+
+    if errors:
+        raise ValidationError(errors)
+
+    return cleaned
+
+
+def validate_student_message_thread_payload(payload: dict) -> dict:
+    cleaned = {}
+    errors = {}
+
+    participant_name = payload.get("participant_name")
+    if not isinstance(participant_name, str) or not participant_name.strip():
+        errors["participant_name"] = ["This field is required."]
+    else:
+        cleaned["participant_name"] = participant_name.strip()
+
+    message = payload.get("message")
+    if not isinstance(message, str) or not message.strip():
+        errors["message"] = ["This field is required."]
+    else:
+        cleaned["message"] = message.strip()
+
+    company_name = payload.get("company_name", "")
+    if company_name is None:
+        company_name = ""
+    if not isinstance(company_name, str):
+        errors["company_name"] = ["Company name must be a string."]
+    else:
+        cleaned["company_name"] = company_name.strip()
+
+    role_label = payload.get("role_label", "")
+    if role_label is None:
+        role_label = ""
+    if not isinstance(role_label, str):
+        errors["role_label"] = ["Role label must be a string."]
+    else:
+        cleaned["role_label"] = role_label.strip()
+
+    participant_user = None
+    raw_participant_user_id = payload.get("participant_user_id")
+    if raw_participant_user_id not in (None, ""):
+        try:
+            participant_user = User.objects.select_related("company").get(pk=int(raw_participant_user_id), role=User.Role.COMPANY)
+        except (TypeError, ValueError):
+            errors["participant_user_id"] = ["A valid participant_user_id is required."]
+        except User.DoesNotExist:
+            errors["participant_user_id"] = ["Selected participant user does not exist."]
+
+    category = payload.get("category", MessageThread.Category.APPLICATIONS)
+    valid_categories = {choice for choice, _ in MessageThread.Category.choices}
+    if category not in valid_categories:
+        errors["category"] = ["Category must be one of: applications, interviews, support."]
+    else:
+        cleaned["category"] = category
+
+    if errors:
+        raise ValidationError(errors)
+
+    cleaned["participant_user"] = participant_user
+    return cleaned
+
+
+def validate_student_message_compose_contact_access(user: User, participant_user: User | None) -> None:
+    if participant_user is None or participant_user.company_id is None:
+        return
+
+    related_company_ids = set(Application.objects.filter(student=user).values_list("company_id", flat=True)) | set(
+        Interview.objects.filter(student=user).values_list("company_id", flat=True)
+    )
+    if participant_user.company_id not in related_company_ids:
+        raise ValidationError({"participant_user_id": ["Selected contact is not available for this student."]})
+
+
+def find_existing_message_thread(user: User, payload: dict) -> MessageThread | None:
+    participant_user = payload["participant_user"]
+    if participant_user is not None:
+        return (
+            MessageThread.objects.filter(student=user, participant_user=participant_user)
+            .order_by("-updated_at", "-id")
+            .first()
+        )
+
+    return (
+        MessageThread.objects.filter(
+            student=user,
+            participant_user__isnull=True,
+            participant_name=payload["participant_name"],
+            company_name=payload["company_name"],
+            role_label=payload["role_label"],
+        )
+        .order_by("-updated_at", "-id")
+        .first()
+    )
+
+
+def validate_student_message_payload(payload: dict) -> dict:
+    body = payload.get("body")
+    if not isinstance(body, str) or not body.strip():
+        raise ValidationError({"body": ["This field is required."]})
+    return {"body": body.strip()}
+
+
+def validate_student_message_thread_update_payload(payload: dict) -> dict:
+    cleaned = {}
+    errors = {}
+
+    if "is_starred" in payload:
+        if not isinstance(payload.get("is_starred"), bool):
+            errors["is_starred"] = ["This field must be a boolean."]
+        else:
+            cleaned["is_starred"] = payload["is_starred"]
+
+    if "mark_as_read" in payload:
+        if not isinstance(payload.get("mark_as_read"), bool):
+            errors["mark_as_read"] = ["This field must be a boolean."]
+        else:
+            cleaned["mark_as_read"] = payload["mark_as_read"]
+
+    if not cleaned and not errors:
+        errors["non_field_errors"] = ["At least one updatable field is required."]
 
     if errors:
         raise ValidationError(errors)
@@ -4788,6 +5085,116 @@ def student_privacy_settings_view(request):
     record_visibility_event(request.user, settings)
 
     return success_response(serialize_student_privacy_settings(request.user))
+
+
+@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.STUDENT])
+def student_messages_view(request):
+    return success_response(serialize_student_messages(request.user))
+
+
+@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.STUDENT])
+def student_message_compose_contacts_view(request):
+    return success_response(serialize_student_message_compose_contacts(request.user))
+
+
+@api_endpoint(["POST"], authentication_required=True, roles=[User.Role.STUDENT])
+def student_message_threads_view(request):
+    payload = validate_student_message_thread_payload(parse_json_body(request))
+    validate_student_message_compose_contact_access(request.user, payload["participant_user"])
+
+    with transaction.atomic():
+        thread = find_existing_message_thread(request.user, payload)
+        created = thread is None
+        if created:
+            thread = MessageThread(
+                student=request.user,
+                participant_user=payload["participant_user"],
+                participant_name=payload["participant_name"],
+                company_name=payload["company_name"],
+                role_label=payload["role_label"],
+                category=payload["category"],
+            )
+            thread.full_clean()
+            thread.save()
+
+        message = Message(
+            thread=thread,
+            sender=request.user,
+            sender_name=request.user.full_name,
+            body=payload["message"],
+            delivery_status=Message.DeliveryStatus.SENT,
+        )
+        message.full_clean()
+        message.save()
+        refresh_message_thread_activity(thread, message)
+
+    serialized_thread = student_message_threads_queryset(request.user).filter(pk=thread.id).first()
+    return success_response(serialize_message_thread(serialized_thread, viewer=request.user), status=201 if created else 200)
+
+
+@api_endpoint(["PUT", "DELETE"], authentication_required=True, roles=[User.Role.STUDENT])
+def student_message_thread_detail_view(request, thread_id: int):
+    thread = MessageThread.objects.filter(student=request.user, pk=thread_id).first()
+    if thread is None:
+        return error_response(
+            request,
+            "NOT_FOUND",
+            "The requested message thread was not found.",
+            details={"thread_id": [str(thread_id)]},
+            status=404,
+        )
+
+    if request.method == "DELETE":
+        thread.delete()
+        return success_response({"thread_id": thread_id, "deleted": True})
+
+    payload = validate_student_message_thread_update_payload(parse_json_body(request))
+    update_fields = []
+
+    if "is_starred" in payload:
+        thread.is_starred = payload["is_starred"]
+        update_fields.append("is_starred")
+
+    if payload.get("mark_as_read"):
+        thread.last_read_at = timezone.now()
+        update_fields.append("last_read_at")
+
+    if update_fields:
+        thread.full_clean()
+        thread.save(update_fields=[*update_fields, "updated_at"])
+
+    serialized_thread = student_message_threads_queryset(request.user).filter(pk=thread.id).first()
+    return success_response(serialize_message_thread(serialized_thread, viewer=request.user))
+
+
+@api_endpoint(["POST"], authentication_required=True, roles=[User.Role.STUDENT])
+def student_message_thread_messages_view(request, thread_id: int):
+    thread = MessageThread.objects.filter(student=request.user, pk=thread_id).first()
+    if thread is None:
+        return error_response(
+            request,
+            "NOT_FOUND",
+            "The requested message thread was not found.",
+            details={"thread_id": [str(thread_id)]},
+            status=404,
+        )
+
+    payload = validate_student_message_payload(parse_json_body(request))
+
+    with transaction.atomic():
+        message = Message(
+            thread=thread,
+            sender=request.user,
+            sender_name=request.user.full_name,
+            body=payload["body"],
+            delivery_status=Message.DeliveryStatus.SENT,
+        )
+        message.full_clean()
+        message.save()
+        refresh_message_thread_activity(thread, message)
+
+    serialized_thread = student_message_threads_queryset(request.user).filter(pk=thread.id).first()
+    return success_response(serialize_message_thread(serialized_thread, viewer=request.user))
 
 
 @api_endpoint(["GET"], authentication_required=True, roles=[User.Role.STUDENT])

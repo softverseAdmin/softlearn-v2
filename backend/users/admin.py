@@ -22,6 +22,8 @@ from users.models import (
     Lesson,
     LessonProgress,
     LearningRecord,
+    Message,
+    MessageThread,
     MockExamAttempt,
     MockExamAttemptAnswer,
     Notification,
@@ -289,6 +291,20 @@ class NotificationDeliveryAdmin(admin.ModelAdmin):
     list_display = ("id", "notification", "channel", "status", "created_at")
     list_filter = ("channel", "status")
     search_fields = ("notification__recipient__email", "payload_summary")
+
+
+@admin.register(MessageThread)
+class MessageThreadAdmin(admin.ModelAdmin):
+    list_display = ("id", "student", "participant_name", "category", "is_starred", "last_message_at", "updated_at")
+    list_filter = ("category", "is_starred", "is_pinned")
+    search_fields = ("student__email", "student__full_name", "participant_name", "company_name", "role_label")
+
+
+@admin.register(Message)
+class MessageAdmin(admin.ModelAdmin):
+    list_display = ("id", "thread", "sender_name", "delivery_status", "created_at")
+    list_filter = ("delivery_status",)
+    search_fields = ("thread__student__email", "thread__participant_name", "sender_name", "body")
 
 
 @admin.register(Vacancy)
