@@ -119,6 +119,34 @@ export interface CompanyHiringPreferences {
   max_salary: number | null
 }
 
+export interface VacancyPostingDetails {
+  job_highlights: string
+  responsibilities: string
+  role_change_scope: string
+  required_experience: string
+  preferred_experience: string
+  culture_and_other: string
+  employment_term: string
+  probation_period: string
+  probation_conditions: string
+  contract_renewal: string
+  working_hours: string
+  break_time: string
+  flex_time: string
+  overtime: string
+  compensation_type: string
+  planned_annual_salary: string
+  monthly_salary: string
+  overtime_pay: string
+  interview_rounds: string
+  selection_method: string
+  location_change_scope: string
+  nearest_station: string
+  allowances: string
+  insurance: string
+  notes: string
+}
+
 export interface CompanyMember {
   id: number
   user_id: number
@@ -142,6 +170,7 @@ export interface VacancyRecord {
   relocation_support: boolean
   min_salary: number | null
   max_salary: number | null
+  posting_details: VacancyPostingDetails
   skill_requirements: VacancySkillRequirement[]
   language_requirements: VacancyLanguageRequirement[]
   is_bookmarked: boolean

@@ -14,6 +14,7 @@ import { CompanyCandidatesPage } from '../features/profile/CompanyCandidatesPage
 import { CompanyInterviewDetailPage } from '../features/profile/CompanyInterviewDetailPage'
 import { CompanyInterviewsPage } from '../features/profile/CompanyInterviewsPage'
 import { CompanyMessagesPage } from '../features/profile/CompanyMessagesPage'
+import { CompanyPostJobsPage } from '../features/profile/CompanyPostJobsPage'
 import { CompanyProfilePage } from '../features/profile/CompanyProfilePage'
 import { CompanyShortlistPage } from '../features/profile/CompanyShortlistPage'
 import { CompanyVacancyMatchesPage } from '../features/profile/CompanyVacancyMatchesPage'
@@ -107,6 +108,7 @@ export function AppRouter() {
             <Route path="/company/notifications" element={<NotificationsPage />} />
             <Route path="/company/messages" element={<CompanyMessagesPage />} />
             <Route path="/company/applications" element={<CompanyApplicationsPage />} />
+            <Route path="/company/jobs" element={<CompanyPostJobsPage />} />
             <Route path="/company/profile" element={<CompanyProfilePage />} />
             <Route path="/company/candidates" element={<CompanyCandidatesPage />} />
             <Route path="/company/candidates/:candidateAccessId" element={<CompanyCandidateDetailPage />} />

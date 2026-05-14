@@ -67,10 +67,24 @@ export interface CompanyDashboardResponse {
       title: string
       status: string
       location: string
+      applications_count: number
+      posted_at: string
+      updated_at: string
       cta_label: string
       cta_href: string
     }>
   }
+  recent_job_postings: Array<{
+    vacancy_id: number
+    title: string
+    status: string
+    location: string
+    applications_count: number
+    posted_at: string
+    updated_at: string
+    cta_label: string
+    cta_href: string
+  }>
   interviews: {
     active_count: number
     completed_count: number
@@ -79,16 +93,25 @@ export interface CompanyDashboardResponse {
       student_name: string
       purpose: string
       status: string
+      scheduled_start: string | null
+      meeting_url: string | null
       timing_label: string
       cta_label: string
       cta_href: string
     }>
   }
+  application_status: {
+    submitted: number
+    under_review: number
+    shortlisted: number
+    rejected: number
+    withdrawn: number
+  }
   analytics: {
     candidates_to_review: number
     shortlisted_candidates: number
     active_jobs: number
-    unread_updates: number
+    hires: number
   }
 }
 

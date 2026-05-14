@@ -1888,6 +1888,44 @@ def serialize_choice_option(value: str, label: str) -> dict:
     }
 
 
+def default_vacancy_posting_details() -> dict:
+    return {
+        "job_highlights": "",
+        "responsibilities": "",
+        "role_change_scope": "",
+        "required_experience": "",
+        "preferred_experience": "",
+        "culture_and_other": "",
+        "employment_term": "",
+        "probation_period": "",
+        "probation_conditions": "",
+        "contract_renewal": "",
+        "working_hours": "",
+        "break_time": "",
+        "flex_time": "",
+        "overtime": "",
+        "compensation_type": "",
+        "planned_annual_salary": "",
+        "monthly_salary": "",
+        "overtime_pay": "",
+        "interview_rounds": "",
+        "selection_method": "",
+        "location_change_scope": "",
+        "nearest_station": "",
+        "allowances": "",
+        "insurance": "",
+        "notes": "",
+    }
+
+
+def serialize_vacancy_posting_details(value: dict | None) -> dict:
+    details = default_vacancy_posting_details()
+    if isinstance(value, dict):
+        for key in details:
+            details[key] = str(value.get(key, "")).strip()
+    return details
+
+
 def serialize_vacancy(vacancy: Vacancy, *, bookmarked_vacancy_ids: set[int] | None = None) -> dict:
     skill_requirements = list(vacancy.skill_requirements.all())
     language_requirements = list(vacancy.language_requirements.all())
@@ -1905,6 +1943,7 @@ def serialize_vacancy(vacancy: Vacancy, *, bookmarked_vacancy_ids: set[int] | No
         "relocation_support": vacancy.relocation_support,
         "min_salary": vacancy.min_salary,
         "max_salary": vacancy.max_salary,
+        "posting_details": serialize_vacancy_posting_details(vacancy.posting_details),
         "skill_requirements": [
             serialize_vacancy_skill_requirement(requirement) for requirement in skill_requirements
         ],
@@ -1987,6 +2026,9 @@ def serialize_company_dashboard_job(vacancy: Vacancy) -> dict:
         "title": vacancy.title,
         "status": vacancy.status,
         "location": vacancy.location,
+        "applications_count": getattr(vacancy, "applications_count", 0),
+        "posted_at": vacancy.created_at.isoformat(),
+        "updated_at": vacancy.updated_at.isoformat(),
         "cta_label": "Open vacancy",
         "cta_href": "/company/vacancies",
     }
@@ -2012,6 +2054,8 @@ def serialize_company_dashboard_interview(interview: Interview) -> dict:
         "student_name": interview.student.full_name,
         "purpose": interview.purpose,
         "status": interview.status,
+        "scheduled_start": interview.scheduled_start.isoformat() if interview.scheduled_start else None,
+        "meeting_url": interview.meeting_url or None,
         "timing_label": interview_timing_label(interview),
         "cta_label": "View interview",
         "cta_href": f"/company/interviews/{interview.id}",
@@ -3079,7 +3123,10 @@ def validate_vacancy_payload(payload: dict) -> dict:
         "work_style": str(payload.get("work_style", Vacancy.WorkStyle.ONSITE)).strip(),
         "status": str(payload.get("status", Vacancy.Status.DRAFT)).strip(),
     }
+    raw_posting_details = payload.get("posting_details", {})
     raw_relocation_support = payload.get("relocation_support", False)
+    raw_min_salary = payload.get("min_salary")
+    raw_max_salary = payload.get("max_salary")
     required_skills, required_skill_errors = validate_skill_selection_payload(
         payload.get("required_skill_ids", []),
         "required_skill_ids",
@@ -3092,6 +3139,13 @@ def validate_vacancy_payload(payload: dict) -> dict:
         payload.get("language_requirements", []),
     )
     errors = {}
+
+    posting_details = default_vacancy_posting_details()
+    if not isinstance(raw_posting_details, dict):
+        errors["posting_details"] = ["This field must be an object."]
+    else:
+        posting_details = serialize_vacancy_posting_details(raw_posting_details)
+
     for field in ("title", "description", "employment_type", "experience_level", "location"):
         if not cleaned[field]:
             errors[field] = ["This field is required."]
@@ -3102,6 +3156,27 @@ def validate_vacancy_payload(payload: dict) -> dict:
         errors["status"] = [f"Status must be one of: {', '.join(Vacancy.Status.values)}."]
     if not isinstance(raw_relocation_support, bool):
         errors["relocation_support"] = ["This field must be a boolean."]
+
+    min_salary = None
+    if raw_min_salary not in (None, ""):
+        try:
+            min_salary = int(raw_min_salary)
+        except (TypeError, ValueError):
+            errors["min_salary"] = ["This field must be an integer."]
+
+    max_salary = None
+    if raw_max_salary not in (None, ""):
+        try:
+            max_salary = int(raw_max_salary)
+        except (TypeError, ValueError):
+            errors["max_salary"] = ["This field must be an integer."]
+
+    if min_salary is not None and min_salary < 0:
+        errors["min_salary"] = ["This field must be zero or greater."]
+    if max_salary is not None and max_salary < 0:
+        errors["max_salary"] = ["This field must be zero or greater."]
+    if min_salary is not None and max_salary is not None and min_salary > max_salary:
+        errors["max_salary"] = ["Maximum salary must be greater than or equal to minimum salary."]
     if required_skill_errors:
         errors["required_skill_ids"] = required_skill_errors
     if preferred_skill_errors:
@@ -3119,6 +3194,9 @@ def validate_vacancy_payload(payload: dict) -> dict:
     return {
         **cleaned,
         "relocation_support": raw_relocation_support,
+        "min_salary": min_salary,
+        "max_salary": max_salary,
+        "posting_details": posting_details,
         "required_skills": required_skills,
         "preferred_skills": preferred_skills,
         "language_requirements": language_requirements,
@@ -5203,6 +5281,9 @@ def company_vacancies_view(request):
             location=payload["location"],
             work_style=payload["work_style"],
             relocation_support=payload["relocation_support"],
+            min_salary=payload["min_salary"],
+            max_salary=payload["max_salary"],
+            posting_details=payload["posting_details"],
             status=payload["status"],
         )
         vacancy.full_clean()
@@ -5237,6 +5318,9 @@ def company_vacancy_detail_view(request, vacancy_id: int):
     vacancy.location = payload["location"]
     vacancy.work_style = payload["work_style"]
     vacancy.relocation_support = payload["relocation_support"]
+    vacancy.min_salary = payload["min_salary"]
+    vacancy.max_salary = payload["max_salary"]
+    vacancy.posting_details = payload["posting_details"]
     vacancy.status = payload["status"]
     with transaction.atomic():
         vacancy.full_clean()
@@ -5249,6 +5333,9 @@ def company_vacancy_detail_view(request, vacancy_id: int):
                 "location",
                 "work_style",
                 "relocation_support",
+                "min_salary",
+                "max_salary",
+                "posting_details",
                 "status",
                 "updated_at",
             ]
@@ -6633,13 +6720,20 @@ def company_dashboard_view(request):
         .annotate(notes_count=Count("notes"))
         .order_by("-updated_at", "-id")
     )
+    applications = Application.objects.filter(company=company)
     active_jobs = list(
         Vacancy.objects.filter(company=company, status=Vacancy.Status.ACTIVE)
         .select_related("company", "created_by")
+        .annotate(applications_count=Count("applications"))
         .order_by("-updated_at", "-id")
     )
+    recent_job_postings = list(
+        Vacancy.objects.filter(company=company)
+        .select_related("company", "created_by")
+        .annotate(applications_count=Count("applications"))
+        .order_by("-created_at", "-id")
+    )
     shortlist_count = CandidateShortlist.objects.filter(company=company).count()
-    unread_notifications = Notification.objects.filter(recipient=request.user, read_at__isnull=True).count()
     active_interviews = [
         interview
         for interview in interviews
@@ -6657,16 +6751,24 @@ def company_dashboard_view(request):
                 "pipeline_summary": f"{len(candidates)} candidate review context{'s' if len(candidates) != 1 else ''} currently need attention.",
                 "jobs": [serialize_company_dashboard_job(vacancy) for vacancy in active_jobs[:4]],
             },
+            "recent_job_postings": [serialize_company_dashboard_job(vacancy) for vacancy in recent_job_postings[:5]],
             "interviews": {
                 "active_count": len(active_interviews),
                 "completed_count": len(completed_interviews),
                 "items": [serialize_company_dashboard_interview(interview) for interview in interviews[:3]],
             },
+            "application_status": {
+                "submitted": applications.filter(status=Application.Status.SUBMITTED).count(),
+                "under_review": applications.filter(status=Application.Status.UNDER_REVIEW).count(),
+                "shortlisted": applications.filter(status=Application.Status.SHORTLISTED).count(),
+                "rejected": applications.filter(status=Application.Status.REJECTED).count(),
+                "withdrawn": applications.filter(status=Application.Status.WITHDRAWN).count(),
+            },
             "analytics": {
                 "candidates_to_review": len(candidates),
                 "shortlisted_candidates": shortlist_count,
                 "active_jobs": len(active_jobs),
-                "unread_updates": unread_notifications,
+                "hires": len(completed_interviews),
             },
         }
     )

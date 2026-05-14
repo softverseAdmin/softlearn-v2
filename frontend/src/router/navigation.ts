@@ -21,8 +21,10 @@ export const navigationItemsByRole: Record<UserRole, NavigationItem[]> = {
   ],
   company: [
     { label: 'Dashboard', to: '/company' },
+    { label: 'Post Jobs', to: '/company/jobs' },
+    { label: 'Courses', to: '/company/courses' },
+    { label: 'Applications', to: '/company/applications' },
     { label: 'Profile', to: '/company/profile' },
-    { label: 'Jobs', to: '/company/jobs' },
     { label: 'Settings', to: '/company/privacy' },
   ],
   admin: [
