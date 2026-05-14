@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { Award, BriefcaseBusiness, ChevronRight, Globe, GraduationCap, Mail, MapPin, ShieldCheck, Sparkles } from 'lucide-react'
 import { toast } from 'sonner'
@@ -9,6 +9,9 @@ import type { CompanyApplicationRecord, CompanyApplicationsResponse, CompanyCand
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 
 const emptyPreview: CompanyCandidatePreviewResponse = {
   candidate_access_id: 0,
@@ -57,6 +60,15 @@ function formatDateLabel(value: string | null) {
   }).format(date)
 }
 
+function toInputValue(date: Date) {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  const hours = String(date.getHours()).padStart(2, '0')
+  const minutes = String(date.getMinutes()).padStart(2, '0')
+  return `${year}-${month}-${day}T${hours}:${minutes}`
+}
+
 export function CompanyCandidateDetailPage() {
   const { csrfToken } = useAuth()
   const params = useParams<{ candidateAccessId: string }>()
@@ -64,6 +76,14 @@ export function CompanyCandidateDetailPage() {
   const [relatedApplication, setRelatedApplication] = useState<CompanyApplicationRecord | null>(null)
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState<'shortlist' | 'reject' | null>(null)
+  const [isContactDialogOpen, setIsContactDialogOpen] = useState(false)
+  const [contactMode, setContactMode] = useState<'question' | 'interview'>('question')
+  const [contactSubmitting, setContactSubmitting] = useState(false)
+  const [questionMessage, setQuestionMessage] = useState('')
+  const [interviewPurpose, setInterviewPurpose] = useState('')
+  const [interviewRoleContext, setInterviewRoleContext] = useState('')
+  const [interviewStartAt, setInterviewStartAt] = useState(toInputValue(new Date(Date.now() + 24 * 60 * 60 * 1000)))
+  const [interviewEndAt, setInterviewEndAt] = useState(toInputValue(new Date(Date.now() + 25 * 60 * 60 * 1000)))
   const [error, setError] = useState<string | null>(null)
 
   async function fetchCandidateContext(candidateAccessId: string) {
@@ -114,6 +134,21 @@ export function CompanyCandidateDetailPage() {
     }
   }, [params.candidateAccessId])
 
+  function resetContactDialog() {
+    setContactMode('question')
+    setContactSubmitting(false)
+    setQuestionMessage('')
+    setInterviewPurpose('')
+    setInterviewRoleContext(relatedApplication?.vacancy_title || preview.student?.desired_job_type || '')
+    setInterviewStartAt(toInputValue(new Date(Date.now() + 24 * 60 * 60 * 1000)))
+    setInterviewEndAt(toInputValue(new Date(Date.now() + 25 * 60 * 60 * 1000)))
+  }
+
+  function openContactDialog() {
+    resetContactDialog()
+    setIsContactDialogOpen(true)
+  }
+
   async function runCandidateAction(action: 'shortlist' | 'reject') {
     if (!params.candidateAccessId) {
       toast.error('Candidate context is missing.')
@@ -154,6 +189,55 @@ export function CompanyCandidateDetailPage() {
     }
   }
 
+  async function handleContactSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+
+    if (!params.candidateAccessId || !preview.student) {
+      toast.error('Candidate context is missing.')
+      return
+    }
+
+    setContactSubmitting(true)
+
+    try {
+      if (contactMode === 'question') {
+        await apiRequest('/company/messages/threads', {
+          method: 'POST',
+          body: {
+            participant_user_id: preview.student.student_id,
+            category: 'interviews',
+            message: questionMessage,
+          },
+          csrfToken,
+        })
+        toast.success('Question sent to candidate successfully.')
+      } else {
+        const response = await apiRequest<{ id: number }>(`/company/candidates/${params.candidateAccessId}/interviews`, {
+          method: 'POST',
+          body: {
+            purpose: interviewPurpose,
+            role_context: interviewRoleContext,
+            start_at: new Date(interviewStartAt).toISOString(),
+            end_at: new Date(interviewEndAt).toISOString(),
+          },
+          csrfToken,
+        })
+        toast.success(`Interview scheduled successfully. Event #${response.id} is now visible to the student.`)
+      }
+
+      const { previewResponse, relatedApplication: nextRelatedApplication } = await fetchCandidateContext(params.candidateAccessId)
+      setPreview(previewResponse)
+      setRelatedApplication(nextRelatedApplication)
+      setError(null)
+      setIsContactDialogOpen(false)
+      resetContactDialog()
+    } catch (saveError) {
+      toast.error(saveError instanceof ApiError ? saveError.message : 'Unable to complete candidate outreach.')
+    } finally {
+      setContactSubmitting(false)
+    }
+  }
+
   const candidateName = preview.student?.name || 'Candidate Details'
   const initials = getInitials(candidateName)
   const skillSummary = preview.student?.skills.map((skill) => skill.skill_name).join(' | ') || ''
@@ -161,6 +245,7 @@ export function CompanyCandidateDetailPage() {
   const shortlistLabel = preview.shortlist ? 'Shortlisted' : 'Shortlist'
   const shortlistDisabled = Boolean(preview.shortlist) || actionLoading !== null
   const rejectDisabled = !relatedApplication?.can_reject || actionLoading !== null
+  const canContactCandidate = Boolean(preview.shortlist)
 
   if (loading) {
     return (
@@ -181,6 +266,126 @@ export function CompanyCandidateDetailPage() {
 
   return (
     <div className="space-y-6 px-4 py-6 md:px-6 lg:px-8">
+      <Dialog
+        open={isContactDialogOpen}
+        onOpenChange={(open) => {
+          setIsContactDialogOpen(open)
+          if (!open) {
+            resetContactDialog()
+          }
+        }}
+      >
+        <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Contact {candidateName}</DialogTitle>
+            <DialogDescription>
+              Send a question to the candidate or schedule an interview that will appear in the student interview calendar.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form className="space-y-5" onSubmit={handleContactSubmit}>
+            <div className="grid gap-2 sm:grid-cols-2">
+              <Button
+                type="button"
+                variant={contactMode === 'question' ? 'default' : 'outline'}
+                className="justify-center rounded-xl"
+                onClick={() => setContactMode('question')}
+                disabled={contactSubmitting}
+              >
+                Ask question
+              </Button>
+              <Button
+                type="button"
+                variant={contactMode === 'interview' ? 'default' : 'outline'}
+                className="justify-center rounded-xl"
+                onClick={() => setContactMode('interview')}
+                disabled={contactSubmitting}
+              >
+                Schedule interview
+              </Button>
+            </div>
+
+            {contactMode === 'question' ? (
+              <div className="space-y-2">
+                <label className="text-sm font-medium" htmlFor="candidate-question-message">
+                  Question for candidate
+                </label>
+                <Textarea
+                  id="candidate-question-message"
+                  value={questionMessage}
+                  onChange={(event) => setQuestionMessage(event.target.value)}
+                  placeholder="Write the question or message you want the candidate to receive."
+                  className="min-h-36 resize-none"
+                  required
+                />
+              </div>
+            ) : (
+              <div className="space-y-5">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium" htmlFor="candidate-interview-purpose">
+                    Interview purpose
+                  </label>
+                  <Textarea
+                    id="candidate-interview-purpose"
+                    value={interviewPurpose}
+                    onChange={(event) => setInterviewPurpose(event.target.value)}
+                    placeholder="Example: Portfolio review and frontend collaboration discussion."
+                    className="min-h-28 resize-none"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium" htmlFor="candidate-interview-role-context">
+                    Role context
+                  </label>
+                  <Input
+                    id="candidate-interview-role-context"
+                    value={interviewRoleContext}
+                    onChange={(event) => setInterviewRoleContext(event.target.value)}
+                    placeholder="Example: Frontend trainee"
+                  />
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium" htmlFor="candidate-interview-start">
+                      Start time
+                    </label>
+                    <Input
+                      id="candidate-interview-start"
+                      type="datetime-local"
+                      value={interviewStartAt}
+                      onChange={(event) => setInterviewStartAt(event.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium" htmlFor="candidate-interview-end">
+                      End time
+                    </label>
+                    <Input
+                      id="candidate-interview-end"
+                      type="datetime-local"
+                      value={interviewEndAt}
+                      onChange={(event) => setInterviewEndAt(event.target.value)}
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setIsContactDialogOpen(false)} disabled={contactSubmitting}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={contactSubmitting}>
+                {contactSubmitting ? 'Saving…' : contactMode === 'question' ? 'Send question' : 'Schedule interview'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
       <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
         <Link to="/company" className="transition-colors hover:text-foreground">
           Dashboard
@@ -276,6 +481,11 @@ export function CompanyCandidateDetailPage() {
                         >
                           {actionLoading === 'reject' ? 'Rejecting…' : 'Reject'}
                         </Button>
+                        {canContactCandidate ? (
+                          <Button type="button" variant="outline" className="rounded-full px-5" onClick={openContactDialog}>
+                            Contact candidate
+                          </Button>
+                        ) : null}
                       </div>
                     </div>
                     <div className="flex flex-wrap items-center gap-3 text-sm text-slate-500">

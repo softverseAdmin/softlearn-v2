@@ -662,6 +662,7 @@ export interface CompanyCandidate {
   source: string
   student_id: number
   display_name: string
+  profile_image: string | null
   desired_job_type: string
   desired_work_location: string
   top_skills: string[]

@@ -2002,6 +2002,7 @@ def serialize_company_candidate(access: CandidateReviewAccess) -> dict:
         "source": access.source,
         "student_id": access.student_id,
         "display_name": access.student.full_name if profile_visible else "Private candidate",
+        "profile_image": (student_profile.profile_image or None) if profile_visible else None,
         "desired_job_type": student_profile.desired_job_type if profile_visible else "",
         "desired_work_location": student_profile.desired_work_location if profile_visible else "",
         "top_skills": top_skills if profile_visible else [],
@@ -2611,12 +2612,38 @@ def validate_candidate_note_payload(payload: dict) -> dict:
 def validate_interview_request_payload(payload: dict) -> dict:
     purpose = str(payload.get("purpose", "")).strip()
     role_context = str(payload.get("role_context", "")).strip()
+    raw_start_at = str(payload.get("start_at", "")).strip()
+    raw_end_at = str(payload.get("end_at", "")).strip()
     if not purpose:
         raise ValidationError({"purpose": ["This field is required."]})
-    return {
+    cleaned = {
         "purpose": purpose,
         "role_context": role_context,
     }
+
+    if not raw_start_at and not raw_end_at:
+        return cleaned
+
+    start_at = parse_datetime(raw_start_at)
+    end_at = parse_datetime(raw_end_at)
+    errors = {}
+    if start_at is None:
+        errors["start_at"] = ["A valid ISO datetime is required."]
+    if end_at is None:
+        errors["end_at"] = ["A valid ISO datetime is required."]
+    if errors:
+        raise ValidationError(errors)
+
+    if timezone.is_naive(start_at):
+        start_at = timezone.make_aware(start_at, timezone.get_current_timezone())
+    if timezone.is_naive(end_at):
+        end_at = timezone.make_aware(end_at, timezone.get_current_timezone())
+    if start_at >= end_at:
+        raise ValidationError({"end_at": ["Interview end time must be after the start time."]})
+
+    cleaned["start_at"] = start_at
+    cleaned["end_at"] = end_at
+    return cleaned
 
 
 def validate_interview_availability_payload(payload: dict) -> dict:
@@ -6434,6 +6461,7 @@ def company_candidate_interviews_view(request, candidate_access_id: int):
         raise ValidationError({"candidate_access_id": ["An active interview already exists for this candidate context."]})
 
     payload = validate_interview_request_payload(parse_json_body(request))
+    is_direct_schedule = payload.get("start_at") is not None and payload.get("end_at") is not None
     interview = Interview(
         candidate_access=candidate_access,
         company=candidate_access.company,
@@ -6441,7 +6469,10 @@ def company_candidate_interviews_view(request, candidate_access_id: int):
         requested_by=request.user,
         purpose=payload["purpose"],
         role_context=payload["role_context"],
-        status=Interview.Status.REQUESTED,
+        status=Interview.Status.CONFIRMED if is_direct_schedule else Interview.Status.REQUESTED,
+        scheduled_start=payload.get("start_at"),
+        scheduled_end=payload.get("end_at"),
+        confirmed_at=timezone.now() if is_direct_schedule else None,
     )
     interview.full_clean()
     interview.save()
@@ -6451,6 +6482,13 @@ def company_candidate_interviews_view(request, candidate_access_id: int):
         "requested",
         "Interview requested from an approved company candidate context.",
     )
+    if is_direct_schedule:
+        create_interview_event(
+            interview,
+            request.user,
+            "confirmed",
+            f"Interview confirmed for {payload['start_at'].isoformat()} to {payload['end_at'].isoformat()}.",
+        )
 
     return success_response(serialize_interview(get_interview_for_company(request.user, interview.id), include_detail=True), status=201)
 
