@@ -1738,7 +1738,7 @@ class ApiFoundationTests(TestCase):
         self.assertEqual(vacancy.title, "Backend Engineer Updated")
 
     def test_company_vacancy_list_is_scoped(self):
-        company = Company.objects.create(name="Softverse")
+        company = Company.objects.create(name="Softverse", profile_image="https://example.com/softverse-logo.png")
         other_company = Company.objects.create(name="Otherverse")
         company_user = User.objects.create_user(
             email="company@example.com",
@@ -1782,6 +1782,10 @@ class ApiFoundationTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.json()["data"]["vacancies"]), 1)
         self.assertEqual(response.json()["data"]["vacancies"][0]["company_name"], "Softverse")
+        self.assertEqual(
+            response.json()["data"]["vacancies"][0]["company_profile_image"],
+            "https://example.com/softverse-logo.png",
+        )
 
     def test_company_vacancy_metadata_is_saved_and_updated(self):
         company = Company.objects.create(name="Softverse")
@@ -1921,7 +1925,11 @@ class ApiFoundationTests(TestCase):
         self.assertEqual(list_response.json()["data"]["vacancies"][0]["posting_details"]["notes"], "Shibuya office or remote.")
 
     def test_student_job_list_shows_only_active_visible_vacancies(self):
-        company = Company.objects.create(name="Softverse", is_active=True)
+        company = Company.objects.create(
+            name="Softverse",
+            profile_image="https://example.com/softverse-logo.png",
+            is_active=True,
+        )
         inactive_company = Company.objects.create(name="Hiddenverse", is_active=False)
         company_user = User.objects.create_user(
             email="company@example.com",
@@ -1982,6 +1990,7 @@ class ApiFoundationTests(TestCase):
         vacancies = response.json()["data"]["vacancies"]
         self.assertEqual(len(vacancies), 1)
         self.assertEqual(vacancies[0]["title"], "Backend Engineer")
+        self.assertEqual(vacancies[0]["company_profile_image"], "https://example.com/softverse-logo.png")
 
     def test_company_user_cannot_access_student_job_list(self):
         company = Company.objects.create(name="Softverse")
