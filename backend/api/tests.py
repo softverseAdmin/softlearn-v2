@@ -1057,6 +1057,22 @@ class ApiFoundationTests(TestCase):
             ),
         )
         company_user = User.objects.get(email="company@example.com")
+        vacancy = Vacancy.objects.create(
+            company=company,
+            created_by=company_user,
+            title="Backend trainee",
+            description="Protected hiring role",
+            employment_type="Full-time",
+            experience_level="Entry",
+            location="Tokyo",
+            status=Vacancy.Status.DRAFT,
+        )
+        Application.objects.create(
+            company=company,
+            vacancy=vacancy,
+            student=student,
+            status=Application.Status.SHORTLISTED,
+        )
         Interview.objects.create(
             candidate_access=candidate_access,
             company=company,
@@ -1086,11 +1102,21 @@ class ApiFoundationTests(TestCase):
         self.assertEqual(body["analytics"]["candidates_to_review"], 1)
         self.assertEqual(body["analytics"]["shortlisted_candidates"], 1)
         self.assertEqual(body["analytics"]["active_jobs"], 0)
-        self.assertEqual(body["analytics"]["unread_updates"], 1)
+        self.assertEqual(body["analytics"]["hires"], 0)
+        self.assertEqual(body["application_status"]["submitted"], 0)
+        self.assertEqual(body["application_status"]["under_review"], 0)
+        self.assertEqual(body["application_status"]["shortlisted"], 1)
+        self.assertEqual(body["application_status"]["rejected"], 0)
+        self.assertEqual(body["application_status"]["withdrawn"], 0)
+        self.assertEqual(len(body["recent_job_postings"]), 1)
+        self.assertEqual(body["recent_job_postings"][0]["applications_count"], 1)
+        self.assertEqual(body["recent_job_postings"][0]["status"], Vacancy.Status.DRAFT)
         self.assertEqual(len(body["candidates_to_review"]), 1)
         self.assertEqual(body["candidates_to_review"][0]["score_percent"], 92.0)
         self.assertEqual(body["interviews"]["active_count"], 1)
         self.assertEqual(body["interviews"]["completed_count"], 0)
+        self.assertIsNone(body["interviews"]["items"][0]["scheduled_start"])
+        self.assertIsNone(body["interviews"]["items"][0]["meeting_url"])
 
     def test_company_dashboard_hides_candidate_score_when_exam_results_are_private(self):
         company = Company.objects.create(name="Softverse", description="Hiring platform team")
@@ -1782,7 +1808,15 @@ class ApiFoundationTests(TestCase):
                     "location": "Tokyo",
                     "work_style": "hybrid",
                     "relocation_support": True,
+                    "min_salary": 3780000,
+                    "max_salary": 5580000,
                     "status": "active",
+                    "posting_details": {
+                        "job_highlights": "Use English\nIn-house product development",
+                        "responsibilities": "Coordinate development communication between Japan and the Philippines.",
+                        "working_hours": "9:00-18:00",
+                        "planned_annual_salary": "JPY 3.78M - JPY 5.58M",
+                    },
                     "required_skill_ids": [python_skill.id],
                     "preferred_skill_ids": [react_skill.id],
                     "language_requirements": [
@@ -1807,6 +1841,12 @@ class ApiFoundationTests(TestCase):
         vacancy_id = create_response.json()["data"]["vacancy_id"]
         self.assertEqual(create_response.json()["data"]["work_style"], "hybrid")
         self.assertTrue(create_response.json()["data"]["relocation_support"])
+        self.assertEqual(create_response.json()["data"]["min_salary"], 3780000)
+        self.assertEqual(create_response.json()["data"]["max_salary"], 5580000)
+        self.assertEqual(
+            create_response.json()["data"]["posting_details"]["responsibilities"],
+            "Coordinate development communication between Japan and the Philippines.",
+        )
         self.assertEqual(len(create_response.json()["data"]["skill_requirements"]), 2)
         self.assertEqual(len(create_response.json()["data"]["language_requirements"]), 2)
 
@@ -1821,7 +1861,15 @@ class ApiFoundationTests(TestCase):
                     "location": "Osaka",
                     "work_style": "remote",
                     "relocation_support": False,
+                    "min_salary": 4000000,
+                    "max_salary": 6200000,
                     "status": "active",
+                    "posting_details": {
+                        "job_highlights": "Full remote",
+                        "responsibilities": "Own cross-border product delivery.",
+                        "monthly_salary": "JPY 330k - JPY 510k",
+                        "notes": "Shibuya office or remote.",
+                    },
                     "required_skill_ids": [react_skill.id],
                     "preferred_skill_ids": [],
                     "language_requirements": [
@@ -1841,6 +1889,10 @@ class ApiFoundationTests(TestCase):
         vacancy = Vacancy.objects.get(pk=vacancy_id)
         self.assertEqual(vacancy.work_style, Vacancy.WorkStyle.REMOTE)
         self.assertFalse(vacancy.relocation_support)
+        self.assertEqual(vacancy.min_salary, 4000000)
+        self.assertEqual(vacancy.max_salary, 6200000)
+        self.assertEqual(vacancy.posting_details["responsibilities"], "Own cross-border product delivery.")
+        self.assertEqual(vacancy.posting_details["notes"], "Shibuya office or remote.")
         self.assertEqual(VacancySkillRequirement.objects.filter(vacancy=vacancy).count(), 1)
         self.assertTrue(
             VacancySkillRequirement.objects.filter(
@@ -1866,6 +1918,7 @@ class ApiFoundationTests(TestCase):
         self.assertIn(python_skill.id, available_skill_ids)
         self.assertIn(react_skill.id, available_skill_ids)
         self.assertEqual(list_response.json()["data"]["vacancies"][0]["work_style"], "remote")
+        self.assertEqual(list_response.json()["data"]["vacancies"][0]["posting_details"]["notes"], "Shibuya office or remote.")
 
     def test_student_job_list_shows_only_active_visible_vacancies(self):
         company = Company.objects.create(name="Softverse", is_active=True)

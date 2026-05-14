@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 
-import type { AdminDashboardResponse, StudentDashboardResponse } from '../features/dashboard/types'
+import { CompanyDashboardRedesign } from '../features/dashboard/CompanyDashboardRedesign'
+import type { AdminDashboardResponse, CompanyDashboardResponse } from '../features/dashboard/types'
 import { StudentDashboard } from '../features/dashboard/StudentDashboard'
 import { useAuth } from '../auth/useAuth'
 import { ApiError, apiRequest } from '../lib/api'
@@ -28,26 +29,47 @@ function dashboardPathByRole(role: DashboardPageProps['role']) {
   return `/${role}/dashboard`
 }
 
+function isCompanyDashboardResponse(
+  value: CompanyDashboardResponse | AdminDashboardResponse | null
+): value is CompanyDashboardResponse {
+  return Boolean(value && 'analytics' in value)
+}
+
+function isAdminDashboardResponse(
+  value: CompanyDashboardResponse | AdminDashboardResponse | null
+): value is AdminDashboardResponse {
+  return Boolean(value && 'system_stats' in value)
+}
+
 export function DashboardPage({ role }: DashboardPageProps) {
   const { user } = useAuth()
   const content = contentByRole[role]
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [data, setData] = useState<StudentDashboardResponse | AdminDashboardResponse | null>(null)
+  const [data, setData] = useState<CompanyDashboardResponse | AdminDashboardResponse | null>(null)
 
   useEffect(() => {
     let active = true
 
     async function loadDashboard() {
       try {
-        if (role === 'student' || role === 'company') {
+        if (active) {
+          setLoading(true)
+          setError(null)
+          setData(null)
+        }
+
+        if (role === 'student') {
           if (active) {
             setLoading(false)
           }
           return
         }
 
-        const response = await apiRequest<AdminDashboardResponse>(dashboardPathByRole(role))
+        const response = role === 'company'
+          ? await apiRequest<CompanyDashboardResponse>(dashboardPathByRole(role))
+          : await apiRequest<AdminDashboardResponse>(dashboardPathByRole(role))
+
         if (active) {
           setData(response)
         }
@@ -131,7 +153,13 @@ export function DashboardPage({ role }: DashboardPageProps) {
   }
 
   if (role === 'company') {
-    return null
+    return (
+      <CompanyDashboardRedesign
+        loading={loading}
+        error={error}
+        data={isCompanyDashboardResponse(data) ? data : null}
+      />
+    )
   }
 
   return (
@@ -150,7 +178,7 @@ export function DashboardPage({ role }: DashboardPageProps) {
       </div>
       {error ? <div className="card form-error">{error}</div> : null}
       {loading ? <div className="card">Loading dashboard…</div> : null}
-      {!loading && !error && data && role === 'admin' ? renderAdminDashboard(data as AdminDashboardResponse) : null}
+      {!loading && !error && isAdminDashboardResponse(data) ? renderAdminDashboard(data) : null}
     </section>
   )
 }
