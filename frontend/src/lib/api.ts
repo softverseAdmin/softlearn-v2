@@ -1,3 +1,5 @@
+import { toast } from 'sonner'
+
 const DEFAULT_API_BASE_URL = '/api/v1'
 
 export class ApiError extends Error {
@@ -5,6 +7,7 @@ export class ApiError extends Error {
   details: Record<string, unknown>
   requestId?: string
   status: number
+  notified: boolean
 
   constructor(
     message: string,
@@ -21,6 +24,7 @@ export class ApiError extends Error {
     this.details = options.details ?? {}
     this.requestId = options.requestId
     this.status = options.status
+    this.notified = false
   }
 }
 
@@ -29,6 +33,8 @@ type RequestOptions = {
   body?: unknown
   csrfToken?: string | null
   signal?: AbortSignal
+  notifyOnSuccess?: boolean
+  notifyOnError?: boolean
 }
 
 function getApiBaseUrl() {
@@ -39,8 +45,44 @@ function isSafeMethod(method: string) {
   return ['GET', 'HEAD', 'OPTIONS'].includes(method.toUpperCase())
 }
 
+function shouldNotifyByDefault(method: string) {
+  return !isSafeMethod(method)
+}
+
+function getResponseMessage(value: unknown) {
+  if (!value || typeof value !== 'object' || !('message' in value)) {
+    return null
+  }
+
+  const message = (value as { message?: unknown }).message
+  return typeof message === 'string' && message.trim() ? message : null
+}
+
+function getFirstErrorDetailMessage(details: unknown): string | null {
+  if (!details || typeof details !== 'object') {
+    return null
+  }
+
+  for (const value of Object.values(details as Record<string, unknown>)) {
+    if (typeof value === 'string' && value.trim()) {
+      return value
+    }
+
+    if (Array.isArray(value)) {
+      const firstTextItem = value.find((item): item is string => typeof item === 'string' && item.trim().length > 0)
+      if (firstTextItem) {
+        return firstTextItem
+      }
+    }
+  }
+
+  return null
+}
+
 export async function apiRequest<T>(path: string, options: RequestOptions = {}) {
   const method = options.method ?? 'GET'
+  const notifyOnSuccess = options.notifyOnSuccess ?? shouldNotifyByDefault(method)
+  const notifyOnError = options.notifyOnError ?? shouldNotifyByDefault(method)
   const headers = new Headers({
     Accept: 'application/json',
   })
@@ -74,12 +116,28 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}) 
 
   if (!response.ok || 'error' in payload) {
     const error = 'error' in payload ? payload.error : undefined
-    throw new ApiError(error?.message ?? 'Request failed.', {
+    const fallbackMessage = error?.message ?? 'Request failed.'
+    const validationDetailMessage =
+      error?.code === 'VALIDATION_ERROR' ? getFirstErrorDetailMessage(error?.details) : null
+
+    const apiError = new ApiError(validationDetailMessage ?? fallbackMessage, {
       code: error?.code,
       details: error?.details,
       requestId: error?.request_id,
       status: response.status,
     })
+
+    if (notifyOnError) {
+      toast.error(apiError.message)
+      apiError.notified = true
+    }
+
+    throw apiError
+  }
+
+  const responseMessage = getResponseMessage(payload.data)
+  if (notifyOnSuccess && responseMessage) {
+    toast.success(responseMessage)
   }
 
   return payload.data

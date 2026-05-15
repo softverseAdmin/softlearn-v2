@@ -33,6 +33,7 @@ export function AdminCourseLessonsPage() {
   const [title, setTitle] = useState('')
   const [summary, setSummary] = useState('')
   const [content, setContent] = useState('')
+  const [videoUrl, setVideoUrl] = useState('')
   const [sequenceNumber, setSequenceNumber] = useState('1')
   const [status, setStatus] = useState('draft')
   const [error, setError] = useState<string | null>(null)
@@ -47,6 +48,7 @@ export function AdminCourseLessonsPage() {
       setTitle('')
       setSummary('')
       setContent('')
+      setVideoUrl('')
       setSequenceNumber(String(data.lessons.length + 1 || 1))
       setStatus('draft')
       return
@@ -55,6 +57,7 @@ export function AdminCourseLessonsPage() {
     setTitle(selectedLesson.title)
     setSummary(selectedLesson.summary)
     setContent(selectedLesson.content)
+    setVideoUrl(selectedLesson.video_url)
     setSequenceNumber(String(selectedLesson.sequence_number))
     setStatus(selectedLesson.status)
   }, [data.lessons.length, selectedLesson])
@@ -115,6 +118,7 @@ export function AdminCourseLessonsPage() {
         title,
         summary,
         content,
+        video_url: videoUrl,
         sequence_number: Number(sequenceNumber),
         status,
       }
@@ -205,6 +209,10 @@ export function AdminCourseLessonsPage() {
               <textarea value={content} onChange={(event) => setContent(event.target.value)} rows={8} />
             </label>
             <label>
+              <span>YouTube video URL</span>
+              <input value={videoUrl} onChange={(event) => setVideoUrl(event.target.value)} placeholder="https://www.youtube.com/watch?v=..." />
+            </label>
+            <label>
               <span>Sequence number</span>
               <input
                 type="number"
@@ -255,6 +263,7 @@ export function AdminCourseLessonsPage() {
                   </span>
                 </div>
                 <p className="muted">{lesson.summary || 'No lesson summary yet.'}</p>
+                {lesson.video_url ? <p className="muted">YouTube video attached</p> : null}
                 <div className="actions">
                   <button className="secondary-button inline-button" type="button" onClick={() => setSelectedLessonId(lesson.lesson_id)}>
                     Edit

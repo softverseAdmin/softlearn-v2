@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { AlertCircle, CheckCircle2, Bookmark, Briefcase } from 'lucide-react'
+import { AlertCircle, Bookmark, Briefcase } from 'lucide-react'
 import { motion } from 'framer-motion'
 
 import { useAuth } from '../../auth/useAuth'
@@ -23,7 +23,6 @@ export function StudentMatchesPage() {
   const [applyingVacancyId, setApplyingVacancyId] = useState<number | null>(null)
   const [bookmarkingVacancyId, setBookmarkingVacancyId] = useState<number | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
 
   async function loadMatches() {
     const response = await apiRequest<StudentMatchesResponse>('/student/matches')
@@ -58,8 +57,6 @@ export function StudentMatchesPage() {
 
   async function handleBookmarkToggle(vacancyId: number, isBookmarked: boolean) {
     setBookmarkingVacancyId(vacancyId)
-    setError(null)
-    setSuccess(null)
 
     try {
       await apiRequest(`/student/jobs/${vacancyId}/bookmark`, {
@@ -67,9 +64,6 @@ export function StudentMatchesPage() {
         csrfToken,
       })
       await loadMatches()
-      setSuccess(isBookmarked ? 'Bookmark removed.' : 'Job saved for later.')
-    } catch (saveError) {
-      setError(saveError instanceof ApiError ? saveError.message : 'Unable to update bookmark.')
     } finally {
       setBookmarkingVacancyId(null)
     }
@@ -77,8 +71,6 @@ export function StudentMatchesPage() {
 
   async function handleApply(vacancyId: number) {
     setApplyingVacancyId(vacancyId)
-    setError(null)
-    setSuccess(null)
 
     try {
       await apiRequest<StudentApplicationRecord>('/student/applications', {
@@ -87,9 +79,6 @@ export function StudentMatchesPage() {
         csrfToken,
       })
       await loadMatches()
-      setSuccess('Application submitted successfully.')
-    } catch (saveError) {
-      setError(saveError instanceof ApiError ? saveError.message : 'Unable to submit application.')
     } finally {
       setApplyingVacancyId(null)
     }
@@ -132,19 +121,6 @@ export function StudentMatchesPage() {
             <div>
               <h3 className="font-semibold text-red-900 dark:text-red-100">Unable to load jobs</h3>
               <p className="mt-1 text-sm text-red-800 dark:text-red-200">{error}</p>
-            </div>
-          </CardContent>
-        </Card>
-      ) : null}
-
-      {/* Success State */}
-      {success ? (
-        <Card className="border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950">
-          <CardContent className="flex items-start gap-3 pt-6">
-            <CheckCircle2 className="h-5 w-5 flex-shrink-0 text-green-600 dark:text-green-400" />
-            <div>
-              <h3 className="font-semibold text-green-900 dark:text-green-100">Success</h3>
-              <p className="mt-1 text-sm text-green-800 dark:text-green-200">{success}</p>
             </div>
           </CardContent>
         </Card>

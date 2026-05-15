@@ -175,6 +175,8 @@ export interface VacancyRecord {
   skill_requirements: VacancySkillRequirement[]
   language_requirements: VacancyLanguageRequirement[]
   is_bookmarked: boolean
+  has_active_application: boolean
+  can_apply: boolean
   status: string
   created_by_name: string
   created_at: string
@@ -374,11 +376,13 @@ export interface CourseLessonSummary {
   status: string | null
   is_accessible: boolean
   detail_href: string | null
+  assessment: CourseAssessmentSummary | null
 }
 
 export interface CourseDetailResponse extends CourseCatalogRecord {
   enrollment: CourseEnrollmentState
   lessons: CourseLessonSummary[]
+  final_exam: CourseAssessmentSummary | null
   learning_outcomes: string[]
 }
 
@@ -404,17 +408,74 @@ export interface LessonDetailResponse {
   title: string
   summary: string
   content: string
+  video_url: string
   sequence_number: number
   total_lessons: number
   progress: LessonProgressState
   previous_lesson_href: string | null
   next_lesson_href: string | null
+  lesson_exam: CourseAssessmentSummary | null
+  final_exam: CourseAssessmentSummary | null
 }
 
 export interface LessonProgressUpdateResponse {
   lesson: LessonDetailResponse
   enrollment: CourseEnrollmentState
   next_step_href: string
+}
+
+export interface CourseAssessmentSummary {
+  assessment_id: number
+  title: string
+  description: string
+  kind: string
+  passing_score_percent: number
+  question_count: number
+  is_unlocked: boolean
+  attempt_count: number
+  best_score: number | null
+  latest_score: number | null
+  passed: boolean
+}
+
+export interface CourseAssessmentQuestionOption {
+  option_id: number
+  option_text: string
+  sequence_number: number
+}
+
+export interface CourseAssessmentQuestion {
+  question_id: number
+  prompt: string
+  instructions: string
+  question_type: string
+  sequence_number: number
+  points: number
+  options: CourseAssessmentQuestionOption[]
+}
+
+export interface CourseAssessmentDetailResponse {
+  assessment_id: number
+  title: string
+  description: string
+  kind: string
+  passing_score_percent: number
+  attempt_count: number
+  next_attempt_number: number
+  latest_score: number | null
+  passed: boolean
+  questions: CourseAssessmentQuestion[]
+}
+
+export interface CourseAssessmentSubmitResponse {
+  assessment_id: number
+  attempt_id: number
+  attempt_number: number
+  score_percent: number
+  passed: boolean
+  passing_score_percent: number
+  message: string
+  course_completed?: boolean
 }
 
 export interface ExamResult {

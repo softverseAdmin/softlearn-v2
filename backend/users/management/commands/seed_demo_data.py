@@ -20,6 +20,11 @@ from users.models import (
     CompanyHiringPreferences,
     CompanyMember,
     Course,
+    CourseAssessment,
+    CourseAssessmentAttempt,
+    CourseAssessmentAttemptSelection,
+    CourseAssessmentOption,
+    CourseAssessmentQuestion,
     DataConsent,
     DataDeletionRequest,
     DataExportRequest,
@@ -70,6 +75,7 @@ from users.models import (
 
 
 SEED_DOMAIN = "demo.softlearn.local"
+DEFAULT_LESSON_VIDEO_URL = "https://www.youtube.com/embed/IjS9eTpmhgk?si=BFiYXiVlYZL2QdTA"
 
 
 @dataclass(frozen=True)
@@ -126,7 +132,7 @@ class CourseSeed:
     category: str
     difficulty_level: str
     estimated_hours: int
-    lessons: list[tuple[str, str]]
+    lessons: list[tuple[str, str, str]]
 
 
 @dataclass(frozen=True)
@@ -437,9 +443,21 @@ class Command(BaseCommand):
             difficulty_level="Intermediate",
             estimated_hours=32,
             lessons=[
-                ("Component Architecture", "Plan reusable component boundaries and data flow."),
-                ("Protected Routing", "Handle authenticated navigation and role-based page shells."),
-                ("Catalog UI Patterns", "Build polished cards, filters, and responsive search experiences."),
+                (
+                    "Component Architecture",
+                    "Plan reusable component boundaries and data flow.",
+                    "React projects stay maintainable when each component has one clear responsibility.\n\nIn this lesson you will map page sections into reusable components, decide where state should live, and define props that keep each part easy to test and update.\n\n- Identify container and presentational responsibilities.\n- Keep shared state close to the components that truly need it.\n- Prefer small, reusable UI building blocks over page-specific duplication.",
+                ),
+                (
+                    "Protected Routing",
+                    "Handle authenticated navigation and role-based page shells.",
+                    "Protected routing controls who can open a page and what layout they should see after login.\n\nThis lesson focuses on guarding student routes, redirecting unauthenticated users, and aligning navigation with the active role so the workspace feels consistent and secure.\n\n- Validate authentication before rendering protected pages.\n- Match the workspace layout to the signed-in role.\n- Redirect safely when the user does not have permission.",
+                ),
+                (
+                    "Catalog UI Patterns",
+                    "Build polished cards, filters, and responsive search experiences.",
+                    "Catalog screens work best when filters, cards, and empty states feel predictable on every device.\n\nIn this lesson you will review spacing systems, search interactions, and data-card hierarchy so students can browse courses and jobs quickly without visual clutter.\n\n- Prioritize the most important information in each card.\n- Keep filter controls readable and touch friendly.\n- Design empty and loading states that still feel intentional.",
+                ),
             ],
         ),
         CourseSeed(
@@ -449,9 +467,21 @@ class Command(BaseCommand):
             difficulty_level="Intermediate",
             estimated_hours=28,
             lessons=[
-                ("Query Foundations", "Write joins, aggregations, and window functions for reporting."),
-                ("Notebook Analysis", "Use Python to validate trends and automate repetitive checks."),
-                ("Executive Storytelling", "Turn raw numbers into business recommendations."),
+                (
+                    "Query Foundations",
+                    "Write joins, aggregations, and window functions for reporting.",
+                    "Strong analytics starts with reliable SQL that answers the real business question.\n\nThis lesson covers how to join related tables, summarize results with aggregates, and use window functions to compare performance over time.\n\n- Choose the correct join for the relationship you need.\n- Use grouping and filtering carefully to avoid misleading totals.\n- Apply window functions when rankings or running totals matter.",
+                ),
+                (
+                    "Notebook Analysis",
+                    "Use Python to validate trends and automate repetitive checks.",
+                    "Python notebooks help analysts move from one-off SQL outputs to repeatable investigations.\n\nYou will clean exported data, chart important changes, and automate the checks that a team needs every reporting cycle.\n\n- Load and inspect data before analysis.\n- Create reusable cleaning steps for repeated work.\n- Visualize trends before sharing conclusions.",
+                ),
+                (
+                    "Executive Storytelling",
+                    "Turn raw numbers into business recommendations.",
+                    "A report only matters when decision-makers understand the next step.\n\nThis lesson shows how to turn metrics into a concise narrative that explains what changed, why it matters, and what action should happen next.\n\n- Separate insights from raw observations.\n- Lead with business impact before technical detail.\n- Recommend a clear next action backed by evidence.",
+                ),
             ],
         ),
         CourseSeed(
@@ -461,9 +491,21 @@ class Command(BaseCommand):
             difficulty_level="Beginner",
             estimated_hours=20,
             lessons=[
-                ("AWS Account Setup", "Review identity, billing, and access boundaries."),
-                ("Compute and Storage", "Choose the right runtime and persistence primitives."),
-                ("Monitoring Basics", "Track health signals and plan incident response workflows."),
+                (
+                    "AWS Account Setup",
+                    "Review identity, billing, and access boundaries.",
+                    "A safe AWS environment starts with the right account structure and access boundaries.\n\nIn this lesson you will look at root account protection, IAM roles, and billing visibility so teams can operate without creating avoidable security gaps.\n\n- Protect privileged credentials from day one.\n- Give team members the minimum access they need.\n- Set up billing visibility before usage grows.",
+                ),
+                (
+                    "Compute and Storage",
+                    "Choose the right runtime and persistence primitives.",
+                    "AWS offers many ways to run applications and store data, but each option has different tradeoffs.\n\nThis lesson compares common compute and storage services so you can match the platform to your workload and team capacity.\n\n- Pick services that fit your operational maturity.\n- Balance speed, cost, and flexibility.\n- Understand when managed services reduce long-term overhead.",
+                ),
+                (
+                    "Monitoring Basics",
+                    "Track health signals and plan incident response workflows.",
+                    "Monitoring gives teams the confidence to detect problems before customers feel them.\n\nYou will review logs, metrics, and alerts, then connect them to an incident response workflow that helps the team react quickly and consistently.\n\n- Track the signals that map to user impact.\n- Use alert thresholds that are actionable.\n- Document first-response steps before an incident happens.",
+                ),
             ],
         ),
         CourseSeed(
@@ -473,9 +515,21 @@ class Command(BaseCommand):
             difficulty_level="Beginner",
             estimated_hours=18,
             lessons=[
-                ("Research Framing", "Prepare interview guides and synthesize findings."),
-                ("Wireframes to Flows", "Turn ideas into annotated user journeys."),
-                ("Design Systems", "Scale tokens, spacing, and reusable interface rules."),
+                (
+                    "Research Framing",
+                    "Prepare interview guides and synthesize findings.",
+                    "Good research starts with clear questions and a plan for turning interviews into useful product direction.\n\nThis lesson explains how to define goals, prepare prompts, and organize findings so design work stays grounded in real user needs.\n\n- Start with the decisions the team needs to make.\n- Ask open questions that uncover behavior, not guesses.\n- Capture findings in patterns the team can act on.",
+                ),
+                (
+                    "Wireframes to Flows",
+                    "Turn ideas into annotated user journeys.",
+                    "Wireframes become more useful when they explain how a user moves from one action to the next.\n\nIn this lesson you will sketch steps, annotate decisions, and connect screens into a flow that stakeholders can quickly understand.\n\n- Use simple structure before polished visuals.\n- Highlight key decisions and transitions.\n- Keep flows focused on one primary task at a time.",
+                ),
+                (
+                    "Design Systems",
+                    "Scale tokens, spacing, and reusable interface rules.",
+                    "Design systems help teams move faster without losing consistency.\n\nThis lesson introduces tokens, spacing rules, and shared components that make interfaces easier to design, build, and review across a growing product.\n\n- Reuse patterns instead of inventing new ones for every screen.\n- Document spacing and color choices clearly.\n- Connect design decisions to implementation-ready components.",
+                ),
             ],
         ),
         CourseSeed(
@@ -485,9 +539,21 @@ class Command(BaseCommand):
             difficulty_level="Intermediate",
             estimated_hours=24,
             lessons=[
-                ("Channel Planning", "Select channels and define budget expectations."),
-                ("Funnel Metrics", "Diagnose drop-off points and conversion opportunities."),
-                ("Experiment Reviews", "Close the loop with hypotheses, outcomes, and next steps."),
+                (
+                    "Channel Planning",
+                    "Select channels and define budget expectations.",
+                    "Effective channel planning begins with audience fit, goals, and realistic budget assumptions.\n\nThis lesson helps you compare acquisition channels, set expectations, and choose an initial test plan that supports measurable learning.\n\n- Match channels to audience behavior.\n- Set spend limits before launching experiments.\n- Define success metrics early.",
+                ),
+                (
+                    "Funnel Metrics",
+                    "Diagnose drop-off points and conversion opportunities.",
+                    "Funnels show where interest turns into action and where momentum is being lost.\n\nYou will read conversion data across each step, identify drop-off patterns, and connect them to practical optimization opportunities.\n\n- Track the full journey, not only final conversions.\n- Compare step-to-step movement for bottlenecks.\n- Prioritize the drop-offs with the biggest business impact.",
+                ),
+                (
+                    "Experiment Reviews",
+                    "Close the loop with hypotheses, outcomes, and next steps.",
+                    "Experiments create value when the team learns clearly from each result.\n\nThis lesson shows how to review a test, document what happened, and decide whether to scale, revise, or stop the idea.\n\n- Write hypotheses before launch.\n- Review outcomes against the original goal.\n- Record next steps so the team builds on what it learned.",
+                ),
             ],
         ),
     ]
@@ -897,22 +963,169 @@ class Command(BaseCommand):
     def _rebuild_lessons(self, courses: list[Course], course_seeds: list[CourseSeed]) -> dict[int, list[Lesson]]:
         lessons_by_course: dict[int, list[Lesson]] = {}
         for course, seed in zip(courses, course_seeds):
+            CourseAssessment.objects.filter(course=course).delete()
             Lesson.objects.filter(course=course).delete()
             lessons: list[Lesson] = []
-            for sequence_number, (title, summary) in enumerate(seed.lessons, start=1):
+            for sequence_number, (title, summary, content) in enumerate(seed.lessons, start=1):
                 lesson = Lesson(
                     course=course,
                     title=title,
                     summary=summary,
-                    content=f"{summary}\n\nThis lesson uses realistic seeded content for local UI checks.",
+                    content=content,
+                    video_url=DEFAULT_LESSON_VIDEO_URL,
                     sequence_number=sequence_number,
                     status=Lesson.Status.ACTIVE,
                 )
                 lesson.full_clean()
                 lesson.save()
                 lessons.append(lesson)
+                assessment = CourseAssessment(
+                    course=course,
+                    lesson=lesson,
+                    title=f"{title} lesson exam",
+                    description=f"Check understanding for {title}. Score 90% or higher to unlock the next lesson.",
+                    kind=CourseAssessment.Kind.LESSON,
+                    passing_score_percent=90,
+                    status=CourseAssessment.Status.ACTIVE,
+                )
+                assessment.full_clean()
+                assessment.save()
+                self._seed_course_assessment_questions(
+                    assessment,
+                    prompt_topic=title,
+                    prompt_summary=summary,
+                )
             lessons_by_course[course.id] = lessons
+            final_assessment = CourseAssessment(
+                course=course,
+                title=f"{course.title} final exam",
+                description=f"Final course check for {course.title}. Pass with 90% or higher to complete the course.",
+                kind=CourseAssessment.Kind.FINAL,
+                passing_score_percent=90,
+                status=CourseAssessment.Status.ACTIVE,
+            )
+            final_assessment.full_clean()
+            final_assessment.save()
+            self._seed_final_course_assessment_questions(final_assessment, course_title=course.title)
         return lessons_by_course
+
+    def _seed_course_assessment_questions(self, assessment: CourseAssessment, *, prompt_topic: str, prompt_summary: str) -> None:
+        single_choice = CourseAssessmentQuestion(
+            assessment=assessment,
+            prompt=f"What is the main focus of '{prompt_topic}'?",
+            instructions="Choose the single best answer.",
+            question_type=CourseAssessmentQuestion.QuestionType.SINGLE_CHOICE,
+            sequence_number=1,
+            points=1,
+            status=CourseAssessmentQuestion.Status.ACTIVE,
+        )
+        single_choice.full_clean()
+        single_choice.save()
+        for option_index, (option_text, is_correct) in enumerate(
+            [
+                (prompt_summary, True),
+                ("It is mainly about job applications.", False),
+                ("It only covers interview scheduling.", False),
+                ("It avoids practical implementation details.", False),
+            ],
+            start=1,
+        ):
+            option = CourseAssessmentOption(
+                question=single_choice,
+                option_text=option_text,
+                sequence_number=option_index,
+                is_correct=is_correct,
+            )
+            option.full_clean()
+            option.save()
+
+        multi_choice = CourseAssessmentQuestion(
+            assessment=assessment,
+            prompt=f"Which actions support success in '{prompt_topic}'?",
+            instructions="Select all correct answers.",
+            question_type=CourseAssessmentQuestion.QuestionType.MULTIPLE_CHOICE,
+            sequence_number=2,
+            points=1,
+            status=CourseAssessmentQuestion.Status.ACTIVE,
+        )
+        multi_choice.full_clean()
+        multi_choice.save()
+        for option_index, (option_text, is_correct) in enumerate(
+            [
+                ("Review the lesson summary and apply the concepts in practice.", True),
+                ("Ignore the lesson goals and skip directly to the next topic.", False),
+                ("Use the key ideas from this lesson when continuing the course.", True),
+                ("Treat the lesson as unrelated to course progress.", False),
+            ],
+            start=1,
+        ):
+            option = CourseAssessmentOption(
+                question=multi_choice,
+                option_text=option_text,
+                sequence_number=option_index,
+                is_correct=is_correct,
+            )
+            option.full_clean()
+            option.save()
+
+    def _seed_final_course_assessment_questions(self, assessment: CourseAssessment, *, course_title: str) -> None:
+        single_choice = CourseAssessmentQuestion(
+            assessment=assessment,
+            prompt=f"What does passing the final exam for '{course_title}' represent?",
+            instructions="Choose the single best answer.",
+            question_type=CourseAssessmentQuestion.QuestionType.SINGLE_CHOICE,
+            sequence_number=1,
+            points=1,
+            status=CourseAssessmentQuestion.Status.ACTIVE,
+        )
+        single_choice.full_clean()
+        single_choice.save()
+        for option_index, (option_text, is_correct) in enumerate(
+            [
+                ("The student understood the course content well enough to complete the course.", True),
+                ("The student automatically receives a certificate.", False),
+                ("The student can skip all remaining lessons.", False),
+                ("The course no longer tracks progress.", False),
+            ],
+            start=1,
+        ):
+            option = CourseAssessmentOption(
+                question=single_choice,
+                option_text=option_text,
+                sequence_number=option_index,
+                is_correct=is_correct,
+            )
+            option.full_clean()
+            option.save()
+
+        multi_choice = CourseAssessmentQuestion(
+            assessment=assessment,
+            prompt=f"Which conditions should already be true before finishing '{course_title}'?",
+            instructions="Select all correct answers.",
+            question_type=CourseAssessmentQuestion.QuestionType.MULTIPLE_CHOICE,
+            sequence_number=2,
+            points=1,
+            status=CourseAssessmentQuestion.Status.ACTIVE,
+        )
+        multi_choice.full_clean()
+        multi_choice.save()
+        for option_index, (option_text, is_correct) in enumerate(
+            [
+                ("All lessons in the course have been completed.", True),
+                ("The last lesson exam was passed with 90% or higher.", True),
+                ("A certificate was downloaded.", False),
+                ("The course was never enrolled.", False),
+            ],
+            start=1,
+        ):
+            option = CourseAssessmentOption(
+                question=multi_choice,
+                option_text=option_text,
+                sequence_number=option_index,
+                is_correct=is_correct,
+            )
+            option.full_clean()
+            option.save()
 
     def _upsert_exam_category(self, order: int, seed: ExamSeed) -> ExamCategory:
         category = ExamCategory.objects.filter(name=seed.category_name).first() or ExamCategory(name=seed.category_name)

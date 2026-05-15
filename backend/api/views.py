@@ -2,7 +2,7 @@ from django.contrib.auth import authenticate, login, logout, update_session_auth
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.db.models import Count, Q
+from django.db.models import Count, Max, Q
 from django.utils import timezone
 from django.utils.dateparse import parse_date, parse_datetime
 from django.middleware.csrf import get_token
@@ -21,6 +21,11 @@ from users.models import (
     CompanyHiringPreferences,
     CompanyMember,
     Course,
+    CourseAssessment,
+    CourseAssessmentAttempt,
+    CourseAssessmentAttemptSelection,
+    CourseAssessmentOption,
+    CourseAssessmentQuestion,
     Exam,
     ExamAnswerOption,
     ExamAttempt,
@@ -584,7 +589,11 @@ def serialize_student_match_record(
     bookmarked_vacancy_ids: set[int],
     active_application_vacancy_ids: set[int],
 ) -> dict:
-    vacancy_data = serialize_vacancy(vacancy, bookmarked_vacancy_ids=bookmarked_vacancy_ids)
+    vacancy_data = serialize_vacancy(
+        vacancy,
+        bookmarked_vacancy_ids=bookmarked_vacancy_ids,
+        active_application_vacancy_ids=active_application_vacancy_ids,
+    )
     return {
         **vacancy_data,
         "match_score": match_result["score"],
@@ -592,8 +601,6 @@ def serialize_student_match_record(
         "strengths": match_result["strengths"],
         "gaps": match_result["gaps"],
         "factor_breakdown": serialize_match_factor_breakdown(match_result),
-        "has_active_application": vacancy.id in active_application_vacancy_ids,
-        "can_apply": vacancy.id not in active_application_vacancy_ids,
     }
 
 
@@ -1480,6 +1487,7 @@ def serialize_admin_lesson(lesson: Lesson) -> dict:
         "title": lesson.title,
         "summary": lesson.summary,
         "content": lesson.content,
+        "video_url": lesson.video_url,
         "sequence_number": lesson.sequence_number,
         "status": lesson.status,
         "progress_entry_count": lesson.progress_entries.count(),
@@ -1520,7 +1528,8 @@ def serialize_student_course_lesson(
     lesson: Lesson,
     *,
     progress: LessonProgress | None,
-    enrolled: bool,
+    is_accessible: bool,
+    assessment: dict | None = None,
 ) -> dict:
     return {
         "lesson_id": lesson.id,
@@ -1528,8 +1537,9 @@ def serialize_student_course_lesson(
         "summary": lesson.summary,
         "sequence_number": lesson.sequence_number,
         "status": progress.status if progress is not None else None,
-        "is_accessible": enrolled,
-        "detail_href": f"/student/courses/{lesson.course_id}/lessons/{lesson.id}" if enrolled else None,
+        "is_accessible": is_accessible,
+        "detail_href": f"/student/courses/{lesson.course_id}/lessons/{lesson.id}" if is_accessible else None,
+        "assessment": assessment,
     }
 
 
@@ -1593,6 +1603,16 @@ def serialize_student_course_detail(
     next_step_label: str,
     next_step_href: str | None,
 ) -> dict:
+    assessment_by_lesson_id, final_assessment = build_course_assessment_map(course)
+    latest_attempts_by_assessment_id: dict[int, CourseAssessmentAttempt] = {}
+    if learning_record is not None:
+        for attempt in CourseAssessmentAttempt.objects.filter(
+            student=learning_record.student,
+            assessment__course=course,
+            assessment__status=CourseAssessment.Status.ACTIVE,
+        ).order_by("assessment_id", "-attempt_number", "-id"):
+            if attempt.assessment_id not in latest_attempts_by_assessment_id:
+                latest_attempts_by_assessment_id[attempt.assessment_id] = attempt
     completed_lesson_count = sum(
         1
         for lesson in lessons
@@ -1616,10 +1636,36 @@ def serialize_student_course_detail(
             serialize_student_course_lesson(
                 lesson,
                 progress=lesson_progress_map.get(lesson.id),
-                enrolled=learning_record is not None,
+                is_accessible=learning_record is not None
+                and lesson_is_unlocked_for_student(
+                    lesson,
+                    lessons=lessons,
+                    progress_map=lesson_progress_map,
+                    assessment_by_lesson_id=assessment_by_lesson_id,
+                    latest_attempts_by_assessment_id=latest_attempts_by_assessment_id,
+                ),
+                assessment=serialize_course_assessment_summary(
+                    assessment_by_lesson_id.get(lesson.id),
+                    student=learning_record.student,
+                    unlocked=lesson_assessment_unlocked(lesson, progress_map=lesson_progress_map),
+                )
+                if learning_record is not None
+                else None,
             )
             for lesson in lessons
         ],
+        "final_exam": serialize_course_assessment_summary(
+            final_assessment,
+            student=learning_record.student,
+            unlocked=final_course_assessment_unlocked(
+                lessons=lessons,
+                progress_map=lesson_progress_map,
+                assessment_by_lesson_id=assessment_by_lesson_id,
+                latest_attempts_by_assessment_id=latest_attempts_by_assessment_id,
+            ),
+        )
+        if learning_record is not None
+        else None,
         "learning_outcomes": [
             item
             for item in [
@@ -1737,6 +1783,195 @@ def serialize_student_exam_detail(exam: Exam, *, student: User) -> dict:
         "retake_message": eligibility["message"],
         "next_attempt_number": eligibility["next_attempt_number"],
         "questions": [serialize_student_exam_question(question) for question in questions],
+    }
+
+
+def active_course_assessment_questions(assessment: CourseAssessment) -> list[CourseAssessmentQuestion]:
+    return list(
+        CourseAssessmentQuestion.objects.filter(
+            assessment=assessment,
+            status=CourseAssessmentQuestion.Status.ACTIVE,
+        )
+        .prefetch_related("options")
+        .order_by("sequence_number", "id")
+    )
+
+
+def serialize_student_course_assessment_option(option: CourseAssessmentOption) -> dict:
+    return {
+        "option_id": option.id,
+        "option_text": option.option_text,
+        "sequence_number": option.sequence_number,
+    }
+
+
+def serialize_student_course_assessment_question(question: CourseAssessmentQuestion) -> dict:
+    options = list(
+        question.options.filter(status=CourseAssessmentOption.Status.ACTIVE).order_by("sequence_number", "id")
+    )
+    return {
+        "question_id": question.id,
+        "prompt": question.prompt,
+        "instructions": question.instructions,
+        "question_type": question.question_type,
+        "sequence_number": question.sequence_number,
+        "points": question.points,
+        "options": [serialize_student_course_assessment_option(option) for option in options],
+    }
+
+
+def latest_course_assessment_attempt(student: User, assessment: CourseAssessment) -> CourseAssessmentAttempt | None:
+    return (
+        CourseAssessmentAttempt.objects.filter(student=student, assessment=assessment)
+        .order_by("-attempt_number", "-id")
+        .first()
+    )
+
+
+def next_course_assessment_attempt_number(student: User, assessment: CourseAssessment) -> int:
+    latest_attempt = (
+        CourseAssessmentAttempt.objects.filter(student=student, assessment=assessment)
+        .order_by("-attempt_number")
+        .values_list("attempt_number", flat=True)
+        .first()
+    )
+    return (latest_attempt or 0) + 1
+
+
+def build_course_assessment_map(course: Course) -> tuple[dict[int, CourseAssessment], CourseAssessment | None]:
+    assessments = list(
+        CourseAssessment.objects.filter(course=course, status=CourseAssessment.Status.ACTIVE)
+        .select_related("lesson")
+        .order_by("kind", "lesson__sequence_number", "id")
+    )
+    by_lesson_id = {
+        assessment.lesson_id: assessment
+        for assessment in assessments
+        if assessment.kind == CourseAssessment.Kind.LESSON and assessment.lesson_id is not None
+    }
+    final_assessment = next(
+        (assessment for assessment in assessments if assessment.kind == CourseAssessment.Kind.FINAL),
+        None,
+    )
+    return by_lesson_id, final_assessment
+
+
+def latest_course_assessment_attempts_by_assessment_id(
+    *,
+    student: User,
+    course: Course,
+) -> dict[int, CourseAssessmentAttempt]:
+    latest_attempts: dict[int, CourseAssessmentAttempt] = {}
+    for attempt in CourseAssessmentAttempt.objects.filter(
+        student=student,
+        assessment__course=course,
+        assessment__status=CourseAssessment.Status.ACTIVE,
+    ).order_by("assessment_id", "-attempt_number", "-id"):
+        if attempt.assessment_id not in latest_attempts:
+            latest_attempts[attempt.assessment_id] = attempt
+    return latest_attempts
+
+
+def lesson_assessment_unlocked(
+    lesson: Lesson,
+    *,
+    progress_map: dict[int, LessonProgress],
+) -> bool:
+    progress = progress_map.get(lesson.id)
+    return progress is not None and progress.status == LessonProgress.Status.COMPLETED
+
+
+def lesson_is_unlocked_for_student(
+    lesson: Lesson,
+    *,
+    lessons: list[Lesson],
+    progress_map: dict[int, LessonProgress],
+    assessment_by_lesson_id: dict[int, CourseAssessment],
+    latest_attempts_by_assessment_id: dict[int, CourseAssessmentAttempt],
+) -> bool:
+    lesson_index = next((index for index, item in enumerate(lessons) if item.id == lesson.id), -1)
+    if lesson_index <= 0:
+        return True
+
+    previous_lesson = lessons[lesson_index - 1]
+    previous_progress = progress_map.get(previous_lesson.id)
+    if previous_progress is None or previous_progress.status != LessonProgress.Status.COMPLETED:
+        return False
+
+    previous_assessment = assessment_by_lesson_id.get(previous_lesson.id)
+    if previous_assessment is None:
+        return True
+
+    previous_attempt = latest_attempts_by_assessment_id.get(previous_assessment.id)
+    return previous_attempt is not None and previous_attempt.passed
+
+
+def final_course_assessment_unlocked(
+    *,
+    lessons: list[Lesson],
+    progress_map: dict[int, LessonProgress],
+    assessment_by_lesson_id: dict[int, CourseAssessment],
+    latest_attempts_by_assessment_id: dict[int, CourseAssessmentAttempt],
+) -> bool:
+    if not lessons:
+        return False
+
+    last_lesson = lessons[-1]
+    last_progress = progress_map.get(last_lesson.id)
+    if last_progress is None or last_progress.status != LessonProgress.Status.COMPLETED:
+        return False
+
+    last_lesson_assessment = assessment_by_lesson_id.get(last_lesson.id)
+    if last_lesson_assessment is None:
+        return True
+
+    latest_attempt = latest_attempts_by_assessment_id.get(last_lesson_assessment.id)
+    return latest_attempt is not None and latest_attempt.passed
+
+
+def serialize_course_assessment_summary(
+    assessment: CourseAssessment | None,
+    *,
+    student: User,
+    unlocked: bool,
+) -> dict | None:
+    if assessment is None:
+        return None
+
+    latest_attempt = latest_course_assessment_attempt(student, assessment)
+    score_summary = CourseAssessmentAttempt.objects.filter(student=student, assessment=assessment).aggregate(best=Max("score_percent"))
+    return {
+        "assessment_id": assessment.id,
+        "title": assessment.title,
+        "description": assessment.description,
+        "kind": assessment.kind,
+        "passing_score_percent": assessment.passing_score_percent,
+        "question_count": CourseAssessmentQuestion.objects.filter(
+            assessment=assessment,
+            status=CourseAssessmentQuestion.Status.ACTIVE,
+        ).count(),
+        "is_unlocked": unlocked,
+        "attempt_count": CourseAssessmentAttempt.objects.filter(student=student, assessment=assessment).count(),
+        "best_score": score_summary["best"],
+        "latest_score": latest_attempt.score_percent if latest_attempt is not None else None,
+        "passed": latest_attempt.passed if latest_attempt is not None else False,
+    }
+
+
+def serialize_course_assessment_detail(assessment: CourseAssessment, *, student: User) -> dict:
+    latest_attempt = latest_course_assessment_attempt(student, assessment)
+    questions = active_course_assessment_questions(assessment)
+    return {
+        "assessment_id": assessment.id,
+        "title": assessment.title,
+        "description": assessment.description,
+        "kind": assessment.kind,
+        "passing_score_percent": assessment.passing_score_percent,
+        "attempt_count": CourseAssessmentAttempt.objects.filter(student=student, assessment=assessment).count(),
+        "next_attempt_number": next_course_assessment_attempt_number(student, assessment),
+        "latest_score": latest_attempt.score_percent if latest_attempt is not None else None,
+        "passed": latest_attempt.passed if latest_attempt is not None else False,
+        "questions": [serialize_student_course_assessment_question(question) for question in questions],
     }
 
 
@@ -1950,7 +2185,12 @@ def serialize_vacancy_posting_details(value: dict | None) -> dict:
     return details
 
 
-def serialize_vacancy(vacancy: Vacancy, *, bookmarked_vacancy_ids: set[int] | None = None) -> dict:
+def serialize_vacancy(
+    vacancy: Vacancy,
+    *,
+    bookmarked_vacancy_ids: set[int] | None = None,
+    active_application_vacancy_ids: set[int] | None = None,
+) -> dict:
     skill_requirements = list(vacancy.skill_requirements.all())
     language_requirements = list(vacancy.language_requirements.all())
     return {
@@ -1976,6 +2216,10 @@ def serialize_vacancy(vacancy: Vacancy, *, bookmarked_vacancy_ids: set[int] | No
             serialize_vacancy_language_requirement(requirement) for requirement in language_requirements
         ],
         "is_bookmarked": vacancy.id in bookmarked_vacancy_ids if bookmarked_vacancy_ids is not None else False,
+        "has_active_application": (
+            vacancy.id in active_application_vacancy_ids if active_application_vacancy_ids is not None else False
+        ),
+        "can_apply": vacancy.id not in active_application_vacancy_ids if active_application_vacancy_ids is not None else True,
         "status": vacancy.status,
         "created_by_id": vacancy.created_by_id,
         "created_by_name": vacancy.created_by.full_name,
@@ -2828,6 +3072,7 @@ def validate_admin_lesson_payload(payload: dict) -> dict:
     title = str(payload.get("title", "")).strip()
     summary = str(payload.get("summary", "")).strip()
     content = str(payload.get("content", "")).strip()
+    video_url = str(payload.get("video_url", "")).strip()
     status = str(payload.get("status", Lesson.Status.DRAFT)).strip().lower()
     raw_sequence_number = payload.get("sequence_number")
 
@@ -2848,6 +3093,13 @@ def validate_admin_lesson_payload(payload: dict) -> dict:
         if sequence_number <= 0:
             errors["sequence_number"] = ["Sequence number must be greater than zero."]
 
+    if video_url:
+        parsed_video_url = urlparse(video_url)
+        hostname = (parsed_video_url.hostname or "").lower()
+        allowed_hosts = {"youtube.com", "www.youtube.com", "m.youtube.com", "youtu.be", "www.youtu.be"}
+        if parsed_video_url.scheme not in {"http", "https"} or hostname not in allowed_hosts:
+            errors["video_url"] = ["Video URL must be a valid YouTube link."]
+
     if errors:
         raise ValidationError(errors)
 
@@ -2855,6 +3107,7 @@ def validate_admin_lesson_payload(payload: dict) -> dict:
         "title": title,
         "summary": summary,
         "content": content,
+        "video_url": video_url,
         "sequence_number": sequence_number,
         "status": status,
     }
@@ -3078,6 +3331,77 @@ def validate_exam_submission_payload(payload: dict, *, exam: Exam) -> dict:
         missing_questions = sorted(set(questions.keys()) - set(answers_by_question_id.keys()))
         if missing_questions:
             errors.append("All active exam questions must be answered before submission.")
+
+    if errors:
+        raise ValidationError({"answers": errors})
+
+    return {"answers_by_question_id": answers_by_question_id}
+
+
+def validate_course_assessment_submission_payload(payload: dict, *, assessment: CourseAssessment) -> dict:
+    raw_answers = payload.get("answers")
+    if not isinstance(raw_answers, list) or not raw_answers:
+        raise ValidationError({"answers": ["A non-empty answers list is required."]})
+
+    questions = {
+        question.id: question
+        for question in active_course_assessment_questions(assessment)
+    }
+    if not questions:
+        raise ValidationError({"assessment": ["This assessment has no active questions."]})
+
+    answers_by_question_id: dict[int, list[int]] = {}
+    errors: list[str] = []
+    for index, raw_item in enumerate(raw_answers):
+        if not isinstance(raw_item, dict):
+            errors.append(f"Answer #{index + 1} must be an object.")
+            continue
+
+        try:
+            question_id = int(raw_item.get("question_id"))
+        except (TypeError, ValueError):
+            errors.append(f"Answer #{index + 1} must include a valid question_id value.")
+            continue
+
+        question = questions.get(question_id)
+        if question is None:
+            errors.append(f"Answer #{index + 1} references an unavailable question.")
+            continue
+
+        raw_selected_option_ids = raw_item.get("selected_option_ids")
+        if not isinstance(raw_selected_option_ids, list) or not raw_selected_option_ids:
+            errors.append(f"Answer #{index + 1} must include a non-empty selected_option_ids list.")
+            continue
+
+        try:
+            selected_option_ids = [int(option_id) for option_id in raw_selected_option_ids]
+        except (TypeError, ValueError):
+            errors.append(f"Answer #{index + 1} contains an invalid selected option id.")
+            continue
+
+        active_option_ids = {
+            option.id
+            for option in question.options.all()
+            if option.status == CourseAssessmentOption.Status.ACTIVE
+        }
+        if not set(selected_option_ids).issubset(active_option_ids):
+            errors.append(f"Answer #{index + 1} contains an invalid option for question {question.sequence_number}.")
+            continue
+
+        unique_option_ids = sorted(set(selected_option_ids))
+        if (
+            question.question_type == CourseAssessmentQuestion.QuestionType.SINGLE_CHOICE
+            and len(unique_option_ids) != 1
+        ):
+            errors.append(f"Question {question.sequence_number} requires exactly one selected option.")
+            continue
+
+        answers_by_question_id[question_id] = unique_option_ids
+
+    if len(answers_by_question_id) != len(questions):
+        missing_count = len(questions) - len(answers_by_question_id)
+        if missing_count > 0:
+            errors.append("Every question must be answered before submitting.")
 
     if errors:
         raise ValidationError({"answers": errors})
@@ -3536,6 +3860,15 @@ def sync_learning_record_progress(learning_record: LearningRecord) -> LearningRe
 
     progress_entries = ensure_lesson_progress_records(learning_record)
     lessons = active_course_lessons(learning_record.course)
+    assessment_by_lesson_id, final_assessment = build_course_assessment_map(learning_record.course)
+    latest_attempts_by_assessment_id: dict[int, CourseAssessmentAttempt] = {}
+    for attempt in CourseAssessmentAttempt.objects.filter(
+        student=learning_record.student,
+        assessment__course=learning_record.course,
+        assessment__status=CourseAssessment.Status.ACTIVE,
+    ).order_by("assessment_id", "-attempt_number", "-id"):
+        if attempt.assessment_id not in latest_attempts_by_assessment_id:
+            latest_attempts_by_assessment_id[attempt.assessment_id] = attempt
     completed_count = sum(
         1
         for lesson in lessons
@@ -3557,9 +3890,14 @@ def sync_learning_record_progress(learning_record: LearningRecord) -> LearningRe
         desired_progress = 0
         desired_completed_at = None
         if completed_count == len(lessons):
-            desired_status = LearningRecord.Status.COMPLETED
-            desired_progress = 100
-            desired_completed_at = learning_record.completed_at or timezone.now()
+            final_attempt = latest_attempts_by_assessment_id.get(final_assessment.id) if final_assessment is not None else None
+            if final_assessment is None or (final_attempt is not None and final_attempt.passed):
+                desired_status = LearningRecord.Status.COMPLETED
+                desired_progress = 100
+                desired_completed_at = learning_record.completed_at or timezone.now()
+            else:
+                desired_status = LearningRecord.Status.IN_PROGRESS
+                desired_progress = 95
         elif completed_count > 0 or has_in_progress:
             desired_status = LearningRecord.Status.IN_PROGRESS
             desired_progress = max(
@@ -3627,7 +3965,31 @@ def student_lesson_href(course_id: int, lesson_id: int) -> str:
 
 def get_learning_record_resume_href(learning_record: LearningRecord | None) -> str:
     lesson, _ = get_next_lesson_for_learning_record(learning_record)
-    if lesson is not None:
+    if lesson is not None and learning_record is not None and learning_record.course_id is not None:
+        lessons = active_course_lessons(learning_record.course)
+        progress_map = get_learning_record_lesson_progress_map(learning_record, lessons)
+        assessment_by_lesson_id, final_assessment = build_course_assessment_map(learning_record.course)
+        latest_attempts = latest_course_assessment_attempts_by_assessment_id(
+            student=learning_record.student,
+            course=learning_record.course,
+        )
+
+        for current_lesson in lessons:
+            progress = progress_map.get(current_lesson.id)
+            if progress is None or progress.status != LessonProgress.Status.COMPLETED:
+                return student_lesson_href(current_lesson.course_id, current_lesson.id)
+
+            lesson_assessment = assessment_by_lesson_id.get(current_lesson.id)
+            if lesson_assessment is not None:
+                latest_attempt = latest_attempts.get(lesson_assessment.id)
+                if latest_attempt is None or not latest_attempt.passed:
+                    return student_lesson_href(current_lesson.course_id, current_lesson.id)
+
+        if final_assessment is not None:
+            latest_final_attempt = latest_attempts.get(final_assessment.id)
+            if latest_final_attempt is None or not latest_final_attempt.passed:
+                return student_lesson_href(lesson.course_id, lesson.id)
+
         return student_lesson_href(lesson.course_id, lesson.id)
     if learning_record is not None and learning_record.course_id is not None:
         return f"/student/courses/{learning_record.course_id}"
@@ -3655,7 +4017,9 @@ def serialize_student_lesson_detail(
     progress: LessonProgress,
     total_lessons: int,
     previous_lesson: Lesson | None,
-    next_lesson: Lesson | None,
+    next_lesson_href: str | None,
+    lesson_exam: dict | None,
+    final_exam: dict | None,
 ) -> dict:
     return {
         "lesson_id": lesson.id,
@@ -3665,6 +4029,7 @@ def serialize_student_lesson_detail(
         "title": lesson.title,
         "summary": lesson.summary,
         "content": lesson.content,
+        "video_url": lesson.video_url,
         "sequence_number": lesson.sequence_number,
         "total_lessons": total_lessons,
         "progress": {
@@ -3673,7 +4038,9 @@ def serialize_student_lesson_detail(
             "completed_at": progress.completed_at.isoformat() if progress.completed_at else None,
         },
         "previous_lesson_href": student_lesson_href(previous_lesson.course_id, previous_lesson.id) if previous_lesson else None,
-        "next_lesson_href": student_lesson_href(next_lesson.course_id, next_lesson.id) if next_lesson else None,
+        "next_lesson_href": next_lesson_href,
+        "lesson_exam": lesson_exam,
+        "final_exam": final_exam,
     }
 
 
@@ -3822,6 +4189,35 @@ def score_exam_submission_details(exam: Exam, answers_by_question_id: dict[int, 
 
     score_percent = round((earned_points / total_points) * 100)
     return score_percent, score_percent >= exam.passing_score_percent, correct_answer_count, len(questions)
+
+
+def score_course_assessment_submission_details(
+    assessment: CourseAssessment,
+    answers_by_question_id: dict[int, list[int]],
+) -> tuple[int, bool, int, int]:
+    questions = active_course_assessment_questions(assessment)
+    total_points = sum(question.points for question in questions)
+    if total_points == 0:
+        return 0, False, 0, 0
+
+    earned_points = 0
+    correct_answer_count = 0
+    for question in questions:
+        selected_option_ids = set(answers_by_question_id.get(question.id, []))
+        if not selected_option_ids:
+            continue
+
+        correct_option_ids = {
+            option.id
+            for option in question.options.all()
+            if option.status == CourseAssessmentOption.Status.ACTIVE and option.is_correct
+        }
+        if selected_option_ids == correct_option_ids:
+            earned_points += question.points
+            correct_answer_count += 1
+
+    score_percent = round((earned_points / total_points) * 100)
+    return score_percent, score_percent >= assessment.passing_score_percent, correct_answer_count, len(questions)
 
 
 def preparation_categories_for_student(student: User) -> list[str]:
@@ -4130,6 +4526,11 @@ def build_student_jobs_response(user: User, filters: dict) -> dict:
             flat=True,
         )
     )
+    active_application_vacancy_ids = set(
+        Application.objects.filter(student=user, vacancy_id__in=[vacancy.id for vacancy in vacancies])
+        .exclude(status__in=[Application.Status.REJECTED, Application.Status.WITHDRAWN])
+        .values_list("vacancy_id", flat=True)
+    )
 
     visible_skill_ids = {
         requirement.skill_id
@@ -4154,7 +4555,14 @@ def build_student_jobs_response(user: User, filters: dict) -> dict:
     ]
 
     return {
-        "vacancies": [serialize_vacancy(vacancy, bookmarked_vacancy_ids=bookmarked_vacancy_ids) for vacancy in vacancies],
+        "vacancies": [
+            serialize_vacancy(
+                vacancy,
+                bookmarked_vacancy_ids=bookmarked_vacancy_ids,
+                active_application_vacancy_ids=active_application_vacancy_ids,
+            )
+            for vacancy in vacancies
+        ],
         "query": filters["query"],
         "filters": {
             "skills": filters["skill_slugs"],
@@ -4829,6 +5237,7 @@ def company_course_lessons_view(request, course_id: int):
         title=payload["title"],
         summary=payload["summary"],
         content=payload["content"],
+        video_url=payload["video_url"],
         sequence_number=payload["sequence_number"],
         status=payload["status"],
     )
@@ -4861,6 +5270,7 @@ def company_lesson_detail_view(request, lesson_id: int):
     lesson.title = payload["title"]
     lesson.summary = payload["summary"]
     lesson.content = payload["content"]
+    lesson.video_url = payload["video_url"]
     lesson.sequence_number = payload["sequence_number"]
     lesson.status = payload["status"]
     lesson.full_clean()
@@ -4869,6 +5279,7 @@ def company_lesson_detail_view(request, lesson_id: int):
             "title",
             "summary",
             "content",
+            "video_url",
             "sequence_number",
             "status",
             "updated_at",
@@ -4982,6 +5393,25 @@ def student_lesson_detail_view(request, course_id: int, lesson_id: int):
         )
 
     progress_map = get_learning_record_lesson_progress_map(learning_record, lessons)
+    assessment_by_lesson_id, final_assessment = build_course_assessment_map(course)
+    latest_attempts_by_assessment_id = latest_course_assessment_attempts_by_assessment_id(
+        student=request.user,
+        course=course,
+    )
+    if not lesson_is_unlocked_for_student(
+        lesson,
+        lessons=lessons,
+        progress_map=progress_map,
+        assessment_by_lesson_id=assessment_by_lesson_id,
+        latest_attempts_by_assessment_id=latest_attempts_by_assessment_id,
+    ):
+        return error_response(
+            request,
+            "FORBIDDEN",
+            "Complete the previous lesson exam with 90 percent or higher to unlock this lesson.",
+            details={"lesson_id": [str(lesson_id)]},
+            status=403,
+        )
     progress = progress_map.get(lesson.id)
     if progress is None:
         raise ValidationError({"lesson": ["Lesson progress is not available for this lesson."]})
@@ -4989,13 +5419,39 @@ def student_lesson_detail_view(request, course_id: int, lesson_id: int):
     lesson_index = lessons.index(lesson)
     previous_lesson = lessons[lesson_index - 1] if lesson_index > 0 else None
     next_lesson = lessons[lesson_index + 1] if lesson_index < len(lessons) - 1 else None
+    next_lesson_href = None
+    if next_lesson is not None and lesson_is_unlocked_for_student(
+        next_lesson,
+        lessons=lessons,
+        progress_map=progress_map,
+        assessment_by_lesson_id=assessment_by_lesson_id,
+        latest_attempts_by_assessment_id=latest_attempts_by_assessment_id,
+    ):
+        next_lesson_href = student_lesson_href(next_lesson.course_id, next_lesson.id)
     return success_response(
         serialize_student_lesson_detail(
             lesson,
             progress=progress,
             total_lessons=len(lessons),
             previous_lesson=previous_lesson,
-            next_lesson=next_lesson,
+            next_lesson_href=next_lesson_href,
+            lesson_exam=serialize_course_assessment_summary(
+                assessment_by_lesson_id.get(lesson.id),
+                student=request.user,
+                unlocked=lesson_assessment_unlocked(lesson, progress_map=progress_map),
+            ),
+            final_exam=serialize_course_assessment_summary(
+                final_assessment,
+                student=request.user,
+                unlocked=final_course_assessment_unlocked(
+                    lessons=lessons,
+                    progress_map=progress_map,
+                    assessment_by_lesson_id=assessment_by_lesson_id,
+                    latest_attempts_by_assessment_id=latest_attempts_by_assessment_id,
+                ),
+            )
+            if lesson_index == len(lessons) - 1
+            else None,
         )
     )
 
@@ -5036,6 +5492,25 @@ def student_lesson_progress_view(request, course_id: int, lesson_id: int):
         )
 
     progress_map = get_learning_record_lesson_progress_map(learning_record, lessons)
+    assessment_by_lesson_id, final_assessment = build_course_assessment_map(course)
+    latest_attempts_by_assessment_id = latest_course_assessment_attempts_by_assessment_id(
+        student=request.user,
+        course=course,
+    )
+    if not lesson_is_unlocked_for_student(
+        lesson,
+        lessons=lessons,
+        progress_map=progress_map,
+        assessment_by_lesson_id=assessment_by_lesson_id,
+        latest_attempts_by_assessment_id=latest_attempts_by_assessment_id,
+    ):
+        return error_response(
+            request,
+            "FORBIDDEN",
+            "Complete the previous lesson exam with 90 percent or higher to unlock this lesson.",
+            details={"lesson_id": [str(lesson_id)]},
+            status=403,
+        )
     progress = progress_map.get(lesson.id)
     if progress is None:
         raise ValidationError({"lesson": ["Lesson progress is not available for this lesson."]})
@@ -5063,18 +5538,51 @@ def student_lesson_progress_view(request, course_id: int, lesson_id: int):
     learning_record = sync_learning_record_progress(learning_record)
     progress_map = get_learning_record_lesson_progress_map(learning_record, lessons)
     progress = progress_map[lesson.id]
+    latest_attempts_by_assessment_id = latest_course_assessment_attempts_by_assessment_id(
+        student=request.user,
+        course=course,
+    )
     lesson_index = lessons.index(lesson)
     previous_lesson = lessons[lesson_index - 1] if lesson_index > 0 else None
     next_lesson = lessons[lesson_index + 1] if lesson_index < len(lessons) - 1 else None
+    next_lesson_href = None
+    if next_lesson is not None and lesson_is_unlocked_for_student(
+        next_lesson,
+        lessons=lessons,
+        progress_map=progress_map,
+        assessment_by_lesson_id=assessment_by_lesson_id,
+        latest_attempts_by_assessment_id=latest_attempts_by_assessment_id,
+    ):
+        next_lesson_href = student_lesson_href(next_lesson.course_id, next_lesson.id)
 
     return success_response(
         {
+            "message": "Lesson marked complete."
+            if payload["status"] == LessonProgress.Status.COMPLETED
+            else "Lesson started.",
             "lesson": serialize_student_lesson_detail(
                 lesson,
                 progress=progress,
                 total_lessons=len(lessons),
                 previous_lesson=previous_lesson,
-                next_lesson=next_lesson,
+                next_lesson_href=next_lesson_href,
+                lesson_exam=serialize_course_assessment_summary(
+                    assessment_by_lesson_id.get(lesson.id),
+                    student=request.user,
+                    unlocked=lesson_assessment_unlocked(lesson, progress_map=progress_map),
+                ),
+                final_exam=serialize_course_assessment_summary(
+                    final_assessment,
+                    student=request.user,
+                    unlocked=final_course_assessment_unlocked(
+                        lessons=lessons,
+                        progress_map=progress_map,
+                        assessment_by_lesson_id=assessment_by_lesson_id,
+                        latest_attempts_by_assessment_id=latest_attempts_by_assessment_id,
+                    ),
+                )
+                if lesson_index == len(lessons) - 1
+                else None,
             ),
             "enrollment": serialize_student_course_enrollment(
                 learning_record,
@@ -5085,6 +5593,228 @@ def student_lesson_progress_view(request, course_id: int, lesson_id: int):
             ),
             "next_step_href": get_learning_record_resume_href(learning_record),
         }
+    )
+
+
+@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.STUDENT])
+def student_lesson_assessment_detail_view(request, course_id: int, lesson_id: int):
+    course = get_visible_student_course(course_id)
+    if course is None:
+        return error_response(request, "NOT_FOUND", "The requested course is not available.", details={"course_id": [str(course_id)]}, status=404)
+
+    learning_record = get_student_course_learning_record(request.user, course)
+    if learning_record is None:
+        return error_response(request, "FORBIDDEN", "You must enroll in this course before taking lesson exams.", details={"course_id": [str(course_id)]}, status=403)
+
+    learning_record = sync_learning_record_progress(learning_record)
+    lessons = active_course_lessons(course)
+    lesson = next((item for item in lessons if item.id == lesson_id), None)
+    if lesson is None:
+        return error_response(request, "NOT_FOUND", "The requested lesson is not available.", details={"lesson_id": [str(lesson_id)]}, status=404)
+
+    progress_map = get_learning_record_lesson_progress_map(learning_record, lessons)
+    assessment_by_lesson_id, _ = build_course_assessment_map(course)
+    assessment = assessment_by_lesson_id.get(lesson.id)
+    if assessment is None:
+        return error_response(request, "NOT_FOUND", "No lesson exam is configured for this lesson.", details={"lesson_id": [str(lesson_id)]}, status=404)
+    if not lesson_assessment_unlocked(lesson, progress_map=progress_map):
+        return error_response(request, "FORBIDDEN", "Complete the lesson before taking its exam.", details={"lesson_id": [str(lesson_id)]}, status=403)
+
+    return success_response(serialize_course_assessment_detail(assessment, student=request.user))
+
+
+@api_endpoint(["POST"], authentication_required=True, roles=[User.Role.STUDENT])
+def student_lesson_assessment_submit_view(request, course_id: int, lesson_id: int):
+    course = get_visible_student_course(course_id)
+    if course is None:
+        return error_response(request, "NOT_FOUND", "The requested course is not available.", details={"course_id": [str(course_id)]}, status=404)
+
+    learning_record = get_student_course_learning_record(request.user, course)
+    if learning_record is None:
+        return error_response(request, "FORBIDDEN", "You must enroll in this course before taking lesson exams.", details={"course_id": [str(course_id)]}, status=403)
+
+    learning_record = sync_learning_record_progress(learning_record)
+    lessons = active_course_lessons(course)
+    lesson = next((item for item in lessons if item.id == lesson_id), None)
+    if lesson is None:
+        return error_response(request, "NOT_FOUND", "The requested lesson is not available.", details={"lesson_id": [str(lesson_id)]}, status=404)
+
+    progress_map = get_learning_record_lesson_progress_map(learning_record, lessons)
+    assessment_by_lesson_id, _ = build_course_assessment_map(course)
+    assessment = assessment_by_lesson_id.get(lesson.id)
+    if assessment is None:
+        return error_response(request, "NOT_FOUND", "No lesson exam is configured for this lesson.", details={"lesson_id": [str(lesson_id)]}, status=404)
+    if not lesson_assessment_unlocked(lesson, progress_map=progress_map):
+        return error_response(request, "FORBIDDEN", "Complete the lesson before taking its exam.", details={"lesson_id": [str(lesson_id)]}, status=403)
+
+    payload = validate_course_assessment_submission_payload(parse_json_body(request), assessment=assessment)
+    now = timezone.now()
+    attempt_number = next_course_assessment_attempt_number(request.user, assessment)
+    with transaction.atomic():
+        attempt = CourseAssessmentAttempt(
+            student=request.user,
+            assessment=assessment,
+            attempt_number=attempt_number,
+            score_percent=0,
+            passed=False,
+            started_at=now,
+            submitted_at=now,
+            completed_at=now,
+        )
+        attempt.full_clean()
+        attempt.save()
+
+        for question_id, selected_option_ids in payload["answers_by_question_id"].items():
+            for option_id in selected_option_ids:
+                selection = CourseAssessmentAttemptSelection(
+                    attempt=attempt,
+                    question_id=question_id,
+                    option_id=option_id,
+                )
+                selection.full_clean()
+                selection.save()
+
+        score_percent, passed, _, _ = score_course_assessment_submission_details(assessment, payload["answers_by_question_id"])
+        attempt.score_percent = score_percent
+        attempt.passed = passed
+        attempt.full_clean()
+        attempt.save(update_fields=["score_percent", "passed", "updated_at"])
+
+    message = (
+        "Lesson exam passed. The next lesson is now unlocked."
+        if passed
+        else f"Lesson exam submitted. Score {score_percent}%. Reach {assessment.passing_score_percent}% to unlock the next lesson."
+    )
+    return success_response(
+        {
+            "message": message,
+            "assessment_id": assessment.id,
+            "attempt_id": attempt.id,
+            "attempt_number": attempt.attempt_number,
+            "score_percent": score_percent,
+            "passed": passed,
+            "passing_score_percent": assessment.passing_score_percent,
+        },
+        status=201,
+    )
+
+
+@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.STUDENT])
+def student_course_final_assessment_detail_view(request, course_id: int):
+    course = get_visible_student_course(course_id)
+    if course is None:
+        return error_response(request, "NOT_FOUND", "The requested course is not available.", details={"course_id": [str(course_id)]}, status=404)
+
+    learning_record = get_student_course_learning_record(request.user, course)
+    if learning_record is None:
+        return error_response(request, "FORBIDDEN", "You must enroll in this course before taking the final exam.", details={"course_id": [str(course_id)]}, status=403)
+
+    learning_record = sync_learning_record_progress(learning_record)
+    lessons = active_course_lessons(course)
+    progress_map = get_learning_record_lesson_progress_map(learning_record, lessons)
+    assessment_by_lesson_id, final_assessment = build_course_assessment_map(course)
+    latest_attempts = latest_course_assessment_attempts_by_assessment_id(student=request.user, course=course)
+    if final_assessment is None:
+        return error_response(request, "NOT_FOUND", "No final exam is configured for this course.", details={"course_id": [str(course_id)]}, status=404)
+    if not final_course_assessment_unlocked(
+        lessons=lessons,
+        progress_map=progress_map,
+        assessment_by_lesson_id=assessment_by_lesson_id,
+        latest_attempts_by_assessment_id=latest_attempts,
+    ):
+        return error_response(
+            request,
+            "FORBIDDEN",
+            "Complete the last lesson and pass its exam with 90 percent or higher to unlock the final exam.",
+            details={"course_id": [str(course_id)]},
+            status=403,
+        )
+
+    return success_response(serialize_course_assessment_detail(final_assessment, student=request.user))
+
+
+@api_endpoint(["POST"], authentication_required=True, roles=[User.Role.STUDENT])
+def student_course_final_assessment_submit_view(request, course_id: int):
+    course = get_visible_student_course(course_id)
+    if course is None:
+        return error_response(request, "NOT_FOUND", "The requested course is not available.", details={"course_id": [str(course_id)]}, status=404)
+
+    learning_record = get_student_course_learning_record(request.user, course)
+    if learning_record is None:
+        return error_response(request, "FORBIDDEN", "You must enroll in this course before taking the final exam.", details={"course_id": [str(course_id)]}, status=403)
+
+    learning_record = sync_learning_record_progress(learning_record)
+    lessons = active_course_lessons(course)
+    progress_map = get_learning_record_lesson_progress_map(learning_record, lessons)
+    assessment_by_lesson_id, final_assessment = build_course_assessment_map(course)
+    latest_attempts = latest_course_assessment_attempts_by_assessment_id(student=request.user, course=course)
+    if final_assessment is None:
+        return error_response(request, "NOT_FOUND", "No final exam is configured for this course.", details={"course_id": [str(course_id)]}, status=404)
+    if not final_course_assessment_unlocked(
+        lessons=lessons,
+        progress_map=progress_map,
+        assessment_by_lesson_id=assessment_by_lesson_id,
+        latest_attempts_by_assessment_id=latest_attempts,
+    ):
+        return error_response(
+            request,
+            "FORBIDDEN",
+            "Complete the last lesson and pass its exam with 90 percent or higher to unlock the final exam.",
+            details={"course_id": [str(course_id)]},
+            status=403,
+        )
+
+    payload = validate_course_assessment_submission_payload(parse_json_body(request), assessment=final_assessment)
+    now = timezone.now()
+    attempt_number = next_course_assessment_attempt_number(request.user, final_assessment)
+    with transaction.atomic():
+        attempt = CourseAssessmentAttempt(
+            student=request.user,
+            assessment=final_assessment,
+            attempt_number=attempt_number,
+            score_percent=0,
+            passed=False,
+            started_at=now,
+            submitted_at=now,
+            completed_at=now,
+        )
+        attempt.full_clean()
+        attempt.save()
+
+        for question_id, selected_option_ids in payload["answers_by_question_id"].items():
+            for option_id in selected_option_ids:
+                selection = CourseAssessmentAttemptSelection(
+                    attempt=attempt,
+                    question_id=question_id,
+                    option_id=option_id,
+                )
+                selection.full_clean()
+                selection.save()
+
+        score_percent, passed, _, _ = score_course_assessment_submission_details(final_assessment, payload["answers_by_question_id"])
+        attempt.score_percent = score_percent
+        attempt.passed = passed
+        attempt.full_clean()
+        attempt.save(update_fields=["score_percent", "passed", "updated_at"])
+
+    learning_record = sync_learning_record_progress(learning_record)
+    message = (
+        "Final exam passed. Course completed."
+        if passed
+        else f"Final exam submitted. Score {score_percent}%. Reach {final_assessment.passing_score_percent}% to complete the course."
+    )
+    return success_response(
+        {
+            "message": message,
+            "assessment_id": final_assessment.id,
+            "attempt_id": attempt.id,
+            "attempt_number": attempt.attempt_number,
+            "score_percent": score_percent,
+            "passed": passed,
+            "passing_score_percent": final_assessment.passing_score_percent,
+            "course_completed": learning_record.status == LearningRecord.Status.COMPLETED,
+        },
+        status=201,
     )
 
 
@@ -5122,7 +5852,13 @@ def student_matches_view(request):
 def student_job_bookmark_view(request, vacancy_id: int):
     if request.method == "DELETE":
         JobBookmark.objects.filter(student=request.user, vacancy_id=vacancy_id).delete()
-        return success_response({"vacancy_id": vacancy_id, "is_bookmarked": False})
+        return success_response(
+            {
+                "vacancy_id": vacancy_id,
+                "is_bookmarked": False,
+                "message": "Saved state removed.",
+            }
+        )
 
     vacancy = get_visible_student_vacancy(vacancy_id)
     if vacancy is None:
@@ -5136,8 +5872,21 @@ def student_job_bookmark_view(request, vacancy_id: int):
 
     bookmark, created = JobBookmark.objects.get_or_create(student=request.user, vacancy=vacancy)
     if not created:
-        return success_response({"vacancy_id": vacancy.id, "is_bookmarked": True})
-    return success_response({"vacancy_id": vacancy.id, "is_bookmarked": True}, status=201)
+        return success_response(
+            {
+                "vacancy_id": vacancy.id,
+                "is_bookmarked": True,
+                "message": "Saved for later.",
+            }
+        )
+    return success_response(
+        {
+            "vacancy_id": vacancy.id,
+            "is_bookmarked": True,
+            "message": "Saved for later.",
+        },
+        status=201,
+    )
 
 
 @api_endpoint(["GET", "POST"], authentication_required=True, roles=[User.Role.STUDENT])
@@ -7399,6 +8148,7 @@ def admin_course_lessons_view(request, course_id: int):
         title=payload["title"],
         summary=payload["summary"],
         content=payload["content"],
+        video_url=payload["video_url"],
         sequence_number=payload["sequence_number"],
         status=payload["status"],
     )
@@ -7431,6 +8181,7 @@ def admin_lesson_detail_view(request, lesson_id: int):
     lesson.title = payload["title"]
     lesson.summary = payload["summary"]
     lesson.content = payload["content"]
+    lesson.video_url = payload["video_url"]
     lesson.sequence_number = payload["sequence_number"]
     lesson.status = payload["status"]
     lesson.full_clean()
@@ -7439,6 +8190,7 @@ def admin_lesson_detail_view(request, lesson_id: int):
             "title",
             "summary",
             "content",
+            "video_url",
             "sequence_number",
             "status",
             "updated_at",
