@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { BookOpen, ChevronRight, Clock3, Heart, Search, SlidersHorizontal, Star } from 'lucide-react'
 
 import { ApiError, apiRequest } from '../../lib/api'
@@ -63,13 +63,20 @@ function getCourseMockMeta(course: CourseCatalogRecord) {
 function getCourseRecommendationScore(course: CourseCatalogRecord, favoriteCourseIds: number[]) {
   return (
     (favoriteCourseIds.includes(course.course_id) ? 100 : 0) +
+    (course.enrollment_status === 'completed' ? 80 : 0) +
+    (course.enrollment_status === 'in_progress' ? 40 : 0) +
     (course.progress_percent ?? 0) +
     course.readiness_cues.length * 5 +
     (course.is_enrolled ? 20 : 0)
   )
 }
 
-export function StudentCourseCatalogPage() {
+type StudentCourseCatalogPageProps = {
+  favoritesOnly?: boolean
+}
+
+function StudentCourseCatalogPageContent({ favoritesOnly = false }: StudentCourseCatalogPageProps) {
+  const navigate = useNavigate()
   const [catalog, setCatalog] = useState<CourseCatalogResponse>(emptyCatalog)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -137,6 +144,7 @@ export function StudentCourseCatalogPage() {
     const normalizedQuery = searchQuery.trim().toLowerCase()
 
     const filtered = catalog.courses.filter((course) => {
+      const matchesFavorites = !favoritesOnly || favoriteCourseIds.includes(course.course_id)
       const matchesQuery =
         !normalizedQuery ||
         [course.title, course.description, course.category]
@@ -147,7 +155,7 @@ export function StudentCourseCatalogPage() {
       const matchesCategory = category === 'All Categories' || course.category === category
       const matchesLevel = level === 'All Levels' || formatDifficultyLabel(course.difficulty_level) === level
 
-      return matchesQuery && matchesCategory && matchesLevel
+      return matchesFavorites && matchesQuery && matchesCategory && matchesLevel
     })
 
     return filtered.sort((left, right) => {
@@ -165,7 +173,7 @@ export function StudentCourseCatalogPage() {
 
       return getCourseRecommendationScore(right, favoriteCourseIds) - getCourseRecommendationScore(left, favoriteCourseIds)
     })
-  }, [catalog.courses, category, favoriteCourseIds, level, searchQuery, sortBy])
+  }, [catalog.courses, category, favoriteCourseIds, favoritesOnly, level, searchQuery, sortBy])
 
   function toggleFavorite(courseId: number) {
     setFavoriteCourseIds((currentFavorites) => {
@@ -178,6 +186,17 @@ export function StudentCourseCatalogPage() {
     })
   }
 
+  const pageTitle = favoritesOnly ? 'Wishlisted Courses' : 'All Courses'
+  const pageDescription = favoritesOnly
+    ? 'Review the courses you saved to your wishlist and jump back into the ones you want to learn next.'
+    : 'Explore and enroll in courses to learn new skills and advance your career'
+  const emptyStateTitle = favoritesOnly ? 'No wishlisted courses yet' : 'No courses found'
+  const emptyStateDescription = favoritesOnly
+    ? 'Save courses with the heart button and they will appear here.'
+    : 'Try changing your search or filters to see more courses.'
+  const wishlistButtonLabel = favoritesOnly ? 'Browse All Courses' : 'Wishlisted Courses'
+  const wishlistButtonHref = favoritesOnly ? '/student/courses' : '/student/courses/wishlist'
+
   return (
     <div className="space-y-6 px-4 py-6 md:px-6 lg:px-8">
       <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
@@ -185,13 +204,19 @@ export function StudentCourseCatalogPage() {
           Dashboard
         </Link>
         <ChevronRight className="h-4 w-4" />
-        <span className="font-medium text-foreground">Courses</span>
+        <Link to="/student/courses" className="transition-colors hover:text-foreground">
+          Courses
+        </Link>
+        {favoritesOnly ? (
+          <>
+            <ChevronRight className="h-4 w-4" />
+            <span className="font-medium text-foreground">Wishlist</span>
+          </>
+        ) : null}
       </div>
 
-      <h1 className="text-3xl font-bold tracking-tight md:text-4xl">All Courses</h1>
-      <p className="text-base whitespace-nowrap text-muted-foreground">
-        Explore and enroll in courses to learn new skills and advance your career
-      </p>
+      <h1 className="text-3xl font-bold tracking-tight md:text-4xl">{pageTitle}</h1>
+      <p className="text-base text-muted-foreground">{pageDescription}</p>
 
       <div className="flex gap-3 md:hidden">
         <div className="relative flex-1">
@@ -256,10 +281,20 @@ export function StudentCourseCatalogPage() {
             </div>
           </SheetContent>
         </Sheet>
+
+        <Button
+          type="button"
+          variant="outline"
+          className="h-11 w-11 rounded-none px-0"
+          onClick={() => navigate(wishlistButtonHref)}
+          aria-label={wishlistButtonLabel}
+        >
+          <Heart className={cn('h-4 w-4', favoritesOnly && 'fill-current text-emerald-500')} />
+        </Button>
       </div>
 
-      <div className="hidden gap-4 md:grid md:grid-cols-2 xl:grid-cols-4">
-        <div className="relative md:col-span-2 xl:col-span-1">
+      <div className="hidden flex-wrap gap-4 md:flex md:items-center">
+        <div className="relative min-w-[260px] flex-1">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={searchQuery}
@@ -272,7 +307,7 @@ export function StudentCourseCatalogPage() {
         <select
           value={category}
           onChange={(event) => setCategory(event.target.value)}
-          className="h-11 rounded-none border border-input bg-background px-4 text-sm text-foreground outline-none transition focus-visible:ring-2 focus-visible:ring-ring/50"
+          className="h-11 min-w-[220px] rounded-none border border-input bg-background px-4 text-sm text-foreground outline-none transition focus-visible:ring-2 focus-visible:ring-ring/50"
         >
           {categoryOptions.map((option) => (
             <option key={option} value={option}>
@@ -284,7 +319,7 @@ export function StudentCourseCatalogPage() {
         <select
           value={level}
           onChange={(event) => setLevel(event.target.value)}
-          className="h-11 rounded-none border border-input bg-background px-4 text-sm text-foreground outline-none transition focus-visible:ring-2 focus-visible:ring-ring/50"
+          className="h-11 min-w-[180px] rounded-none border border-input bg-background px-4 text-sm text-foreground outline-none transition focus-visible:ring-2 focus-visible:ring-ring/50"
         >
           <option>All Levels</option>
           <option>Beginner</option>
@@ -292,7 +327,7 @@ export function StudentCourseCatalogPage() {
           <option>Advanced</option>
         </select>
 
-        <div className="flex items-center gap-2 rounded-none border border-input bg-background px-4">
+        <div className="flex h-11 min-w-[220px] items-center gap-2 rounded-none border border-input bg-background px-4">
           <span className="text-sm whitespace-nowrap text-muted-foreground">Sort by:</span>
           <select
             value={sortBy}
@@ -305,6 +340,16 @@ export function StudentCourseCatalogPage() {
             <option>A-Z</option>
           </select>
         </div>
+
+        <Button
+          type="button"
+          variant="outline"
+          className="h-11 rounded-none px-4"
+          onClick={() => navigate(wishlistButtonHref)}
+        >
+          <Heart className={cn('mr-2 h-4 w-4', favoritesOnly && 'fill-current text-emerald-500')} />
+          {wishlistButtonLabel}
+        </Button>
       </div>
 
       <div className="flex gap-2 overflow-x-auto pb-2">
@@ -357,6 +402,15 @@ export function StudentCourseCatalogPage() {
             const isFavorite = favoriteCourseIds.includes(course.course_id)
             const mediaOverride = getCourseMediaOverrideForCourse(course.course_id, course.title)
             const courseThumbnail = mediaOverride?.thumbnailImage || mediaOverride?.previewImage || ''
+            const isCompleted = course.enrollment_status === 'completed'
+            const isInProgress = course.enrollment_status === 'in_progress'
+            const progressLabel = isCompleted
+              ? 'Completed'
+              : typeof course.progress_percent === 'number' && course.progress_percent > 0
+                ? `${course.progress_percent}% complete`
+                : course.is_enrolled
+                  ? 'Enrolled'
+                  : 'Not started'
 
             return (
               <article
@@ -377,21 +431,38 @@ export function StudentCourseCatalogPage() {
                   <button
                     type="button"
                     onClick={() => toggleFavorite(course.course_id)}
-                    className="absolute right-4 top-4 z-10 inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-white/30 bg-black/20 text-white backdrop-blur-sm transition hover:bg-black/30"
+                    className={cn(
+                      'absolute right-4 top-4 z-10 inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-white/30 bg-black/20 text-white backdrop-blur-sm transition hover:bg-black/30',
+                      isFavorite && 'border-emerald-400/60 bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30'
+                    )}
                     aria-label={isFavorite ? 'Remove from favorite courses' : 'Add to favorite courses'}
                   >
-                    <Heart className={cn('h-5 w-5', isFavorite && 'fill-current')} />
+                    <Heart className={cn('h-5 w-5', isFavorite && 'fill-current text-emerald-300')} />
                   </button>
 
                   <div className="relative z-10 flex h-full flex-col justify-between">
-                    <Badge variant="secondary" className="w-fit rounded-full bg-white/15 text-white hover:bg-white/15">
-                      {formatCategoryLabel(course.category)}
-                    </Badge>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge variant="secondary" className="w-fit rounded-full bg-white/15 text-white hover:bg-white/15">
+                        {formatCategoryLabel(course.category)}
+                      </Badge>
+                      {isCompleted ? (
+                        <Badge className="rounded-full border-transparent bg-emerald-500 text-white hover:bg-emerald-500">
+                          Completed
+                        </Badge>
+                      ) : isInProgress ? (
+                        <Badge className="rounded-full border-transparent bg-blue-600 text-white hover:bg-blue-600">
+                          In progress
+                        </Badge>
+                      ) : null}
+                    </div>
                     <div className="space-y-2">
                       <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-white/30 bg-white/10">
                         <BookOpen className="h-6 w-6" />
                       </div>
-                      <p className="text-sm text-white/80">{course.lesson_count} lessons</p>
+                      <p className="text-sm text-white/80">
+                        {course.lesson_count} lessons
+                        {course.is_enrolled ? ` · ${progressLabel}` : ''}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -439,6 +510,21 @@ export function StudentCourseCatalogPage() {
                     <Badge variant="secondary" className="flex-none rounded-full whitespace-nowrap">
                       {formatDifficultyLabel(course.difficulty_level)}
                     </Badge>
+                    {course.is_enrolled ? (
+                      <Badge
+                        variant="secondary"
+                        className={cn(
+                          'flex-none rounded-full whitespace-nowrap',
+                          isCompleted
+                            ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-100'
+                            : isInProgress
+                              ? 'bg-blue-100 text-blue-700 hover:bg-blue-100'
+                              : ''
+                        )}
+                      >
+                        {progressLabel}
+                      </Badge>
+                    ) : null}
                   </div>
                 </div>
 
@@ -448,11 +534,19 @@ export function StudentCourseCatalogPage() {
         </div>
       ) : (
         <div className="border border-border bg-background px-6 py-10 text-center">
-          <p className="text-lg font-semibold text-foreground">No courses found</p>
-          <p className="mt-2 text-sm text-muted-foreground">Try changing your search or filters to see more courses.</p>
+          <p className="text-lg font-semibold text-foreground">{emptyStateTitle}</p>
+          <p className="mt-2 text-sm text-muted-foreground">{emptyStateDescription}</p>
         </div>
       )}
 
     </div>
   )
+}
+
+export function StudentCourseCatalogPage() {
+  return <StudentCourseCatalogPageContent />
+}
+
+export function StudentWishlistedCoursesPage() {
+  return <StudentCourseCatalogPageContent favoritesOnly />
 }

@@ -23,14 +23,14 @@ import { CompanyShortlistPage } from '../features/profile/CompanyShortlistPage'
 import { CompanyVacancyMatchesPage } from '../features/profile/CompanyVacancyMatchesPage'
 import { CompanyVacanciesPage } from '../features/profile/CompanyVacanciesPage'
 import { StudentApplicationsPage } from '../features/profile/StudentApplicationsPage'
-import { StudentCourseCatalogPage } from '../features/profile/StudentCourseCatalogPage'
+import { StudentCourseCatalogPage, StudentWishlistedCoursesPage } from '../features/profile/StudentCourseCatalogPage'
 import { StudentCourseDetailPage } from '../features/profile/StudentCourseDetailPage'
 import { StudentExamPage } from '../features/profile/StudentExamPage'
 import StudentExamResultsPage from '../features/profile/StudentExamResultsPage'
 import { StudentInterviewDetailPage } from '../features/profile/StudentInterviewDetailPage'
 import { StudentInterviewsPage } from '../features/profile/StudentInterviewsPage'
 import { StudentJobDetailPage } from '../features/profile/StudentJobDetailPage'
-import { StudentJobsPage } from '../features/profile/StudentJobsPage'
+import { StudentJobsPage, StudentSavedJobsPage } from '../features/profile/StudentJobsPage'
 import { StudentLessonPage } from '../features/profile/StudentLessonPage'
 import { StudentLearningPage } from '../features/profile/StudentLearningPage'
 import { StudentMatchesPage } from '../features/profile/StudentMatchesPage'
@@ -81,9 +81,11 @@ export function AppRouter() {
             <Route path="/student/profile" element={<StudentProfilePage />} />
             <Route path="/student/skills" element={<StudentSkillsPage />} />
             <Route path="/student/courses" element={<StudentCourseCatalogPage />} />
+            <Route path="/student/courses/wishlist" element={<StudentWishlistedCoursesPage />} />
             <Route path="/student/courses/:courseId" element={<StudentCourseDetailPage />} />
             <Route path="/student/courses/:courseId/lessons/:lessonId" element={<StudentLessonPage />} />
             <Route path="/student/jobs" element={<StudentJobsPage />} />
+            <Route path="/student/jobs/saved" element={<StudentSavedJobsPage />} />
             <Route path="/student/jobs/:vacancyId" element={<StudentJobDetailPage />} />
             <Route path="/student/learning" element={<StudentLearningPage />} />
             <Route path="/student/preparation" element={<StudentPreparationPage />} />

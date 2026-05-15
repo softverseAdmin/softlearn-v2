@@ -78,6 +78,7 @@ export interface AdminLessonRecord {
   title: string
   summary: string
   content: string
+   video_url: string
   sequence_number: number
   status: string
   progress_entry_count: number

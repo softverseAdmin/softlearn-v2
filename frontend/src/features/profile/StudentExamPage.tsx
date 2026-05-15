@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { AlertCircle, ArrowLeft, CheckCircle2, Clock, HelpCircle } from 'lucide-react'
+import { AlertCircle, ArrowLeft, CheckCircle2, ChevronRight, Clock, HelpCircle } from 'lucide-react'
 import { motion } from 'framer-motion'
 
 import { useAuth } from '../../auth/useAuth'
@@ -117,32 +117,19 @@ export function StudentExamPage() {
   }
 
   return (
-    <div className="space-y-6 md:space-y-8">
-      {/* Header */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-        <div className="flex-1 space-y-2">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Student assessment</p>
-          <h1 className="text-3xl font-bold tracking-tight md:text-4xl">{data.title || 'Exam'}</h1>
-          <p className="max-w-2xl text-base text-muted-foreground">
-            {data.description || 'Answer each question once, then submit the full exam for scoring.'}
-          </p>
-        </div>
-        <Card className="min-w-fit dark:bg-card dark:border-border">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Attempt summary</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-1">
-            <p className="text-sm font-medium">
-              Attempt {data.next_attempt_number ?? data.attempt_count} of {data.max_attempts}
-            </p>
-            <p className="text-sm text-muted-foreground">
-              {answeredCount} / {data.question_count} answered
-            </p>
-          </CardContent>
-        </Card>
+    <div className="space-y-6 px-4 py-6 md:space-y-8 md:px-6 xl:px-8">
+      <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+        <Link to="/student" className="transition-colors hover:text-foreground">
+          Dashboard
+        </Link>
+        <ChevronRight className="h-4 w-4" />
+        <Link to="/student/exams" className="transition-colors hover:text-foreground">
+          Exams
+        </Link>
+        <ChevronRight className="h-4 w-4" />
+        <span className="font-medium text-foreground">{data.title || 'Exam'}</span>
       </div>
 
-      {/* Error State */}
       {error ? (
         <Card className="border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950">
           <CardContent className="flex items-start gap-3 pt-6">
@@ -155,27 +142,35 @@ export function StudentExamPage() {
         </Card>
       ) : null}
 
-      {/* Exam Info Card */}
-      <Card className="dark:bg-card dark:border-border">
-        <CardHeader>
-          <CardTitle className="text-base">Exam details</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Badge variant="outline">{data.category}</Badge>
-            <span className="flex items-center gap-1">
-              <Clock className="h-4 w-4" />
-              {data.duration_minutes} minutes
-            </span>
-            <span>Pass mark: {data.passing_score_percent}%</span>
-          </div>
-          {data.retake_message ? (
-            <p className="text-sm text-muted-foreground">{data.retake_message}</p>
-          ) : null}
-        </CardContent>
-      </Card>
+      <div className="space-y-3">
+        <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+          <Badge variant="outline" className="rounded-full">
+            {data.category}
+          </Badge>
+          <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1.5 dark:bg-slate-900">
+            <Clock className="h-4 w-4" />
+            {data.duration_minutes} minutes
+          </span>
+          <span className="rounded-full bg-slate-100 px-3 py-1.5 dark:bg-slate-900">
+            Pass mark: {data.passing_score_percent}%
+          </span>
+          <span
+            className={
+              data.attempt_count === 0
+                ? 'rounded-full bg-slate-100 px-3 py-1.5 text-slate-600 dark:bg-slate-900 dark:text-slate-300'
+                : 'rounded-full bg-blue-600 px-3 py-1.5 text-white dark:bg-blue-600'
+            }
+          >
+            Attempts used: {data.attempt_count} of {data.max_attempts}
+          </span>
+          <span className="rounded-full bg-slate-100 px-3 py-1.5 dark:bg-slate-900">
+            {answeredCount} / {data.question_count} answered
+          </span>
+        </div>
+        {data.description ? <p className="text-sm text-muted-foreground">{data.description}</p> : null}
+        {data.retake_message ? <p className="text-sm text-muted-foreground">{data.retake_message}</p> : null}
+      </div>
 
-      {/* Questions */}
       <div className="space-y-4">
         <h2 className="text-xl font-semibold">Questions ({answeredCount} / {data.question_count})</h2>
 
@@ -214,7 +209,6 @@ export function StudentExamPage() {
                     </div>
                   ) : null}
 
-                  {/* Options */}
                   <div className="space-y-2">
                     {question.options.map((option) => (
                       <label
@@ -244,15 +238,11 @@ export function StudentExamPage() {
         </motion.div>
       </div>
 
-      {/* Actions */}
       <div className="flex gap-2 sticky bottom-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-4 rounded-lg border border-border">
-        <Link
-          to="/student/exams"
-          className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium transition-colors hover:bg-muted"
-        >
+        <Button type="button" variant="outline" onClick={() => navigate('/student/exams')}>
           <ArrowLeft className="h-4 w-4" />
           Back to exam history
-        </Link>
+        </Button>
         <Button
           onClick={() => void handleSubmit()}
           disabled={saving || answeredCount !== data.question_count}

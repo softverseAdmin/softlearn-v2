@@ -80,7 +80,6 @@ export function StudentJobDetailPage() {
   const [saving, setSaving] = useState(false)
   const [applying, setApplying] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<'job' | 'company'>('job')
 
   useEffect(() => {
@@ -170,8 +169,6 @@ export function StudentJobDetailPage() {
     }
 
     setSaving(true)
-    setError(null)
-    setSuccess(null)
 
     try {
       await apiRequest(`/student/jobs/${vacancy.vacancy_id}/bookmark`, {
@@ -187,9 +184,6 @@ export function StudentJobDetailPage() {
             : currentVacancy
         ),
       }))
-      setSuccess(vacancy.is_bookmarked ? 'Saved state removed.' : 'Saved for later.')
-    } catch (saveError) {
-      setError(saveError instanceof ApiError ? saveError.message : 'Unable to update saved state.')
     } finally {
       setSaving(false)
     }
@@ -201,8 +195,6 @@ export function StudentJobDetailPage() {
     }
 
     setApplying(true)
-    setError(null)
-    setSuccess(null)
 
     try {
       await apiRequest<StudentApplicationRecord>('/student/applications', {
@@ -210,9 +202,14 @@ export function StudentJobDetailPage() {
         body: { vacancy_id: vacancy.vacancy_id },
         csrfToken,
       })
-      setSuccess('Application submitted successfully.')
-    } catch (applyError) {
-      setError(applyError instanceof ApiError ? applyError.message : 'Unable to submit application.')
+      setJobs((current) => ({
+        ...current,
+        vacancies: current.vacancies.map((currentVacancy) =>
+          currentVacancy.vacancy_id === vacancy.vacancy_id
+            ? { ...currentVacancy, has_active_application: true, can_apply: false }
+            : currentVacancy
+        ),
+      }))
     } finally {
       setApplying(false)
     }
@@ -270,12 +267,6 @@ export function StudentJobDetailPage() {
           <CardContent className="px-6 py-4 text-sm text-red-800 dark:text-red-200">{error}</CardContent>
         </Card>
       ) : null}
-      {success ? (
-        <Card className="border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950">
-          <CardContent className="px-6 py-4 text-sm text-green-800 dark:text-green-200">{success}</CardContent>
-        </Card>
-      ) : null}
-
       <Card className="rounded-[28px] border border-slate-200/80 bg-white shadow-sm">
         <CardContent className="space-y-6 px-5 py-5 sm:px-6">
           <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
@@ -319,8 +310,8 @@ export function StudentJobDetailPage() {
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
-              <Button type="button" className="rounded-xl" disabled={applying} onClick={() => void handleApply()}>
-                {applying ? 'Applying...' : 'Apply'}
+              <Button type="button" className="rounded-xl" disabled={applying || !vacancy.can_apply} onClick={() => void handleApply()}>
+                {applying ? 'Applying...' : vacancy.has_active_application ? 'Applied' : 'Apply'}
               </Button>
               <Button type="button" variant="outline" className="rounded-xl" disabled={saving} onClick={() => void handleBookmarkToggle()}>
                 {vacancy.is_bookmarked ? <BookmarkCheck className="mr-2 h-4 w-4" /> : <Bookmark className="mr-2 h-4 w-4" />}

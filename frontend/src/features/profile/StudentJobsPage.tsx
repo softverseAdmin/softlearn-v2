@@ -116,13 +116,22 @@ function getPaginationItems(currentPage: number, totalPages: number) {
 }
 
 export function StudentJobsPage() {
+  return <StudentJobsWorkspace />
+}
+
+export function StudentSavedJobsPage() {
+  return <StudentJobsWorkspace savedOnly />
+}
+
+function StudentJobsWorkspace({ savedOnly = false }: { savedOnly?: boolean }) {
   const navigate = useNavigate()
   const { csrfToken } = useAuth()
   const jobsPerPage = 5
+  const togglePagePath = savedOnly ? '/student/jobs' : '/student/jobs/saved'
+  const togglePageLabel = savedOnly ? 'All jobs' : 'Saved jobs'
   const [jobs, setJobs] = useState<StudentJobsResponse>(emptyJobsResponse)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [skill, setSkill] = useState('All Skills')
   const [language, setLanguage] = useState('All Languages')
@@ -164,15 +173,23 @@ export function StudentJobsPage() {
     }
   }, [])
 
-  const skillOptions = useMemo(
-    () => ['All Skills', ...jobs.available_skills.map((option) => option.slug)],
-    [jobs.available_skills]
-  )
+  const skillOptions = useMemo(() => {
+    if (!savedOnly) {
+      return ['All Skills', ...jobs.available_skills.map((option) => option.slug)]
+    }
 
-  const quickSkillOptions = useMemo(
-    () => ['All Skills', ...jobs.available_skills.slice(0, 8).map((option) => option.slug)],
-    [jobs.available_skills]
-  )
+    const savedSkillSlugs = Array.from(
+      new Set(
+        jobs.vacancies
+          .filter((vacancy) => vacancy.is_bookmarked)
+          .flatMap((vacancy) => vacancy.skill_requirements.map((requirement) => requirement.skill_slug))
+      )
+    )
+
+    return ['All Skills', ...savedSkillSlugs]
+  }, [jobs.available_skills, jobs.vacancies, savedOnly])
+
+  const quickSkillOptions = useMemo(() => ['All Skills', ...skillOptions.slice(1, 9)], [skillOptions])
 
   const languageOptions = useMemo(
     () => ['All Languages', ...jobs.available_languages.map((option) => option.value)],
@@ -200,6 +217,7 @@ export function StudentJobsPage() {
     const normalizedQuery = searchQuery.trim().toLowerCase()
 
     const filtered = jobs.vacancies.filter((vacancy) => {
+      const matchesSavedState = !savedOnly || vacancy.is_bookmarked
       const matchesQuery =
         !normalizedQuery ||
         [vacancy.title, vacancy.description, vacancy.company_name, vacancy.location]
@@ -217,7 +235,7 @@ export function StudentJobsPage() {
       const matchesLocation = location === 'All Locations' || vacancy.location === location
       const matchesWorkStyle = workStyle === 'All Work Styles' || vacancy.work_style === workStyle
 
-      return matchesQuery && matchesSkill && matchesLanguage && matchesLocation && matchesWorkStyle
+      return matchesSavedState && matchesQuery && matchesSkill && matchesLanguage && matchesLocation && matchesWorkStyle
     })
 
     return filtered.sort((left, right) => {
@@ -235,7 +253,7 @@ export function StudentJobsPage() {
 
       return new Date(right.updated_at).getTime() - new Date(left.updated_at).getTime()
     })
-  }, [jobs.vacancies, language, location, searchQuery, skill, sortBy, workStyle])
+  }, [jobs.vacancies, language, location, savedOnly, searchQuery, skill, sortBy, workStyle])
 
   const totalPages = Math.max(1, Math.ceil(filteredJobs.length / jobsPerPage))
   const currentPage = Math.min(page, totalPages)
@@ -260,8 +278,6 @@ export function StudentJobsPage() {
 
   async function handleBookmarkToggle(vacancy: VacancyRecord) {
     setBookmarkingVacancyId(vacancy.vacancy_id)
-    setError(null)
-    setSuccess(null)
 
     try {
       await apiRequest(`/student/jobs/${vacancy.vacancy_id}/bookmark`, {
@@ -278,8 +294,6 @@ export function StudentJobsPage() {
             : currentVacancy
         ),
       }))
-    } catch (saveError) {
-      setError(saveError instanceof ApiError ? saveError.message : 'Unable to update bookmark.')
     } finally {
       setBookmarkingVacancyId(null)
     }
@@ -287,8 +301,6 @@ export function StudentJobsPage() {
 
   async function handleApply(vacancyId: number) {
     setApplyingVacancyId(vacancyId)
-    setError(null)
-    setSuccess(null)
 
     try {
       await apiRequest<StudentApplicationRecord>('/student/applications', {
@@ -296,9 +308,14 @@ export function StudentJobsPage() {
         body: { vacancy_id: vacancyId },
         csrfToken,
       })
-      setSuccess('Application submitted successfully.')
-    } catch (applyError) {
-      setError(applyError instanceof ApiError ? applyError.message : 'Unable to submit application.')
+      setJobs((current) => ({
+        ...current,
+        vacancies: current.vacancies.map((currentVacancy) =>
+          currentVacancy.vacancy_id === vacancyId
+            ? { ...currentVacancy, has_active_application: true, can_apply: false }
+            : currentVacancy
+        ),
+      }))
     } finally {
       setApplyingVacancyId(null)
     }
@@ -327,13 +344,25 @@ export function StudentJobsPage() {
           Dashboard
         </Link>
         <ChevronRight className="h-4 w-4" />
-        <span className="font-medium text-foreground">Jobs</span>
+        {savedOnly ? (
+          <>
+            <Link to="/student/jobs" className="transition-colors hover:text-foreground">
+              Jobs
+            </Link>
+            <ChevronRight className="h-4 w-4" />
+            <span className="font-medium text-foreground">Saved jobs</span>
+          </>
+        ) : (
+          <span className="font-medium text-foreground">Jobs</span>
+        )}
       </div>
 
       <div className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight md:text-4xl">Jobs</h1>
+        <h1 className="text-3xl font-bold tracking-tight md:text-4xl">{savedOnly ? 'Saved Jobs' : 'Jobs'}</h1>
         <p className="text-base text-muted-foreground">
-          Browse open roles, review the key requirements quickly, and open a detailed job page when something fits.
+          {savedOnly
+            ? 'Review the roles you saved for later, refine them with the same filters, and jump back into job details when you are ready.'
+            : 'Browse open roles, review the key requirements quickly, and open a detailed job page when something fits.'}
         </p>
       </div>
 
@@ -342,12 +371,6 @@ export function StudentJobsPage() {
           <CardContent className="px-6 py-4 text-sm text-red-800 dark:text-red-200">{error}</CardContent>
         </Card>
       ) : null}
-      {success ? (
-        <Card className="border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950">
-          <CardContent className="px-6 py-4 text-sm text-green-800 dark:text-green-200">{success}</CardContent>
-        </Card>
-      ) : null}
-
       <div className="flex gap-3 md:hidden">
         <div className="relative flex-1">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -455,6 +478,12 @@ export function StudentJobsPage() {
               <Button type="button" variant="outline" className="h-11 w-full rounded-none" onClick={resetFilters}>
                 Reset filters
               </Button>
+              <Link
+                to={togglePagePath}
+                className="inline-flex h-11 w-full items-center justify-center rounded-none border border-input bg-background px-4 text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+              >
+                {togglePageLabel}
+              </Link>
             </div>
           </SheetContent>
         </Sheet>
@@ -556,6 +585,12 @@ export function StudentJobsPage() {
         <Button type="button" variant="outline" className="h-11 rounded-none px-5" onClick={resetFilters}>
           Reset filters
         </Button>
+        <Link
+          to={togglePagePath}
+          className="inline-flex h-11 items-center justify-center rounded-none border border-input bg-background px-5 text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+        >
+          {togglePageLabel}
+        </Link>
       </div>
 
       <div className="flex gap-2 overflow-x-auto pb-2">
@@ -585,7 +620,8 @@ export function StudentJobsPage() {
 
       <div className="flex items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground">
-          {filteredJobs.length} job listing{filteredJobs.length === 1 ? '' : 's'}
+          {filteredJobs.length} {savedOnly ? 'saved job' : 'job listing'}
+          {filteredJobs.length === 1 ? '' : 's'}
         </p>
       </div>
 
@@ -593,6 +629,8 @@ export function StudentJobsPage() {
         <div className="space-y-4">
           {paginatedJobs.map((vacancy) => {
             const isSaved = vacancy.is_bookmarked
+            const hasActiveApplication = vacancy.has_active_application
+            const canApply = vacancy.can_apply
 
             return (
               <Card
@@ -676,17 +714,25 @@ export function StudentJobsPage() {
                           <DropdownMenuContent align="end" className="w-40">
                             <DropdownMenuItem
                               onClick={() => void handleApply(vacancy.vacancy_id)}
-                              disabled={applyingVacancyId === vacancy.vacancy_id}
+                              disabled={applyingVacancyId === vacancy.vacancy_id || !canApply}
                               className="cursor-pointer"
                             >
-                              Easy Apply
+                              {applyingVacancyId === vacancy.vacancy_id ? 'Applying...' : hasActiveApplication ? 'Applied' : 'Easy Apply'}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </div>
 
                       <div className="flex flex-wrap items-center gap-2 lg:justify-end">
-                        <Badge className="border-transparent bg-blue-100 text-blue-700 hover:bg-blue-100">Easy Apply</Badge>
+                        <Badge
+                          className={
+                            hasActiveApplication
+                              ? 'border-transparent bg-emerald-100 text-emerald-700 hover:bg-emerald-100'
+                              : 'border-transparent bg-blue-100 text-blue-700 hover:bg-blue-100'
+                          }
+                        >
+                          {hasActiveApplication ? 'Applied' : 'Easy Apply'}
+                        </Badge>
                         {vacancy.relocation_support ? (
                           <Badge variant="outline" className="bg-white">
                             Relocation support
@@ -727,10 +773,10 @@ export function StudentJobsPage() {
                           <DropdownMenuContent align="end" className="w-40">
                             <DropdownMenuItem
                               onClick={() => void handleApply(vacancy.vacancy_id)}
-                              disabled={applyingVacancyId === vacancy.vacancy_id}
+                              disabled={applyingVacancyId === vacancy.vacancy_id || !canApply}
                               className="cursor-pointer"
                             >
-                              Easy Apply
+                              {applyingVacancyId === vacancy.vacancy_id ? 'Applying...' : hasActiveApplication ? 'Applied' : 'Easy Apply'}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -738,7 +784,15 @@ export function StudentJobsPage() {
                     </div>
 
                     <div className="flex flex-wrap items-center gap-2">
-                      <Badge className="border-transparent bg-blue-100 text-blue-700 hover:bg-blue-100">Easy Apply</Badge>
+                      <Badge
+                        className={
+                          hasActiveApplication
+                            ? 'border-transparent bg-emerald-100 text-emerald-700 hover:bg-emerald-100'
+                            : 'border-transparent bg-blue-100 text-blue-700 hover:bg-blue-100'
+                        }
+                      >
+                        {hasActiveApplication ? 'Applied' : 'Easy Apply'}
+                      </Badge>
                       {vacancy.relocation_support ? (
                         <Badge variant="outline" className="bg-white">
                           Relocation support
@@ -761,9 +815,13 @@ export function StudentJobsPage() {
         </div>
       ) : (
         <div className="border border-border bg-muted/10 px-6 py-10 text-center">
-          <p className="text-lg font-semibold text-foreground">No jobs match your filters</p>
+          <p className="text-lg font-semibold text-foreground">
+            {savedOnly ? 'No saved jobs match your filters' : 'No jobs match your filters'}
+          </p>
           <p className="mt-2 text-sm text-muted-foreground">
-            Try a different keyword, location, or work style to broaden the results.
+            {savedOnly
+              ? 'Try a different keyword, location, or work style, or save more roles from the jobs page.'
+              : 'Try a different keyword, location, or work style to broaden the results.'}
           </p>
         </div>
       )}

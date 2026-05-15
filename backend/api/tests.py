@@ -1493,6 +1493,7 @@ class ApiFoundationTests(TestCase):
                     "title": "HTTP Basics",
                     "summary": "Learn request fundamentals.",
                     "content": "Lesson body",
+                    "video_url": "https://www.youtube.com/watch?v=IjS9eTpmhgk",
                     "sequence_number": 1,
                     "status": "draft",
                 }
@@ -1508,6 +1509,7 @@ class ApiFoundationTests(TestCase):
                     "title": "HTTP Basics Updated",
                     "summary": "Learn protected request fundamentals.",
                     "content": "Updated lesson body",
+                    "video_url": "https://www.youtube.com/embed/IjS9eTpmhgk?si=BFiYXiVlYZL2QdTA",
                     "sequence_number": 2,
                     "status": "active",
                 }
@@ -1525,8 +1527,14 @@ class ApiFoundationTests(TestCase):
         self.assertEqual(create_response.status_code, 201)
         self.assertEqual(update_response.status_code, 200)
         self.assertEqual(delete_response.status_code, 200)
+        self.assertEqual(create_response.json()["data"]["video_url"], "https://www.youtube.com/watch?v=IjS9eTpmhgk")
+        self.assertEqual(
+            update_response.json()["data"]["video_url"],
+            "https://www.youtube.com/embed/IjS9eTpmhgk?si=BFiYXiVlYZL2QdTA",
+        )
         lesson = Lesson.objects.get(pk=lesson_id)
         self.assertEqual(lesson.title, "HTTP Basics Updated")
+        self.assertEqual(lesson.video_url, "https://www.youtube.com/embed/IjS9eTpmhgk?si=BFiYXiVlYZL2QdTA")
         self.assertEqual(lesson.sequence_number, 2)
         self.assertEqual(lesson.status, Lesson.Status.INACTIVE)
 
@@ -2509,6 +2517,59 @@ class ApiFoundationTests(TestCase):
 
         self.assertEqual(response.status_code, 400)
         self.assertIn("vacancy_id", response.json()["error"]["details"])
+
+    def test_student_jobs_include_apply_state_for_active_applications(self):
+        company = Company.objects.create(name="Softverse", is_active=True)
+        company_user = User.objects.create_user(
+            email="company@example.com",
+            password="SecurePass123!",
+            full_name="Company User",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+        student = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        active_vacancy = Vacancy.objects.create(
+            company=company,
+            created_by=company_user,
+            title="Backend Engineer",
+            description="Build APIs.",
+            employment_type="full_time",
+            experience_level="junior",
+            location="Tokyo",
+            status=Vacancy.Status.ACTIVE,
+        )
+        open_vacancy = Vacancy.objects.create(
+            company=company,
+            created_by=company_user,
+            title="Frontend Engineer",
+            description="Build UI.",
+            employment_type="full_time",
+            experience_level="junior",
+            location="Osaka",
+            status=Vacancy.Status.ACTIVE,
+        )
+        Application.objects.create(
+            company=company,
+            vacancy=active_vacancy,
+            student=student,
+            status=Application.Status.SUBMITTED,
+        )
+        client = Client()
+        client.force_login(student)
+
+        response = client.get("/api/v1/student/jobs")
+
+        self.assertEqual(response.status_code, 200)
+        vacancies_by_id = {item["vacancy_id"]: item for item in response.json()["data"]["vacancies"]}
+        self.assertTrue(vacancies_by_id[active_vacancy.id]["has_active_application"])
+        self.assertFalse(vacancies_by_id[active_vacancy.id]["can_apply"])
+        self.assertFalse(vacancies_by_id[open_vacancy.id]["has_active_application"])
+        self.assertTrue(vacancies_by_id[open_vacancy.id]["can_apply"])
 
     def test_student_can_withdraw_application(self):
         company = Company.objects.create(name="Softverse", is_active=True)
@@ -3762,6 +3823,47 @@ class ApiFoundationTests(TestCase):
 
         self.assertEqual(response.status_code, 403)
 
+    def test_student_lesson_detail_includes_video_url(self):
+        student = User.objects.create_user(
+            email="lesson-student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        course = Course.objects.create(
+            title="Frontend Foundations",
+            description="Frontend path",
+            category="backend",
+            difficulty_level="beginner",
+            estimated_hours=12,
+            status=Course.Status.ACTIVE,
+        )
+        lesson = Lesson.objects.create(
+            course=course,
+            title="Intro",
+            summary="Start here",
+            content="Lesson content",
+            video_url="https://www.youtube.com/watch?v=IjS9eTpmhgk",
+            sequence_number=1,
+            status=Lesson.Status.ACTIVE,
+        )
+        learning_record = LearningRecord.objects.create(
+            student=student,
+            course=course,
+            course_title=course.title,
+            category=course.category,
+            progress_percent=0,
+            status=LearningRecord.Status.NOT_STARTED,
+        )
+        LessonProgress.objects.create(learning_record=learning_record, lesson=lesson)
+
+        client = Client()
+        client.force_login(student)
+        response = client.get(f"/api/v1/student/courses/{course.id}/lessons/{lesson.id}")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["data"]["video_url"], "https://www.youtube.com/watch?v=IjS9eTpmhgk")
+
     def test_student_can_update_lesson_progress_and_complete_course(self):
         student = User.objects.create_user(
             email="student@example.com",
@@ -3982,6 +4084,7 @@ class ApiFoundationTests(TestCase):
                     "title": "Lesson One",
                     "summary": "Summary",
                     "content": "Content",
+                    "video_url": "https://www.youtube.com/watch?v=IjS9eTpmhgk",
                     "sequence_number": 1,
                     "status": "active",
                 }
@@ -4000,6 +4103,7 @@ class ApiFoundationTests(TestCase):
                     "title": "Lesson One Updated",
                     "summary": "Updated summary",
                     "content": "Updated content",
+                    "video_url": "https://www.youtube.com/embed/IjS9eTpmhgk?si=BFiYXiVlYZL2QdTA",
                     "sequence_number": 1,
                     "status": "draft",
                 }
@@ -4008,6 +4112,11 @@ class ApiFoundationTests(TestCase):
             HTTP_X_CSRFTOKEN=csrf_token,
         )
         self.assertEqual(update_response.status_code, 200)
+        self.assertEqual(create_response.json()["data"]["video_url"], "https://www.youtube.com/watch?v=IjS9eTpmhgk")
+        self.assertEqual(
+            update_response.json()["data"]["video_url"],
+            "https://www.youtube.com/embed/IjS9eTpmhgk?si=BFiYXiVlYZL2QdTA",
+        )
 
         list_response = client.get(f"/api/v1/company/courses/{course.id}/lessons")
         self.assertEqual(list_response.status_code, 200)
@@ -4020,6 +4129,7 @@ class ApiFoundationTests(TestCase):
         self.assertEqual(retire_response.status_code, 200)
         lesson = Lesson.objects.get(pk=lesson_id)
         self.assertEqual(lesson.title, "Lesson One Updated")
+        self.assertEqual(lesson.video_url, "https://www.youtube.com/embed/IjS9eTpmhgk?si=BFiYXiVlYZL2QdTA")
         self.assertEqual(lesson.status, Lesson.Status.INACTIVE)
 
     def test_company_user_cannot_enroll_in_student_course(self):
