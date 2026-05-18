@@ -36,6 +36,10 @@ function toInputValue(date: Date) {
   return `${year}-${month}-${day}T${hours}:${minutes}`
 }
 
+type InterviewFormErrors = Partial<
+  Record<'startAt' | 'endAt' | 'meetingUrl' | 'rescheduleReason' | 'cancelReason' | 'completionSummary', string>
+>
+
 export function StudentInterviewDetailPage() {
   const { csrfToken } = useAuth()
   const params = useParams<{ interviewId: string }>()
@@ -52,6 +56,71 @@ export function StudentInterviewDetailPage() {
   const [completionSummary, setCompletionSummary] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+  const [formErrors, setFormErrors] = useState<InterviewFormErrors>({})
+
+  function clearFormError(...keys: Array<keyof InterviewFormErrors>) {
+    setFormErrors((current) => {
+      const next = { ...current }
+      for (const key of keys) {
+        delete next[key]
+      }
+      return next
+    })
+  }
+
+  function validateAvailabilityForm() {
+    const nextErrors: InterviewFormErrors = {}
+    const startDate = new Date(startAt)
+    const endDate = new Date(endAt)
+
+    if (Number.isNaN(startDate.getTime())) {
+      nextErrors.startAt = 'Choose a valid availability start date and time.'
+    }
+    if (Number.isNaN(endDate.getTime())) {
+      nextErrors.endAt = 'Choose a valid availability end date and time.'
+    }
+    if (!Number.isNaN(startDate.getTime()) && !Number.isNaN(endDate.getTime()) && endDate <= startDate) {
+      nextErrors.endAt = 'Availability end must be later than the start time.'
+    }
+
+    return nextErrors
+  }
+
+  function validateMeetingLinkForm() {
+    const nextErrors: InterviewFormErrors = {}
+    const trimmedMeetingUrl = meetingUrl.trim()
+    if (!trimmedMeetingUrl) {
+      nextErrors.meetingUrl = 'Meeting URL is required.'
+      return nextErrors
+    }
+
+    try {
+      const parsed = new URL(trimmedMeetingUrl)
+      if (!['http:', 'https:'].includes(parsed.protocol)) {
+        nextErrors.meetingUrl = 'Meeting URL must start with http:// or https://.'
+      }
+    } catch {
+      nextErrors.meetingUrl = 'Enter a valid meeting URL.'
+    }
+
+    return nextErrors
+  }
+
+  function validateReason(value: string, key: 'rescheduleReason' | 'cancelReason') {
+    const nextErrors: InterviewFormErrors = {}
+    if (!value.trim()) {
+      nextErrors[key] = 'This reason is required.'
+    }
+    return nextErrors
+  }
+
+  function validateCompletionForm() {
+    const nextErrors: InterviewFormErrors = {}
+    if (!completionSummary.trim()) {
+      nextErrors.completionSummary = 'Completion summary is required.'
+    }
+    return nextErrors
+  }
 
   useEffect(() => {
     let active = true
@@ -93,6 +162,14 @@ export function StudentInterviewDetailPage() {
       return
     }
 
+    const nextErrors = validateAvailabilityForm()
+    setFormErrors((current) => ({ ...current, ...nextErrors }))
+    if (Object.keys(nextErrors).length > 0) {
+      setError('Fix the highlighted availability fields and try again.')
+      setSuccess(null)
+      return
+    }
+
     setSaving(true)
     setError(null)
     setSuccess(null)
@@ -103,7 +180,7 @@ export function StudentInterviewDetailPage() {
         body: {
           start_at: new Date(startAt).toISOString(),
           end_at: new Date(endAt).toISOString(),
-          note,
+          note: note.trim(),
         },
         csrfToken,
       })
@@ -123,6 +200,14 @@ export function StudentInterviewDetailPage() {
       return
     }
 
+    const nextErrors = validateReason(rescheduleReason, 'rescheduleReason')
+    setFormErrors((current) => ({ ...current, ...nextErrors }))
+    if (Object.keys(nextErrors).length > 0) {
+      setError('Provide a reschedule reason before submitting.')
+      setSuccess(null)
+      return
+    }
+
     setSaving(true)
     setError(null)
     setSuccess(null)
@@ -130,7 +215,7 @@ export function StudentInterviewDetailPage() {
     try {
       const response = await apiRequest<InterviewDetail>(`/interviews/${params.interviewId}/reschedule`, {
         method: 'POST',
-        body: { reason: rescheduleReason },
+        body: { reason: rescheduleReason.trim() },
         csrfToken,
       })
       setInterview(response)
@@ -149,6 +234,14 @@ export function StudentInterviewDetailPage() {
       return
     }
 
+    const nextErrors = validateReason(cancelReason, 'cancelReason')
+    setFormErrors((current) => ({ ...current, ...nextErrors }))
+    if (Object.keys(nextErrors).length > 0) {
+      setError('Provide a cancellation reason before submitting.')
+      setSuccess(null)
+      return
+    }
+
     setSaving(true)
     setError(null)
     setSuccess(null)
@@ -156,7 +249,7 @@ export function StudentInterviewDetailPage() {
     try {
       const response = await apiRequest<InterviewDetail>(`/interviews/${params.interviewId}/cancel`, {
         method: 'POST',
-        body: { reason: cancelReason },
+        body: { reason: cancelReason.trim() },
         csrfToken,
       })
       setInterview(response)
@@ -175,6 +268,14 @@ export function StudentInterviewDetailPage() {
       return
     }
 
+    const nextErrors = validateMeetingLinkForm()
+    setFormErrors((current) => ({ ...current, ...nextErrors }))
+    if (Object.keys(nextErrors).length > 0) {
+      setError('Fix the meeting link fields and try again.')
+      setSuccess(null)
+      return
+    }
+
     setSaving(true)
     setError(null)
     setSuccess(null)
@@ -184,7 +285,7 @@ export function StudentInterviewDetailPage() {
         method: 'PUT',
         body: {
           meeting_provider: meetingProvider,
-          meeting_url: meetingUrl,
+          meeting_url: meetingUrl.trim(),
         },
         csrfToken,
       })
@@ -203,6 +304,14 @@ export function StudentInterviewDetailPage() {
       return
     }
 
+    const nextErrors = validateCompletionForm()
+    setFormErrors((current) => ({ ...current, ...nextErrors }))
+    if (Object.keys(nextErrors).length > 0) {
+      setError('Add a completion summary before submitting.')
+      setSuccess(null)
+      return
+    }
+
     setSaving(true)
     setError(null)
     setSuccess(null)
@@ -210,7 +319,7 @@ export function StudentInterviewDetailPage() {
     try {
       const response = await apiRequest<InterviewDetail>(`/interviews/${params.interviewId}/complete`, {
         method: 'POST',
-        body: { summary: completionSummary },
+        body: { summary: completionSummary.trim() },
         csrfToken,
       })
       setInterview(response)
@@ -241,8 +350,8 @@ export function StudentInterviewDetailPage() {
           </Link>
         </div>
       </div>
-      {error ? <div className="card form-error">{error}</div> : null}
-      {success ? <div className="card form-success">{success}</div> : null}
+      {error ? <div className="card form-error" role="alert">{error}</div> : null}
+      {success ? <div className="card form-success" role="status">{success}</div> : null}
 
       <div className="page-split">
         <div className="card stack-card">
@@ -262,15 +371,37 @@ export function StudentInterviewDetailPage() {
               Meeting link: <a href={interview.meeting_url} target="_blank" rel="noreferrer">{interview.meeting_provider}</a>
             </p>
           ) : null}
-          <form className="form" onSubmit={handleSubmitAvailability}>
+          <form className="form" onSubmit={handleSubmitAvailability} noValidate>
             <label>
               <span>Availability start</span>
-              <input type="datetime-local" value={startAt} onChange={(event) => setStartAt(event.target.value)} required />
+              <input
+                type="datetime-local"
+                value={startAt}
+                onChange={(event) => {
+                  setStartAt(event.target.value)
+                  clearFormError('startAt', 'endAt')
+                  setError(null)
+                }}
+                aria-invalid={formErrors.startAt ? 'true' : undefined}
+                aria-describedby={formErrors.startAt ? 'student-interview-start-error' : undefined}
+              />
             </label>
+            {formErrors.startAt ? <p id="student-interview-start-error" className="form-error" role="alert">{formErrors.startAt}</p> : null}
             <label>
               <span>Availability end</span>
-              <input type="datetime-local" value={endAt} onChange={(event) => setEndAt(event.target.value)} required />
+              <input
+                type="datetime-local"
+                value={endAt}
+                onChange={(event) => {
+                  setEndAt(event.target.value)
+                  clearFormError('endAt')
+                  setError(null)
+                }}
+                aria-invalid={formErrors.endAt ? 'true' : undefined}
+                aria-describedby={formErrors.endAt ? 'student-interview-end-error' : undefined}
+              />
             </label>
+            {formErrors.endAt ? <p id="student-interview-end-error" className="form-error" role="alert">{formErrors.endAt}</p> : null}
             <label>
               <span>Note</span>
               <textarea value={note} onChange={(event) => setNote(event.target.value)} rows={3} placeholder="Optional scheduling context." />
@@ -287,10 +418,13 @@ export function StudentInterviewDetailPage() {
 
         <div className="card stack-card">
           <h2>Interview actions</h2>
-          <form className="form" onSubmit={handleMeetingLink}>
+          <form className="form" onSubmit={handleMeetingLink} noValidate>
             <label>
               <span>Meeting provider</span>
-              <select value={meetingProvider} onChange={(event) => setMeetingProvider(event.target.value)}>
+              <select value={meetingProvider} onChange={(event) => {
+                setMeetingProvider(event.target.value)
+                setError(null)
+              }}>
                 <option value="zoom">Zoom</option>
                 <option value="google_meet">Google Meet</option>
                 <option value="teams">Microsoft Teams</option>
@@ -299,8 +433,19 @@ export function StudentInterviewDetailPage() {
             </label>
             <label>
               <span>Meeting URL</span>
-              <input value={meetingUrl} onChange={(event) => setMeetingUrl(event.target.value)} placeholder="https://..." />
+              <input
+                value={meetingUrl}
+                onChange={(event) => {
+                  setMeetingUrl(event.target.value)
+                  clearFormError('meetingUrl')
+                  setError(null)
+                }}
+                placeholder="https://..."
+                aria-invalid={formErrors.meetingUrl ? 'true' : undefined}
+                aria-describedby={formErrors.meetingUrl ? 'student-interview-meeting-url-error' : undefined}
+              />
             </label>
+            {formErrors.meetingUrl ? <p id="student-interview-meeting-url-error" className="form-error" role="alert">{formErrors.meetingUrl}</p> : null}
             <button
               className="secondary-button inline-button"
               type="submit"
@@ -309,11 +454,22 @@ export function StudentInterviewDetailPage() {
               {saving ? 'Saving…' : 'Save meeting link'}
             </button>
           </form>
-          <form className="form" onSubmit={handleReschedule}>
+          <form className="form" onSubmit={handleReschedule} noValidate>
             <label>
               <span>Reschedule reason</span>
-              <textarea value={rescheduleReason} onChange={(event) => setRescheduleReason(event.target.value)} rows={3} required />
+              <textarea
+                value={rescheduleReason}
+                onChange={(event) => {
+                  setRescheduleReason(event.target.value)
+                  clearFormError('rescheduleReason')
+                  setError(null)
+                }}
+                rows={3}
+                aria-invalid={formErrors.rescheduleReason ? 'true' : undefined}
+                aria-describedby={formErrors.rescheduleReason ? 'student-interview-reschedule-error' : undefined}
+              />
             </label>
+            {formErrors.rescheduleReason ? <p id="student-interview-reschedule-error" className="form-error" role="alert">{formErrors.rescheduleReason}</p> : null}
             <button
               className="secondary-button inline-button"
               type="submit"
@@ -322,11 +478,22 @@ export function StudentInterviewDetailPage() {
               {saving ? 'Saving…' : 'Request reschedule'}
             </button>
           </form>
-          <form className="form" onSubmit={handleCancel}>
+          <form className="form" onSubmit={handleCancel} noValidate>
             <label>
               <span>Cancellation reason</span>
-              <textarea value={cancelReason} onChange={(event) => setCancelReason(event.target.value)} rows={3} required />
+              <textarea
+                value={cancelReason}
+                onChange={(event) => {
+                  setCancelReason(event.target.value)
+                  clearFormError('cancelReason')
+                  setError(null)
+                }}
+                rows={3}
+                aria-invalid={formErrors.cancelReason ? 'true' : undefined}
+                aria-describedby={formErrors.cancelReason ? 'student-interview-cancel-error' : undefined}
+              />
             </label>
+            {formErrors.cancelReason ? <p id="student-interview-cancel-error" className="form-error" role="alert">{formErrors.cancelReason}</p> : null}
             <button
               className="danger-button inline-button"
               type="submit"
@@ -335,11 +502,22 @@ export function StudentInterviewDetailPage() {
               {saving ? 'Saving…' : 'Cancel interview'}
             </button>
           </form>
-          <form className="form" onSubmit={handleComplete}>
+          <form className="form" onSubmit={handleComplete} noValidate>
             <label>
               <span>Completion summary</span>
-              <textarea value={completionSummary} onChange={(event) => setCompletionSummary(event.target.value)} rows={3} required />
+              <textarea
+                value={completionSummary}
+                onChange={(event) => {
+                  setCompletionSummary(event.target.value)
+                  clearFormError('completionSummary')
+                  setError(null)
+                }}
+                rows={3}
+                aria-invalid={formErrors.completionSummary ? 'true' : undefined}
+                aria-describedby={formErrors.completionSummary ? 'student-interview-completion-error' : undefined}
+              />
             </label>
+            {formErrors.completionSummary ? <p id="student-interview-completion-error" className="form-error" role="alert">{formErrors.completionSummary}</p> : null}
             <button className="primary-button inline-button" type="submit" disabled={saving || interview.status !== 'confirmed'}>
               {saving ? 'Saving…' : 'Mark interview complete'}
             </button>

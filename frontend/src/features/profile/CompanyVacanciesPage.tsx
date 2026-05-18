@@ -2,13 +2,8 @@ import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 
 import { useAuth } from '../../auth/useAuth'
-import { ApiError, apiRequest } from '../../lib/api'
-import type { CompanyVacanciesResponse, VacancyRecord } from './types'
-
-const emptyVacanciesResponse: CompanyVacanciesResponse = {
-  vacancies: [],
-  available_skills: [],
-}
+import { ApiError } from '../../lib/api'
+import { emptyCompanyVacanciesResponse, fetchCompanyVacancies, retireCompanyVacancy, saveCompanyVacancy } from './companyVacanciesApi'
 
 const workStyleOptions = [
   { value: 'onsite', label: 'Onsite' },
@@ -28,7 +23,7 @@ type RequirementType = 'none' | 'required' | 'preferred'
 
 export function CompanyVacanciesPage() {
   const { csrfToken } = useAuth()
-  const [data, setData] = useState<CompanyVacanciesResponse>(emptyVacanciesResponse)
+  const [data, setData] = useState(emptyCompanyVacanciesResponse)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [selectedVacancyId, setSelectedVacancyId] = useState<number | null>(null)
@@ -59,7 +54,7 @@ export function CompanyVacanciesPage() {
 
     async function loadVacancies() {
       try {
-        const response = await apiRequest<CompanyVacanciesResponse>('/company/vacancies')
+        const response = await fetchCompanyVacancies()
         if (active) {
           setData(response)
         }
@@ -132,7 +127,7 @@ export function CompanyVacanciesPage() {
   }, [selectedVacancy])
 
   async function refreshVacancies() {
-    const response = await apiRequest<CompanyVacanciesResponse>('/company/vacancies')
+    const response = await fetchCompanyVacancies()
     setData(response)
   }
 
@@ -192,16 +187,15 @@ export function CompanyVacanciesPage() {
       }
 
       if (selectedVacancy) {
-        await apiRequest<VacancyRecord>(`/company/vacancies/${selectedVacancy.vacancy_id}`, {
-          method: 'PUT',
-          body,
+        await saveCompanyVacancy({
+          vacancyId: selectedVacancy.vacancy_id,
+          payload: body,
           csrfToken,
         })
         setSuccess('Vacancy updated successfully.')
       } else {
-        await apiRequest<VacancyRecord>('/company/vacancies', {
-          method: 'POST',
-          body,
+        await saveCompanyVacancy({
+          payload: body,
           csrfToken,
         })
         setSuccess('Vacancy created successfully.')
@@ -224,10 +218,7 @@ export function CompanyVacanciesPage() {
     setSuccess(null)
 
     try {
-      await apiRequest<VacancyRecord>(`/company/vacancies/${vacancyId}`, {
-        method: 'DELETE',
-        csrfToken,
-      })
+      await retireCompanyVacancy(vacancyId, csrfToken)
       await refreshVacancies()
       if (selectedVacancyId === vacancyId) {
         setSelectedVacancyId(null)

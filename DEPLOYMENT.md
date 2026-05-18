@@ -174,6 +174,9 @@ GEMINI_EXAM_FINAL_QUESTION_COUNT=15
 # Environment
 ENVIRONMENT=production
 DJANGO_LOG_LEVEL=INFO
+DJANGO_LOG_AS_JSON=true
+DJANGO_ENABLE_FILE_LOGGING=false
+DJANGO_PERSIST_REQUEST_LOGS=false
 ```
 
 If your frontend is hosted on Vercel and the backend is hosted on Render, set the Gemini variables on **Render only**. Vercel only needs the backend API base URL such as `VITE_API_BASE_URL=https://your-render-service.onrender.com/api`.
@@ -327,37 +330,31 @@ python manage.py migrate
 ### 3. Post-deployment Verification
 
 ```bash
-# Check API health
+# Check liveness
 curl https://yourdomain.com/api/v1/health
+
+# Check readiness (database/cache/logging posture)
+curl https://yourdomain.com/api/v1/ready
 
 # Check admin access
 curl -H "Authorization: Bearer YOUR_TOKEN" https://yourdomain.com/admin/
 
-# Monitor logs
-tail -f /var/log/softlearn/django.log
+# Monitor structured container logs
+docker logs -f <backend-container>
 ```
 
 ## Monitoring & Logging
 
-### Django Logs
+### Runtime logs
 
-Location: `backend/logs/django.log`
+- Production should prefer JSON logs on stdout with `DJANGO_LOG_AS_JSON=true`.
+- File logging is optional and should only be enabled when the platform does not already aggregate stdout/stderr.
+- Request logs are **not** persisted to the database by default; enabling `DJANGO_PERSIST_REQUEST_LOGS=true` is intended for short-lived debugging windows, not steady-state production traffic.
 
-Configure in settings:
-```python
-LOGGING = {
-    'version': 1,
-    'handlers': {
-        'file': {
-            'level': 'INFO',
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': 'logs/django.log',
-            'maxBytes': 10 * 1024 * 1024,
-            'backupCount': 10,
-        },
-    },
-}
-```
+### Health endpoints
+
+- `GET /api/v1/health` — liveness probe with request ID.
+- `GET /api/v1/ready` — readiness probe with database/cache checks and current observability mode.
 
 ### Application Logs
 

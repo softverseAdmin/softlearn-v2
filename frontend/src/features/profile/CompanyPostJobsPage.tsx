@@ -9,7 +9,8 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { ApiError, apiRequest } from '@/lib/api'
+import { ApiError } from '@/lib/api'
+import { fetchCompanyVacancies, retireCompanyVacancy, saveCompanyVacancy } from './companyVacanciesApi'
 
 import type { CompanyVacanciesResponse, VacancyPostingDetails, VacancyRecord } from './types'
 import { FormField, FormSelect, FormTextarea, ToggleField } from './company-post-jobs/FormFields'
@@ -49,6 +50,7 @@ export function CompanyPostJobsPage() {
   const [maxSalary, setMaxSalary] = useState('')
   const [postingDetails, setPostingDetails] = useState<VacancyPostingDetails>(emptyPostingDetails)
   const [error, setError] = useState<string | null>(null)
+  const [formErrors, setFormErrors] = useState<Partial<Record<'title' | 'location' | 'minSalary' | 'maxSalary' | 'responsibilities', string>>>({})
 
   const selectedVacancy = useMemo(
     () => data.vacancies.find((vacancy) => vacancy.vacancy_id === selectedVacancyId) ?? null,
@@ -61,7 +63,7 @@ export function CompanyPostJobsPage() {
 
     async function loadVacancies() {
       try {
-        const response = await apiRequest<CompanyVacanciesResponse>('/company/vacancies')
+        const response = await fetchCompanyVacancies()
         if (!active) {
           return
         }
@@ -96,6 +98,7 @@ export function CompanyPostJobsPage() {
       setMinSalary('')
       setMaxSalary('')
       setPostingDetails(emptyPostingDetails)
+      setFormErrors({})
       return
     }
 
@@ -115,10 +118,11 @@ export function CompanyPostJobsPage() {
           selectedVacancy.posting_details.responsibilities || selectedVacancy.description,
       }),
     )
+    setFormErrors({})
   }, [selectedVacancy])
 
   async function refreshVacancies() {
-    const response = await apiRequest<CompanyVacanciesResponse>('/company/vacancies')
+    const response = await fetchCompanyVacancies()
     setData(response)
   }
 
@@ -126,18 +130,21 @@ export function CompanyPostJobsPage() {
     setSelectedVacancyId(null)
     setIsFormOpen(true)
     setError(null)
+    setFormErrors({})
   }
 
   function openEditForm(vacancy: VacancyRecord) {
     setSelectedVacancyId(vacancy.vacancy_id)
     setIsFormOpen(true)
     setError(null)
+    setFormErrors({})
   }
 
   function closeForm() {
     setSelectedVacancyId(null)
     setIsFormOpen(false)
     setError(null)
+    setFormErrors({})
   }
 
   function updatePostingDetail(key: PostingDetailField, value: string) {
@@ -145,10 +152,58 @@ export function CompanyPostJobsPage() {
       ...current,
       [key]: value,
     }))
+    if (key === 'responsibilities') {
+      setFormErrors((current) => ({ ...current, responsibilities: undefined }))
+      setError(null)
+    }
+  }
+
+  function validateForm() {
+    const nextErrors: Partial<Record<'title' | 'location' | 'minSalary' | 'maxSalary' | 'responsibilities', string>> = {}
+    const normalizedTitle = title.trim()
+    const normalizedLocation = location.trim()
+    const normalizedResponsibilities = postingDetails.responsibilities.trim()
+
+    const parsedMinSalary = minSalary.trim() ? Number(minSalary) : null
+    const parsedMaxSalary = maxSalary.trim() ? Number(maxSalary) : null
+
+    if (!normalizedTitle) {
+      nextErrors.title = 'Role title is required.'
+    }
+    if (!normalizedLocation) {
+      nextErrors.location = 'Work location is required.'
+    }
+    if (!normalizedResponsibilities) {
+      nextErrors.responsibilities = 'Responsibilities are required.'
+    }
+    if (minSalary.trim() && (!Number.isFinite(parsedMinSalary) || parsedMinSalary === null || parsedMinSalary < 0)) {
+      nextErrors.minSalary = 'Minimum salary must be a valid non-negative number.'
+    }
+    if (maxSalary.trim() && (!Number.isFinite(parsedMaxSalary) || parsedMaxSalary === null || parsedMaxSalary < 0)) {
+      nextErrors.maxSalary = 'Maximum salary must be a valid non-negative number.'
+    }
+    if (
+      parsedMinSalary !== null &&
+      parsedMaxSalary !== null &&
+      Number.isFinite(parsedMinSalary) &&
+      Number.isFinite(parsedMaxSalary) &&
+      parsedMaxSalary < parsedMinSalary
+    ) {
+      nextErrors.maxSalary = 'Maximum salary must be greater than or equal to minimum salary.'
+    }
+
+    return nextErrors
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    const nextErrors = validateForm()
+    setFormErrors(nextErrors)
+    if (Object.keys(nextErrors).length > 0) {
+      setError('Fix the highlighted job post fields before saving.')
+      return
+    }
+
     setSaving(true)
     setError(null)
 
@@ -175,16 +230,15 @@ export function CompanyPostJobsPage() {
 
     try {
       if (selectedVacancy) {
-        await apiRequest<VacancyRecord>(`/company/vacancies/${selectedVacancy.vacancy_id}`, {
-          method: 'PUT',
-          body,
+        await saveCompanyVacancy({
+          vacancyId: selectedVacancy.vacancy_id,
+          payload: body,
           csrfToken,
         })
         toast.success('Job post updated successfully.')
       } else {
-        await apiRequest<VacancyRecord>('/company/vacancies', {
-          method: 'POST',
-          body,
+        await saveCompanyVacancy({
+          payload: body,
           csrfToken,
         })
         toast.success('Job post created successfully.')
@@ -193,7 +247,9 @@ export function CompanyPostJobsPage() {
       await refreshVacancies()
       closeForm()
     } catch (saveError) {
-      toast.error(saveError instanceof ApiError ? saveError.message : 'Unable to save this job post.')
+      const message = saveError instanceof ApiError ? saveError.message : 'Unable to save this job post.'
+      setError(message)
+      toast.error(message)
     } finally {
       setSaving(false)
     }
@@ -204,10 +260,7 @@ export function CompanyPostJobsPage() {
     setError(null)
 
     try {
-      await apiRequest<VacancyRecord>(`/company/vacancies/${vacancyId}`, {
-        method: 'DELETE',
-        csrfToken,
-      })
+      await retireCompanyVacancy(vacancyId, csrfToken)
       await refreshVacancies()
       if (selectedVacancyId === vacancyId) {
         closeForm()
@@ -260,7 +313,7 @@ export function CompanyPostJobsPage() {
 
       {error ? (
         <Card className="border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950">
-          <CardContent className="px-5 py-4 text-sm text-red-700 dark:text-red-200">{error}</CardContent>
+          <CardContent className="px-5 py-4 text-sm text-red-700 dark:text-red-200" role="alert">{error}</CardContent>
         </Card>
       ) : null}
 
@@ -273,7 +326,7 @@ export function CompanyPostJobsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form className="space-y-8" onSubmit={handleSubmit}>
+            <form className="space-y-8" onSubmit={handleSubmit} noValidate>
               <section className="rounded-[28px] border border-slate-200/80 bg-slate-50/70 p-5 shadow-sm sm:p-6">
                 <div className="mb-5 space-y-1">
                   <h2 className="text-lg font-semibold tracking-tight text-slate-950">Role overview</h2>
@@ -284,11 +337,18 @@ export function CompanyPostJobsPage() {
 
                 <div className="grid gap-4 md:grid-cols-2">
                   <FormField
+                    id="job-title"
                     label="Role title"
                     placeholder="Full Remote Bridge Engineering (Japan x Philippines product development)"
                     value={title}
-                    onChange={setTitle}
+                    onChange={(value) => {
+                      setTitle(value)
+                      setFormErrors((current) => ({ ...current, title: undefined }))
+                      setError(null)
+                    }}
                     description="Use a specific title that helps students quickly understand the role."
+                    error={formErrors.title}
+                    required
                     className="md:col-span-2"
                   />
                   <FormSelect
@@ -306,11 +366,18 @@ export function CompanyPostJobsPage() {
                     description="Match the role to the expected seniority."
                   />
                   <FormField
+                    id="job-location"
                     label="Work location"
                     placeholder="Full remote (company-designated work location)"
                     value={location}
-                    onChange={setLocation}
+                    onChange={(value) => {
+                      setLocation(value)
+                      setFormErrors((current) => ({ ...current, location: undefined }))
+                      setError(null)
+                    }}
                     description="State the primary work location or the main remote base."
+                    error={formErrors.location}
+                    required
                   />
                   <FormSelect
                     label="Work style"
@@ -327,20 +394,32 @@ export function CompanyPostJobsPage() {
                     description="Keep drafts private until the post is ready."
                   />
                   <FormField
+                    id="job-min-salary"
                     label="Annual salary minimum (JPY)"
                     placeholder="3780000"
                     value={minSalary}
-                    onChange={setMinSalary}
+                    onChange={(value) => {
+                      setMinSalary(value)
+                      setFormErrors((current) => ({ ...current, minSalary: undefined, maxSalary: undefined }))
+                      setError(null)
+                    }}
                     inputMode="numeric"
                     description="Numbers only. Leave blank if you do not want to publish a minimum."
+                    error={formErrors.minSalary}
                   />
                   <FormField
+                    id="job-max-salary"
                     label="Annual salary maximum (JPY)"
                     placeholder="5580000"
                     value={maxSalary}
-                    onChange={setMaxSalary}
+                    onChange={(value) => {
+                      setMaxSalary(value)
+                      setFormErrors((current) => ({ ...current, minSalary: undefined, maxSalary: undefined }))
+                      setError(null)
+                    }}
                     inputMode="numeric"
                     description="Numbers only. Leave blank if you do not want to publish a maximum."
+                    error={formErrors.maxSalary}
                   />
                   <ToggleField
                     label="Relocation support"
@@ -371,24 +450,28 @@ export function CompanyPostJobsPage() {
                           description={field.description}
                           className={field.className}
                         />
-                      ) : field.textarea ? (
-                        <FormTextarea
-                          key={field.key}
-                          label={field.label}
-                          placeholder={field.placeholder}
-                          value={postingDetails[field.key]}
-                          onChange={(value) => updatePostingDetail(field.key, value)}
-                          description={field.description}
-                          className={field.className ?? 'md:col-span-2'}
-                        />
-                      ) : (
-                        <FormField
-                          key={field.key}
-                          label={field.label}
-                          placeholder={field.placeholder}
-                          value={postingDetails[field.key]}
-                          onChange={(value) => updatePostingDetail(field.key, value)}
-                          description={field.description}
+                        ) : field.textarea ? (
+                          <FormTextarea
+                            key={field.key}
+                            id={`posting-${field.key}`}
+                            label={field.label}
+                            placeholder={field.placeholder}
+                            value={postingDetails[field.key]}
+                            onChange={(value) => updatePostingDetail(field.key, value)}
+                            description={field.description}
+                            error={field.key === 'responsibilities' ? formErrors.responsibilities : undefined}
+                            required={field.key === 'responsibilities'}
+                            className={field.className ?? 'md:col-span-2'}
+                          />
+                        ) : (
+                          <FormField
+                            key={field.key}
+                            id={`posting-${field.key}`}
+                            label={field.label}
+                            placeholder={field.placeholder}
+                            value={postingDetails[field.key]}
+                            onChange={(value) => updatePostingDetail(field.key, value)}
+                            description={field.description}
                           className={field.className}
                         />
                       ),

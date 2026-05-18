@@ -1,6 +1,7 @@
 import { toast } from 'sonner'
 
 const DEFAULT_API_BASE_URL = '/api/v1'
+const JSON_CONTENT_TYPE = 'application/json'
 
 export class ApiError extends Error {
   code: string
@@ -35,6 +36,20 @@ type RequestOptions = {
   signal?: AbortSignal
   notifyOnSuccess?: boolean
   notifyOnError?: boolean
+}
+
+type ApiSuccessResponse<T> = {
+  data: T
+  meta?: Record<string, unknown>
+}
+
+type ApiFailureResponse = {
+  error: {
+    code?: string
+    message?: string
+    details?: Record<string, unknown>
+    request_id?: string
+  }
 }
 
 function getApiBaseUrl() {
@@ -79,6 +94,73 @@ function getFirstErrorDetailMessage(details: unknown): string | null {
   return null
 }
 
+function getApiErrorPayload(payload: unknown): ApiFailureResponse['error'] | null {
+  if (!payload || typeof payload !== 'object' || !('error' in payload)) {
+    return null
+  }
+
+  const error = (payload as { error?: unknown }).error
+  if (!error || typeof error !== 'object') {
+    return null
+  }
+
+  return error as ApiFailureResponse['error']
+}
+
+function getApiSuccessPayload<T>(payload: unknown): ApiSuccessResponse<T> | null {
+  if (!payload || typeof payload !== 'object' || !('data' in payload)) {
+    return null
+  }
+
+  return payload as ApiSuccessResponse<T>
+}
+
+function getFallbackErrorMessage(response: Response, payload: unknown) {
+  if (typeof payload === 'string') {
+    const trimmed = payload.trim()
+    if (trimmed && !trimmed.startsWith('<')) {
+      return trimmed
+    }
+  }
+
+  if (response.status >= 500) {
+    return 'The server returned an unexpected error.'
+  }
+
+  if (response.status === 404) {
+    return 'The requested resource was not found.'
+  }
+
+  return response.statusText || 'Request failed.'
+}
+
+async function parseResponsePayload(response: Response) {
+  if (response.status === 204 || response.status === 205) {
+    return null
+  }
+
+  const contentLength = response.headers.get('content-length')
+  if (contentLength === '0') {
+    return null
+  }
+
+  const contentType = response.headers.get('content-type')?.toLowerCase() ?? ''
+  if (contentType.includes(JSON_CONTENT_TYPE)) {
+    try {
+      return (await response.json()) as unknown
+    } catch {
+      return null
+    }
+  }
+
+  try {
+    const text = await response.text()
+    return text.trim() ? text : null
+  } catch {
+    return null
+  }
+}
+
 export async function apiRequest<T>(path: string, options: RequestOptions = {}) {
   const method = options.method ?? 'GET'
   const notifyOnSuccess = options.notifyOnSuccess ?? shouldNotifyByDefault(method)
@@ -103,27 +185,19 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}) 
     signal: options.signal,
   })
 
-  const payload = (await response.json()) as
-    | { data: T }
-    | {
-        error: {
-          code?: string
-          message?: string
-          details?: Record<string, unknown>
-          request_id?: string
-        }
-      }
+  const payload = await parseResponsePayload(response)
+  const requestId = response.headers.get('X-Request-ID') ?? undefined
+  const error = getApiErrorPayload(payload)
 
-  if (!response.ok || 'error' in payload) {
-    const error = 'error' in payload ? payload.error : undefined
-    const fallbackMessage = error?.message ?? 'Request failed.'
+  if (!response.ok || error) {
+    const fallbackMessage = error?.message ?? getFallbackErrorMessage(response, payload)
     const validationDetailMessage =
       error?.code === 'VALIDATION_ERROR' ? getFirstErrorDetailMessage(error?.details) : null
 
     const apiError = new ApiError(validationDetailMessage ?? fallbackMessage, {
       code: error?.code,
       details: error?.details,
-      requestId: error?.request_id,
+      requestId: error?.request_id ?? requestId,
       status: response.status,
     })
 
@@ -135,10 +209,12 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}) 
     throw apiError
   }
 
-  const responseMessage = getResponseMessage(payload.data)
+  const successPayload = getApiSuccessPayload<T>(payload)
+  const responseData = successPayload?.data ?? (payload as T)
+  const responseMessage = getResponseMessage(responseData)
   if (notifyOnSuccess && responseMessage) {
     toast.success(responseMessage)
   }
 
-  return payload.data
+  return responseData
 }

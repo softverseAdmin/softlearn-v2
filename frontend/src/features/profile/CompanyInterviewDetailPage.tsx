@@ -121,6 +121,19 @@ function formatDateRange(start: string | null, end: string | null) {
   }
 }
 
+type InterviewFormErrors = Partial<
+  Record<
+    | 'selectedAvailabilityId'
+    | 'startAt'
+    | 'endAt'
+    | 'meetingUrl'
+    | 'rescheduleReason'
+    | 'cancelReason'
+    | 'completionSummary',
+    string
+  >
+>
+
 export function CompanyInterviewDetailPage() {
   const { csrfToken } = useAuth()
   const params = useParams<{ interviewId: string }>()
@@ -138,6 +151,79 @@ export function CompanyInterviewDetailPage() {
   const [completionSummary, setCompletionSummary] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+  const [formErrors, setFormErrors] = useState<InterviewFormErrors>({})
+
+  function clearFormError(...keys: Array<keyof InterviewFormErrors>) {
+    setFormErrors((current) => {
+      const next = { ...current }
+      for (const key of keys) {
+        delete next[key]
+      }
+      return next
+    })
+  }
+
+  function validateAvailabilityForm() {
+    const nextErrors: InterviewFormErrors = {}
+    const startDate = new Date(startAt)
+    const endDate = new Date(endAt)
+
+    if (Number.isNaN(startDate.getTime())) {
+      nextErrors.startAt = 'Choose a valid availability start date and time.'
+    }
+    if (Number.isNaN(endDate.getTime())) {
+      nextErrors.endAt = 'Choose a valid availability end date and time.'
+    }
+    if (!Number.isNaN(startDate.getTime()) && !Number.isNaN(endDate.getTime()) && endDate <= startDate) {
+      nextErrors.endAt = 'Availability end must be later than the start time.'
+    }
+
+    return nextErrors
+  }
+
+  function validateConfirmForm() {
+    const nextErrors: InterviewFormErrors = {}
+    if (!selectedAvailabilityId) {
+      nextErrors.selectedAvailabilityId = 'Select an availability slot to confirm.'
+    }
+    return nextErrors
+  }
+
+  function validateMeetingLinkForm() {
+    const nextErrors: InterviewFormErrors = {}
+    const trimmedMeetingUrl = meetingUrl.trim()
+    if (!trimmedMeetingUrl) {
+      nextErrors.meetingUrl = 'Meeting URL is required.'
+      return nextErrors
+    }
+
+    try {
+      const parsed = new URL(trimmedMeetingUrl)
+      if (!['http:', 'https:'].includes(parsed.protocol)) {
+        nextErrors.meetingUrl = 'Meeting URL must start with http:// or https://.'
+      }
+    } catch {
+      nextErrors.meetingUrl = 'Enter a valid meeting URL.'
+    }
+
+    return nextErrors
+  }
+
+  function validateReason(value: string, key: 'rescheduleReason' | 'cancelReason') {
+    const nextErrors: InterviewFormErrors = {}
+    if (!value.trim()) {
+      nextErrors[key] = 'This reason is required.'
+    }
+    return nextErrors
+  }
+
+  function validateCompletionForm() {
+    const nextErrors: InterviewFormErrors = {}
+    if (!completionSummary.trim()) {
+      nextErrors.completionSummary = 'Completion summary is required.'
+    }
+    return nextErrors
+  }
 
   useEffect(() => {
     let active = true
@@ -181,20 +267,28 @@ export function CompanyInterviewDetailPage() {
       return
     }
 
+    const nextErrors = validateAvailabilityForm()
+    setFormErrors((current) => ({ ...current, ...nextErrors }))
+    if (Object.keys(nextErrors).length > 0) {
+      setError('Fix the highlighted availability fields and try again.')
+      setSuccess(null)
+      return
+    }
+
     setSaving(true)
     setError(null)
     setSuccess(null)
 
     try {
-      const response = await apiRequest<InterviewDetail>(`/interviews/${params.interviewId}/availability`, {
-        method: 'POST',
-        body: {
-          start_at: new Date(startAt).toISOString(),
-          end_at: new Date(endAt).toISOString(),
-          note,
-        },
-        csrfToken,
-      })
+        const response = await apiRequest<InterviewDetail>(`/interviews/${params.interviewId}/availability`, {
+          method: 'POST',
+          body: {
+            start_at: new Date(startAt).toISOString(),
+            end_at: new Date(endAt).toISOString(),
+            note: note.trim(),
+          },
+          csrfToken,
+        })
       setInterview(response)
       setNote('')
       setSelectedAvailabilityId(response.availabilities.length > 0 ? String(response.availabilities[0].id) : '')
@@ -209,6 +303,14 @@ export function CompanyInterviewDetailPage() {
   async function handleConfirm(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!params.interviewId) {
+      return
+    }
+
+    const nextErrors = validateConfirmForm()
+    setFormErrors((current) => ({ ...current, ...nextErrors }))
+    if (Object.keys(nextErrors).length > 0) {
+      setError('Select an availability slot before confirming the interview.')
+      setSuccess(null)
       return
     }
 
@@ -239,16 +341,24 @@ export function CompanyInterviewDetailPage() {
       return
     }
 
+    const nextErrors = validateReason(rescheduleReason, 'rescheduleReason')
+    setFormErrors((current) => ({ ...current, ...nextErrors }))
+    if (Object.keys(nextErrors).length > 0) {
+      setError('Provide a reschedule reason before submitting.')
+      setSuccess(null)
+      return
+    }
+
     setSaving(true)
     setError(null)
     setSuccess(null)
 
     try {
-      const response = await apiRequest<InterviewDetail>(`/interviews/${params.interviewId}/reschedule`, {
-        method: 'POST',
-        body: { reason: rescheduleReason },
-        csrfToken,
-      })
+        const response = await apiRequest<InterviewDetail>(`/interviews/${params.interviewId}/reschedule`, {
+          method: 'POST',
+          body: { reason: rescheduleReason.trim() },
+          csrfToken,
+        })
       setInterview(response)
       setRescheduleReason('')
       setSuccess('Interview moved to rescheduled state.')
@@ -265,16 +375,24 @@ export function CompanyInterviewDetailPage() {
       return
     }
 
+    const nextErrors = validateReason(cancelReason, 'cancelReason')
+    setFormErrors((current) => ({ ...current, ...nextErrors }))
+    if (Object.keys(nextErrors).length > 0) {
+      setError('Provide a cancellation reason before submitting.')
+      setSuccess(null)
+      return
+    }
+
     setSaving(true)
     setError(null)
     setSuccess(null)
 
     try {
-      const response = await apiRequest<InterviewDetail>(`/interviews/${params.interviewId}/cancel`, {
-        method: 'POST',
-        body: { reason: cancelReason },
-        csrfToken,
-      })
+        const response = await apiRequest<InterviewDetail>(`/interviews/${params.interviewId}/cancel`, {
+          method: 'POST',
+          body: { reason: cancelReason.trim() },
+          csrfToken,
+        })
       setInterview(response)
       setCancelReason('')
       setSuccess('Interview cancelled successfully.')
@@ -291,6 +409,14 @@ export function CompanyInterviewDetailPage() {
       return
     }
 
+    const nextErrors = validateMeetingLinkForm()
+    setFormErrors((current) => ({ ...current, ...nextErrors }))
+    if (Object.keys(nextErrors).length > 0) {
+      setError('Fix the meeting link fields and try again.')
+      setSuccess(null)
+      return
+    }
+
     setSaving(true)
     setError(null)
     setSuccess(null)
@@ -300,7 +426,7 @@ export function CompanyInterviewDetailPage() {
         method: 'PUT',
         body: {
           meeting_provider: meetingProvider,
-          meeting_url: meetingUrl,
+          meeting_url: meetingUrl.trim(),
         },
         csrfToken,
       })
@@ -319,6 +445,14 @@ export function CompanyInterviewDetailPage() {
       return
     }
 
+    const nextErrors = validateCompletionForm()
+    setFormErrors((current) => ({ ...current, ...nextErrors }))
+    if (Object.keys(nextErrors).length > 0) {
+      setError('Add a completion summary before submitting.')
+      setSuccess(null)
+      return
+    }
+
     setSaving(true)
     setError(null)
     setSuccess(null)
@@ -326,7 +460,7 @@ export function CompanyInterviewDetailPage() {
     try {
       const response = await apiRequest<InterviewDetail>(`/interviews/${params.interviewId}/complete`, {
         method: 'POST',
-        body: { summary: completionSummary },
+        body: { summary: completionSummary.trim() },
         csrfToken,
       })
       setInterview(response)
@@ -407,7 +541,7 @@ export function CompanyInterviewDetailPage() {
 
       {error ? (
         <Card className="border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950">
-          <CardContent className="flex items-start gap-3 pt-6">
+          <CardContent className="flex items-start gap-3 pt-6" role="alert">
             <AlertCircle className="h-5 w-5 flex-shrink-0 text-red-600 dark:text-red-400" />
             <div>
               <h3 className="font-semibold text-red-900 dark:text-red-100">Unable to update interview workflow</h3>
@@ -419,7 +553,7 @@ export function CompanyInterviewDetailPage() {
 
       {success ? (
         <Card className="border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950">
-          <CardContent className="flex items-start gap-3 pt-6">
+          <CardContent className="flex items-start gap-3 pt-6" role="status">
             <CheckCircle2 className="h-5 w-5 flex-shrink-0 text-green-600 dark:text-green-400" />
             <div>
               <h3 className="font-semibold text-green-900 dark:text-green-100">Interview updated</h3>
@@ -672,7 +806,7 @@ export function CompanyInterviewDetailPage() {
               <p className="text-sm text-muted-foreground">Choose one submitted slot and lock in the final interview time.</p>
             </CardHeader>
             <CardContent className="space-y-4 p-6">
-              <form className="space-y-4" onSubmit={handleConfirm}>
+              <form className="space-y-4" onSubmit={handleConfirm} noValidate>
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-foreground" htmlFor="company-interview-confirm-slot">
                     Availability to confirm
@@ -680,9 +814,14 @@ export function CompanyInterviewDetailPage() {
                   <select
                     id="company-interview-confirm-slot"
                     value={selectedAvailabilityId}
-                    onChange={(event) => setSelectedAvailabilityId(event.target.value)}
-                    required
+                    onChange={(event) => {
+                      setSelectedAvailabilityId(event.target.value)
+                      clearFormError('selectedAvailabilityId')
+                      setError(null)
+                    }}
                     className="h-11 w-full rounded-lg border border-input bg-background px-4 text-sm text-foreground outline-none transition focus-visible:ring-2 focus-visible:ring-ring/50"
+                    aria-invalid={formErrors.selectedAvailabilityId ? 'true' : undefined}
+                    aria-describedby={formErrors.selectedAvailabilityId ? 'company-interview-confirm-slot-error' : undefined}
                   >
                     <option value="">Select a slot</option>
                     {interview.availabilities.map((availability) => (
@@ -691,6 +830,11 @@ export function CompanyInterviewDetailPage() {
                       </option>
                     ))}
                   </select>
+                  {formErrors.selectedAvailabilityId ? (
+                    <p id="company-interview-confirm-slot-error" className="text-sm text-red-600" role="alert">
+                      {formErrors.selectedAvailabilityId}
+                    </p>
+                  ) : null}
                 </div>
 
                 <Button type="submit" className="w-full" disabled={saving || !canConfirm || !selectedAvailabilityId}>
@@ -712,7 +856,7 @@ export function CompanyInterviewDetailPage() {
               <p className="text-sm text-muted-foreground">Share meeting access, request a reschedule, cancel the interview, or mark it complete.</p>
             </CardHeader>
             <CardContent className="space-y-6 p-6">
-              <form className="space-y-4" onSubmit={handleMeetingLink}>
+              <form className="space-y-4" onSubmit={handleMeetingLink} noValidate>
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-foreground" htmlFor="company-interview-meeting-provider">
                     Meeting provider
@@ -720,7 +864,10 @@ export function CompanyInterviewDetailPage() {
                   <select
                     id="company-interview-meeting-provider"
                     value={meetingProvider}
-                    onChange={(event) => setMeetingProvider(event.target.value)}
+                    onChange={(event) => {
+                      setMeetingProvider(event.target.value)
+                      setError(null)
+                    }}
                     className="h-11 w-full rounded-lg border border-input bg-background px-4 text-sm text-foreground outline-none transition focus-visible:ring-2 focus-visible:ring-ring/50"
                   >
                     <option value="zoom">Zoom</option>
@@ -737,9 +884,20 @@ export function CompanyInterviewDetailPage() {
                   <Input
                     id="company-interview-meeting-url"
                     value={meetingUrl}
-                    onChange={(event) => setMeetingUrl(event.target.value)}
+                    onChange={(event) => {
+                      setMeetingUrl(event.target.value)
+                      clearFormError('meetingUrl')
+                      setError(null)
+                    }}
                     placeholder="https://..."
+                    aria-invalid={formErrors.meetingUrl ? 'true' : undefined}
+                    aria-describedby={formErrors.meetingUrl ? 'company-interview-meeting-url-error' : undefined}
                   />
+                  {formErrors.meetingUrl ? (
+                    <p id="company-interview-meeting-url-error" className="text-sm text-red-600" role="alert">
+                      {formErrors.meetingUrl}
+                    </p>
+                  ) : null}
                 </div>
 
                 <Button type="submit" variant="outline" className="w-full" disabled={saving || !canShareMeetingLink}>
@@ -748,7 +906,7 @@ export function CompanyInterviewDetailPage() {
               </form>
 
               <div className="space-y-4 border-t border-border pt-6">
-                <form className="space-y-4" onSubmit={handleReschedule}>
+                <form className="space-y-4" onSubmit={handleReschedule} noValidate>
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-foreground" htmlFor="company-interview-reschedule-reason">
                       Reschedule reason
@@ -756,11 +914,21 @@ export function CompanyInterviewDetailPage() {
                     <Textarea
                       id="company-interview-reschedule-reason"
                       value={rescheduleReason}
-                      onChange={(event) => setRescheduleReason(event.target.value)}
+                      onChange={(event) => {
+                        setRescheduleReason(event.target.value)
+                        clearFormError('rescheduleReason')
+                        setError(null)
+                      }}
                       rows={3}
-                      required
                       placeholder="Explain why the interview needs a new time."
+                      aria-invalid={formErrors.rescheduleReason ? 'true' : undefined}
+                      aria-describedby={formErrors.rescheduleReason ? 'company-interview-reschedule-reason-error' : undefined}
                     />
+                    {formErrors.rescheduleReason ? (
+                      <p id="company-interview-reschedule-reason-error" className="text-sm text-red-600" role="alert">
+                        {formErrors.rescheduleReason}
+                      </p>
+                    ) : null}
                   </div>
 
                   <Button type="submit" variant="outline" className="w-full" disabled={saving || !canEditWorkflow}>
@@ -768,7 +936,7 @@ export function CompanyInterviewDetailPage() {
                   </Button>
                 </form>
 
-                <form className="space-y-4 border-t border-border pt-6" onSubmit={handleCancel}>
+                <form className="space-y-4 border-t border-border pt-6" onSubmit={handleCancel} noValidate>
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-foreground" htmlFor="company-interview-cancel-reason">
                       Cancellation reason
@@ -776,11 +944,21 @@ export function CompanyInterviewDetailPage() {
                     <Textarea
                       id="company-interview-cancel-reason"
                       value={cancelReason}
-                      onChange={(event) => setCancelReason(event.target.value)}
+                      onChange={(event) => {
+                        setCancelReason(event.target.value)
+                        clearFormError('cancelReason')
+                        setError(null)
+                      }}
                       rows={3}
-                      required
                       placeholder="Explain why this interview is being cancelled."
+                      aria-invalid={formErrors.cancelReason ? 'true' : undefined}
+                      aria-describedby={formErrors.cancelReason ? 'company-interview-cancel-reason-error' : undefined}
                     />
+                    {formErrors.cancelReason ? (
+                      <p id="company-interview-cancel-reason-error" className="text-sm text-red-600" role="alert">
+                        {formErrors.cancelReason}
+                      </p>
+                    ) : null}
                   </div>
 
                   <Button type="submit" variant="destructive" className="w-full" disabled={saving || !canEditWorkflow}>
@@ -788,7 +966,7 @@ export function CompanyInterviewDetailPage() {
                   </Button>
                 </form>
 
-                <form className="space-y-4 border-t border-border pt-6" onSubmit={handleComplete}>
+                <form className="space-y-4 border-t border-border pt-6" onSubmit={handleComplete} noValidate>
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-foreground" htmlFor="company-interview-completion-summary">
                       Completion summary
@@ -796,11 +974,21 @@ export function CompanyInterviewDetailPage() {
                     <Textarea
                       id="company-interview-completion-summary"
                       value={completionSummary}
-                      onChange={(event) => setCompletionSummary(event.target.value)}
+                      onChange={(event) => {
+                        setCompletionSummary(event.target.value)
+                        clearFormError('completionSummary')
+                        setError(null)
+                      }}
                       rows={3}
-                      required
                       placeholder="Capture the outcome of the interview."
+                      aria-invalid={formErrors.completionSummary ? 'true' : undefined}
+                      aria-describedby={formErrors.completionSummary ? 'company-interview-completion-summary-error' : undefined}
                     />
+                    {formErrors.completionSummary ? (
+                      <p id="company-interview-completion-summary-error" className="text-sm text-red-600" role="alert">
+                        {formErrors.completionSummary}
+                      </p>
+                    ) : null}
                   </div>
 
                   <Button type="submit" className="w-full" disabled={saving || !canComplete}>
@@ -817,7 +1005,7 @@ export function CompanyInterviewDetailPage() {
               <p className="text-sm text-muted-foreground">Propose one more time slot when you need to push the conversation forward.</p>
             </CardHeader>
             <CardContent className="p-6">
-              <form className="space-y-4" onSubmit={handleSubmitAvailability}>
+              <form className="space-y-4" onSubmit={handleSubmitAvailability} noValidate>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-foreground" htmlFor="company-interview-availability-start">
@@ -827,9 +1015,19 @@ export function CompanyInterviewDetailPage() {
                       id="company-interview-availability-start"
                       type="datetime-local"
                       value={startAt}
-                      onChange={(event) => setStartAt(event.target.value)}
-                      required
+                      onChange={(event) => {
+                        setStartAt(event.target.value)
+                        clearFormError('startAt', 'endAt')
+                        setError(null)
+                      }}
+                      aria-invalid={formErrors.startAt ? 'true' : undefined}
+                      aria-describedby={formErrors.startAt ? 'company-interview-availability-start-error' : undefined}
                     />
+                    {formErrors.startAt ? (
+                      <p id="company-interview-availability-start-error" className="text-sm text-red-600" role="alert">
+                        {formErrors.startAt}
+                      </p>
+                    ) : null}
                   </div>
 
                   <div className="space-y-2">
@@ -840,9 +1038,19 @@ export function CompanyInterviewDetailPage() {
                       id="company-interview-availability-end"
                       type="datetime-local"
                       value={endAt}
-                      onChange={(event) => setEndAt(event.target.value)}
-                      required
+                      onChange={(event) => {
+                        setEndAt(event.target.value)
+                        clearFormError('endAt')
+                        setError(null)
+                      }}
+                      aria-invalid={formErrors.endAt ? 'true' : undefined}
+                      aria-describedby={formErrors.endAt ? 'company-interview-availability-end-error' : undefined}
                     />
+                    {formErrors.endAt ? (
+                      <p id="company-interview-availability-end-error" className="text-sm text-red-600" role="alert">
+                        {formErrors.endAt}
+                      </p>
+                    ) : null}
                   </div>
                 </div>
 

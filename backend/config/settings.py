@@ -2,6 +2,8 @@ import os
 from pathlib import Path
 import sys
 
+from django.core.exceptions import ImproperlyConfigured
+
 from dotenv import load_dotenv
 
 
@@ -33,11 +35,19 @@ def env_int(name: str, default: int) -> int:
         return default
 
 
-SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "change-me-before-production")
-DEBUG = env_bool("DJANGO_DEBUG", True)
+DEFAULT_SECRET_KEY = "change-me-before-production"
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", DEFAULT_SECRET_KEY)
+DEBUG = env_bool("DJANGO_DEBUG", env_bool("DEBUG", True))
 ALLOWED_HOSTS = env_list("DJANGO_ALLOWED_HOSTS", ["127.0.0.1", "localhost"])
-ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
+ENVIRONMENT = (os.getenv("ENVIRONMENT", "development") or "development").strip().lower()
 TESTING = len(sys.argv) > 1 and sys.argv[1] == 'test'
+IS_PRODUCTION = ENVIRONMENT == "production"
+
+if not DEBUG and SECRET_KEY == DEFAULT_SECRET_KEY:
+    raise ImproperlyConfigured("DJANGO_SECRET_KEY must be set when DJANGO_DEBUG is false.")
+
+if IS_PRODUCTION and set(ALLOWED_HOSTS).issubset({"127.0.0.1", "localhost"}):
+    raise ImproperlyConfigured("DJANGO_ALLOWED_HOSTS must include real production hosts.")
 
 INSTALLED_APPS = [
     "corsheaders",
@@ -173,6 +183,9 @@ AUTHENTICATION_BACKENDS = [
 cache_location = os.getenv("REDIS_URL", "redis://127.0.0.1:6379/1")
 ENABLE_REDIS_CACHE = env_bool("DJANGO_ENABLE_REDIS_CACHE", False)
 
+if IS_PRODUCTION and not ENABLE_REDIS_CACHE:
+    raise ImproperlyConfigured("Production requires DJANGO_ENABLE_REDIS_CACHE=true.")
+
 if ENABLE_REDIS_CACHE:
     CACHES = {
         "default": {
@@ -215,9 +228,26 @@ GEMINI_EXAM_DEFAULT_QUESTION_COUNT = env_int("GEMINI_EXAM_DEFAULT_QUESTION_COUNT
 GEMINI_EXAM_FINAL_QUESTION_COUNT = env_int("GEMINI_EXAM_FINAL_QUESTION_COUNT", 15)
 
 # Logging Configuration
+LOG_LEVEL = os.getenv("DJANGO_LOG_LEVEL", "INFO")
+LOG_AS_JSON = env_bool("DJANGO_LOG_AS_JSON", IS_PRODUCTION)
+ENABLE_FILE_LOGGING = env_bool("DJANGO_ENABLE_FILE_LOGGING", not IS_PRODUCTION)
+PERSIST_REQUEST_LOGS = env_bool("DJANGO_PERSIST_REQUEST_LOGS", False)
+
+if ENABLE_FILE_LOGGING:
+    os.makedirs(BASE_DIR / "logs", exist_ok=True)
+
+active_log_handlers = ["console"]
+if ENABLE_FILE_LOGGING:
+    active_log_handlers.append("file")
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
+    "filters": {
+        "request_context": {
+            "()": "services.logging.RequestContextFilter",
+        },
+    },
     "formatters": {
         "verbose": {
             "format": "[{levelname}] {asctime} {module} {process:d} {thread:d} {message}",
@@ -227,11 +257,15 @@ LOGGING = {
             "format": "[{levelname}] {message}",
             "style": "{",
         },
+        "json": {
+            "()": "services.logging.JsonLogFormatter",
+        },
     },
     "handlers": {
         "console": {
             "class": "logging.StreamHandler",
-            "formatter": "verbose",
+            "formatter": "json" if LOG_AS_JSON else "verbose",
+            "filters": ["request_context"],
         },
         "file": {
             "class": "logging.handlers.RotatingFileHandler",
@@ -239,21 +273,32 @@ LOGGING = {
             "maxBytes": 1024 * 1024 * 10,  # 10 MB
             "backupCount": 10,
             "formatter": "verbose",
+            "filters": ["request_context"],
         },
     },
     "root": {
-        "handlers": ["console", "file"],
-        "level": "INFO",
+        "handlers": active_log_handlers,
+        "level": LOG_LEVEL,
     },
     "loggers": {
         "django": {
-            "handlers": ["console", "file"],
-            "level": os.getenv("DJANGO_LOG_LEVEL", "INFO"),
+            "handlers": active_log_handlers,
+            "level": LOG_LEVEL,
             "propagate": False,
         },
         "services": {
-            "handlers": ["console", "file"],
-            "level": "INFO",
+            "handlers": active_log_handlers,
+            "level": LOG_LEVEL,
+            "propagate": False,
+        },
+        "frontend": {
+            "handlers": active_log_handlers,
+            "level": LOG_LEVEL,
+            "propagate": False,
+        },
+        "api": {
+            "handlers": active_log_handlers,
+            "level": LOG_LEVEL,
             "propagate": False,
         },
     },

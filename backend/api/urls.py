@@ -4,6 +4,7 @@ from api import views
 
 urlpatterns = [
     path("v1/health", views.health_view, name="api-health"),
+    path("v1/ready", views.readiness_view, name="api-ready"),
     path("v1/auth/csrf", views.csrf_view, name="api-auth-csrf"),
     path("v1/auth/session", views.session_view, name="api-auth-session"),
     path("v1/auth/signup", views.signup_view, name="api-auth-signup"),
