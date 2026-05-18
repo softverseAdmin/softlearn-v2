@@ -188,7 +188,7 @@ class CourseGeminiAssessmentTests(TestCase):
         self.assertLess(detail_data["questions"][0]["question_id"], 0)
 
     @patch("services.gemini.GeminiExamGenerationService.generate_questions")
-    def test_company_preview_returns_unavailable_when_gemini_generation_fails(self, mock_generate_questions):
+    def test_company_preview_falls_back_to_authored_questions_when_gemini_generation_fails(self, mock_generate_questions):
         self.create_authored_question()
         mock_generate_questions.side_effect = GeminiExamGenerationError("quota exhausted")
         self.client.force_login(self.company_user)
@@ -197,11 +197,14 @@ class CourseGeminiAssessmentTests(TestCase):
             f"/api/v1/company/courses/{self.course.id}/preview/lessons/{self.lesson.id}/exam"
         )
 
-        self.assertEqual(detail_response.status_code, 503)
-        self.assertEqual(detail_response.json()["error"]["code"], "ASSESSMENT_UNAVAILABLE")
+        self.assertEqual(detail_response.status_code, 200)
+        detail_data = detail_response.json()["data"]
+        self.assertEqual(detail_data["questions"][0]["prompt"], "Old stored question")
+        self.assertGreater(detail_data["questions"][0]["question_id"], 0)
 
     @patch("services.gemini.GeminiExamGenerationService.generate_questions")
-    def test_company_preview_caches_gemini_failure_briefly(self, mock_generate_questions):
+    def test_company_preview_caches_gemini_failure_briefly_and_uses_authored_questions(self, mock_generate_questions):
+        self.create_authored_question()
         mock_generate_questions.side_effect = GeminiExamGenerationError('{"retryDelay":"48s","message":"Quota exceeded"}')
         self.client.force_login(self.company_user)
 
@@ -212,8 +215,8 @@ class CourseGeminiAssessmentTests(TestCase):
             f"/api/v1/company/courses/{self.course.id}/preview/lessons/{self.lesson.id}/exam"
         )
 
-        self.assertEqual(first_response.status_code, 503)
-        self.assertEqual(second_response.status_code, 503)
+        self.assertEqual(first_response.status_code, 200)
+        self.assertEqual(second_response.status_code, 200)
         self.assertEqual(mock_generate_questions.call_count, 1)
 
     @patch("services.gemini.GeminiExamGenerationService.generate_questions")
@@ -266,3 +269,45 @@ class CourseGeminiAssessmentTests(TestCase):
         self.assertEqual(submit_data["score_percent"], 100)
         self.assertEqual(CourseAssessmentAttempt.objects.filter(student=self.student_user, assessment=self.assessment).count(), 1)
         self.assertEqual(CourseAssessmentAttemptSelection.objects.count(), 0)
+
+    @patch("services.gemini.GeminiExamGenerationService.generate_questions")
+    def test_student_lesson_exam_falls_back_to_authored_questions_when_gemini_generation_fails(self, mock_generate_questions):
+        self.create_authored_question()
+        mock_generate_questions.side_effect = GeminiExamGenerationError("quota exhausted")
+        learning_record = LearningRecord.objects.create(
+            student=self.student_user,
+            course=self.course,
+            course_title=self.course.title,
+            category=self.course.category,
+            progress_percent=0,
+            status=LearningRecord.Status.IN_PROGRESS,
+        )
+        LessonProgress.objects.create(
+            learning_record=learning_record,
+            lesson=self.lesson,
+            status=LessonProgress.Status.COMPLETED,
+            started_at=timezone.now(),
+            completed_at=timezone.now(),
+        )
+        self.client.force_login(self.student_user)
+
+        detail_response = self.client.get(
+            f"/api/v1/student/courses/{self.course.id}/lessons/{self.lesson.id}/exam"
+        )
+
+        self.assertEqual(detail_response.status_code, 200)
+        detail_data = detail_response.json()["data"]
+        self.assertEqual(detail_data["questions"][0]["prompt"], "Old stored question")
+        self.assertGreater(detail_data["questions"][0]["question_id"], 0)
+
+    @patch("services.gemini.GeminiExamGenerationService.generate_questions")
+    def test_exam_returns_unavailable_when_gemini_generation_fails_and_no_authored_questions_exist(self, mock_generate_questions):
+        mock_generate_questions.side_effect = GeminiExamGenerationError("quota exhausted")
+        self.client.force_login(self.company_user)
+
+        detail_response = self.client.get(
+            f"/api/v1/company/courses/{self.course.id}/preview/lessons/{self.lesson.id}/exam"
+        )
+
+        self.assertEqual(detail_response.status_code, 503)
+        self.assertEqual(detail_response.json()["error"]["code"], "ASSESSMENT_UNAVAILABLE")
