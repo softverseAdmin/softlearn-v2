@@ -49,6 +49,25 @@ class GeminiExamGenerationServiceTests(SimpleTestCase):
         self.assertIn("Source=Hooks let you use state and other React", prompt)
         self.assertLess(len(prompt), 900)
 
+    def test_build_prompt_allows_fifteen_questions(self):
+        service = GeminiExamGenerationService(
+            api_key="test-key",
+            enabled=True,
+        )
+
+        prompt = service.build_prompt(
+            GeminiExamRequest(
+                course_title="React Basics",
+                assessment_title="Final Exam",
+                source_text="Hooks and components and state management and testing.",
+                difficulty_level="beginner",
+                question_count=15,
+                audience_label="student",
+            )
+        )
+
+        self.assertIn("Create exactly 15 single_choice questions", prompt)
+
     def test_generate_questions_parses_json_response(self):
         service = GeminiExamGenerationService(
             api_key="test-key",
@@ -58,6 +77,7 @@ class GeminiExamGenerationServiceTests(SimpleTestCase):
             course_title="React Basics",
             assessment_title="Lesson 1 Exam",
             source_text="Hooks let you use state in functional components.",
+            question_count=1,
         )
         gemini_payload = {
             "candidates": [
@@ -96,6 +116,51 @@ class GeminiExamGenerationServiceTests(SimpleTestCase):
         self.assertEqual(questions[0].prompt, "What do hooks allow in React?")
         self.assertEqual(len(questions[0].options), 4)
         self.assertEqual(sum(1 for option in questions[0].options if option.is_correct), 1)
+
+    def test_generate_questions_rejects_partial_question_count(self):
+        service = GeminiExamGenerationService(
+            api_key="test-key",
+            enabled=True,
+        )
+        request_payload = GeminiExamRequest(
+            course_title="React Basics",
+            assessment_title="Final Exam",
+            source_text="Hooks let you use state in functional components.",
+            question_count=15,
+        )
+        gemini_payload = {
+            "candidates": [
+                {
+                    "content": {
+                        "parts": [
+                            {
+                                "text": json.dumps(
+                                    {
+                                        "questions": [
+                                            {
+                                                "prompt": "What do hooks allow in React?",
+                                                "instructions": "Choose one answer.",
+                                                "question_type": "single_choice",
+                                                "options": [
+                                                    {"option_text": "State in functional components", "is_correct": True},
+                                                    {"option_text": "Only class inheritance", "is_correct": False},
+                                                    {"option_text": "Server-only rendering", "is_correct": False},
+                                                    {"option_text": "CSS compilation", "is_correct": False},
+                                                ],
+                                            }
+                                        ]
+                                    }
+                                )
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+
+        with patch("services.gemini.request.urlopen", return_value=FakeGeminiHttpResponse(gemini_payload)):
+            with self.assertRaises(GeminiExamGenerationError):
+                service.generate_questions(request_payload)
 
     @override_settings(
         GEMINI_API_KEY="",

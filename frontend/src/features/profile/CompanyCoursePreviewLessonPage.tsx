@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { AlertCircle, ChevronLeft, ChevronRight, Lock, PlayCircle } from 'lucide-react'
 import { motion } from 'framer-motion'
@@ -103,6 +103,10 @@ function formatStatusLabel(value: string | null | undefined) {
     .join(' ')
 }
 
+function getLessonExamLabel(sequenceNumber: number) {
+  return `Lesson ${sequenceNumber}: Exam`
+}
+
 function getYouTubeEmbedUrl(videoUrl: string) {
   if (!videoUrl.trim()) return null
   try {
@@ -134,6 +138,30 @@ function getLessonState(summary: CourseLessonSummary, currentLessonId: number) {
   return 'ready'
 }
 
+function getAssessmentStatusLabel(
+  assessment: CourseLessonSummary['assessment'],
+) {
+  if (!assessment) return 'No exam'
+  if (assessment.passed) {
+    return typeof assessment.latest_score === 'number' ? `Passed · ${assessment.latest_score}%` : 'Passed'
+  }
+  return assessment.is_unlocked ? 'Unlocked' : 'Locked'
+}
+
+function shouldShowLessonAssessment(lesson: CourseLessonSummary) {
+  return Boolean(lesson.assessment && (lesson.assessment.passed || lesson.assessment.is_unlocked || lesson.status === 'completed'))
+}
+
+function getAssessmentRowClassName(assessment: CourseLessonSummary['assessment'] | CourseDetailResponse['final_exam']) {
+  if (assessment?.passed) {
+    return 'flex items-center justify-between rounded-xl bg-emerald-50 px-4 py-3 font-semibold text-emerald-700'
+  }
+  if (assessment?.is_unlocked) {
+    return 'flex items-center justify-between rounded-xl px-4 py-3 text-slate-700 transition hover:bg-slate-50'
+  }
+  return 'flex items-center justify-between rounded-xl px-4 py-3 text-slate-400'
+}
+
 export function CompanyCoursePreviewLessonPage() {
   const { courseId, lessonId } = useParams<{ courseId: string; lessonId: string }>()
   const navigate = useNavigate()
@@ -151,6 +179,10 @@ export function CompanyCoursePreviewLessonPage() {
   const [assessmentData, setAssessmentData] = useState<CourseAssessmentDetailResponse>(emptyAssessment)
   const [assessmentSelections, setAssessmentSelections] = useState<Record<number, number[]>>({})
   const [assessmentResult, setAssessmentResult] = useState<CourseAssessmentSubmitResponse | null>(null)
+  const [showAllLessons, setShowAllLessons] = useState(false)
+  const [isPageScrollable, setIsPageScrollable] = useState(false)
+  const [isPageScrolled, setIsPageScrolled] = useState(false)
+  const pageContainerRef = useRef<HTMLDivElement | null>(null)
 
   const loadPageData = useCallback(async () => {
     if (!courseId || !lessonId) {
@@ -186,6 +218,45 @@ export function CompanyCoursePreviewLessonPage() {
   useEffect(() => {
     void loadPageData()
   }, [loadPageData])
+
+  useEffect(() => {
+    setShowAllLessons(false)
+  }, [lessonId])
+
+  useEffect(() => {
+    const scrollContainer = pageContainerRef.current?.closest('main')
+    const scrollElement =
+      scrollContainer instanceof HTMLElement ? scrollContainer : document.documentElement
+
+    const updatePageScrollable = () => {
+      const viewportHeight =
+        scrollElement instanceof HTMLElement ? scrollElement.clientHeight : window.innerHeight
+      const scrollTop =
+        scrollElement instanceof HTMLElement ? scrollElement.scrollTop : window.scrollY
+
+      setIsPageScrollable(scrollElement.scrollHeight > viewportHeight + 1)
+      setIsPageScrolled(scrollTop > 16)
+    }
+
+    updatePageScrollable()
+    window.addEventListener('resize', updatePageScrollable)
+
+    if (scrollElement instanceof HTMLElement) {
+      scrollElement.addEventListener('scroll', updatePageScrollable, { passive: true })
+    } else {
+      window.addEventListener('scroll', updatePageScrollable, { passive: true })
+    }
+
+    return () => {
+      window.removeEventListener('resize', updatePageScrollable)
+
+      if (scrollElement instanceof HTMLElement) {
+        scrollElement.removeEventListener('scroll', updatePageScrollable)
+      } else {
+        window.removeEventListener('scroll', updatePageScrollable)
+      }
+    }
+  }, [courseDetail.lessons.length, data.final_exam, data.summary, data.content, showAllLessons])
 
   function updatePreviewState(
     updater: (current: ReturnType<typeof readCompanyCoursePreviewState>) => ReturnType<typeof readCompanyCoursePreviewState>,
@@ -309,6 +380,28 @@ export function CompanyCoursePreviewLessonPage() {
 
   const progressPercent = useMemo(() => courseDetail.enrollment.progress_percent ?? 0, [courseDetail.enrollment.progress_percent])
   const completedLessons = courseDetail.enrollment.completed_lesson_count
+  const allLessonsCompleted =
+    courseDetail.lessons.length > 0 &&
+    courseDetail.lessons.every((lesson) => lesson.status === 'completed')
+  const currentLessonIndex = useMemo(
+    () => courseDetail.lessons.findIndex((lesson) => lesson.lesson_id === data.lesson_id),
+    [courseDetail.lessons, data.lesson_id],
+  )
+  const hiddenPreviousLessonCount = currentLessonIndex > 0 ? currentLessonIndex : 0
+  const shouldCollapseLessons = courseDetail.lessons.length > 6 && hiddenPreviousLessonCount > 0
+  const visibleLessons = useMemo(() => {
+    if (!shouldCollapseLessons || showAllLessons || currentLessonIndex < 0) {
+      return courseDetail.lessons
+    }
+    return courseDetail.lessons.slice(currentLessonIndex)
+  }, [courseDetail.lessons, currentLessonIndex, shouldCollapseLessons, showAllLessons])
+  const showSidebarNavButtons = isPageScrollable && isPageScrolled
+  const shouldScrollLessonItems = visibleLessons.length >= 5 || Boolean(data.final_exam)
+  const lessonItemsClass = shouldScrollLessonItems
+    ? showSidebarNavButtons
+      ? 'max-h-[24rem] space-y-2 overflow-y-auto pr-2 xl:max-h-[16rem]'
+      : 'max-h-[24rem] space-y-2 overflow-y-auto pr-2 xl:max-h-[28rem]'
+    : 'space-y-2'
   const videoEmbedUrl = useMemo(() => getYouTubeEmbedUrl(data.video_url), [data.video_url])
   const courseDescriptionPreview = useMemo(() => truncateText(courseDetail.description, 160), [courseDetail.description])
   const answeredAssessmentQuestions = useMemo(
@@ -335,7 +428,7 @@ export function CompanyCoursePreviewLessonPage() {
   }
 
   return (
-    <div className="space-y-6 bg-slate-50 px-4 py-6 md:space-y-8 md:px-6 lg:px-8">
+    <div ref={pageContainerRef} className="space-y-6 bg-slate-50 px-4 py-6 md:space-y-8 md:px-6 lg:px-8">
       <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
         <Link to="/company" className="transition-colors hover:text-foreground">
           Dashboard
@@ -378,7 +471,7 @@ export function CompanyCoursePreviewLessonPage() {
                     </p>
                   </div>
 
-                  <div className="flex gap-3">
+                  <div className={`flex gap-3 ${showSidebarNavButtons ? 'xl:hidden' : ''}`}>
                     <Button
                       variant="outline"
                       className="rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900"
@@ -425,159 +518,188 @@ export function CompanyCoursePreviewLessonPage() {
                 <MarkdownContent content={data.content} className="max-w-3xl" emptyMessage="No lesson content yet." />
               </section>
 
-              <section className="space-y-4">
-                <h2 className="text-xl font-bold text-slate-900">Lesson actions</h2>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <Button
-                    variant="outline"
-                    className="h-11 rounded-xl text-slate-950 hover:text-slate-950"
-                    onClick={() => void updateProgress('in_progress')}
-                    disabled={saving || data.progress.status === 'in_progress' || data.progress.status === 'completed'}
-                  >
-                    Start lesson
-                  </Button>
-                  <Button className="h-11 rounded-xl !text-white hover:!text-white" onClick={() => void updateProgress('completed')} disabled={saving || data.progress.status === 'completed'}>
-                    Mark completed
-                  </Button>
-                </div>
-
-                {data.lesson_exam ? (
-                  <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                    <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                      <div>
-                        <p className="text-sm font-semibold text-slate-900">{data.lesson_exam.title}</p>
-                        <p className="mt-1 text-sm text-slate-600">
-                          {data.lesson_exam.description} Pass mark: {data.lesson_exam.passing_score_percent}%.
-                        </p>
-                        <p className="mt-2 text-xs font-medium uppercase tracking-[0.18em] text-slate-500">
-                          {data.lesson_exam.passed
-                            ? `Passed${typeof data.lesson_exam.latest_score === 'number' ? ` · ${data.lesson_exam.latest_score}%` : ''}`
-                            : data.lesson_exam.is_unlocked
-                              ? 'Unlocked'
-                              : 'Locked until lesson completion'}
-                        </p>
-                      </div>
-                      <Button className="rounded-xl !text-white hover:!text-white" onClick={() => void openAssessment('lesson')} disabled={!data.lesson_exam.is_unlocked}>
-                        {data.lesson_exam.passed ? 'Retake lesson exam' : 'Take lesson exam'}
-                      </Button>
-                    </div>
-                  </div>
-                ) : null}
-
-                {data.final_exam ? (
-                  <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                    <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                      <div>
-                        <p className="text-sm font-semibold text-slate-900">{data.final_exam.title}</p>
-                        <p className="mt-1 text-sm text-slate-600">
-                          {data.final_exam.description} Pass mark: {data.final_exam.passing_score_percent}%.
-                        </p>
-                        <p className="mt-2 text-xs font-medium uppercase tracking-[0.18em] text-slate-500">
-                          {data.final_exam.passed
-                            ? `Passed${typeof data.final_exam.latest_score === 'number' ? ` · ${data.final_exam.latest_score}%` : ''}`
-                            : data.final_exam.is_unlocked
-                              ? 'Unlocked'
-                              : 'Locked until the last lesson exam is passed'}
-                        </p>
-                      </div>
-                      <Button className="rounded-xl !text-white hover:!text-white" onClick={() => void openAssessment('final')} disabled={!data.final_exam.is_unlocked}>
-                        {data.final_exam.passed ? 'Retake final exam' : 'Take final exam'}
-                      </Button>
-                    </div>
-                  </div>
-                ) : null}
-              </section>
             </CardContent>
           </Card>
         </motion.main>
 
         <motion.aside variants={itemVariants}>
-          <Card className="rounded-2xl border border-slate-200 bg-white shadow-sm xl:sticky xl:top-24">
-            <CardContent className="p-6">
-              <div className="mb-8 flex items-center justify-between">
-                <h2 className="text-2xl font-bold text-slate-900">Lessons</h2>
-                <p className="text-sm text-slate-500">
-                  <span className="font-semibold text-blue-600">
-                    {completedLessons} of {courseDetail.lessons.length || data.total_lessons || 1}
-                  </span>{' '}
-                  completed
-                </p>
+          <div className="space-y-4 xl:sticky xl:top-12 xl:flex xl:max-h-[calc(100vh-3rem)] xl:flex-col xl:space-y-2 xl:overflow-hidden">
+            {showSidebarNavButtons ? (
+              <div className="hidden gap-3 xl:shrink-0 xl:grid xl:grid-cols-2">
+                <Button
+                  variant="outline"
+                  className="rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                  onClick={() => navigate(data.previous_lesson_href || data.course_href || `/company/courses/${data.course_id}/preview`)}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  {data.previous_lesson_href ? 'Previous' : 'Course'}
+                </Button>
+                <Button
+                  className="rounded-xl px-6 !text-white hover:!text-white"
+                  onClick={() => navigate(data.next_lesson_href || data.course_href || `/company/courses/${data.course_id}/preview`)}
+                >
+                  <span className="text-white">{data.next_lesson_href ? 'Next' : 'Back to course'}</span>
+                  <ChevronRight className="h-4 w-4 text-white" />
+                </Button>
               </div>
-
-              <div className="space-y-7">
-                <div>
-                  <div className="mb-4 flex justify-between font-semibold text-slate-900">
-                    <h3>{data.course_title || 'Course lessons'}</h3>
-                    <span className="text-slate-500">
-                      {data.sequence_number} / {courseDetail.lessons.length || data.total_lessons || 1}
-                    </span>
-                  </div>
-
-                  <div className="space-y-2">
-                    {courseDetail.lessons.length > 0 ? (
-                      courseDetail.lessons.map((lesson) => {
-                        const state = getLessonState(lesson, data.lesson_id)
-                        if (state === 'current') {
-                          return (
-                            <div key={lesson.lesson_id} className="flex items-center justify-between rounded-xl bg-blue-50 px-4 py-3 font-semibold text-blue-700">
-                              <span className="inline-flex items-center gap-2">
-                                <PlayCircle className="h-4 w-4" />
-                                {lesson.sequence_number}. {lesson.title}
-                              </span>
-                              <span>{formatStatusLabel(lesson.status)}</span>
-                            </div>
-                          )
-                        }
-
-                        if (state === 'locked') {
-                          return (
-                            <div key={lesson.lesson_id} className="flex items-center justify-between rounded-xl px-4 py-3 text-slate-400">
-                              <span className="inline-flex items-center gap-2">
-                                <Lock className="h-4 w-4" />
-                                {lesson.sequence_number}. {lesson.title}
-                              </span>
-                              <span>Locked</span>
-                            </div>
-                          )
-                        }
-
-                        return (
-                          <Link key={lesson.lesson_id} to={lesson.detail_href || data.course_href || `/company/courses/${data.course_id}/preview`} className="flex items-center justify-between rounded-xl px-4 py-3 text-slate-700 transition hover:bg-slate-50">
-                            <span>
-                              {lesson.sequence_number}. {lesson.title}
-                            </span>
-                            <span className="text-sm text-slate-500">{formatStatusLabel(lesson.status)}</span>
-                          </Link>
-                        )
-                      })
-                    ) : (
-                      <div className="rounded-xl px-4 py-3 text-slate-500">No lesson list available yet.</div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="border-t pt-5">
-                  <div className="flex justify-between font-semibold text-slate-900">
-                    <span>Course progress</span>
-                    <span className="text-slate-500">{progressPercent}%</span>
-                  </div>
-                  <div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-100">
-                    <div className="h-full rounded-full bg-blue-600" style={{ width: `${progressPercent}%` }} />
-                  </div>
-                </div>
-
-                <div className="border-t pt-5">
-                  <div className="flex justify-between font-semibold text-slate-900">
-                    <span>Status</span>
-                    <span className="text-slate-500">{formatStatusLabel(data.progress.status)}</span>
-                  </div>
-                  <p className="mt-3 text-sm leading-6 text-slate-600">
-                    {courseDescriptionPreview || 'Complete each lesson and pass the required exams to finish the course.'}
+            ) : null}
+            <Card className="rounded-2xl border border-slate-200 bg-white shadow-sm xl:flex xl:min-h-0 xl:flex-1 xl:overflow-hidden">
+              <CardContent className="p-6 xl:flex xl:min-h-0 xl:flex-1 xl:flex-col xl:overflow-hidden xl:p-5 xl:pr-3">
+                <div className="mb-8 flex items-center justify-between xl:mb-5">
+                  <h2 className="text-2xl font-bold text-slate-900">Lessons</h2>
+                  <p className="text-sm text-slate-500">
+                    <span className="font-semibold text-blue-600">
+                      {completedLessons} of {courseDetail.lessons.length || data.total_lessons || 1}
+                    </span>{' '}
+                    completed
                   </p>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+
+                <div className="space-y-7 xl:flex xl:min-h-0 xl:flex-1 xl:flex-col xl:space-y-4 xl:overflow-y-auto xl:pr-2">
+                  <div className="xl:min-h-0">
+                    <div className="mb-4 flex items-start justify-between gap-3 font-semibold text-slate-900">
+                      <h3 className="min-w-0 flex-1 break-words">{data.course_title || 'Course lessons'}</h3>
+                      <span className="shrink-0 text-slate-500">
+                        {data.sequence_number} / {courseDetail.lessons.length || data.total_lessons || 1}
+                      </span>
+                    </div>
+
+                    {shouldCollapseLessons ? (
+                      <button
+                        type="button"
+                        className="mb-4 text-sm font-semibold text-blue-600 transition hover:text-blue-700"
+                        onClick={() => setShowAllLessons((current) => !current)}
+                      >
+                        {showAllLessons ? 'Hide previous lessons' : `Show previous lessons (${hiddenPreviousLessonCount})`}
+                      </button>
+                    ) : null}
+
+                    <div className={lessonItemsClass}>
+                      {visibleLessons.length > 0 ? (
+                        visibleLessons.map((lesson) => {
+                          const state = getLessonState(lesson, data.lesson_id)
+                          const examLabel = getLessonExamLabel(lesson.sequence_number)
+                          const examStatusLabel = getAssessmentStatusLabel(lesson.assessment)
+                          const examRowClassName = getAssessmentRowClassName(lesson.assessment)
+
+                          return (
+                            <div key={lesson.lesson_id} className="space-y-1">
+                              {state === 'current' ? (
+                                <div className="flex items-start justify-between gap-3 rounded-xl bg-blue-50 px-4 py-3 font-semibold text-blue-700">
+                                  <span className="flex min-w-0 flex-1 items-start gap-2">
+                                    <PlayCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                                    <span className="min-w-0 break-words">
+                                      {lesson.sequence_number}. {lesson.title}
+                                    </span>
+                                  </span>
+                                  <span className="shrink-0 text-right">{formatStatusLabel(lesson.status)}</span>
+                                </div>
+                              ) : state === 'locked' ? (
+                                <div className="flex items-start justify-between gap-3 rounded-xl px-4 py-3 text-slate-400">
+                                  <span className="flex min-w-0 flex-1 items-start gap-2">
+                                    <Lock className="mt-0.5 h-4 w-4 shrink-0" />
+                                    <span className="min-w-0 break-words">
+                                      {lesson.sequence_number}. {lesson.title}
+                                    </span>
+                                  </span>
+                                  <span className="shrink-0 text-right">Locked</span>
+                                </div>
+                              ) : (
+                                <Link to={lesson.detail_href || data.course_href || `/company/courses/${data.course_id}/preview`} className="flex items-start justify-between gap-3 rounded-xl px-4 py-3 text-slate-700 transition hover:bg-slate-50">
+                                  <span className="min-w-0 flex-1 break-words">
+                                    {lesson.sequence_number}. {lesson.title}
+                                  </span>
+                                  <span className="shrink-0 text-right text-sm text-slate-500">{formatStatusLabel(lesson.status)}</span>
+                                </Link>
+                              )}
+
+                              {shouldShowLessonAssessment(lesson) ? (
+                                lesson.lesson_id === data.lesson_id && lesson.assessment.is_unlocked ? (
+                                  <button
+                                    type="button"
+                                    className={`${examRowClassName} w-full text-left`}
+                                    onClick={() => void openAssessment('lesson')}
+                                  >
+                                    <span>{examLabel}</span>
+                                    <span className={lesson.assessment.passed ? '' : 'text-sm text-slate-500'}>{examStatusLabel}</span>
+                                  </button>
+                                ) : lesson.detail_href && lesson.assessment.is_unlocked ? (
+                                  <Link to={lesson.detail_href} className={examRowClassName}>
+                                    <span>{examLabel}</span>
+                                    <span className={lesson.assessment.passed ? '' : 'text-sm text-slate-500'}>{examStatusLabel}</span>
+                                  </Link>
+                                ) : (
+                                  <div className={examRowClassName}>
+                                    <span>{examLabel}</span>
+                                    <span>{examStatusLabel}</span>
+                                  </div>
+                                )
+                              ) : null}
+                            </div>
+                          )
+                        })
+                      ) : (
+                        <div className="rounded-xl px-4 py-3 text-slate-500">No lesson list available yet.</div>
+                      )}
+                      {data.final_exam && (allLessonsCompleted || data.final_exam.passed) ? (
+                        data.final_exam.is_unlocked ? (
+                          <button
+                            type="button"
+                            className={`${getAssessmentRowClassName(data.final_exam)} w-full text-left`}
+                            onClick={() => void openAssessment('final')}
+                          >
+                            <span>Final Exam</span>
+                            <span className={data.final_exam.passed ? '' : 'text-sm text-slate-500'}>
+                              {getAssessmentStatusLabel(data.final_exam)}
+                            </span>
+                          </button>
+                        ) : (
+                          <div className={getAssessmentRowClassName(data.final_exam)}>
+                            <span>Final Exam</span>
+                            <span>{getAssessmentStatusLabel(data.final_exam)}</span>
+                          </div>
+                        )
+                      ) : null}
+                    </div>
+                  </div>
+
+                  <div className="border-t pt-5">
+                    <div className="flex justify-between font-semibold text-slate-900">
+                      <span>Course progress</span>
+                      <span className="text-slate-500">{progressPercent}%</span>
+                    </div>
+                    <div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-100">
+                      <div className="h-full rounded-full bg-blue-600" style={{ width: `${progressPercent}%` }} />
+                    </div>
+                  </div>
+
+                  <div className="border-t pt-5">
+                    <div className="flex justify-between font-semibold text-slate-900">
+                      <span>Status</span>
+                      <span className="text-slate-500">{formatStatusLabel(data.progress.status)}</span>
+                    </div>
+                    <p className="mt-3 text-sm leading-6 text-slate-600">
+                      {courseDescriptionPreview || 'Complete each lesson and pass the required exams to finish the course.'}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <div className="grid gap-3 px-1 sm:grid-cols-2 xl:shrink-0 xl:gap-2 xl:px-0">
+              <Button
+                variant="outline"
+                className="h-11 rounded-xl text-slate-950 hover:text-slate-950"
+                onClick={() => void updateProgress('in_progress')}
+                disabled={saving || data.progress.status === 'in_progress' || data.progress.status === 'completed'}
+              >
+                Start lesson
+              </Button>
+              <Button className="h-11 rounded-xl !text-white hover:!text-white" onClick={() => void updateProgress('completed')} disabled={saving || data.progress.status === 'completed'}>
+                Mark completed
+              </Button>
+            </div>
+          </div>
         </motion.aside>
       </motion.div>
 

@@ -123,7 +123,7 @@ export function CourseReviewSection({ course, csrfToken, onReviewSaved, compact 
 
       <div className={cn('grid gap-5', !compact && 'xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]')}>
         <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 dark:border-slate-800 dark:bg-slate-900/40">
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">Your review</h3>
               <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
