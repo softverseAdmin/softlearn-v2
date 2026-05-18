@@ -2347,11 +2347,11 @@ def resolve_course_assessment_questions(
 
     cached_failure = get_cached_generated_course_assessment_failure(assessment, user=user)
     if cached_failure is not None:
-        return [], False
+        return stored_questions, False
 
     source_text = build_course_assessment_generation_source(assessment)
     if not source_text.strip():
-        return [], False
+        return stored_questions, False
 
     try:
         generated_questions = service.generate_questions(
@@ -2376,7 +2376,7 @@ def resolve_course_assessment_questions(
             {"message": str(exc)},
             parse_gemini_retry_seconds(str(exc)),
         )
-        return [], False
+        return stored_questions, False
 
     cached_payload = build_generated_course_assessment_questions(assessment, generated_questions)
     if cached_payload:
@@ -2387,7 +2387,7 @@ def resolve_course_assessment_questions(
             GENERATED_COURSE_ASSESSMENT_CACHE_TIMEOUT_SECONDS,
         )
         return cached_payload, True
-    return [], False
+    return stored_questions, False
 
 
 def latest_course_assessment_attempt(student: User, assessment: CourseAssessment) -> CourseAssessmentAttempt | None:

@@ -161,10 +161,21 @@ SENTRY_DSN=https://your-sentry-dsn@sentry.io/project-id
 SENDGRID_API_KEY=your-sendgrid-api-key
 SENDGRID_FROM_EMAIL=noreply@softlearn.com
 
+# Gemini exam generation (backend / Render)
+GEMINI_API_KEY=your-gemini-api-key
+GEMINI_MODEL=gemini-1.5-flash
+GEMINI_EXAM_GENERATION_ENABLED=true
+GEMINI_EXAM_REQUEST_TIMEOUT_SECONDS=15
+GEMINI_EXAM_MAX_OUTPUT_TOKENS=768
+GEMINI_EXAM_SOURCE_CHAR_LIMIT=4000
+GEMINI_EXAM_DEFAULT_QUESTION_COUNT=5
+
 # Environment
 ENVIRONMENT=production
 DJANGO_LOG_LEVEL=INFO
 ```
+
+If your frontend is hosted on Vercel and the backend is hosted on Render, set the Gemini variables on **Render only**. Vercel only needs the backend API base URL such as `VITE_API_BASE_URL=https://your-render-service.onrender.com/api`.
 
 ### Security Configuration
 
