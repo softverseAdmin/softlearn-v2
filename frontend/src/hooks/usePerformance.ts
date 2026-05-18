@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { observeWebVitals, type WebVitals, logBundleSize } from '../lib/performance'
+import { buildApiUrl } from '../lib/api'
 
 /**
  * Hook for registering service worker
@@ -42,7 +43,7 @@ export function useWebVitals(onVitals?: (vitals: WebVitals) => void) {
 
       // Send to server for monitoring
       if (vitals.lcp) {
-        navigator.sendBeacon('/api/v1/metrics/web-vitals', JSON.stringify(vitals))
+        navigator.sendBeacon(buildApiUrl('metrics/web-vitals'), JSON.stringify(vitals))
       }
     })
   }, [onVitals])

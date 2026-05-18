@@ -52,8 +52,14 @@ type ApiFailureResponse = {
   }
 }
 
-function getApiBaseUrl() {
+export function getApiBaseUrl() {
   return import.meta.env.VITE_API_BASE_URL ?? DEFAULT_API_BASE_URL
+}
+
+export function buildApiUrl(path: string) {
+  const baseUrl = getApiBaseUrl().replace(/\/+$/, '')
+  const normalizedPath = path.replace(/^\/+/, '')
+  return `${baseUrl}/${normalizedPath}`
 }
 
 function isSafeMethod(method: string) {
