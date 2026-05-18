@@ -87,6 +87,14 @@ EXAM_SOURCE_SECTION_LIMITS = {
     "lesson-content": 640,
     "lesson-transcript": 900,
 }
+FINAL_EXAM_SOURCE_TOTAL_CHAR_LIMIT = 4000
+FINAL_EXAM_SOURCE_SECTION_LIMITS = {
+    "course": 320,
+    "assessment": 220,
+    "lesson-summary": 140,
+    "lesson-content": 220,
+    "lesson-transcript": 260,
+}
 
 
 def youtube_video_url_error(video_url: str) -> str | None:
@@ -2163,8 +2171,16 @@ def normalize_exam_source_text(text: str, max_chars: int) -> str:
     return " ".join(result_parts).strip()
 
 
-def append_exam_source_section(parts: list[str], label: str, text: str, section_key: str) -> None:
-    section_limit = EXAM_SOURCE_SECTION_LIMITS.get(section_key, EXAM_SOURCE_DEFAULT_SECTION_LIMIT)
+def append_exam_source_section(
+    parts: list[str],
+    label: str,
+    text: str,
+    section_key: str,
+    *,
+    section_limits: dict[str, int] | None = None,
+) -> None:
+    resolved_section_limits = section_limits or EXAM_SOURCE_SECTION_LIMITS
+    section_limit = resolved_section_limits.get(section_key, EXAM_SOURCE_DEFAULT_SECTION_LIMIT)
     normalized_text = normalize_exam_source_text(text, section_limit)
     if normalized_text:
         parts.append(f"{label}: {normalized_text}")
@@ -2186,11 +2202,54 @@ def build_course_assessment_generation_source(assessment: CourseAssessment) -> s
         "assessment",
     )
 
-    if assessment.lesson_id is not None and assessment.lesson is not None:
-        lessons = [assessment.lesson]
-    else:
+    if assessment.kind == CourseAssessment.Kind.FINAL:
         lessons = active_course_lessons(assessment.course)
 
+        for lesson_index, lesson in enumerate(lessons, start=1):
+            append_exam_source_section(
+                filtered_parts,
+                f"Lesson {lesson_index} title",
+                lesson.title,
+                "lesson-summary",
+                section_limits=FINAL_EXAM_SOURCE_SECTION_LIMITS,
+            )
+            append_exam_source_section(
+                filtered_parts,
+                f"Lesson {lesson_index} summary",
+                lesson.summary,
+                "lesson-summary",
+                section_limits=FINAL_EXAM_SOURCE_SECTION_LIMITS,
+            )
+        for lesson_index, lesson in enumerate(lessons, start=1):
+            append_exam_source_section(
+                filtered_parts,
+                f"Lesson {lesson_index} content",
+                lesson.content,
+                "lesson-content",
+                section_limits=FINAL_EXAM_SOURCE_SECTION_LIMITS,
+            )
+        for lesson_index, lesson in enumerate(lessons, start=1):
+            append_exam_source_section(
+                filtered_parts,
+                f"Lesson {lesson_index} transcript",
+                lesson.transcript,
+                "lesson-transcript",
+                section_limits=FINAL_EXAM_SOURCE_SECTION_LIMITS,
+            )
+
+        combined_source = "\n\n".join(part for part in filtered_parts if part)
+        return normalize_exam_source_text(combined_source, FINAL_EXAM_SOURCE_TOTAL_CHAR_LIMIT)
+
+    lesson: Lesson | None = None
+    if assessment.lesson_id is not None:
+        lesson = assessment.lesson
+        if lesson is None:
+            lesson = Lesson.objects.filter(
+                id=assessment.lesson_id,
+                course=assessment.course,
+                status=Lesson.Status.ACTIVE,
+            ).first()
+    lessons = [lesson] if lesson is not None else []
     for lesson in lessons:
         append_exam_source_section(filtered_parts, "Lesson title", lesson.title, "lesson-summary")
         append_exam_source_section(filtered_parts, "Lesson summary", lesson.summary, "lesson-summary")
@@ -2199,6 +2258,12 @@ def build_course_assessment_generation_source(assessment: CourseAssessment) -> s
 
     combined_source = "\n\n".join(part for part in filtered_parts if part)
     return normalize_exam_source_text(combined_source, EXAM_SOURCE_TOTAL_CHAR_LIMIT)
+
+
+def course_assessment_generation_question_count(assessment: CourseAssessment) -> int:
+    if assessment.kind == CourseAssessment.Kind.FINAL:
+        return settings.GEMINI_EXAM_FINAL_QUESTION_COUNT
+    return settings.GEMINI_EXAM_DEFAULT_QUESTION_COUNT
 
 
 def build_generated_course_assessment_questions(
@@ -2360,7 +2425,7 @@ def resolve_course_assessment_questions(
                 assessment_title=assessment.title,
                 source_text=source_text,
                 difficulty_level=assessment.course.difficulty_level,
-                question_count=settings.GEMINI_EXAM_DEFAULT_QUESTION_COUNT,
+                question_count=course_assessment_generation_question_count(assessment),
                 audience_label=audience_label,
             )
         )
@@ -2414,72 +2479,143 @@ def build_default_course_assessment_description(*, title: str, is_final: bool) -
     return f"Check understanding for {title}. Score 90% or higher to unlock the next lesson."
 
 
+def build_default_course_assessment_question_specs(
+    assessment: CourseAssessment,
+    *,
+    lessons: list[Lesson],
+) -> list[dict]:
+    if assessment.kind == CourseAssessment.Kind.LESSON and assessment.lesson is not None:
+        correct_option = assessment.lesson.title.strip() or f"Lesson {assessment.lesson.sequence_number}"
+        return [
+            {
+                "prompt": f"Which lesson are you reviewing in the exam for '{correct_option}'?",
+                "instructions": "Choose the best answer based on the lesson or course you just reviewed.",
+                "correct_option": correct_option,
+                "option_candidates": [
+                    correct_option,
+                    assessment.course.title.strip(),
+                    "The final course review",
+                    "An unrelated platform workflow",
+                ],
+            }
+        ]
+
+    course_title = assessment.course.title.strip() or "This course"
+    lesson_titles = [lesson.title.strip() or f"Lesson {lesson.sequence_number}" for lesson in lessons]
+    fallback_lesson_titles = lesson_titles or ["Core concepts", "Practical exercises"]
+    unrelated_courses = [
+        "A different company training course",
+        "A mock interview preparation path",
+        "A backend onboarding workshop",
+        "A data science bootcamp",
+    ]
+    question_specs: list[dict] = []
+    target_count = settings.GEMINI_EXAM_FINAL_QUESTION_COUNT
+    for index in range(target_count):
+        lesson_title = fallback_lesson_titles[index % len(fallback_lesson_titles)]
+        secondary_lesson = fallback_lesson_titles[(index + 1) % len(fallback_lesson_titles)]
+        question_type = index % 3
+        if question_type == 0:
+            question_specs.append(
+                {
+                    "prompt": f"Which course includes the lesson '{lesson_title}'?",
+                    "instructions": "Choose the best answer based on the lesson or course you just reviewed.",
+                    "correct_option": course_title,
+                    "option_candidates": [
+                        course_title,
+                        lesson_title,
+                        unrelated_courses[index % len(unrelated_courses)],
+                        unrelated_courses[(index + 1) % len(unrelated_courses)],
+                    ],
+                }
+            )
+            continue
+        if question_type == 1:
+            question_specs.append(
+                {
+                    "prompt": f"Which lesson topic is covered in this final exam set {index + 1}?",
+                    "instructions": "Choose the best answer based on the lesson or course you just reviewed.",
+                    "correct_option": lesson_title,
+                    "option_candidates": [
+                        lesson_title,
+                        secondary_lesson,
+                        "Interview scheduling practice",
+                        "Resume formatting workshop",
+                    ],
+                }
+            )
+            continue
+        question_specs.append(
+            {
+                "prompt": f"The final exam reviews which course in question {index + 1}?",
+                "instructions": "Choose the best answer based on the lesson or course you just reviewed.",
+                "correct_option": course_title,
+                "option_candidates": [
+                    course_title,
+                    secondary_lesson,
+                    "An unrelated lesson",
+                    unrelated_courses[(index + 2) % len(unrelated_courses)],
+                ],
+            }
+        )
+    return question_specs
+
+
 def ensure_default_course_assessment_questions(
     assessment: CourseAssessment,
     *,
     lessons: list[Lesson],
 ) -> None:
-    if CourseAssessmentQuestion.objects.filter(assessment=assessment).exists():
+    question_specs = build_default_course_assessment_question_specs(assessment, lessons=lessons)
+    existing_question_count = CourseAssessmentQuestion.objects.filter(assessment=assessment).count()
+    if existing_question_count >= len(question_specs):
         return
+    for sequence_number, question_spec in enumerate(question_specs[existing_question_count:], start=existing_question_count + 1):
+        unique_options: list[str] = []
+        seen_options: set[str] = set()
+        for option_text in question_spec["option_candidates"]:
+            normalized = str(option_text).strip()
+            if not normalized:
+                continue
+            key = normalized.lower()
+            if key in seen_options:
+                continue
+            seen_options.add(key)
+            unique_options.append(normalized)
+            if len(unique_options) == 4:
+                break
 
-    if assessment.kind == CourseAssessment.Kind.LESSON and assessment.lesson is not None:
-        correct_option = assessment.lesson.title.strip() or f"Lesson {assessment.lesson.sequence_number}"
-        prompt = f"Which lesson are you reviewing in the exam for '{correct_option}'?"
-        option_candidates = [
-            correct_option,
-            assessment.course.title.strip(),
-            "The final course review",
-            "An unrelated platform workflow",
-        ]
-    else:
-        correct_option = assessment.course.title.strip() or "This course"
-        prompt = "Which course does this final exam belong to?"
-        option_candidates = [
-            correct_option,
-            *(lesson.title.strip() for lesson in lessons[:2]),
-            "A different company training course",
-            "A mock interview preparation path",
-        ]
+        if question_spec["correct_option"] not in unique_options:
+            unique_options = [question_spec["correct_option"], *[option for option in unique_options if option != question_spec["correct_option"]]]
+        while len(unique_options) < 4:
+            filler = f"Unrelated option {len(unique_options) + 1}"
+            if filler.lower() in seen_options:
+                continue
+            seen_options.add(filler.lower())
+            unique_options.append(filler)
 
-    unique_options: list[str] = []
-    seen_options: set[str] = set()
-    for option_text in option_candidates:
-        normalized = option_text.strip()
-        if not normalized:
-            continue
-        key = normalized.lower()
-        if key in seen_options:
-            continue
-        seen_options.add(key)
-        unique_options.append(normalized)
-        if len(unique_options) == 4:
-            break
-
-    if len(unique_options) < 2:
-        unique_options.append("An unrelated lesson")
-
-    question = CourseAssessmentQuestion(
-        assessment=assessment,
-        prompt=prompt,
-        instructions="Choose the best answer based on the lesson or course you just reviewed.",
-        question_type=CourseAssessmentQuestion.QuestionType.SINGLE_CHOICE,
-        sequence_number=1,
-        points=1,
-        status=CourseAssessmentQuestion.Status.ACTIVE,
-    )
-    question.full_clean()
-    question.save()
-
-    for sequence_number, option_text in enumerate(unique_options, start=1):
-        option = CourseAssessmentOption(
-            question=question,
-            option_text=option_text,
+        question = CourseAssessmentQuestion(
+            assessment=assessment,
+            prompt=question_spec["prompt"],
+            instructions=question_spec["instructions"],
+            question_type=CourseAssessmentQuestion.QuestionType.SINGLE_CHOICE,
             sequence_number=sequence_number,
-            is_correct=option_text == correct_option,
-            status=CourseAssessmentOption.Status.ACTIVE,
+            points=1,
+            status=CourseAssessmentQuestion.Status.ACTIVE,
         )
-        option.full_clean()
-        option.save()
+        question.full_clean()
+        question.save()
+
+        for option_sequence_number, option_text in enumerate(unique_options, start=1):
+            option = CourseAssessmentOption(
+                question=question,
+                option_text=option_text,
+                sequence_number=option_sequence_number,
+                is_correct=option_text == question_spec["correct_option"],
+                status=CourseAssessmentOption.Status.ACTIVE,
+            )
+            option.full_clean()
+            option.save()
 
 
 def build_course_assessment_map(course: Course) -> tuple[dict[int, CourseAssessment], CourseAssessment | None]:
@@ -2497,6 +2633,10 @@ def build_course_assessment_map(course: Course) -> tuple[dict[int, CourseAssessm
         (assessment for assessment in assessments if assessment.kind == CourseAssessment.Kind.FINAL),
         None,
     )
+    lessons = active_course_lessons(course)
+    for assessment in [*by_lesson_id.values(), final_assessment]:
+        if assessment is not None:
+            ensure_default_course_assessment_questions(assessment, lessons=lessons)
     return by_lesson_id, final_assessment
 
 
@@ -2525,6 +2665,8 @@ def ensure_company_preview_course_assessment_map(
             assessment.status = CourseAssessment.Status.ACTIVE
             assessment.full_clean()
             assessment.save(update_fields=["status", "updated_at"])
+        if assessment is not None:
+            ensure_default_course_assessment_questions(assessment, lessons=lessons)
 
     for lesson in lessons:
         if lesson.id in by_lesson_id:

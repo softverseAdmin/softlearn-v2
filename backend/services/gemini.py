@@ -93,6 +93,9 @@ class GeminiExamGenerationService:
             else settings.GEMINI_EXAM_DEFAULT_QUESTION_COUNT
         )
 
+    def resolve_question_count(self, question_count: int | None) -> int:
+        return min(max(question_count or self.default_question_count, 1), 20)
+
     def is_available(self) -> bool:
         return self.enabled and bool(self.api_key.strip())
 
@@ -103,7 +106,7 @@ class GeminiExamGenerationService:
         return normalized[: self.source_char_limit].strip()
 
     def build_prompt(self, exam_request: GeminiExamRequest) -> str:
-        question_count = min(max(exam_request.question_count or self.default_question_count, 1), 10)
+        question_count = self.resolve_question_count(exam_request.question_count)
         difficulty_level = exam_request.difficulty_level.strip() or "unspecified"
         source_excerpt = self.build_source_excerpt(exam_request.source_text)
         return (
@@ -121,6 +124,7 @@ class GeminiExamGenerationService:
         )
 
     def build_payload(self, exam_request: GeminiExamRequest) -> dict[str, Any]:
+        question_count = self.resolve_question_count(exam_request.question_count)
         return {
             "contents": [
                 {
@@ -131,7 +135,7 @@ class GeminiExamGenerationService:
             "generationConfig": {
                 "temperature": 0.3,
                 "topP": 0.8,
-                "maxOutputTokens": self.max_output_tokens,
+                "maxOutputTokens": max(self.max_output_tokens, question_count * 120),
                 "responseMimeType": "application/json",
             },
         }
@@ -174,7 +178,10 @@ class GeminiExamGenerationService:
         except json.JSONDecodeError as exc:
             raise GeminiExamGenerationError("Gemini exam generation response text was not valid JSON.") from exc
 
-        return self._parse_questions(response_payload)
+        return self._parse_questions(
+            response_payload,
+            expected_count=self.resolve_question_count(exam_request.question_count),
+        )
 
     def _extract_response_text(self, payload: dict[str, Any]) -> str:
         candidates = payload.get("candidates")
@@ -195,10 +202,14 @@ class GeminiExamGenerationService:
             raise GeminiExamGenerationError("Gemini exam generation returned empty content.")
         return text
 
-    def _parse_questions(self, payload: dict[str, Any]) -> list[GeminiExamQuestion]:
+    def _parse_questions(self, payload: dict[str, Any], *, expected_count: int | None = None) -> list[GeminiExamQuestion]:
         raw_questions = payload.get("questions")
         if not isinstance(raw_questions, list) or not raw_questions:
             raise GeminiExamGenerationError("Gemini exam generation returned no questions.")
+        if expected_count is not None and len(raw_questions) != expected_count:
+            raise GeminiExamGenerationError(
+                f"Gemini exam generation returned {len(raw_questions)} questions, expected {expected_count}."
+            )
 
         questions: list[GeminiExamQuestion] = []
         for raw_question in raw_questions:
