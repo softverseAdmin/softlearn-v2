@@ -52,6 +52,7 @@ export function Sidebar({ items, logo, bottomContent, collapsible = true, onNavi
     expand: { width: 288 },
     collapse: { width: 92 },
   }
+  const navigationId = 'workspace-sidebar-navigation'
 
   return (
     <>
@@ -85,9 +86,13 @@ export function Sidebar({ items, logo, bottomContent, collapsible = true, onNavi
             </div>
             {collapsible && (
               <button
+                type="button"
                 onClick={() => setIsCollapsed(!isCollapsed)}
                 className="hidden absolute top-1/2 right-0 z-30 h-9 w-9 translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-md transition-colors hover:border-primary/20 hover:bg-primary/5 hover:text-primary md:flex"
                 title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+                aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+                aria-expanded={!isCollapsed}
+                aria-controls={navigationId}
               >
                 <ChevronLeft className={cn('h-4 w-4 transition-transform', isCollapsed && 'rotate-180')} />
               </button>
@@ -95,7 +100,7 @@ export function Sidebar({ items, logo, bottomContent, collapsible = true, onNavi
           </div>
         )}
 
-        <nav className="relative z-10 flex-1 overflow-y-auto py-5">
+        <nav id={navigationId} className="relative z-10 flex-1 overflow-y-auto py-5" aria-label="Workspace navigation">
           {items.map((item) => (
             <div key={item.label}>
               <NavLink
@@ -111,6 +116,7 @@ export function Sidebar({ items, logo, bottomContent, collapsible = true, onNavi
                 <AnimatePresence>
                   {openSubmenus.includes(item.label) && !isCollapsed && (
                     <motion.div
+                      id={`sidebar-submenu-${item.label.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: 'auto', opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
@@ -349,9 +355,12 @@ function NavLink({
   onToggleSubmenu,
   onClick,
 }: NavLinkProps) {
+  const submenuPanelId = item.submenu?.length ? `sidebar-submenu-${item.label.toLowerCase().replace(/[^a-z0-9]+/g, '-')}` : undefined
+
   if (hasSubmenu) {
     return (
       <button
+        type="button"
         onClick={onToggleSubmenu}
         className={cn(
           'flex w-full items-center justify-between gap-3 rounded-none px-6 py-3 transition-all duration-200',
@@ -360,6 +369,8 @@ function NavLink({
             : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
           isCollapsed && 'md:justify-center md:px-0'
         )}
+        aria-expanded={Boolean(isOpen)}
+        aria-controls={submenuPanelId}
       >
         <span className={cn('flex items-center gap-3', isCollapsed && 'md:gap-0')}>
           <span className="h-5 w-5 flex items-center justify-center">{item.icon}</span>

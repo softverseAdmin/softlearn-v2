@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import { useAuth } from '../../auth/useAuth'
@@ -52,7 +52,7 @@ export function StudentPreparationPage() {
   const [feedbackByQuestionId, setFeedbackByQuestionId] = useState<Record<number, PracticeQuestionAttemptResponse>>({})
   const [error, setError] = useState<string | null>(null)
 
-  async function loadSummary(active = true) {
+  const loadSummary = useCallback(async (active = true) => {
     try {
       const response = await apiRequest<PreparationSummaryResponse>('/student/preparation-summary')
       if (active) {
@@ -63,9 +63,9 @@ export function StudentPreparationPage() {
         setError(loadError instanceof ApiError ? loadError.message : 'Unable to load your preparation workspace.')
       }
     }
-  }
+  }, [])
 
-  async function loadPractice(active = true, category = selectedCategory, examId = selectedExamId) {
+  const loadPractice = useCallback(async (active = true, category = selectedCategory, examId = selectedExamId) => {
     if (active) {
       setPracticeLoading(true)
     }
@@ -94,14 +94,14 @@ export function StudentPreparationPage() {
         setPracticeLoading(false)
       }
     }
-  }
+  }, [selectedCategory, selectedExamId])
 
   useEffect(() => {
     let active = true
 
     async function loadPage() {
       setLoading(true)
-      await Promise.all([loadSummary(active), loadPractice(active, '', '')])
+      await loadSummary(active)
       if (active) {
         setLoading(false)
       }
@@ -111,7 +111,7 @@ export function StudentPreparationPage() {
     return () => {
       active = false
     }
-  }, [])
+  }, [loadSummary])
 
   useEffect(() => {
     let active = true
@@ -119,7 +119,7 @@ export function StudentPreparationPage() {
     return () => {
       active = false
     }
-  }, [selectedCategory, selectedExamId])
+  }, [loadPractice])
 
   const filteredExams = useMemo(
     () => (selectedCategory ? practiceQuestions.exams.filter((exam) => exam.category === selectedCategory) : practiceQuestions.exams),

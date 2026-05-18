@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Bell, Mail, Moon, Sun, Search, LogOut } from 'lucide-react'
-import { useTheme } from '@/components/ui/ThemeProvider'
+import { useTheme } from '@/components/ui/theme-context'
 import { Avatar } from '@/components/ui/components'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'

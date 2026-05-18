@@ -137,8 +137,6 @@ body {
   margin: 0;
   background: var(--sl-bg);
   -webkit-touch-callout: none;
-  -webkit-user-select: none;
-  user-select: none;
 }
 
 a {

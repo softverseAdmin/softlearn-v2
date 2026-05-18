@@ -1,7 +1,7 @@
 import React from 'react'
 import { Navbar, type NavbarProps } from './Navbar'
 import { Sidebar, type NavItem } from './Sidebar'
-import { ThemeProvider, useTheme } from '@/components/ui/ThemeProvider'
+import { useTheme } from '@/components/ui/theme-context'
 import { cn } from '@/lib/utils'
 
 export interface AppLayoutProps {
@@ -66,9 +66,5 @@ function AppLayoutContent({
 }
 
 export function AppLayout(props: AppLayoutProps) {
-  return (
-    <ThemeProvider>
-      <AppLayoutContent {...props} />
-    </ThemeProvider>
-  )
+  return <AppLayoutContent {...props} />
 }

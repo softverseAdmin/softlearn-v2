@@ -1,17 +1,5 @@
-import { useState, type ReactNode } from 'react'
 import { useFocusTrap } from '../hooks/useAccessibility'
-
-export interface ConfirmationModalProps {
-  isOpen: boolean
-  title: string
-  message: string | ReactNode
-  confirmText?: string
-  cancelText?: string
-  isDangerous?: boolean
-  onConfirm: () => void
-  onCancel: () => void
-  isLoading?: boolean
-}
+import type { ConfirmationModalProps } from './ConfirmationModal.types'
 
 /**
  * ConfirmationModal component for destructive actions
@@ -96,59 +84,6 @@ export function ConfirmationModal({
       </div>
     </div>
   )
-}
-
-/**
- * useConfirmationModal hook for managing modal state
- */
-export function useConfirmationModal() {
-  const [isOpen, setIsOpen] = useState(false)
-  const [config, setConfig] = useState<Omit<ConfirmationModalProps, 'isOpen' | 'onConfirm' | 'onCancel'>>({
-    title: '',
-    message: '',
-  })
-  const [pendingAction, setPendingAction] = useState<(() => void) | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
-
-  const confirm = async (
-    action: () => void | Promise<void>,
-    modalConfig: Omit<ConfirmationModalProps, 'isOpen' | 'onConfirm' | 'onCancel' | 'isLoading'>
-  ) => {
-    setConfig(modalConfig)
-    setPendingAction(() => action)
-    setIsOpen(true)
-  }
-
-  const handleConfirm = async () => {
-    if (!pendingAction) return
-
-    setIsLoading(true)
-    try {
-      await pendingAction()
-      setIsOpen(false)
-      setPendingAction(null)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const handleCancel = () => {
-    setIsOpen(false)
-    setPendingAction(null)
-  }
-
-  return {
-    confirm,
-    ConfirmationModal: (
-      <ConfirmationModal
-        {...config}
-        isOpen={isOpen}
-        onConfirm={handleConfirm}
-        onCancel={handleCancel}
-        isLoading={isLoading}
-      />
-    ),
-  }
 }
 
 export default ConfirmationModal

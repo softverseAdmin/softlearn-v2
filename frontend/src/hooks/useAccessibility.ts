@@ -10,15 +10,17 @@ export function useFocusTrap(isOpen: boolean): React.RefObject<HTMLDivElement> {
   useEffect(() => {
     if (!isOpen || !containerRef.current) return;
 
+    const container = containerRef.current;
+
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Tab') {
-        trapFocus(containerRef.current!, e);
+        trapFocus(container, e);
       }
     };
 
-    containerRef.current.addEventListener('keydown', handleKeyDown);
+    container.addEventListener('keydown', handleKeyDown);
     return () => {
-      containerRef.current?.removeEventListener('keydown', handleKeyDown);
+      container.removeEventListener('keydown', handleKeyDown);
     };
   }, [isOpen]);
 

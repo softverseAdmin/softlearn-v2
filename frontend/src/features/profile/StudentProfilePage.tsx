@@ -2,262 +2,51 @@ import { useEffect, useRef, useState, type ChangeEvent } from 'react'
 import { useAuth } from '../../auth/useAuth'
 import { Link } from 'react-router-dom'
 import { ApiError, apiRequest } from '../../lib/api'
-import type {
-  StudentCertificateRecord,
-  StudentEducationRecord,
-  StudentExperienceRecord,
-  StudentProfile,
-  StudentSkillsResponse,
-} from './types'
-import { Award, BriefcaseBusiness, ChevronRight, GraduationCap, Image as ImageIcon, Mail, MapPin, Pencil, Plus, Trash2 } from 'lucide-react'
+import type { StudentProfile, StudentSkillsResponse } from './types'
+import { Award, BriefcaseBusiness, ChevronRight, GraduationCap, Image as ImageIcon, Mail, MapPin, Pencil, Plus } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { emitStoredProfileImages, type StoredProfileImages } from '@/lib/profileImages'
-
-function getInitials(name: string) {
-  const parts = name
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-
-  if (parts.length === 0) {
-    return 'ST'
-  }
-
-  return parts.map((part) => part.charAt(0).toUpperCase()).join('')
-}
-
-function readImageFile(file: File) {
-  return new Promise<string>((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => {
-      if (typeof reader.result === 'string') {
-        resolve(reader.result)
-        return
-      }
-
-      reject(new Error('Unable to read image file.'))
-    }
-    reader.onerror = () => reject(new Error('Unable to read image file.'))
-    reader.readAsDataURL(file)
-  })
-}
-
-function formatExperienceDate(value: string | null) {
-  if (!value) {
-    return 'Present'
-  }
-
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) {
-    return value
-  }
-
-  return new Intl.DateTimeFormat(undefined, {
-    month: 'short',
-    year: 'numeric',
-  }).format(date)
-}
-
-function formatExperienceType(value: string) {
-  return value
-    .replace(/[_-]+/g, ' ')
-    .replace(/\b\w/g, (character) => character.toUpperCase())
-}
-
-type ExperienceDraft = Omit<StudentExperienceRecord, 'id' | 'skill_ids'> & { end_date: string }
-type ExperienceSkillMap = Record<number, number[]>
-type EducationDraft = Omit<StudentEducationRecord, 'id' | 'grade' | 'activities' | 'description' | 'skill_ids'> & { end_date: string }
-type EducationDetailDraft = {
-  grade: string
-  activities: string
-  description: string
-  skillIds: number[]
-}
-type EducationDetailMap = Record<number, EducationDetailDraft>
-type CertificateRecord = {
-  id: number
-  name: string
-  issuer: string
-  issueDate: string
-  expiryDate: string
-  credentialId: string
-  credentialUrl: string
-  description: string
-  skillIds: number[]
-}
-
-function toExperienceDraft(record: StudentExperienceRecord): ExperienceDraft {
-  return {
-    organization: record.organization,
-    role_title: record.role_title,
-    experience_type: record.experience_type,
-    start_date: record.start_date,
-    end_date: record.end_date ?? '',
-    is_current: record.is_current,
-    summary: record.summary,
-  }
-}
-
-function normalizeExperienceDraft(draft: ExperienceDraft) {
-  return {
-    ...draft,
-    end_date: draft.is_current ? null : draft.end_date || null,
-  }
-}
-
-function toEducationDraft(record: StudentEducationRecord): EducationDraft {
-  return {
-    institution: record.institution,
-    field_of_study: record.field_of_study,
-    start_date: record.start_date,
-    end_date: record.end_date ?? '',
-    completion_status: record.completion_status,
-  }
-}
-
-function normalizeEducationDraft(draft: EducationDraft) {
-  return {
-    ...draft,
-    end_date: draft.end_date || null,
-  }
-}
-
-function toEducationDetailDraft(record: StudentEducationRecord): EducationDetailDraft {
-  return {
-    grade: record.grade,
-    activities: record.activities,
-    description: record.description,
-    skillIds: record.skill_ids,
-  }
-}
-
-function buildEducationDetailMap(records: StudentEducationRecord[]): EducationDetailMap {
-  return Object.fromEntries(records.map((record) => [record.id, toEducationDetailDraft(record)]))
-}
-
-function formatCompletionStatus(value: string) {
-  return value
-    .replace(/[_-]+/g, ' ')
-    .replace(/\b\w/g, (character) => character.toUpperCase())
-}
-
-function buildExperienceSkillMap(records: StudentExperienceRecord[]): ExperienceSkillMap {
-  return Object.fromEntries(records.map((record) => [record.id, record.skill_ids]))
-}
-
-function toCertificateRecord(record: StudentCertificateRecord): CertificateRecord {
-  return {
-    id: record.id,
-    name: record.name,
-    issuer: record.issuer,
-    issueDate: record.issue_date,
-    expiryDate: record.expiry_date ?? '',
-    credentialId: record.credential_id,
-    credentialUrl: record.credential_url,
-    description: record.description,
-    skillIds: record.skill_ids,
-  }
-}
-
-function buildCertificateRecords(records: StudentCertificateRecord[]): CertificateRecord[] {
-  return records.map(toCertificateRecord)
-}
-
-function toStoredProfileImages(profile: StudentProfile): StoredProfileImages {
-  return {
-    profileImage: profile.profile_image,
-    coverImage: profile.cover_image,
-  }
-}
-
-const emptyProfile: StudentProfile = {
-  student_id: 0,
-  name: '',
-  desired_job_type: '',
-  desired_work_location: '',
-  japanese_level: '',
-  english_level: '',
-  about_me: '',
-  profile_image: null,
-  cover_image: null,
-  profile_complete: false,
-  education_records: [],
-  experience_records: [],
-  certificates: [],
-  resumes: [],
-  availability: {
-    job_search_status: '',
-    earliest_start_date: null,
-    interview_availability: '',
-    scheduling_notes: '',
-    availability_set: false,
-    updated_at: '',
-  },
-  profile_extension_summary: {
-    education_count: 0,
-    experience_count: 0,
-    resume_count: 0,
-    has_active_resume: false,
-    availability_set: false,
-  },
-}
-
-const defaultAboutMe =
-  "Share a short introduction about your background, strengths, and the kind of opportunities you're looking for."
-const aboutPreviewLimit = 320
-const emptySkillsResponse: StudentSkillsResponse = {
-  skills: [],
-  available_skills: [],
-  skill_count: 0,
-}
-const emptyExperienceDraft: ExperienceDraft = {
-  organization: '',
-  role_title: '',
-  experience_type: 'work',
-  start_date: '',
-  end_date: '',
-  is_current: false,
-  summary: '',
-}
-const emptyEducationDraft: EducationDraft = {
-  institution: '',
-  field_of_study: '',
-  start_date: '',
-  end_date: '',
-  completion_status: 'in_progress',
-}
-const emptyEducationDetailDraft: EducationDetailDraft = {
-  grade: '',
-  activities: '',
-  description: '',
-  skillIds: [],
-}
-const emptyCertificate: CertificateRecord = {
-  id: 0,
-  name: '',
-  issuer: '',
-  issueDate: '',
-  expiryDate: '',
-  credentialId: '',
-  credentialUrl: '',
-  description: '',
-  skillIds: [],
-}
+import {
+  CertificateDialog,
+  EducationDialog,
+  ExperienceDialog,
+  SkillsDialog,
+} from './student-profile/StudentProfileDialogs'
+import {
+  aboutPreviewLimit,
+  buildCertificateRecords,
+  buildEducationDetailMap,
+  buildExperienceSkillMap,
+  defaultAboutMe,
+  emptyCertificate,
+  emptyEducationDetailDraft,
+  emptyEducationDraft,
+  emptyExperienceDraft,
+  emptyProfile,
+  emptySkillsResponse,
+  formatCompletionStatus,
+  formatExperienceDate,
+  formatExperienceType,
+  getInitials,
+  normalizeEducationDraft,
+  normalizeExperienceDraft,
+  readImageFile,
+  toEducationDraft,
+  toExperienceDraft,
+  toStoredProfileImages,
+  type CertificateRecord,
+  type EducationDetailDraft,
+  type EducationDetailMap,
+  type EducationDraft,
+  type ExperienceDraft,
+  type ExperienceSkillMap,
+} from './student-profile/shared'
 
 export function StudentProfilePage() {
   const { user, csrfToken, refreshSession } = useAuth()
@@ -951,860 +740,77 @@ export function StudentProfilePage() {
         onChange={(event) => void handleImageSelection(event, 'profileImage')}
       />
 
-      <Dialog open={isSkillsDialogOpen} onOpenChange={setIsSkillsDialogOpen}>
-        <DialogContent className="sm:max-w-xl">
-          <DialogHeader>
-            <DialogTitle>Edit skills</DialogTitle>
-            <DialogDescription>Select the skills you want to show on your profile.</DialogDescription>
-          </DialogHeader>
-          <div className="max-h-80 space-y-2 overflow-y-auto pr-1">
-            {skillsData.available_skills.map((skill) => {
-              const checked = skillDraftIds.includes(skill.id)
-              return (
-                <label
-                  key={skill.id}
-                  className="flex cursor-pointer items-center justify-between rounded-xl border border-slate-200 px-4 py-3 transition hover:border-primary/30 hover:bg-slate-50"
-                >
-                  <span className="text-sm font-medium text-slate-700">{skill.name}</span>
-                  <input
-                    type="checkbox"
-                    checked={checked}
-                    onChange={() => toggleSkillDraft(skill.id)}
-                    className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary"
-                  />
-                </label>
-              )
-            })}
-          </div>
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setIsSkillsDialogOpen(false)} disabled={savingSkills}>
-              Cancel
-            </Button>
-            <Button type="button" onClick={() => void handleSaveSkills()} disabled={savingSkills}>
-              {savingSkills ? 'Saving…' : 'Save skills'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <SkillsDialog
+        open={isSkillsDialogOpen}
+        onOpenChange={setIsSkillsDialogOpen}
+        availableSkills={skillsData.available_skills}
+        skillDraftIds={skillDraftIds}
+        saving={savingSkills}
+        onToggleSkillDraft={toggleSkillDraft}
+        onSave={() => void handleSaveSkills()}
+      />
 
-      <Dialog open={isEducationDialogOpen} onOpenChange={setIsEducationDialogOpen}>
-        <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-3xl">
-          <DialogHeader>
-            <DialogTitle>{hasEducation ? 'Manage education' : 'Add education'}</DialogTitle>
-            <DialogDescription>Update your education history and add a new education entry from one place.</DialogDescription>
-          </DialogHeader>
+      <EducationDialog
+        open={isEducationDialogOpen}
+        onOpenChange={setIsEducationDialogOpen}
+        hasEducation={hasEducation}
+        records={profile.education_records}
+        educationDrafts={educationDrafts}
+        setEducationDrafts={setEducationDrafts}
+        educationDetails={educationDetails}
+        educationDetailDrafts={educationDetailDrafts}
+        setEducationDetailDrafts={setEducationDetailDrafts}
+        newEducation={newEducation}
+        setNewEducation={setNewEducation}
+        newEducationDetails={newEducationDetails}
+        setNewEducationDetails={setNewEducationDetails}
+        availableSkills={skillsData.available_skills}
+        saving={savingEducation}
+        onToggleEducationSkill={toggleEducationSkill}
+        onToggleNewEducationSkill={toggleNewEducationSkill}
+        onDeleteEducation={(recordId) => void handleDeleteEducation(recordId)}
+        onUpdateEducation={(recordId) => void handleUpdateEducation(recordId)}
+        onCreateEducation={() => void handleCreateEducation()}
+      />
 
-          <div className="space-y-6">
-            {profile.education_records.map((record) => {
-              const draft = educationDrafts[record.id] ?? toEducationDraft(record)
-              const detailDraft = educationDetailDrafts[record.id] ?? educationDetails[record.id] ?? emptyEducationDetailDraft
+      <CertificateDialog
+        open={isCertificateDialogOpen}
+        onOpenChange={setIsCertificateDialogOpen}
+        hasCertificates={hasCertificates}
+        certificates={certificates}
+        certificateDrafts={certificateDrafts}
+        setCertificateDrafts={setCertificateDrafts}
+        newCertificate={newCertificate}
+        setNewCertificate={setNewCertificate}
+        availableSkills={skillsData.available_skills}
+        saving={savingCertificates}
+        onToggleCertificateSkill={toggleCertificateSkill}
+        onToggleNewCertificateSkill={toggleNewCertificateSkill}
+        onDeleteCertificate={handleDeleteCertificate}
+        onUpdateCertificate={(recordId) => void handleUpdateCertificate(recordId)}
+        onCreateCertificate={() => void handleCreateCertificate()}
+      />
 
-              return (
-                <div key={record.id} className="space-y-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <h3 className="text-base font-semibold text-slate-900">{record.institution || 'Education entry'}</h3>
-                      <p className="text-sm text-slate-500">{record.field_of_study || 'Field of study'}</p>
-                    </div>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => void handleDeleteEducation(record.id)}
-                      disabled={savingEducation}
-                    >
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Remove
-                    </Button>
-                  </div>
-
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-slate-700">Institution</label>
-                      <Input
-                        value={draft.institution}
-                        onChange={(event) =>
-                          setEducationDrafts((current) => ({
-                            ...current,
-                            [record.id]: { ...draft, institution: event.target.value },
-                          }))
-                        }
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-slate-700">Field of study</label>
-                      <Input
-                        value={draft.field_of_study}
-                        onChange={(event) =>
-                          setEducationDrafts((current) => ({
-                            ...current,
-                            [record.id]: { ...draft, field_of_study: event.target.value },
-                          }))
-                        }
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-slate-700">Start date</label>
-                      <Input
-                        type="date"
-                        value={draft.start_date}
-                        onChange={(event) =>
-                          setEducationDrafts((current) => ({
-                            ...current,
-                            [record.id]: { ...draft, start_date: event.target.value },
-                          }))
-                        }
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-slate-700">End date</label>
-                      <Input
-                        type="date"
-                        value={draft.end_date}
-                        onChange={(event) =>
-                          setEducationDrafts((current) => ({
-                            ...current,
-                            [record.id]: { ...draft, end_date: event.target.value },
-                          }))
-                        }
-                      />
-                    </div>
-                    <div className="space-y-2 md:col-span-2">
-                      <label className="text-sm font-medium text-slate-700">Completion status</label>
-                      <select
-                        value={draft.completion_status}
-                        onChange={(event) =>
-                          setEducationDrafts((current) => ({
-                            ...current,
-                            [record.id]: { ...draft, completion_status: event.target.value },
-                          }))
-                        }
-                        className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                      >
-                        <option value="in_progress">In progress</option>
-                        <option value="completed">Completed</option>
-                        <option value="withdrawn">Withdrawn</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-slate-700">Grade</label>
-                      <Input
-                        value={detailDraft.grade}
-                        onChange={(event) =>
-                          setEducationDetailDrafts((current) => ({
-                            ...current,
-                            [record.id]: { ...detailDraft, grade: event.target.value },
-                          }))
-                        }
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-slate-700">Activities and societies</label>
-                      <Input
-                        value={detailDraft.activities}
-                        onChange={(event) =>
-                          setEducationDetailDrafts((current) => ({
-                            ...current,
-                            [record.id]: { ...detailDraft, activities: event.target.value },
-                          }))
-                        }
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between gap-2">
-                      <label className="text-sm font-medium text-slate-700">Description</label>
-                      <span className="text-xs text-slate-500">Saved with your profile</span>
-                    </div>
-                    <Textarea
-                      rows={4}
-                      value={detailDraft.description}
-                      onChange={(event) =>
-                        setEducationDetailDrafts((current) => ({
-                          ...current,
-                          [record.id]: { ...detailDraft, description: event.target.value },
-                        }))
-                      }
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-700">Skills</label>
-                    {skillsData.available_skills.length > 0 ? (
-                      <div className="flex flex-wrap gap-2">
-                        {skillsData.available_skills.map((skill) => {
-                          const isSelected = detailDraft.skillIds.includes(skill.id)
-                          return (
-                            <button
-                              key={skill.id}
-                              type="button"
-                              onClick={() => toggleEducationSkill(record.id, skill.id)}
-                              className={`rounded-full px-3 py-1.5 text-sm font-medium transition ${
-                                isSelected
-                                  ? 'bg-primary text-primary-foreground'
-                                  : 'border border-slate-200 bg-white text-slate-600 hover:border-primary/40 hover:text-slate-900'
-                              }`}
-                            >
-                              {skill.name}
-                            </button>
-                          )
-                        })}
-                      </div>
-                    ) : (
-                      <p className="text-sm text-slate-500">Add profile skills first to tag them here.</p>
-                    )}
-                  </div>
-
-                  <div className="flex justify-end">
-                    <Button type="button" onClick={() => void handleUpdateEducation(record.id)} disabled={savingEducation}>
-                      {savingEducation ? 'Saving…' : 'Save changes'}
-                    </Button>
-                  </div>
-                </div>
-              )
-            })}
-
-            <div className="space-y-4 rounded-2xl border border-dashed border-slate-200 bg-white p-4">
-              <div>
-                <h3 className="text-base font-semibold text-slate-900">Add education</h3>
-                <p className="text-sm text-slate-500">Create a new education entry for your profile.</p>
-              </div>
-
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700">Institution</label>
-                  <Input value={newEducation.institution} onChange={(event) => setNewEducation({ ...newEducation, institution: event.target.value })} />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700">Field of study</label>
-                  <Input
-                    value={newEducation.field_of_study}
-                    onChange={(event) => setNewEducation({ ...newEducation, field_of_study: event.target.value })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700">Start date</label>
-                  <Input type="date" value={newEducation.start_date} onChange={(event) => setNewEducation({ ...newEducation, start_date: event.target.value })} />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700">End date</label>
-                  <Input type="date" value={newEducation.end_date} onChange={(event) => setNewEducation({ ...newEducation, end_date: event.target.value })} />
-                </div>
-                <div className="space-y-2 md:col-span-2">
-                  <label className="text-sm font-medium text-slate-700">Completion status</label>
-                  <select
-                    value={newEducation.completion_status}
-                    onChange={(event) => setNewEducation({ ...newEducation, completion_status: event.target.value })}
-                    className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                  >
-                    <option value="in_progress">In progress</option>
-                    <option value="completed">Completed</option>
-                    <option value="withdrawn">Withdrawn</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700">Grade</label>
-                  <Input
-                    value={newEducationDetails.grade}
-                    onChange={(event) => setNewEducationDetails((current) => ({ ...current, grade: event.target.value }))}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700">Activities and societies</label>
-                  <Input
-                    value={newEducationDetails.activities}
-                    onChange={(event) => setNewEducationDetails((current) => ({ ...current, activities: event.target.value }))}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex items-center justify-between gap-2">
-                  <label className="text-sm font-medium text-slate-700">Description</label>
-                  <span className="text-xs text-slate-500">Saved with your profile</span>
-                </div>
-                <Textarea
-                  rows={4}
-                  value={newEducationDetails.description}
-                  onChange={(event) => setNewEducationDetails((current) => ({ ...current, description: event.target.value }))}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700">Skills</label>
-                {skillsData.available_skills.length > 0 ? (
-                  <div className="flex flex-wrap gap-2">
-                    {skillsData.available_skills.map((skill) => {
-                      const isSelected = newEducationDetails.skillIds.includes(skill.id)
-                      return (
-                        <button
-                          key={skill.id}
-                          type="button"
-                          onClick={() => toggleNewEducationSkill(skill.id)}
-                          className={`rounded-full px-3 py-1.5 text-sm font-medium transition ${
-                            isSelected
-                              ? 'bg-primary text-primary-foreground'
-                              : 'border border-slate-200 bg-white text-slate-600 hover:border-primary/40 hover:text-slate-900'
-                          }`}
-                        >
-                          {skill.name}
-                        </button>
-                      )
-                    })}
-                  </div>
-                ) : (
-                  <p className="text-sm text-slate-500">Add profile skills first to tag them here.</p>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setIsEducationDialogOpen(false)} disabled={savingEducation}>
-              Close
-            </Button>
-            <Button type="button" onClick={() => void handleCreateEducation()} disabled={savingEducation}>
-              {savingEducation ? 'Saving…' : 'Add education'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={isCertificateDialogOpen} onOpenChange={setIsCertificateDialogOpen}>
-        <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-3xl">
-          <DialogHeader>
-            <DialogTitle>{hasCertificates ? 'Manage certificates' : 'Add certificate'}</DialogTitle>
-            <DialogDescription>Update your certificates, licenses, and achievements from one place.</DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-6">
-            {certificates.map((certificate) => {
-              const draft = certificateDrafts[certificate.id] ?? certificate
-              return (
-                <div key={certificate.id} className="space-y-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <h3 className="text-base font-semibold text-slate-900">{draft.name || 'Certificate entry'}</h3>
-                      <p className="text-sm text-slate-500">{draft.issuer || 'Issuer'}</p>
-                    </div>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDeleteCertificate(certificate.id)}
-                      disabled={savingCertificates}
-                    >
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Remove
-                    </Button>
-                  </div>
-
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-slate-700">Certificate name</label>
-                      <Input
-                        value={draft.name}
-                        onChange={(event) =>
-                          setCertificateDrafts((current) => ({
-                            ...current,
-                            [certificate.id]: { ...draft, name: event.target.value },
-                          }))
-                        }
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-slate-700">Issuer</label>
-                      <Input
-                        value={draft.issuer}
-                        onChange={(event) =>
-                          setCertificateDrafts((current) => ({
-                            ...current,
-                            [certificate.id]: { ...draft, issuer: event.target.value },
-                          }))
-                        }
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-slate-700">Issue date</label>
-                      <Input
-                        type="date"
-                        value={draft.issueDate}
-                        onChange={(event) =>
-                          setCertificateDrafts((current) => ({
-                            ...current,
-                            [certificate.id]: { ...draft, issueDate: event.target.value },
-                          }))
-                        }
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-slate-700">Expiry date</label>
-                      <Input
-                        type="date"
-                        value={draft.expiryDate}
-                        onChange={(event) =>
-                          setCertificateDrafts((current) => ({
-                            ...current,
-                            [certificate.id]: { ...draft, expiryDate: event.target.value },
-                          }))
-                        }
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-slate-700">Credential ID</label>
-                      <Input
-                        value={draft.credentialId}
-                        onChange={(event) =>
-                          setCertificateDrafts((current) => ({
-                            ...current,
-                            [certificate.id]: { ...draft, credentialId: event.target.value },
-                          }))
-                        }
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-slate-700">Credential URL</label>
-                      <Input
-                        type="url"
-                        value={draft.credentialUrl}
-                        onChange={(event) =>
-                          setCertificateDrafts((current) => ({
-                            ...current,
-                            [certificate.id]: { ...draft, credentialUrl: event.target.value },
-                          }))
-                        }
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-700">Description</label>
-                    <Textarea
-                      rows={4}
-                      value={draft.description}
-                      onChange={(event) =>
-                        setCertificateDrafts((current) => ({
-                          ...current,
-                          [certificate.id]: { ...draft, description: event.target.value },
-                        }))
-                      }
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-700">Skills</label>
-                    {skillsData.available_skills.length > 0 ? (
-                      <div className="flex flex-wrap gap-2">
-                        {skillsData.available_skills.map((skill) => {
-                          const isSelected = draft.skillIds.includes(skill.id)
-                          return (
-                            <button
-                              key={skill.id}
-                              type="button"
-                              onClick={() => toggleCertificateSkill(certificate.id, skill.id)}
-                              className={`rounded-full px-3 py-1.5 text-sm font-medium transition ${
-                                isSelected
-                                  ? 'bg-primary text-primary-foreground'
-                                  : 'border border-slate-200 bg-white text-slate-600 hover:border-primary/40 hover:text-slate-900'
-                              }`}
-                            >
-                              {skill.name}
-                            </button>
-                          )
-                        })}
-                      </div>
-                    ) : (
-                      <p className="text-sm text-slate-500">Add profile skills first to tag them here.</p>
-                    )}
-                  </div>
-
-                  <div className="flex justify-end">
-                    <Button type="button" onClick={() => handleUpdateCertificate(certificate.id)} disabled={savingCertificates}>
-                      {savingCertificates ? 'Saving…' : 'Save changes'}
-                    </Button>
-                  </div>
-                </div>
-              )
-            })}
-
-            <div className="space-y-4 rounded-2xl border border-dashed border-slate-200 bg-white p-4">
-              <div>
-                <h3 className="text-base font-semibold text-slate-900">Add certificate</h3>
-                <p className="text-sm text-slate-500">Create a new certificate entry for your profile.</p>
-              </div>
-
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700">Certificate name</label>
-                  <Input value={newCertificate.name} onChange={(event) => setNewCertificate({ ...newCertificate, name: event.target.value })} />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700">Issuer</label>
-                  <Input value={newCertificate.issuer} onChange={(event) => setNewCertificate({ ...newCertificate, issuer: event.target.value })} />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700">Issue date</label>
-                  <Input type="date" value={newCertificate.issueDate} onChange={(event) => setNewCertificate({ ...newCertificate, issueDate: event.target.value })} />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700">Expiry date</label>
-                  <Input type="date" value={newCertificate.expiryDate} onChange={(event) => setNewCertificate({ ...newCertificate, expiryDate: event.target.value })} />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700">Credential ID</label>
-                  <Input value={newCertificate.credentialId} onChange={(event) => setNewCertificate({ ...newCertificate, credentialId: event.target.value })} />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700">Credential URL</label>
-                  <Input type="url" value={newCertificate.credentialUrl} onChange={(event) => setNewCertificate({ ...newCertificate, credentialUrl: event.target.value })} />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700">Description</label>
-                <Textarea
-                  rows={4}
-                  value={newCertificate.description}
-                  onChange={(event) => setNewCertificate({ ...newCertificate, description: event.target.value })}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700">Skills</label>
-                {skillsData.available_skills.length > 0 ? (
-                  <div className="flex flex-wrap gap-2">
-                    {skillsData.available_skills.map((skill) => {
-                      const isSelected = newCertificate.skillIds.includes(skill.id)
-                      return (
-                        <button
-                          key={skill.id}
-                          type="button"
-                          onClick={() => toggleNewCertificateSkill(skill.id)}
-                          className={`rounded-full px-3 py-1.5 text-sm font-medium transition ${
-                            isSelected
-                              ? 'bg-primary text-primary-foreground'
-                              : 'border border-slate-200 bg-white text-slate-600 hover:border-primary/40 hover:text-slate-900'
-                          }`}
-                        >
-                          {skill.name}
-                        </button>
-                      )
-                    })}
-                  </div>
-                ) : (
-                  <p className="text-sm text-slate-500">Add profile skills first to tag them here.</p>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setIsCertificateDialogOpen(false)} disabled={savingCertificates}>
-              Close
-            </Button>
-            <Button type="button" onClick={handleCreateCertificate} disabled={savingCertificates}>
-              {savingCertificates ? 'Saving…' : 'Add certificate'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={isExperienceDialogOpen} onOpenChange={setIsExperienceDialogOpen}>
-        <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-3xl">
-          <DialogHeader>
-            <DialogTitle>{hasExperience ? 'Edit experience' : 'Add experience'}</DialogTitle>
-            <DialogDescription>Manage your work history and add a new experience entry from one place.</DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-6">
-            {profile.experience_records.map((record) => {
-              const draft = experienceDrafts[record.id] ?? toExperienceDraft(record)
-              return (
-                <div key={record.id} className="space-y-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <h3 className="text-base font-semibold text-slate-900">{record.role_title || 'Experience entry'}</h3>
-                      <p className="text-sm text-slate-500">{record.organization || 'Organization'}</p>
-                    </div>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => void handleDeleteExperience(record.id)}
-                      disabled={savingExperience}
-                    >
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Remove
-                    </Button>
-                  </div>
-
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-slate-700">Title</label>
-                      <Input
-                        value={draft?.role_title ?? ''}
-                        onChange={(event) =>
-                          setExperienceDrafts((current) => ({
-                            ...current,
-                            [record.id]: { ...draft, role_title: event.target.value },
-                          }))
-                        }
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-slate-700">Company or organization</label>
-                      <Input
-                        value={draft?.organization ?? ''}
-                        onChange={(event) =>
-                          setExperienceDrafts((current) => ({
-                            ...current,
-                            [record.id]: { ...draft, organization: event.target.value },
-                          }))
-                        }
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-slate-700">Experience type</label>
-                      <select
-                        value={draft?.experience_type ?? 'work'}
-                        onChange={(event) =>
-                          setExperienceDrafts((current) => ({
-                            ...current,
-                            [record.id]: { ...draft, experience_type: event.target.value },
-                          }))
-                        }
-                        className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                      >
-                        <option value="work">Work</option>
-                        <option value="internship">Internship</option>
-                        <option value="project">Project</option>
-                        <option value="freelance">Freelance</option>
-                        <option value="volunteer">Volunteer</option>
-                      </select>
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-slate-700">Start date</label>
-                      <Input
-                        type="date"
-                        value={draft?.start_date ?? ''}
-                        onChange={(event) =>
-                          setExperienceDrafts((current) => ({
-                            ...current,
-                            [record.id]: { ...draft, start_date: event.target.value },
-                          }))
-                        }
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-slate-700">End date</label>
-                      <Input
-                        type="date"
-                        disabled={draft?.is_current}
-                        value={draft?.end_date ?? ''}
-                        onChange={(event) =>
-                          setExperienceDrafts((current) => ({
-                            ...current,
-                            [record.id]: { ...draft, end_date: event.target.value },
-                          }))
-                        }
-                      />
-                    </div>
-                    <label className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 md:self-end">
-                      <input
-                        type="checkbox"
-                        checked={draft?.is_current ?? false}
-                        onChange={(event) =>
-                          setExperienceDrafts((current) => ({
-                            ...current,
-                            [record.id]: {
-                              ...draft,
-                              is_current: event.target.checked,
-                              end_date: event.target.checked ? '' : draft?.end_date ?? '',
-                            },
-                          }))
-                        }
-                      />
-                      I am currently working in this role
-                    </label>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-700">Description</label>
-                    <Textarea
-                      rows={5}
-                      value={draft?.summary ?? ''}
-                      onChange={(event) =>
-                        setExperienceDrafts((current) => ({
-                          ...current,
-                          [record.id]: { ...draft, summary: event.target.value },
-                        }))
-                      }
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between gap-2">
-                      <label className="text-sm font-medium text-slate-700">Skills</label>
-                      <span className="text-xs text-slate-500">Saved with your profile</span>
-                    </div>
-                    {skillsData.available_skills.length > 0 ? (
-                      <div className="flex flex-wrap gap-2">
-                        {skillsData.available_skills.map((skill) => {
-                          const selectedSkillIds = experienceSkillDrafts[record.id] ?? experienceSkills[record.id] ?? []
-                          const isSelected = selectedSkillIds.includes(skill.id)
-                          return (
-                            <button
-                              key={skill.id}
-                              type="button"
-                              onClick={() => toggleExperienceSkill(record.id, skill.id)}
-                              className={`rounded-full px-3 py-1.5 text-sm font-medium transition ${
-                                isSelected
-                                  ? 'bg-primary text-primary-foreground'
-                                  : 'border border-slate-200 bg-white text-slate-600 hover:border-primary/40 hover:text-slate-900'
-                              }`}
-                            >
-                              {skill.name}
-                            </button>
-                          )
-                        })}
-                      </div>
-                    ) : (
-                      <p className="text-sm text-slate-500">Add profile skills first to tag them here.</p>
-                    )}
-                  </div>
-
-                  <div className="flex justify-end">
-                    <Button type="button" onClick={() => void handleUpdateExperience(record.id)} disabled={savingExperience}>
-                      {savingExperience ? 'Saving…' : 'Save changes'}
-                    </Button>
-                  </div>
-                </div>
-              )
-            })}
-
-            <div className="space-y-4 rounded-2xl border border-dashed border-slate-200 bg-white p-4">
-              <div>
-                <h3 className="text-base font-semibold text-slate-900">Add experience</h3>
-                <p className="text-sm text-slate-500">Create a new work history entry for your profile.</p>
-              </div>
-
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700">Title</label>
-                  <Input value={newExperience.role_title} onChange={(event) => setNewExperience({ ...newExperience, role_title: event.target.value })} />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700">Company or organization</label>
-                  <Input
-                    value={newExperience.organization}
-                    onChange={(event) => setNewExperience({ ...newExperience, organization: event.target.value })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700">Experience type</label>
-                  <select
-                    value={newExperience.experience_type}
-                    onChange={(event) => setNewExperience({ ...newExperience, experience_type: event.target.value })}
-                    className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                  >
-                    <option value="work">Work</option>
-                    <option value="internship">Internship</option>
-                    <option value="project">Project</option>
-                    <option value="freelance">Freelance</option>
-                    <option value="volunteer">Volunteer</option>
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700">Start date</label>
-                  <Input
-                    type="date"
-                    value={newExperience.start_date}
-                    onChange={(event) => setNewExperience({ ...newExperience, start_date: event.target.value })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700">End date</label>
-                  <Input
-                    type="date"
-                    disabled={newExperience.is_current}
-                    value={newExperience.end_date}
-                    onChange={(event) => setNewExperience({ ...newExperience, end_date: event.target.value })}
-                  />
-                </div>
-                <label className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 md:self-end">
-                  <input
-                    type="checkbox"
-                    checked={newExperience.is_current}
-                    onChange={(event) =>
-                      setNewExperience({
-                        ...newExperience,
-                        is_current: event.target.checked,
-                        end_date: event.target.checked ? '' : newExperience.end_date,
-                      })
-                    }
-                  />
-                  I am currently working in this role
-                </label>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700">Description</label>
-                <Textarea
-                  rows={5}
-                  value={newExperience.summary}
-                  onChange={(event) => setNewExperience({ ...newExperience, summary: event.target.value })}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex items-center justify-between gap-2">
-                  <label className="text-sm font-medium text-slate-700">Skills</label>
-                  <span className="text-xs text-slate-500">Saved with your profile</span>
-                </div>
-                {skillsData.available_skills.length > 0 ? (
-                  <div className="flex flex-wrap gap-2">
-                    {skillsData.available_skills.map((skill) => {
-                      const isSelected = newExperienceSkillIds.includes(skill.id)
-                      return (
-                        <button
-                          key={skill.id}
-                          type="button"
-                          onClick={() => toggleNewExperienceSkill(skill.id)}
-                          className={`rounded-full px-3 py-1.5 text-sm font-medium transition ${
-                            isSelected
-                              ? 'bg-primary text-primary-foreground'
-                              : 'border border-slate-200 bg-white text-slate-600 hover:border-primary/40 hover:text-slate-900'
-                          }`}
-                        >
-                          {skill.name}
-                        </button>
-                      )
-                    })}
-                  </div>
-                ) : (
-                  <p className="text-sm text-slate-500">Add profile skills first to tag them here.</p>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setIsExperienceDialogOpen(false)} disabled={savingExperience}>
-              Close
-            </Button>
-            <Button type="button" onClick={() => void handleCreateExperience()} disabled={savingExperience}>
-              {savingExperience ? 'Saving…' : 'Add experience'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ExperienceDialog
+        open={isExperienceDialogOpen}
+        onOpenChange={setIsExperienceDialogOpen}
+        hasExperience={hasExperience}
+        records={profile.experience_records}
+        experienceDrafts={experienceDrafts}
+        setExperienceDrafts={setExperienceDrafts}
+        experienceSkills={experienceSkills}
+        experienceSkillDrafts={experienceSkillDrafts}
+        newExperience={newExperience}
+        setNewExperience={setNewExperience}
+        newExperienceSkillIds={newExperienceSkillIds}
+        availableSkills={skillsData.available_skills}
+        saving={savingExperience}
+        onToggleExperienceSkill={toggleExperienceSkill}
+        onToggleNewExperienceSkill={toggleNewExperienceSkill}
+        onDeleteExperience={(recordId) => void handleDeleteExperience(recordId)}
+        onUpdateExperience={(recordId) => void handleUpdateExperience(recordId)}
+        onCreateExperience={() => void handleCreateExperience()}
+      />
 
       <Card className="overflow-hidden border-slate-200 bg-white shadow-sm pt-0">
         <div className="relative">
