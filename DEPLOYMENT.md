@@ -145,6 +145,7 @@ POSTGRES_PORT=5432
 
 # Cache
 REDIS_URL=redis://localhost:6379/1
+DJANGO_ENABLE_REDIS_CACHE=true
 
 # Security
 DJANGO_CSRF_TRUSTED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173,https://yourdomain.com
@@ -180,6 +181,8 @@ DJANGO_PERSIST_REQUEST_LOGS=false
 ```
 
 If your frontend is hosted on Vercel and the backend is hosted on Render, set the Gemini variables on **Render only**. Vercel only needs the backend API base URL such as `VITE_API_BASE_URL=https://your-render-service.onrender.com/api`.
+
+Render builds may run `collectstatic` before a Redis service is attached. The backend now tolerates that and falls back to local-memory cache unless `DJANGO_ENABLE_REDIS_CACHE=true` is explicitly set with a working `REDIS_URL`. For real production traffic, Redis is still the recommended cache backend.
 
 ### Security Configuration
 

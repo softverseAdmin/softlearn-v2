@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 import sys
+import warnings
 
 from django.core.exceptions import ImproperlyConfigured
 
@@ -8,7 +9,7 @@ from dotenv import load_dotenv
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-load_dotenv(BASE_DIR.parent / ".env", override=True)
+load_dotenv(BASE_DIR.parent / ".env", override=False)
 
 
 def env_bool(name: str, default: bool) -> bool:
@@ -181,10 +182,7 @@ AUTHENTICATION_BACKENDS = [
 
 # Caching Configuration
 cache_location = os.getenv("REDIS_URL", "redis://127.0.0.1:6379/1")
-ENABLE_REDIS_CACHE = env_bool("DJANGO_ENABLE_REDIS_CACHE", False)
-
-if IS_PRODUCTION and not ENABLE_REDIS_CACHE:
-    raise ImproperlyConfigured("Production requires DJANGO_ENABLE_REDIS_CACHE=true.")
+ENABLE_REDIS_CACHE = env_bool("DJANGO_ENABLE_REDIS_CACHE", IS_PRODUCTION and bool(os.getenv("REDIS_URL")))
 
 if ENABLE_REDIS_CACHE:
     CACHES = {
@@ -213,6 +211,11 @@ else:
             "TIMEOUT": 300,
         }
     }
+    if IS_PRODUCTION:
+        warnings.warn(
+            "Redis cache is disabled in production; falling back to per-process local memory cache.",
+            RuntimeWarning,
+        )
 
 # Sentry Configuration
 SENTRY_DSN = os.getenv("SENTRY_DSN", "")
