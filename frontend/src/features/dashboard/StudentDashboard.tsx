@@ -596,7 +596,7 @@ export function StudentDashboard({ userName }: StudentDashboardProps) {
                           {recommendedCourses.map((course) => (
                             (() => {
                               const mediaOverride = getCourseMediaOverrideForCourse(course.course_id, course.title)
-                              const courseThumbnail = mediaOverride?.thumbnailImage || mediaOverride?.previewImage || ''
+                              const courseThumbnail = course.thumbnail_image || mediaOverride?.thumbnailImage || mediaOverride?.previewImage || ''
                               const background =
                                 dashboardThumbnailBackgrounds[course.course_id % dashboardThumbnailBackgrounds.length]
 
@@ -610,7 +610,7 @@ export function StudentDashboard({ userName }: StudentDashboardProps) {
                                       <>
                                         <img
                                           src={courseThumbnail}
-                                          alt={mediaOverride?.thumbnailAltText || `${course.title} thumbnail`}
+                                          alt={course.thumbnail_alt_text || mediaOverride?.thumbnailAltText || `${course.title} thumbnail`}
                                           className="absolute inset-0 h-full w-full object-cover"
                                         />
                                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-black/10" />

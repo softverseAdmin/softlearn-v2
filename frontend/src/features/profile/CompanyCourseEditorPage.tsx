@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ChevronRight } from 'lucide-react'
+import { ArrowRight, BookOpen, ChevronRight, Clock3, FileText, PlayCircle, Star, Users, X } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { useAuth } from '../../auth/useAuth'
 import { ApiError, apiRequest } from '../../lib/api'
-import type { AdminCourseRecord, AdminCoursesResponse } from '../admin/types'
-import { getCourseMediaOverrideForCourse, setCourseMediaOverride } from './courseMediaStorage'
+import type { AdminCourseLessonsResponse, AdminCourseRecord, AdminCoursesResponse, AdminLessonRecord } from '../admin/types'
+import { clearCourseMediaOverride, getCourseMediaOverrideForCourse } from './courseMediaStorage'
+import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
 const emptyCoursesResponse: AdminCoursesResponse = {
   courses: [],
@@ -16,6 +18,7 @@ const fieldClassName =
   'h-11 w-full rounded-none border border-input bg-background px-4 text-sm text-foreground outline-none transition focus-visible:ring-2 focus-visible:ring-ring/50'
 const textAreaClassName =
   'w-full rounded-none border border-input bg-background px-4 py-3 text-sm text-foreground outline-none transition focus-visible:ring-2 focus-visible:ring-ring/50'
+const editorCardClassName = 'rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950'
 const supportedTechnologies = [
   'HTML',
   'CSS',
@@ -33,18 +36,12 @@ type CompanyCourseEditorPageProps = {
   mode: 'create' | 'edit'
 }
 
-type ModuleDraft = {
-  id: string
-  title: string
-  description: string
-  order: string
-  duration: string
-}
-
 type LessonDraft = {
+  lessonId: number | null
   id: string
   title: string
   description: string
+  transcript: string
   type: 'video' | 'article' | 'quiz' | 'project' | 'external-link'
   videoUrl: string
   content: string
@@ -67,28 +64,20 @@ function createDraftId(prefix: string) {
   return `${prefix}-${Math.random().toString(36).slice(2, 10)}`
 }
 
-function createModuleDraft(order: number): ModuleDraft {
+function createLessonDraftFromRecord(lesson: AdminLessonRecord): LessonDraft {
   return {
-    id: createDraftId('module'),
-    title: '',
-    description: '',
-    order: String(order),
-    duration: '',
-  }
-}
-
-function createLessonDraft(order: number): LessonDraft {
-  return {
+    lessonId: lesson.lesson_id,
     id: createDraftId('lesson'),
-    title: '',
-    description: '',
-    type: 'video',
-    videoUrl: '',
-    content: '',
+    title: lesson.title,
+    description: lesson.summary,
+    transcript: lesson.transcript,
+    type: lesson.video_url ? 'video' : 'article',
+    videoUrl: lesson.video_url,
+    content: lesson.content,
     externalResourceUrl: '',
     duration: '',
     isPreviewFree: false,
-    order: String(order),
+    order: String(lesson.sequence_number),
   }
 }
 
@@ -120,11 +109,23 @@ function ImageUploadPanel({ label, image, alt, isLoading, onChange, onRemove }: 
   return (
     <div className="space-y-3">
       <label className="block text-sm font-medium text-foreground">{label}</label>
-      <div className="space-y-4 rounded-none border border-dashed border-border bg-muted/20 p-4">
+      <div className="space-y-4 rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900/50">
         {image ? (
-          <img src={image} alt={alt} className="h-56 w-full rounded-none object-cover" />
+          <div className="relative">
+            <img src={image} alt={alt} className="h-56 w-full rounded-xl object-cover" />
+            <Button
+              type="button"
+              variant="inverse"
+              size="icon-xs"
+              className="absolute right-3 top-3 rounded-full bg-slate-950/80 text-white hover:bg-slate-950"
+              onClick={onRemove}
+              aria-label="Remove image"
+            >
+              <X />
+            </Button>
+          </div>
         ) : (
-          <div className="flex min-h-44 items-center justify-center border border-border/60 bg-background px-6 text-center">
+          <div className="flex min-h-44 items-center justify-center rounded-xl border border-slate-200 bg-white px-6 text-center dark:border-slate-800 dark:bg-slate-950">
             <div className="space-y-1">
               <p className="text-sm font-medium text-foreground">Upload image</p>
               <p className="text-xs text-muted-foreground">PNG, JPG, or WEBP recommended.</p>
@@ -137,18 +138,84 @@ function ImageUploadPanel({ label, image, alt, isLoading, onChange, onRemove }: 
             type="file"
             accept="image/png,image/jpeg,image/jpg,image/webp"
             onChange={onChange}
-            className="block w-full text-sm text-muted-foreground file:mr-4 file:rounded-none file:border-0 file:bg-primary file:px-4 file:py-2 file:text-sm file:font-medium file:text-primary-foreground hover:file:bg-primary/90"
+            className="block w-full text-sm text-muted-foreground file:mr-4 file:rounded-xl file:border-0 file:bg-primary file:px-4 file:py-2 file:text-sm file:font-medium file:text-primary-foreground hover:file:bg-primary/90"
           />
-          {image ? (
-            <button type="button" onClick={onRemove} className="secondary-button inline-button">
-              Remove image
-            </button>
-          ) : null}
           {isLoading ? <span className="text-xs text-muted-foreground">Loading preview…</span> : null}
         </div>
       </div>
     </div>
   )
+}
+
+function formatLabel(value: string) {
+  return value
+    .replace(/[_-]+/g, ' ')
+    .trim()
+    .replace(/\b\w/g, (character) => character.toUpperCase())
+}
+
+function formatDuration(hours: number) {
+  if (hours <= 0) {
+    return 'Self-paced'
+  }
+
+  const wholeHours = Math.floor(hours)
+  const minutes = Math.round((hours - wholeHours) * 60)
+
+  if (wholeHours === 0) {
+    return `${minutes}m total`
+  }
+
+  if (minutes === 0) {
+    return `${wholeHours}h total`
+  }
+
+  return `${wholeHours}h ${minutes}m total`
+}
+
+function formatCompactNumber(value: number) {
+  return new Intl.NumberFormat('en-US').format(value)
+}
+
+function buildPreviewSummarySeed(value: string) {
+  const normalized = value.replace(/\s+/g, ' ').trim()
+  if (!normalized) {
+    return ''
+  }
+
+  if (normalized.length <= 160) {
+    return normalized
+  }
+
+  const firstSentence = normalized.match(/^(.{1,160}?[.!?])(\s|$)/)?.[1]?.trim()
+  if (firstSentence) {
+    return firstSentence
+  }
+
+  return `${normalized.slice(0, 157).trimEnd()}...`
+}
+
+function dedupeText(items: Array<string | null | undefined>) {
+  const seen = new Set<string>()
+
+  return items.filter((item): item is string => {
+    if (!item) {
+      return false
+    }
+
+    const normalized = item.trim()
+    if (!normalized) {
+      return false
+    }
+
+    const key = normalized.toLowerCase()
+    if (seen.has(key)) {
+      return false
+    }
+
+    seen.add(key)
+    return true
+  })
 }
 
 export function CompanyCourseEditorPage({ mode }: CompanyCourseEditorPageProps) {
@@ -157,6 +224,7 @@ export function CompanyCourseEditorPage({ mode }: CompanyCourseEditorPageProps) 
   const { csrfToken } = useAuth()
   const [data, setData] = useState<AdminCoursesResponse>(emptyCoursesResponse)
   const [loading, setLoading] = useState(mode === 'edit')
+  const [loadingLessons, setLoadingLessons] = useState(mode === 'edit')
   const [saving, setSaving] = useState(false)
   const [title, setTitle] = useState('')
   const [slug, setSlug] = useState('')
@@ -169,10 +237,8 @@ export function CompanyCourseEditorPage({ mode }: CompanyCourseEditorPageProps) 
   const [courseType, setCourseType] = useState<'free' | 'premium'>('free')
   const [status, setStatus] = useState('')
   const [thumbnailImage, setThumbnailImage] = useState('')
-  const [previewImage, setPreviewImage] = useState('')
   const [thumbnailAltText, setThumbnailAltText] = useState('')
   const [isReadingThumbnail, setIsReadingThumbnail] = useState(false)
-  const [isReadingPreview, setIsReadingPreview] = useState(false)
   const [price, setPrice] = useState('')
   const [discountPrice, setDiscountPrice] = useState('')
   const [isFreeCourse, setIsFreeCourse] = useState(true)
@@ -182,14 +248,12 @@ export function CompanyCourseEditorPage({ mode }: CompanyCourseEditorPageProps) 
   const [interviewPrepIncluded, setInterviewPrepIncluded] = useState(false)
   const [capstoneProjectIncluded, setCapstoneProjectIncluded] = useState(false)
   const [selectedTechnologies, setSelectedTechnologies] = useState<string[]>([])
-  const [modules, setModules] = useState<ModuleDraft[]>([createModuleDraft(1)])
-  const [lessons, setLessons] = useState<LessonDraft[]>([createLessonDraft(1)])
+  const [lessons, setLessons] = useState<LessonDraft[]>([])
   const [projectTitle, setProjectTitle] = useState('')
   const [projectDescription, setProjectDescription] = useState('')
   const [starterCodeUrl, setStarterCodeUrl] = useState('')
   const [submissionRequired, setSubmissionRequired] = useState(false)
   const [error, setError] = useState<string | null>(null)
-
   const selectedCourse = useMemo(() => {
     if (mode !== 'edit' || !courseId) {
       return null
@@ -197,6 +261,50 @@ export function CompanyCourseEditorPage({ mode }: CompanyCourseEditorPageProps) 
 
     return data.courses.find((course) => String(course.course_id) === courseId) ?? null
   }, [courseId, data.courses, mode])
+  const canEditSelectedCourse = mode !== 'edit' || Boolean(selectedCourse?.can_edit)
+  const previewTitle = title.trim() || (mode === 'edit' ? selectedCourse?.title ?? 'Course title' : 'New course concept')
+  const previewDescription =
+    shortDescription.trim() ||
+    fullDescription.trim() ||
+    'Shape the learner-facing story here so the catalog card and course detail page feel production-ready from day one.'
+  const normalizedDuration = Number.parseInt(totalDuration, 10)
+  const estimatedHours = Number.isNaN(normalizedDuration) ? 0 : Math.max(0, normalizedDuration)
+  const learnerCount = selectedCourse?.learning_record_count ?? 0
+  const courseTags = useMemo(
+    () =>
+      dedupeText([
+        category ? formatLabel(category) : null,
+        courseLevel ? formatLabel(courseLevel) : null,
+        language || null,
+        courseType === 'premium' ? 'Premium' : 'Free',
+        certificateAvailable ? 'Certificate' : null,
+      ]).slice(0, 5),
+    [category, certificateAvailable, courseLevel, courseType, language],
+  )
+  const learningHighlights = useMemo(
+    () =>
+      dedupeText([
+        shortDescription || null,
+        ...selectedTechnologies.slice(0, 3).map((technology) => `Build confidence with ${technology}.`),
+        ...lessons
+          .map((module) => module.title.trim())
+          .filter(Boolean)
+          .slice(0, 2)
+          .map((lessonTitle) => `Progress through ${lessonTitle}.`),
+        capstoneProjectIncluded || projectTitle.trim() ? 'Finish with a capstone-style project.' : null,
+        interviewPrepIncluded ? 'Include interview-focused practice and takeaways.' : null,
+      ]).slice(0, 6),
+    [capstoneProjectIncluded, interviewPrepIncluded, lessons, projectTitle, selectedTechnologies, shortDescription],
+  )
+  const populatedLessonCount = lessons.filter(
+    (lesson) =>
+      lesson.title.trim() ||
+      lesson.description.trim() ||
+      lesson.content.trim() ||
+      lesson.videoUrl.trim() ||
+      lesson.transcript.trim(),
+  ).length
+  const lessonsWithTranscriptCount = lessons.filter((lesson) => lesson.transcript.trim()).length
 
   useEffect(() => {
     if (slugTouched) {
@@ -248,16 +356,53 @@ export function CompanyCourseEditorPage({ mode }: CompanyCourseEditorPageProps) 
 
     setTitle(selectedCourse.title)
     setSlug(slugify(selectedCourse.title))
-    setShortDescription(selectedCourse.description)
+    setShortDescription(buildPreviewSummarySeed(selectedCourse.description))
     setFullDescription(selectedCourse.description)
     setCategory(selectedCourse.category)
     setCourseLevel(selectedCourse.difficulty_level)
     setTotalDuration(String(selectedCourse.estimated_hours))
     setStatus(selectedCourse.status)
-    setThumbnailImage(savedMedia?.thumbnailImage ?? '')
-    setPreviewImage(savedMedia?.previewImage ?? '')
-    setThumbnailAltText(savedMedia?.thumbnailAltText ?? '')
+    setThumbnailImage(selectedCourse.thumbnail_image || savedMedia?.thumbnailImage || savedMedia?.previewImage || '')
+    setThumbnailAltText(selectedCourse.thumbnail_alt_text || savedMedia?.thumbnailAltText || '')
   }, [mode, selectedCourse])
+
+  useEffect(() => {
+    if (mode !== 'edit' || !courseId) {
+      setLoadingLessons(false)
+      return
+    }
+
+    let active = true
+
+    async function loadLessons() {
+      try {
+        const response = await apiRequest<AdminCourseLessonsResponse>(`/company/courses/${courseId}/lessons`)
+        if (!active) {
+          return
+        }
+
+        const editableLessons = response.lessons.filter((lesson) => lesson.status !== 'inactive')
+        setLessons(editableLessons.map(createLessonDraftFromRecord))
+      } catch (loadError) {
+        if (!active) {
+          return
+        }
+
+        const message = loadError instanceof ApiError ? loadError.message : 'Unable to load lessons.'
+        setError(message)
+        toast.error(message)
+      } finally {
+        if (active) {
+          setLoadingLessons(false)
+        }
+      }
+    }
+
+    void loadLessons()
+    return () => {
+      active = false
+    }
+  }, [courseId, mode])
 
   async function handleImageChange(
     event: ChangeEvent<HTMLInputElement>,
@@ -292,76 +437,6 @@ export function CompanyCourseEditorPage({ mode }: CompanyCourseEditorPageProps) 
     )
   }
 
-  function resizeModules(nextCount: number) {
-    setModules((current) => {
-      const normalizedCount = Math.max(1, nextCount)
-
-      if (normalizedCount === current.length) {
-        return current
-      }
-
-      if (normalizedCount < current.length) {
-        return current.slice(0, normalizedCount)
-      }
-
-      return [
-        ...current,
-        ...Array.from({ length: normalizedCount - current.length }, (_, index) =>
-          createModuleDraft(current.length + index + 1)
-        ),
-      ]
-    })
-  }
-
-  function resizeLessons(nextCount: number) {
-    setLessons((current) => {
-      const normalizedCount = Math.max(1, nextCount)
-
-      if (normalizedCount === current.length) {
-        return current
-      }
-
-      if (normalizedCount < current.length) {
-        return current.slice(0, normalizedCount)
-      }
-
-      return [
-        ...current,
-        ...Array.from({ length: normalizedCount - current.length }, (_, index) =>
-          createLessonDraft(current.length + index + 1)
-        ),
-      ]
-    })
-  }
-
-  function updateModule(moduleId: string, field: keyof Omit<ModuleDraft, 'id'>, value: string) {
-    setModules((current) =>
-      current.map((module) => (module.id === moduleId ? { ...module, [field]: value } : module))
-    )
-  }
-
-  function addModule() {
-    resizeModules(modules.length + 1)
-  }
-
-  function removeModule(moduleId: string) {
-    setModules((current) => (current.length > 1 ? current.filter((module) => module.id !== moduleId) : current))
-  }
-
-  function updateLesson(lessonId: string, field: keyof Omit<LessonDraft, 'id'>, value: string | boolean) {
-    setLessons((current) =>
-      current.map((lesson) => (lesson.id === lessonId ? { ...lesson, [field]: value } : lesson))
-    )
-  }
-
-  function addLesson() {
-    resizeLessons(lessons.length + 1)
-  }
-
-  function removeLesson(lessonId: string) {
-    setLessons((current) => (current.length > 1 ? current.filter((lesson) => lesson.id !== lessonId) : current))
-  }
-
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setSaving(true)
@@ -376,6 +451,8 @@ export function CompanyCourseEditorPage({ mode }: CompanyCourseEditorPageProps) 
         category,
         difficulty_level: courseLevel,
         estimated_hours: Number.isNaN(normalizedDuration) ? 0 : Math.max(0, normalizedDuration),
+        thumbnail_image: thumbnailImage.trim(),
+        thumbnail_alt_text: thumbnailAltText.trim(),
         status,
       }
 
@@ -394,16 +471,17 @@ export function CompanyCourseEditorPage({ mode }: CompanyCourseEditorPageProps) 
         })
       }
 
-      setCourseMediaOverride(savedCourse.course_id, savedCourse.title, {
-        thumbnailImage,
-        previewImage,
-        thumbnailAltText,
-      })
+      clearCourseMediaOverride(savedCourse.course_id, savedCourse.title)
 
       toast.success(mode === 'edit' ? 'Course updated successfully.' : 'Course created successfully.')
-      navigate('/company/courses')
+      navigate(mode === 'edit' ? '/company/courses' : `/company/courses/${savedCourse.course_id}/lessons`)
     } catch (saveError) {
-      const message = saveError instanceof ApiError ? saveError.message : 'Unable to save course.'
+      const message =
+        saveError instanceof ApiError
+          ? saveError.message
+          : saveError instanceof Error
+            ? saveError.message
+            : 'Unable to save course.'
       setError(message)
       toast.error(message)
     } finally {
@@ -435,535 +513,605 @@ export function CompanyCourseEditorPage({ mode }: CompanyCourseEditorPageProps) 
     }
   }
 
-  if (loading) {
-    return <section className="page"><div className="card">Loading course…</div></section>
+  if (loading || loadingLessons) {
+    return (
+      <div className="min-h-screen bg-slate-50 p-4 dark:bg-slate-950 lg:p-6">
+        <div className={editorCardClassName}>
+          <div className="flex items-center justify-center py-20">
+            <div className="text-center">
+              <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600 dark:border-slate-800 dark:border-t-blue-400" />
+              <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">Loading course editor...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   if (mode === 'edit' && !selectedCourse) {
     return (
-      <section className="page">
-        <div className="card form-error">{error ?? 'Course was not found.'}</div>
-      </section>
+      <div className="min-h-screen bg-slate-50 p-4 dark:bg-slate-950 lg:p-6">
+        <div className="rounded-2xl border border-red-200 bg-red-50 px-6 py-6 text-sm text-red-800 dark:border-red-900 dark:bg-red-950 dark:text-red-200">
+          {error ?? 'Course was not found.'}
+        </div>
+      </div>
+    )
+  }
+
+  if (mode === 'edit' && selectedCourse && !canEditSelectedCourse) {
+    return (
+      <div className="space-y-6 px-4 py-6 md:px-6 lg:px-8">
+        <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+          <Link to="/company" className="transition-colors hover:text-foreground">
+            Dashboard
+          </Link>
+          <ChevronRight className="h-4 w-4" />
+          <Link to="/company/courses" className="transition-colors hover:text-foreground">
+            Courses
+          </Link>
+          <ChevronRight className="h-4 w-4" />
+          <span className="font-medium text-foreground">Edit course</span>
+        </div>
+
+        <div className="rounded-[28px] border border-red-200 bg-red-50 px-6 py-6 dark:border-red-900 dark:bg-red-950">
+          <h1 className="text-2xl font-bold text-red-900 dark:text-red-100">Course editing is not available</h1>
+          <p className="mt-2 text-sm text-red-800 dark:text-red-200">
+            Only courses created by your company can be edited or managed from this workspace.
+          </p>
+          <div className="mt-5">
+            <Link to="/company/courses" className="inline-flex items-center text-sm font-medium text-red-900 underline dark:text-red-100">
+              Back to courses
+            </Link>
+          </div>
+        </div>
+      </div>
     )
   }
 
   return (
-    <div className="space-y-6 px-4 py-6 md:px-6 lg:px-8">
-      <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-        <Link to="/company" className="transition-colors hover:text-foreground">
-          Dashboard
-        </Link>
-        <ChevronRight className="h-4 w-4" />
-        <Link to="/company/courses" className="transition-colors hover:text-foreground">
-          Courses
-        </Link>
-        <ChevronRight className="h-4 w-4" />
-        <span className="font-medium text-foreground">{mode === 'edit' ? 'Edit course' : 'Add course'}</span>
-      </div>
+    <div className="min-h-screen bg-slate-50 p-4 dark:bg-slate-950 lg:p-6">
+      <div className="space-y-6">
+        <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+          <Link to="/company" className="transition-colors hover:text-foreground">
+            Dashboard
+          </Link>
+          <ChevronRight className="h-4 w-4" />
+          <Link to="/company/courses" className="transition-colors hover:text-foreground">
+            Courses
+          </Link>
+          <ChevronRight className="h-4 w-4" />
+          <span className="font-medium text-foreground">{mode === 'edit' ? 'Edit course' : 'Create course'}</span>
+        </div>
 
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight md:text-4xl">{mode === 'edit' ? 'Edit course' : 'Add course'}</h1>
-        <p className="text-base text-muted-foreground">
-          Build out the course structure, media, pricing, lessons, and project details from one place.
-        </p>
-      </div>
-
-      {error ? <div className="card form-error">{error}</div> : null}
-
-      <div className="card stack-card">
-        <form className="space-y-8" onSubmit={handleSubmit}>
-          <section className="space-y-5 border border-border bg-muted/20 p-5">
-            <div className="space-y-1">
-              <h2 className="text-lg font-semibold text-foreground">1. Basic Course Information</h2>
-              <p className="text-sm text-muted-foreground">Core details for the course identity and catalog entry.</p>
-            </div>
-
-            <div className="grid gap-5 md:grid-cols-2">
-              <label className="space-y-2">
-                <span>Course title</span>
-                <input className={fieldClassName} value={title} onChange={(event) => setTitle(event.target.value)} required />
-              </label>
-              <label className="space-y-2">
-                <span>Slug</span>
-                <input
-                  className={fieldClassName}
-                  value={slug}
-                  onChange={(event) => {
-                    setSlugTouched(true)
-                    setSlug(event.target.value)
-                  }}
-                  placeholder="complete-frontend-engineering-master-course"
-                />
-              </label>
-            </div>
-
-            <label className="space-y-2">
-              <span>Short description</span>
-              <textarea
-                className={textAreaClassName}
-                rows={3}
-                value={shortDescription}
-                onChange={(event) => setShortDescription(event.target.value)}
-                placeholder="Short summary for course cards and previews."
-              />
-            </label>
-
-            <label className="space-y-2">
-              <span>Full description</span>
-              <textarea
-                className={textAreaClassName}
-                rows={6}
-                value={fullDescription}
-                onChange={(event) => setFullDescription(event.target.value)}
-                placeholder="Detailed course overview, outcomes, and expectations."
-              />
-            </label>
-
-            <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-              <label className="space-y-2">
-                <span>Course category</span>
-                <input className={fieldClassName} value={category} onChange={(event) => setCategory(event.target.value)} required />
-              </label>
-              <label className="space-y-2">
-                <span>Course level</span>
-                <select className={fieldClassName} value={courseLevel} onChange={(event) => setCourseLevel(event.target.value)}>
-                  <option value="">Select level</option>
-                  <option value="beginner">Beginner</option>
-                  <option value="intermediate">Intermediate</option>
-                  <option value="advanced">Advanced</option>
-                  <option value="beginner to advanced">Beginner to Advanced</option>
-                </select>
-              </label>
-              <label className="space-y-2">
-                <span>Language</span>
-                <input className={fieldClassName} value={language} onChange={(event) => setLanguage(event.target.value)} />
-              </label>
-              <label className="space-y-2">
-                <span>Course type</span>
-                <select className={fieldClassName} value={courseType} onChange={(event) => setCourseType(event.target.value as 'free' | 'premium')}>
-                  <option value="free">Free</option>
-                  <option value="premium">Premium</option>
-                </select>
-              </label>
-              <label className="space-y-2">
-                <span>Status</span>
-                <select className={fieldClassName} value={status} onChange={(event) => setStatus(event.target.value)} required>
-                  <option value="" disabled>
-                    Select status
-                  </option>
-                  <option value="draft">Draft</option>
-                  <option value="active">Published</option>
-                  <option value="inactive">Inactive</option>
-                </select>
-              </label>
-            </div>
-          </section>
-
-          <section className="space-y-5 border border-border bg-muted/20 p-5">
-            <div className="space-y-1">
-              <h2 className="text-lg font-semibold text-foreground">2. Thumbnail Upload</h2>
-              <p className="text-sm text-muted-foreground">Preview the course cover assets directly in the form.</p>
-            </div>
-
-            <div className="grid gap-5 xl:grid-cols-2">
-              <ImageUploadPanel
-                label="Thumbnail image"
-                image={thumbnailImage}
-                alt={thumbnailAltText || 'Thumbnail preview'}
-                isLoading={isReadingThumbnail}
-                onChange={(event) => void handleImageChange(event, setThumbnailImage, setIsReadingThumbnail)}
-                onRemove={() => setThumbnailImage('')}
-              />
-              <ImageUploadPanel
-                label="Preview image"
-                image={previewImage}
-                alt={thumbnailAltText || 'Preview image'}
-                isLoading={isReadingPreview}
-                onChange={(event) => void handleImageChange(event, setPreviewImage, setIsReadingPreview)}
-                onRemove={() => setPreviewImage('')}
-              />
-            </div>
-
-            <label className="space-y-2">
-              <span>Alt text</span>
-              <input
-                className={fieldClassName}
-                value={thumbnailAltText}
-                onChange={(event) => setThumbnailAltText(event.target.value)}
-                placeholder="Describe the course thumbnail for accessibility."
-              />
-            </label>
-          </section>
-
-          <section className="space-y-5 border border-border bg-muted/20 p-5">
-            <div className="space-y-1">
-              <h2 className="text-lg font-semibold text-foreground">3. Pricing</h2>
-              <p className="text-sm text-muted-foreground">Capture pricing details for future paid-course support.</p>
-            </div>
-
-            <div className="grid gap-5 md:grid-cols-2">
-              <label className="space-y-2">
-                <span>Price</span>
-                <input
-                  className={fieldClassName}
-                  type="number"
-                  min={0}
-                  step="0.01"
-                  value={price}
-                  onChange={(event) => setPrice(event.target.value)}
-                  placeholder="0.00"
-                  disabled={isFreeCourse}
-                />
-              </label>
-              <label className="space-y-2">
-                <span>Discount price</span>
-                <input
-                  className={fieldClassName}
-                  type="number"
-                  min={0}
-                  step="0.01"
-                  value={discountPrice}
-                  onChange={(event) => setDiscountPrice(event.target.value)}
-                  placeholder="0.00"
-                  disabled={isFreeCourse}
-                />
-              </label>
-            </div>
-
-            <div className="grid gap-3 md:grid-cols-2">
-              <label className="flex items-center gap-3 border border-border bg-background px-4 py-3 text-sm">
-                <input
-                  type="checkbox"
-                  checked={isFreeCourse}
-                  onChange={(event) => setIsFreeCourse(event.target.checked)}
-                />
-                <span>Is free course</span>
-              </label>
-              <label className="flex items-center gap-3 border border-border bg-background px-4 py-3 text-sm">
-                <input
-                  type="checkbox"
-                  checked={subscriptionRequired}
-                  onChange={(event) => setSubscriptionRequired(event.target.checked)}
-                />
-                <span>Subscription required</span>
-              </label>
-            </div>
-          </section>
-
-          <section className="space-y-5 border border-border bg-muted/20 p-5">
-            <div className="space-y-1">
-              <h2 className="text-lg font-semibold text-foreground">4. Course Content</h2>
-              <p className="text-sm text-muted-foreground">Track duration, totals, and included learning extras.</p>
-            </div>
-
-            <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-              <label className="space-y-2">
-                <span>Total duration (hours)</span>
-                <input
-                  className={fieldClassName}
-                  type="number"
-                  min={0}
-                  value={totalDuration}
-                  onChange={(event) => setTotalDuration(event.target.value)}
-                  placeholder="24"
-                />
-              </label>
-              <label className="space-y-2">
-                <span>Total modules</span>
-                <input
-                  className={fieldClassName}
-                  type="number"
-                  min={1}
-                  value={String(modules.length)}
-                  onChange={(event) => {
-                    const nextValue = Number.parseInt(event.target.value, 10)
-                    if (!Number.isNaN(nextValue)) {
-                      resizeModules(nextValue)
-                    }
-                  }}
-                />
-              </label>
-              <label className="space-y-2">
-                <span>Total lessons</span>
-                <input
-                  className={fieldClassName}
-                  type="number"
-                  min={1}
-                  value={String(lessons.length)}
-                  onChange={(event) => {
-                    const nextValue = Number.parseInt(event.target.value, 10)
-                    if (!Number.isNaN(nextValue)) {
-                      resizeLessons(nextValue)
-                    }
-                  }}
-                />
-              </label>
-            </div>
-
-            <div className="grid gap-3 md:grid-cols-3">
-              <label className="flex items-center gap-3 border border-border bg-background px-4 py-3 text-sm">
-                <input
-                  type="checkbox"
-                  checked={certificateAvailable}
-                  onChange={(event) => setCertificateAvailable(event.target.checked)}
-                />
-                <span>Certificate available</span>
-              </label>
-              <label className="flex items-center gap-3 border border-border bg-background px-4 py-3 text-sm">
-                <input
-                  type="checkbox"
-                  checked={interviewPrepIncluded}
-                  onChange={(event) => setInterviewPrepIncluded(event.target.checked)}
-                />
-                <span>Interview prep included</span>
-              </label>
-              <label className="flex items-center gap-3 border border-border bg-background px-4 py-3 text-sm">
-                <input
-                  type="checkbox"
-                  checked={capstoneProjectIncluded}
-                  onChange={(event) => setCapstoneProjectIncluded(event.target.checked)}
-                />
-                <span>Capstone project included</span>
-              </label>
-            </div>
-          </section>
-
-          <section className="space-y-5 border border-border bg-muted/20 p-5">
-            <div className="space-y-1">
-              <h2 className="text-lg font-semibold text-foreground">5. Technologies</h2>
-              <p className="text-sm text-muted-foreground">Select the technologies covered by the course.</p>
-            </div>
-
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-              {supportedTechnologies.map((technology) => {
-                const isSelected = selectedTechnologies.includes(technology)
-
-                return (
-                  <button
-                    key={technology}
-                    type="button"
-                    onClick={() => toggleTechnology(technology)}
-                    className={
-                      isSelected
-                        ? 'border border-primary bg-primary px-4 py-3 text-sm font-medium text-primary-foreground'
-                        : 'border border-border bg-background px-4 py-3 text-sm font-medium text-foreground hover:border-primary/40'
-                    }
-                  >
-                    {technology}
-                  </button>
-                )
-              })}
-            </div>
-          </section>
-
-          <section className="space-y-5 border border-border bg-muted/20 p-5">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="space-y-1">
-                <h2 className="text-lg font-semibold text-foreground">6. Modules</h2>
-                <p className="text-sm text-muted-foreground">Outline the course modules and the order students should follow.</p>
+        <form className="space-y-6" onSubmit={handleSubmit}>
+          <main className={editorCardClassName}>
+            {error ? (
+              <div className="mb-6 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-800 dark:border-red-900 dark:bg-red-950 dark:text-red-200">
+                {error}
               </div>
-              <button type="button" onClick={addModule} className="secondary-button inline-button">
-                Add module
-              </button>
-            </div>
+            ) : null}
 
-            <div className="space-y-4">
-              {modules.map((module, index) => (
-                <div key={module.id} className="space-y-4 border border-border bg-background p-4">
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <h3 className="text-sm font-semibold text-foreground">Module {index + 1}</h3>
-                    {modules.length > 1 ? (
-                      <button type="button" onClick={() => removeModule(module.id)} className="secondary-button inline-button">
-                        Remove
-                      </button>
-                    ) : null}
+            <section className="mb-8 grid grid-cols-1 gap-8 lg:grid-cols-[320px_minmax(0,1fr)]">
+              <div className="h-52 overflow-hidden rounded-xl bg-slate-950 shadow">
+                {thumbnailImage ? (
+                  <img
+                    src={thumbnailImage}
+                    alt={thumbnailAltText || `${previewTitle} cover`}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-full items-center justify-center bg-gradient-to-br from-slate-950 via-slate-900 to-blue-950 text-white">
+                    <div className="text-center">
+                      <div className="mb-3 text-6xl text-cyan-400">⚛</div>
+                      <h2 className="text-3xl font-bold">
+                        {previewTitle.split(' ').slice(0, 1).join(' ') || 'Course'}{' '}
+                        <span className="rounded bg-blue-600 px-2">
+                          {previewTitle.split(' ').slice(1, 2).join(' ') || 'Design'}
+                        </span>
+                      </h2>
+                      <p className="mt-1 text-xl">{previewTitle.split(' ').slice(2).join(' ') || 'Blueprint'}</p>
+                    </div>
                   </div>
+                )}
+              </div>
 
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <label className="space-y-2">
-                      <span>Module title</span>
-                      <input className={fieldClassName} value={module.title} onChange={(event) => updateModule(module.id, 'title', event.target.value)} />
-                    </label>
-                    <label className="space-y-2">
-                      <span>Module order</span>
-                      <input className={fieldClassName} value={module.order} onChange={(event) => updateModule(module.id, 'order', event.target.value)} />
-                    </label>
-                  </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-blue-600">
+                  Build course preview
+                </p>
+                <h1 className="mt-3 text-3xl font-bold text-slate-900 lg:text-4xl dark:text-slate-100">
+                  {previewTitle}
+                </h1>
+                <p className="mt-3 max-w-2xl leading-7 text-slate-500 dark:text-slate-400">{previewDescription}</p>
 
-                  <label className="space-y-2">
-                    <span>Module description</span>
-                    <textarea
-                      className={textAreaClassName}
-                      rows={4}
-                      value={module.description}
-                      onChange={(event) => updateModule(module.id, 'description', event.target.value)}
-                    />
-                  </label>
-
-                  <label className="space-y-2">
-                    <span>Module duration</span>
-                    <input className={fieldClassName} value={module.duration} onChange={(event) => updateModule(module.id, 'duration', event.target.value)} />
-                  </label>
+                  <div className="mt-5 flex flex-wrap items-center gap-5 text-sm text-slate-600 dark:text-slate-300">
+                    <span className="flex items-center gap-2">
+                      <Star className="h-4 w-4 fill-current text-amber-400" />
+                      <span className="text-slate-900 dark:text-slate-100">No ratings yet</span>
+                    </span>
+                    <span className="flex items-center gap-2">
+                      <Users className="h-4 w-4 text-slate-400 dark:text-slate-500" />
+                      {formatCompactNumber(learnerCount)} learners
+                    </span>
+                  <span className="flex items-center gap-2">
+                    <Clock3 className="h-4 w-4 text-slate-400 dark:text-slate-500" />
+                    {formatDuration(estimatedHours)}
+                  </span>
                 </div>
-              ))}
-            </div>
-          </section>
 
-          <section className="space-y-5 border border-border bg-muted/20 p-5">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="space-y-1">
-                <h2 className="text-lg font-semibold text-foreground">7. Lessons</h2>
-                <p className="text-sm text-muted-foreground">Prepare the lessons that will live inside the selected modules.</p>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {courseTags.length > 0 ? (
+                    courseTags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="rounded-md bg-slate-100 px-3 py-1 text-sm text-slate-600 dark:bg-slate-900 dark:text-slate-300"
+                      >
+                        {tag}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="rounded-md bg-slate-100 px-3 py-1 text-sm text-slate-600 dark:bg-slate-900 dark:text-slate-300">
+                      Add category, level, and format details
+                    </span>
+                  )}
+                </div>
+
+                <div className="mt-6 flex flex-wrap gap-4">
+                  <Button type="submit" className="rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white shadow-sm hover:bg-blue-700 hover:text-white" disabled={saving}>
+                    <PlayCircle className="mr-2 h-4 w-4" />
+                    {saving ? 'Saving…' : mode === 'edit' ? 'Update course' : 'Create course'}
+                  </Button>
+                  <Button type="button" variant="outline" className="rounded-xl border-slate-200 px-6 py-3 font-semibold text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900" onClick={() => navigate('/company/courses')}>
+                    Back to courses
+                  </Button>
+                  {mode === 'edit' && courseId ? (
+                    <Button type="button" variant="outline" className="rounded-xl border-slate-200 px-6 py-3 font-semibold text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900" onClick={() => navigate(`/company/courses/${courseId}/lessons`)}>
+                      Lessons
+                    </Button>
+                  ) : null}
+                </div>
               </div>
-              <button type="button" onClick={addLesson} className="secondary-button inline-button">
-                Add lesson
-              </button>
-            </div>
+            </section>
 
-            <div className="space-y-4">
-              {lessons.map((lesson, index) => (
-                <div key={lesson.id} className="space-y-4 border border-border bg-background p-4">
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <h3 className="text-sm font-semibold text-foreground">Lesson {index + 1}</h3>
-                    {lessons.length > 1 ? (
-                      <button type="button" onClick={() => removeLesson(lesson.id)} className="secondary-button inline-button">
-                        Remove
-                      </button>
-                    ) : null}
+            <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
+              <div className="space-y-6">
+                <section className={editorCardClassName}>
+                  <div className="mb-5 space-y-1">
+                    <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">Course story</h2>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                      Start from the same course-detail structure learners will experience in the catalog and preview flow.
+                    </p>
                   </div>
 
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <label className="space-y-2">
-                      <span>Lesson title</span>
-                      <input className={fieldClassName} value={lesson.title} onChange={(event) => updateLesson(lesson.id, 'title', event.target.value)} />
-                    </label>
-                    <label className="space-y-2">
-                      <span>Lesson type</span>
-                      <select className={fieldClassName} value={lesson.type} onChange={(event) => updateLesson(lesson.id, 'type', event.target.value)}>
-                        <option value="video">Video</option>
-                        <option value="article">Article</option>
-                        <option value="quiz">Quiz</option>
-                        <option value="project">Project</option>
-                        <option value="external-link">External Link</option>
-                      </select>
-                    </label>
-                  </div>
-
-                  <label className="space-y-2">
-                    <span>Lesson description</span>
-                    <textarea
-                      className={textAreaClassName}
-                      rows={3}
-                      value={lesson.description}
-                      onChange={(event) => updateLesson(lesson.id, 'description', event.target.value)}
+                  <div className="mb-5 space-y-5">
+                    <ImageUploadPanel
+                      label="Thumbnail image"
+                      image={thumbnailImage}
+                      alt={thumbnailAltText || 'Thumbnail preview'}
+                      isLoading={isReadingThumbnail}
+                      onChange={(event) => void handleImageChange(event, setThumbnailImage, setIsReadingThumbnail)}
+                      onRemove={() => setThumbnailImage('')}
                     />
-                  </label>
 
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <label className="space-y-2">
-                      <span>Video URL</span>
-                      <input className={fieldClassName} value={lesson.videoUrl} onChange={(event) => updateLesson(lesson.id, 'videoUrl', event.target.value)} />
-                    </label>
-                    <label className="space-y-2">
-                      <span>External resource URL</span>
+                    <label className="block space-y-2">
+                      <span className="text-sm font-medium text-foreground">Alt text</span>
                       <input
                         className={fieldClassName}
-                        value={lesson.externalResourceUrl}
-                        onChange={(event) => updateLesson(lesson.id, 'externalResourceUrl', event.target.value)}
+                        value={thumbnailAltText}
+                        onChange={(event) => setThumbnailAltText(event.target.value)}
+                        placeholder="Describe the course thumbnail for accessibility."
+                      />
+                    </label>
+                  </div>
+
+                  <div className="grid gap-5 md:grid-cols-2">
+                    <label className="space-y-2">
+                      <span className="text-sm font-medium text-foreground">Course title</span>
+                      <input className={fieldClassName} value={title} onChange={(event) => setTitle(event.target.value)} required />
+                    </label>
+                    <label className="space-y-2">
+                      <span className="text-sm font-medium text-foreground">Slug</span>
+                      <input
+                        className={fieldClassName}
+                        value={slug}
+                        onChange={(event) => {
+                          setSlugTouched(true)
+                          setSlug(event.target.value)
+                        }}
+                        placeholder="complete-frontend-engineering-master-course"
+                      />
+                    </label>
+                  </div>
+
+                  <div className="mt-5 space-y-5">
+                    <label className="space-y-2">
+                      <span className="text-sm font-medium text-foreground">Short description</span>
+                      <textarea
+                        className={textAreaClassName}
+                        rows={3}
+                        value={shortDescription}
+                        onChange={(event) => setShortDescription(event.target.value)}
+                        placeholder="Short summary for course cards and previews."
+                      />
+                    </label>
+
+                    <label className="space-y-2">
+                      <span className="text-sm font-medium text-foreground">Full description</span>
+                      <textarea
+                        className={textAreaClassName}
+                        rows={6}
+                        value={fullDescription}
+                        onChange={(event) => setFullDescription(event.target.value)}
+                        placeholder="Detailed course overview, outcomes, and expectations."
+                      />
+                    </label>
+                  </div>
+                </section>
+
+                <section className={editorCardClassName}>
+                  <div className="mb-5 space-y-1">
+                    <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">Catalog positioning</h2>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                      Define the metadata that powers the course card, filters, and detail hero.
+                    </p>
+                  </div>
+
+                  <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+                    <label className="space-y-2">
+                      <span className="text-sm font-medium text-foreground">Course category</span>
+                      <input className={fieldClassName} value={category} onChange={(event) => setCategory(event.target.value)} required />
+                    </label>
+                    <label className="space-y-2">
+                      <span className="text-sm font-medium text-foreground">Course level</span>
+                      <select className={fieldClassName} value={courseLevel} onChange={(event) => setCourseLevel(event.target.value)}>
+                        <option value="">Select level</option>
+                        <option value="beginner">Beginner</option>
+                        <option value="intermediate">Intermediate</option>
+                        <option value="advanced">Advanced</option>
+                        <option value="beginner to advanced">Beginner to Advanced</option>
+                      </select>
+                    </label>
+                    <label className="space-y-2">
+                      <span className="text-sm font-medium text-foreground">Language</span>
+                      <input className={fieldClassName} value={language} onChange={(event) => setLanguage(event.target.value)} />
+                    </label>
+                    <label className="space-y-2">
+                      <span className="text-sm font-medium text-foreground">Course type</span>
+                      <select className={fieldClassName} value={courseType} onChange={(event) => setCourseType(event.target.value as 'free' | 'premium')}>
+                        <option value="free">Free</option>
+                        <option value="premium">Premium</option>
+                      </select>
+                    </label>
+                    <label className="space-y-2">
+                      <span className="text-sm font-medium text-foreground">Status</span>
+                      <select className={fieldClassName} value={status} onChange={(event) => setStatus(event.target.value)} required>
+                        <option value="" disabled>
+                          Select status
+                        </option>
+                        <option value="draft">Draft</option>
+                        <option value="active">Published</option>
+                        <option value="inactive">Inactive</option>
+                      </select>
+                    </label>
+                    <label className="space-y-2">
+                      <span className="text-sm font-medium text-foreground">Total duration (hours)</span>
+                      <input
+                        className={fieldClassName}
+                        type="number"
+                        min={0}
+                        value={totalDuration}
+                        onChange={(event) => setTotalDuration(event.target.value)}
+                        placeholder="24"
+                      />
+                    </label>
+                  </div>
+                </section>
+
+                <section className={editorCardClassName}>
+                  <div className="mb-5 space-y-1">
+                    <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">Pricing and learner value</h2>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                      Capture the commercial and learner-facing signals that strengthen the course offer.
+                    </p>
+                  </div>
+
+                  <div className="grid gap-5 md:grid-cols-2">
+                    <label className="space-y-2">
+                      <span className="text-sm font-medium text-foreground">Price</span>
+                      <input
+                        className={fieldClassName}
+                        type="number"
+                        min={0}
+                        step="0.01"
+                        value={price}
+                        onChange={(event) => setPrice(event.target.value)}
+                        placeholder="0.00"
+                        disabled={isFreeCourse}
                       />
                     </label>
                     <label className="space-y-2">
-                      <span>Duration</span>
-                      <input className={fieldClassName} value={lesson.duration} onChange={(event) => updateLesson(lesson.id, 'duration', event.target.value)} />
-                    </label>
-                    <label className="space-y-2">
-                      <span>Lesson order</span>
-                      <input className={fieldClassName} value={lesson.order} onChange={(event) => updateLesson(lesson.id, 'order', event.target.value)} />
+                      <span className="text-sm font-medium text-foreground">Discount price</span>
+                      <input
+                        className={fieldClassName}
+                        type="number"
+                        min={0}
+                        step="0.01"
+                        value={discountPrice}
+                        onChange={(event) => setDiscountPrice(event.target.value)}
+                        placeholder="0.00"
+                        disabled={isFreeCourse}
+                      />
                     </label>
                   </div>
 
-                  <label className="space-y-2">
-                    <span>Lesson content</span>
+                  <div className="mt-5 grid gap-3 md:grid-cols-2">
+                    <label className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm dark:border-slate-800 dark:bg-slate-900/50">
+                      <input type="checkbox" checked={isFreeCourse} onChange={(event) => setIsFreeCourse(event.target.checked)} />
+                      <span>Is free course</span>
+                    </label>
+                    <label className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm dark:border-slate-800 dark:bg-slate-900/50">
+                      <input
+                        type="checkbox"
+                        checked={subscriptionRequired}
+                        onChange={(event) => setSubscriptionRequired(event.target.checked)}
+                      />
+                      <span>Subscription required</span>
+                    </label>
+                    <label className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm dark:border-slate-800 dark:bg-slate-900/50">
+                      <input
+                        type="checkbox"
+                        checked={certificateAvailable}
+                        onChange={(event) => setCertificateAvailable(event.target.checked)}
+                      />
+                      <span>Certificate available</span>
+                    </label>
+                    <label className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm dark:border-slate-800 dark:bg-slate-900/50">
+                      <input
+                        type="checkbox"
+                        checked={interviewPrepIncluded}
+                        onChange={(event) => setInterviewPrepIncluded(event.target.checked)}
+                      />
+                      <span>Interview prep included</span>
+                    </label>
+                    <label className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm dark:border-slate-800 dark:bg-slate-900/50 md:col-span-2">
+                      <input
+                        type="checkbox"
+                        checked={capstoneProjectIncluded}
+                        onChange={(event) => setCapstoneProjectIncluded(event.target.checked)}
+                      />
+                      <span>Capstone project included</span>
+                    </label>
+                  </div>
+
+                  <div className="mt-5 space-y-3">
+                    <p className="text-sm font-medium text-foreground">Technologies covered</p>
+                    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+                      {supportedTechnologies.map((technology) => {
+                        const isSelected = selectedTechnologies.includes(technology)
+
+                        return (
+                          <button
+                            key={technology}
+                            type="button"
+                            onClick={() => toggleTechnology(technology)}
+                            className={cn(
+                              'rounded-xl border px-4 py-3 text-sm font-medium transition-colors',
+                              isSelected
+                                ? 'border-blue-600 bg-blue-600 text-white'
+                                : 'border-slate-200 bg-slate-50 text-slate-700 hover:border-blue-300 dark:border-slate-800 dark:bg-slate-900/50 dark:text-slate-200',
+                            )}
+                          >
+                            {technology}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                </section>
+
+                <section className={editorCardClassName}>
+                  <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+                    <div className="space-y-1">
+                      <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">Lesson studio handoff</h2>
+                      <p className="text-sm text-slate-500 dark:text-slate-400">
+                        Keep this page focused on course story and preview setup. Add and manage lessons in the dedicated lesson studio.
+                      </p>
+                    </div>
+                    {mode === 'edit' && courseId ? (
+                      <Button type="button" variant="outline" asChild>
+                        <Link to={`/company/courses/${courseId}/lessons`}>
+                          Open lesson studio
+                          <ArrowRight className="ml-2 h-4 w-4" />
+                        </Link>
+                      </Button>
+                    ) : null}
+                  </div>
+
+                  <div className="grid gap-4 md:grid-cols-3">
+                    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900/50">
+                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Lessons ready</p>
+                      <p className="mt-2 text-2xl font-bold text-slate-900 dark:text-slate-100">{populatedLessonCount}</p>
+                      <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                        {mode === 'edit' ? 'Current lesson count loaded from the lesson studio.' : 'Save the course first to start adding lessons.'}
+                      </p>
+                    </div>
+                    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900/50">
+                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Transcripts</p>
+                      <p className="mt-2 text-2xl font-bold text-slate-900 dark:text-slate-100">{lessonsWithTranscriptCount}</p>
+                      <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                        Transcript coverage is tracked in the lesson studio and reflected in course preview stats here.
+                      </p>
+                    </div>
+                    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900/50">
+                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Next step</p>
+                      <p className="mt-2 text-sm font-semibold text-slate-900 dark:text-slate-100">
+                        {mode === 'edit' ? 'Refine lessons in the lesson studio.' : 'Create the course, then continue into lesson studio.'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="mt-5 rounded-2xl border border-dashed border-slate-300 px-5 py-4 text-sm text-slate-600 dark:border-slate-700 dark:text-slate-300">
+                    {mode === 'edit'
+                      ? 'Lesson titles still feed the learner preview on this page, but lesson content, transcripts, and ordering now live in the dedicated lesson studio only.'
+                      : 'After you create the course, you will be taken directly to the lesson studio to add lessons there.'}
+                  </div>
+                </section>
+
+                <section className={editorCardClassName}>
+                  <div className="mb-5 space-y-1">
+                    <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">Project / assignment</h2>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                      Capture the final proof-of-skill experience that closes the course.
+                    </p>
+                  </div>
+
+                  <div className="grid gap-5 md:grid-cols-2">
+                    <label className="space-y-2">
+                      <span className="text-sm font-medium text-foreground">Project title</span>
+                      <input className={fieldClassName} value={projectTitle} onChange={(event) => setProjectTitle(event.target.value)} />
+                    </label>
+                    <label className="space-y-2">
+                      <span className="text-sm font-medium text-foreground">Starter code URL</span>
+                      <input className={fieldClassName} value={starterCodeUrl} onChange={(event) => setStarterCodeUrl(event.target.value)} />
+                    </label>
+                  </div>
+
+                  <label className="mt-5 block space-y-2">
+                    <span className="text-sm font-medium text-foreground">Project description</span>
                     <textarea
                       className={textAreaClassName}
                       rows={5}
-                      value={lesson.content}
-                      onChange={(event) => updateLesson(lesson.id, 'content', event.target.value)}
+                      value={projectDescription}
+                      onChange={(event) => setProjectDescription(event.target.value)}
                     />
                   </label>
 
-                  <label className="flex items-center gap-3 border border-border px-4 py-3 text-sm">
+                  <label className="mt-5 flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm dark:border-slate-800 dark:bg-slate-900/50">
                     <input
                       type="checkbox"
-                      checked={lesson.isPreviewFree}
-                      onChange={(event) => updateLesson(lesson.id, 'isPreviewFree', event.target.checked)}
+                      checked={submissionRequired}
+                      onChange={(event) => setSubmissionRequired(event.target.checked)}
                     />
-                    <span>Is preview free</span>
+                    <span>Submission required</span>
                   </label>
+                </section>
+
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-sm text-slate-600 dark:border-slate-800 dark:bg-slate-900/50 dark:text-slate-300">
+                  Transcript fields are now included in each lesson editor. Current save behavior still persists the existing course fields supported by the API.
                 </div>
-              ))}
+              </div>
+
+              <aside className="space-y-6 xl:sticky xl:top-24 xl:self-start">
+                <section className={editorCardClassName}>
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">Course snapshot</h2>
+                      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                        Live summary of what learners will see on the course detail page.
+                      </p>
+                    </div>
+                    <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-blue-700 dark:bg-blue-950/50 dark:text-blue-300">
+                      {status ? formatLabel(status) : 'Draft'}
+                    </span>
+                  </div>
+
+                  <div className="mt-6 grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
+                    <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 dark:border-slate-800 dark:bg-slate-900/50">
+                      <div className="flex items-center gap-3">
+                        <Clock3 className="h-5 w-5 text-blue-600" />
+                        <div>
+                          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Duration</p>
+                          <p className="mt-1 text-sm font-semibold text-slate-900 dark:text-slate-100">{formatDuration(estimatedHours)}</p>
+                        </div>
+                      </div>
+                      </div>
+                      <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 dark:border-slate-800 dark:bg-slate-900/50">
+                        <div className="flex items-center gap-3">
+                          <FileText className="h-5 w-5 text-violet-600" />
+                          <div>
+                            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Transcripts</p>
+                            <p className="mt-1 text-sm font-semibold text-slate-900 dark:text-slate-100">{lessonsWithTranscriptCount} ready</p>
+                          </div>
+                        </div>
+                      </div>
+                    <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 dark:border-slate-800 dark:bg-slate-900/50">
+                      <div className="flex items-center gap-3">
+                        <BookOpen className="h-5 w-5 text-emerald-600" />
+                        <div>
+                          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Lessons</p>
+                          <p className="mt-1 text-sm font-semibold text-slate-900 dark:text-slate-100">{populatedLessonCount || lessons.length}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-6 space-y-3">
+                    <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">What learners get</p>
+                    <div className="space-y-3">
+                      {learningHighlights.length > 0 ? (
+                        learningHighlights.map((item) => (
+                          <p key={item} className="flex gap-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                            <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-blue-600 text-xs text-white">
+                              ✓
+                            </span>
+                            <span>{item}</span>
+                          </p>
+                        ))
+                      ) : (
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                          Add descriptions, technologies, transcripts, or lessons to build out the learner promise.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </section>
+
+                <section className={editorCardClassName}>
+                  <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">Publishing checklist</h2>
+                  <div className="mt-4 space-y-3 text-sm text-slate-600 dark:text-slate-300">
+                    <p className="flex items-center justify-between gap-3">
+                      <span>Title and description</span>
+                      <span className={title.trim() && (shortDescription.trim() || fullDescription.trim()) ? 'text-emerald-600' : 'text-slate-400'}>
+                        {title.trim() && (shortDescription.trim() || fullDescription.trim()) ? 'Ready' : 'Missing'}
+                      </span>
+                    </p>
+                    <p className="flex items-center justify-between gap-3">
+                      <span>Category and level</span>
+                      <span className={category.trim() && courseLevel.trim() ? 'text-emerald-600' : 'text-slate-400'}>
+                        {category.trim() && courseLevel.trim() ? 'Ready' : 'Missing'}
+                      </span>
+                    </p>
+                    <p className="flex items-center justify-between gap-3">
+                      <span>Cover media</span>
+                      <span className={thumbnailImage ? 'text-emerald-600' : 'text-slate-400'}>
+                        {thumbnailImage ? 'Ready' : 'Optional'}
+                      </span>
+                    </p>
+                    <p className="flex items-center justify-between gap-3">
+                      <span>Lesson outline</span>
+                      <span className={populatedLessonCount > 0 ? 'text-emerald-600' : 'text-slate-400'}>
+                        {populatedLessonCount > 0 ? 'Ready' : 'Draft'}
+                      </span>
+                    </p>
+                  </div>
+
+                  <div className="mt-6 flex flex-col gap-3">
+                    <Button type="submit" className="rounded-xl bg-blue-600 text-white hover:bg-blue-700 hover:text-white" disabled={saving}>
+                      {saving ? 'Saving…' : mode === 'edit' ? 'Update course' : 'Create course'}
+                    </Button>
+                    <Button type="button" variant="outline" className="rounded-xl" onClick={() => navigate('/company/courses')}>
+                      Back to courses
+                    </Button>
+                    {mode === 'edit' ? (
+                      <Button type="button" variant="destructive" className="rounded-xl" onClick={() => void handleRetire()} disabled={saving}>
+                        Retire
+                      </Button>
+                    ) : null}
+                  </div>
+                </section>
+              </aside>
             </div>
-          </section>
-
-          <section className="space-y-5 border border-border bg-muted/20 p-5">
-            <div className="space-y-1">
-              <h2 className="text-lg font-semibold text-foreground">8. Project / Assignment</h2>
-              <p className="text-sm text-muted-foreground">Capture the final project and submission expectations.</p>
-            </div>
-
-            <div className="grid gap-5 md:grid-cols-2">
-              <label className="space-y-2">
-                <span>Project title</span>
-                <input className={fieldClassName} value={projectTitle} onChange={(event) => setProjectTitle(event.target.value)} />
-              </label>
-              <label className="space-y-2">
-                <span>Starter code URL</span>
-                <input className={fieldClassName} value={starterCodeUrl} onChange={(event) => setStarterCodeUrl(event.target.value)} />
-              </label>
-            </div>
-
-            <label className="space-y-2">
-              <span>Project description</span>
-              <textarea
-                className={textAreaClassName}
-                rows={5}
-                value={projectDescription}
-                onChange={(event) => setProjectDescription(event.target.value)}
-              />
-            </label>
-
-            <label className="flex items-center gap-3 border border-border bg-background px-4 py-3 text-sm">
-              <input
-                type="checkbox"
-                checked={submissionRequired}
-                onChange={(event) => setSubmissionRequired(event.target.checked)}
-              />
-              <span>Submission required</span>
-            </label>
-          </section>
-
-          <div className="flex flex-wrap items-center gap-3 border border-border bg-muted/20 px-4 py-3 text-sm text-muted-foreground">
-            Frontend-only sections are ready in the form. Current save behavior still persists the existing course fields supported by the API.
-          </div>
-
-          <div className="actions">
-            <button className="primary-button inline-button" type="submit" disabled={saving}>
-              {saving ? 'Saving…' : mode === 'edit' ? 'Update course' : 'Create course'}
-            </button>
-            <Link className="secondary-button inline-button" to="/company/courses">
-              Back to courses
-            </Link>
-            {mode === 'edit' && courseId ? (
-              <Link className="secondary-button inline-button" to={`/company/courses/${courseId}/lessons`}>
-                Lessons
-              </Link>
-            ) : null}
-            {mode === 'edit' ? (
-              <button className="danger-button inline-button" type="button" onClick={() => void handleRetire()} disabled={saving}>
-                Retire
-              </button>
-            ) : null}
-          </div>
+          </main>
         </form>
       </div>
     </div>

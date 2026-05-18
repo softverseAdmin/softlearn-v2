@@ -11,9 +11,11 @@ import { NotificationsPage } from '../features/notifications/NotificationsPage'
 import { CompanyApplicationsPage } from '../features/profile/CompanyApplicationsPage'
 import { CompanyCandidateDetailPage } from '../features/profile/CompanyCandidateDetailPage'
 import { CompanyCandidatesPage } from '../features/profile/CompanyCandidatesPage'
-import { CompanyCourseCatalogPage } from '../features/profile/CompanyCourseCatalogPage'
+import { CompanyCourseCatalogPage, CompanyRetiredCoursesPage, CompanySavedCoursesPage } from '../features/profile/CompanyCourseCatalogPage'
 import { CompanyCourseEditorPage } from '../features/profile/CompanyCourseEditorPage'
 import { CompanyCourseLessonsPage } from '../features/profile/CompanyCourseLessonsPage'
+import { CompanyCoursePreviewDetailPage } from '../features/profile/CompanyCoursePreviewDetailPage'
+import { CompanyCoursePreviewLessonPage } from '../features/profile/CompanyCoursePreviewLessonPage'
 import { CompanyInterviewDetailPage } from '../features/profile/CompanyInterviewDetailPage'
 import { CompanyInterviewsPage } from '../features/profile/CompanyInterviewsPage'
 import { CompanyMessagesPage } from '../features/profile/CompanyMessagesPage'
@@ -23,7 +25,7 @@ import { CompanyShortlistPage } from '../features/profile/CompanyShortlistPage'
 import { CompanyVacancyMatchesPage } from '../features/profile/CompanyVacancyMatchesPage'
 import { CompanyVacanciesPage } from '../features/profile/CompanyVacanciesPage'
 import { StudentApplicationsPage } from '../features/profile/StudentApplicationsPage'
-import { StudentCourseCatalogPage, StudentWishlistedCoursesPage } from '../features/profile/StudentCourseCatalogPage'
+import { StudentCompletedCoursesPage, StudentCourseCatalogPage, StudentWishlistedCoursesPage } from '../features/profile/StudentCourseCatalogPage'
 import { StudentCourseDetailPage } from '../features/profile/StudentCourseDetailPage'
 import { StudentExamPage } from '../features/profile/StudentExamPage'
 import StudentExamResultsPage from '../features/profile/StudentExamResultsPage'
@@ -82,6 +84,7 @@ export function AppRouter() {
             <Route path="/student/skills" element={<StudentSkillsPage />} />
             <Route path="/student/courses" element={<StudentCourseCatalogPage />} />
             <Route path="/student/courses/wishlist" element={<StudentWishlistedCoursesPage />} />
+            <Route path="/student/courses/completed" element={<StudentCompletedCoursesPage />} />
             <Route path="/student/courses/:courseId" element={<StudentCourseDetailPage />} />
             <Route path="/student/courses/:courseId/lessons/:lessonId" element={<StudentLessonPage />} />
             <Route path="/student/jobs" element={<StudentJobsPage />} />
@@ -114,8 +117,12 @@ export function AppRouter() {
             <Route path="/company/messages" element={<CompanyMessagesPage />} />
             <Route path="/company/applications" element={<CompanyApplicationsPage />} />
             <Route path="/company/courses" element={<CompanyCourseCatalogPage />} />
+            <Route path="/company/courses/saved" element={<CompanySavedCoursesPage />} />
+            <Route path="/company/courses/retired" element={<CompanyRetiredCoursesPage />} />
             <Route path="/company/courses/new" element={<CompanyCourseEditorPage mode="create" />} />
             <Route path="/company/courses/:courseId/edit" element={<CompanyCourseEditorPage mode="edit" />} />
+            <Route path="/company/courses/:courseId/preview" element={<CompanyCoursePreviewDetailPage />} />
+            <Route path="/company/courses/:courseId/preview/lessons/:lessonId" element={<CompanyCoursePreviewLessonPage />} />
             <Route path="/company/courses/:courseId/lessons" element={<CompanyCourseLessonsPage />} />
             <Route path="/company/jobs" element={<CompanyPostJobsPage />} />
             <Route path="/company/profile" element={<CompanyProfilePage />} />

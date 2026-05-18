@@ -1,5 +1,6 @@
 import json
 from datetime import timedelta
+from unittest import mock
 
 from django.core.exceptions import ValidationError
 from django.test import Client, TestCase
@@ -14,6 +15,11 @@ from users.models import (
     Company,
     CompanyMember,
     Course,
+    CourseAssessment,
+    CourseAssessmentAttempt,
+    CourseAssessmentOption,
+    CourseAssessmentQuestion,
+    CourseReview,
     Exam,
     ExamAnswerOption,
     ExamAttempt,
@@ -1493,6 +1499,7 @@ class ApiFoundationTests(TestCase):
                     "title": "HTTP Basics",
                     "summary": "Learn request fundamentals.",
                     "content": "Lesson body",
+                    "transcript": "Request transcript body",
                     "video_url": "https://www.youtube.com/watch?v=IjS9eTpmhgk",
                     "sequence_number": 1,
                     "status": "draft",
@@ -1509,6 +1516,7 @@ class ApiFoundationTests(TestCase):
                     "title": "HTTP Basics Updated",
                     "summary": "Learn protected request fundamentals.",
                     "content": "Updated lesson body",
+                    "transcript": "Updated transcript body",
                     "video_url": "https://www.youtube.com/embed/IjS9eTpmhgk?si=BFiYXiVlYZL2QdTA",
                     "sequence_number": 2,
                     "status": "active",
@@ -1532,8 +1540,10 @@ class ApiFoundationTests(TestCase):
             update_response.json()["data"]["video_url"],
             "https://www.youtube.com/embed/IjS9eTpmhgk?si=BFiYXiVlYZL2QdTA",
         )
+        self.assertEqual(update_response.json()["data"]["transcript"], "Updated transcript body")
         lesson = Lesson.objects.get(pk=lesson_id)
         self.assertEqual(lesson.title, "HTTP Basics Updated")
+        self.assertEqual(lesson.transcript, "Updated transcript body")
         self.assertEqual(lesson.video_url, "https://www.youtube.com/embed/IjS9eTpmhgk?si=BFiYXiVlYZL2QdTA")
         self.assertEqual(lesson.sequence_number, 2)
         self.assertEqual(lesson.status, Lesson.Status.INACTIVE)
@@ -3643,13 +3653,27 @@ class ApiFoundationTests(TestCase):
             full_name="Student User",
             role=User.Role.STUDENT,
         )
+        company = Company.objects.create(
+            name="Softverse",
+            description="Technology company",
+            profile_image="data:image/png;base64,company-avatar",
+        )
+        company_user = User.objects.create_user(
+            email="company@example.com",
+            password="SecurePass123!",
+            full_name="Company User",
+            role=User.Role.COMPANY,
+            company=company,
+        )
         active_course = Course.objects.create(
-            title="Backend Foundations",
+            title="Company Owned Backend Foundations",
             description="Backend path",
             category="backend",
             difficulty_level="beginner",
             estimated_hours=12,
             status=Course.Status.ACTIVE,
+            company=company,
+            created_by=company_user,
         )
         Course.objects.create(
             title="Hidden Draft",
@@ -3669,6 +3693,10 @@ class ApiFoundationTests(TestCase):
         self.assertEqual(body["result_count"], 1)
         self.assertEqual(body["courses"][0]["course_id"], active_course.id)
         self.assertEqual(body["courses"][0]["detail_href"], f"/student/courses/{active_course.id}")
+        self.assertEqual(body["courses"][0]["company_name"], company.name)
+        self.assertEqual(body["courses"][0]["company_profile_image"], company.profile_image)
+        self.assertEqual(body["courses"][0]["created_by_name"], company_user.full_name)
+        self.assertEqual(body["courses"][0]["learning_record_count"], 0)
 
     def test_student_course_detail_includes_lessons_and_enrollment_state(self):
         student = User.objects.create_user(
@@ -3712,6 +3740,91 @@ class ApiFoundationTests(TestCase):
         self.assertEqual(len(body["lessons"]), 1)
         self.assertEqual(body["lessons"][0]["title"], "Intro")
         self.assertFalse(body["lessons"][0]["is_accessible"])
+
+    def test_student_course_detail_includes_review_summary_and_recent_reviews(self):
+        student = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        reviewer = User.objects.create_user(
+            email="reviewer@example.com",
+            password="SecurePass123!",
+            full_name="Second Student",
+            role=User.Role.STUDENT,
+        )
+        course = Course.objects.create(
+            title="Backend Foundations",
+            description="Backend path",
+            category="backend",
+            difficulty_level="beginner",
+            estimated_hours=12,
+            status=Course.Status.ACTIVE,
+        )
+        Lesson.objects.create(
+            course=course,
+            title="Intro",
+            summary="Start here",
+            content="Lesson content",
+            sequence_number=1,
+            status=Lesson.Status.ACTIVE,
+        )
+        CourseReview.objects.create(course=course, student=student, rating=5, review_text="Very practical.")
+        CourseReview.objects.create(course=course, student=reviewer, rating=4, review_text="Well structured.")
+
+        client = Client()
+        client.force_login(student)
+        response = client.get(f"/api/v1/student/courses/{course.id}")
+
+        self.assertEqual(response.status_code, 200)
+        body = response.json()["data"]
+        self.assertEqual(body["rating_count"], 2)
+        self.assertEqual(body["average_rating"], 4.5)
+        self.assertEqual(len(body["reviews"]), 2)
+        self.assertEqual(body["current_user_review"]["student_id"], student.id)
+        self.assertTrue(body["current_user_review"]["is_current_user"])
+
+    def test_student_course_list_includes_rating_summary(self):
+        student = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        reviewer = User.objects.create_user(
+            email="reviewer@example.com",
+            password="SecurePass123!",
+            full_name="Review Student",
+            role=User.Role.STUDENT,
+        )
+        course = Course.objects.create(
+            title="Backend Foundations",
+            description="Backend path",
+            category="backend",
+            difficulty_level="beginner",
+            estimated_hours=12,
+            status=Course.Status.ACTIVE,
+        )
+        Lesson.objects.create(
+            course=course,
+            title="Intro",
+            summary="Start here",
+            content="Lesson content",
+            sequence_number=1,
+            status=Lesson.Status.ACTIVE,
+        )
+        CourseReview.objects.create(course=course, student=student, rating=5, review_text="Excellent.")
+        CourseReview.objects.create(course=course, student=reviewer, rating=3, review_text="Helpful.")
+
+        client = Client()
+        client.force_login(student)
+        response = client.get("/api/v1/student/courses")
+
+        self.assertEqual(response.status_code, 200)
+        body = response.json()["data"]
+        self.assertEqual(body["courses"][0]["rating_count"], 2)
+        self.assertEqual(body["courses"][0]["average_rating"], 4.0)
 
     def test_student_course_enrollment_creates_single_learning_record(self):
         student = User.objects.create_user(
@@ -3759,12 +3872,103 @@ class ApiFoundationTests(TestCase):
         self.assertEqual(LearningRecord.objects.filter(student=student, course=course).count(), 1)
         self.assertEqual(LessonProgress.objects.filter(learning_record__student=student, lesson__course=course).count(), 1)
 
+    def test_student_course_review_create_and_update(self):
+        student = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        course = Course.objects.create(
+            title="Backend Foundations",
+            description="Backend path",
+            category="backend",
+            difficulty_level="beginner",
+            estimated_hours=12,
+            status=Course.Status.ACTIVE,
+        )
+        Lesson.objects.create(
+            course=course,
+            title="Intro",
+            summary="Start here",
+            content="Lesson content",
+            sequence_number=1,
+            status=Lesson.Status.ACTIVE,
+        )
+        LearningRecord.objects.create(
+            student=student,
+            course=course,
+            course_title=course.title,
+            category=course.category,
+            progress_percent=0,
+            status=LearningRecord.Status.IN_PROGRESS,
+        )
+
+        client, csrf_token = self.csrf_client()
+        client.force_login(student)
+        create_response = client.post(
+            f"/api/v1/student/courses/{course.id}/review",
+            data=json.dumps({"rating": 5, "review_text": "Very practical."}),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+        update_response = client.post(
+            f"/api/v1/student/courses/{course.id}/review",
+            data=json.dumps({"rating": 4, "review_text": "Updated feedback."}),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+
+        self.assertEqual(create_response.status_code, 201)
+        self.assertEqual(update_response.status_code, 200)
+        self.assertEqual(CourseReview.objects.filter(course=course, student=student).count(), 1)
+        review = CourseReview.objects.get(course=course, student=student)
+        self.assertEqual(review.rating, 4)
+        self.assertEqual(review.review_text, "Updated feedback.")
+        self.assertEqual(update_response.json()["data"]["average_rating"], 4.0)
+        self.assertEqual(update_response.json()["data"]["rating_count"], 1)
+
+    def test_student_course_review_requires_enrollment(self):
+        student = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        course = Course.objects.create(
+            title="Backend Foundations",
+            description="Backend path",
+            category="backend",
+            difficulty_level="beginner",
+            estimated_hours=12,
+            status=Course.Status.ACTIVE,
+        )
+
+        client, csrf_token = self.csrf_client()
+        client.force_login(student)
+        response = client.post(
+            f"/api/v1/student/courses/{course.id}/review",
+            data=json.dumps({"rating": 5, "review_text": "Great course."}),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+
+        self.assertEqual(response.status_code, 403)
+
     def test_student_course_detail_requires_active_course(self):
         student = User.objects.create_user(
             email="student@example.com",
             password="SecurePass123!",
             full_name="Student User",
             role=User.Role.STUDENT,
+        )
+        company = Company.objects.create(name="Softverse", description="Technology company")
+        company_user = User.objects.create_user(
+            email="company@example.com",
+            password="SecurePass123!",
+            full_name="Company User",
+            role=User.Role.COMPANY,
+            company=company,
         )
         active_course = Course.objects.create(
             title="Backend Foundations",
@@ -3773,6 +3977,8 @@ class ApiFoundationTests(TestCase):
             difficulty_level="beginner",
             estimated_hours=12,
             status=Course.Status.ACTIVE,
+            company=company,
+            created_by=company_user,
         )
         inactive_course = Course.objects.create(
             title="Retired Course",
@@ -3792,6 +3998,63 @@ class ApiFoundationTests(TestCase):
         self.assertEqual(active_response.status_code, 200)
         self.assertEqual(active_response.json()["data"]["course_id"], active_course.id)
         self.assertEqual(inactive_response.status_code, 404)
+
+    def test_active_company_lesson_publishes_draft_course_for_students(self):
+        company = Company.objects.create(name="Softverse", description="Technology company")
+        company_user = User.objects.create_user(
+            email="company@example.com",
+            password="SecurePass123!",
+            full_name="Company User",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+        student = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        course = Course.objects.create(
+            title="Company Owned Backend Foundations",
+            description="Backend path",
+            category="backend",
+            difficulty_level="beginner",
+            estimated_hours=12,
+            status=Course.Status.DRAFT,
+            company=company,
+            created_by=company_user,
+        )
+
+        company_client, csrf_token = self.csrf_client()
+        company_client.force_login(company_user)
+        create_lesson_response = company_client.post(
+            f"/api/v1/company/courses/{course.id}/lessons",
+            data=json.dumps(
+                {
+                    "title": "Intro",
+                    "summary": "Start here",
+                    "content": "Lesson content",
+                    "transcript": "",
+                    "video_url": "",
+                    "sequence_number": 1,
+                    "status": Lesson.Status.ACTIVE,
+                }
+            ),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+
+        self.assertEqual(create_lesson_response.status_code, 201)
+        course.refresh_from_db()
+        self.assertEqual(course.status, Course.Status.ACTIVE)
+
+        student_client = Client()
+        student_client.force_login(student)
+        student_courses_response = student_client.get("/api/v1/student/courses")
+
+        self.assertEqual(student_courses_response.status_code, 200)
+        self.assertEqual(student_courses_response.json()["data"]["result_count"], 1)
+        self.assertEqual(student_courses_response.json()["data"]["courses"][0]["course_id"], course.id)
 
     def test_student_must_enroll_before_viewing_lesson(self):
         student = User.objects.create_user(
@@ -3962,12 +4225,14 @@ class ApiFoundationTests(TestCase):
             company=company,
         )
         active_course = Course.objects.create(
-            title="Backend Foundations",
+            title="Company Owned Backend Foundations",
             description="Backend path",
             category="backend",
             difficulty_level="beginner",
             estimated_hours=12,
             status=Course.Status.ACTIVE,
+            company=company,
+            created_by=company_user,
         )
         Lesson.objects.create(
             course=active_course,
@@ -3993,9 +4258,17 @@ class ApiFoundationTests(TestCase):
         self.assertEqual(response.status_code, 200)
         body = response.json()["data"]
         self.assertEqual(len(body["courses"]), 2)
-        backend_course = next(course for course in body["courses"] if course["title"] == "Backend Foundations")
+        backend_course = next(course for course in body["courses"] if course["title"] == "Company Owned Backend Foundations")
         self.assertEqual(backend_course["lesson_count"], 1)
         self.assertEqual(backend_course["learning_record_count"], 0)
+        self.assertEqual(backend_course["company_id"], company.id)
+        self.assertEqual(backend_course["created_by_id"], company_user.id)
+        self.assertTrue(backend_course["can_edit"])
+        self.assertIsNone(backend_course["thumbnail_image"])
+        self.assertIsNone(backend_course["thumbnail_alt_text"])
+        shared_course = next(course for course in body["courses"] if course["title"] == "Hidden Draft Course")
+        self.assertIsNone(shared_course["company_id"])
+        self.assertFalse(shared_course["can_edit"])
 
     def test_company_user_can_create_update_and_retire_course(self):
         company = Company.objects.create(name="Softverse")
@@ -4018,6 +4291,8 @@ class ApiFoundationTests(TestCase):
                     "category": "security",
                     "difficulty_level": "beginner",
                     "estimated_hours": 6,
+                    "thumbnail_image": "data:image/png;base64,course-thumb",
+                    "thumbnail_alt_text": "Course thumbnail",
                     "status": "active",
                 }
             ),
@@ -4028,6 +4303,11 @@ class ApiFoundationTests(TestCase):
         self.assertEqual(create_response.status_code, 201)
         course_id = create_response.json()["data"]["course_id"]
         self.assertTrue(Course.objects.filter(pk=course_id, title="Company Auth Course").exists())
+        self.assertEqual(create_response.json()["data"]["company_id"], company.id)
+        self.assertEqual(create_response.json()["data"]["created_by_id"], company_user.id)
+        self.assertTrue(create_response.json()["data"]["can_edit"])
+        self.assertEqual(create_response.json()["data"]["thumbnail_image"], "data:image/png;base64,course-thumb")
+        self.assertEqual(create_response.json()["data"]["thumbnail_alt_text"], "Course thumbnail")
 
         update_response = client.put(
             f"/api/v1/company/courses/{course_id}",
@@ -4038,6 +4318,8 @@ class ApiFoundationTests(TestCase):
                     "category": "security",
                     "difficulty_level": "intermediate",
                     "estimated_hours": 8,
+                    "thumbnail_image": "data:image/png;base64,course-thumb-updated",
+                    "thumbnail_alt_text": "Updated course thumbnail",
                     "status": "draft",
                 }
             ),
@@ -4055,7 +4337,11 @@ class ApiFoundationTests(TestCase):
         course = Course.objects.get(pk=course_id)
         self.assertEqual(course.title, "Company Auth Course Updated")
         self.assertEqual(course.difficulty_level, "intermediate")
+        self.assertEqual(course.thumbnail_image, "data:image/png;base64,course-thumb-updated")
+        self.assertEqual(course.thumbnail_alt_text, "Updated course thumbnail")
         self.assertEqual(course.status, Course.Status.INACTIVE)
+        self.assertEqual(course.company, company)
+        self.assertEqual(course.created_by, company_user)
 
     def test_company_user_can_manage_course_lessons(self):
         company = Company.objects.create(name="Softverse")
@@ -4073,6 +4359,8 @@ class ApiFoundationTests(TestCase):
             difficulty_level="beginner",
             estimated_hours=10,
             status=Course.Status.ACTIVE,
+            company=company,
+            created_by=company_user,
         )
 
         client, csrf_token = self.csrf_client()
@@ -4084,6 +4372,7 @@ class ApiFoundationTests(TestCase):
                     "title": "Lesson One",
                     "summary": "Summary",
                     "content": "Content",
+                    "transcript": "Transcript",
                     "video_url": "https://www.youtube.com/watch?v=IjS9eTpmhgk",
                     "sequence_number": 1,
                     "status": "active",
@@ -4103,6 +4392,7 @@ class ApiFoundationTests(TestCase):
                     "title": "Lesson One Updated",
                     "summary": "Updated summary",
                     "content": "Updated content",
+                    "transcript": "Updated transcript",
                     "video_url": "https://www.youtube.com/embed/IjS9eTpmhgk?si=BFiYXiVlYZL2QdTA",
                     "sequence_number": 1,
                     "status": "draft",
@@ -4117,10 +4407,12 @@ class ApiFoundationTests(TestCase):
             update_response.json()["data"]["video_url"],
             "https://www.youtube.com/embed/IjS9eTpmhgk?si=BFiYXiVlYZL2QdTA",
         )
+        self.assertEqual(update_response.json()["data"]["transcript"], "Updated transcript")
 
         list_response = client.get(f"/api/v1/company/courses/{course.id}/lessons")
         self.assertEqual(list_response.status_code, 200)
         self.assertEqual(len(list_response.json()["data"]["lessons"]), 1)
+        self.assertEqual(list_response.json()["data"]["lessons"][0]["transcript"], "Updated transcript")
 
         retire_response = client.delete(
             f"/api/v1/company/lessons/{lesson_id}",
@@ -4129,8 +4421,447 @@ class ApiFoundationTests(TestCase):
         self.assertEqual(retire_response.status_code, 200)
         lesson = Lesson.objects.get(pk=lesson_id)
         self.assertEqual(lesson.title, "Lesson One Updated")
+        self.assertEqual(lesson.transcript, "Updated transcript")
         self.assertEqual(lesson.video_url, "https://www.youtube.com/embed/IjS9eTpmhgk?si=BFiYXiVlYZL2QdTA")
         self.assertEqual(lesson.status, Lesson.Status.INACTIVE)
+
+    @mock.patch("services.youtube_transcript.YouTubeTranscriptService.fetch_transcript_text")
+    def test_company_user_can_fetch_youtube_transcript(self, fetch_transcript_text_mock):
+        fetch_transcript_text_mock.return_value = "Hello world transcript"
+
+        company = Company.objects.create(name="Softverse")
+        company_user = User.objects.create_user(
+            email="company-transcript@example.com",
+            password="SecurePass123!",
+            full_name="Company Transcript User",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+
+        client, csrf_token = self.csrf_client()
+        client.force_login(company_user)
+        response = client.post(
+            "/api/v1/company/youtube-transcript",
+            data=json.dumps({"video_url": "https://www.youtube.com/watch?v=Tef1e9FiSR0"}),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["data"]["transcript"], "Hello world transcript")
+        fetch_transcript_text_mock.assert_called_once_with("https://www.youtube.com/watch?v=Tef1e9FiSR0")
+
+    @mock.patch("services.youtube_transcript.YouTubeTranscriptService.fetch_transcript_text")
+    def test_company_youtube_transcript_returns_service_error(self, fetch_transcript_text_mock):
+        from services.youtube_transcript import YouTubeTranscriptServiceError
+
+        fetch_transcript_text_mock.side_effect = YouTubeTranscriptServiceError("This YouTube video does not expose any transcript tracks.")
+
+        company = Company.objects.create(name="Softverse")
+        company_user = User.objects.create_user(
+            email="company-transcript-error@example.com",
+            password="SecurePass123!",
+            full_name="Company Transcript Error User",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+
+        client, csrf_token = self.csrf_client()
+        client.force_login(company_user)
+        response = client.post(
+            "/api/v1/company/youtube-transcript",
+            data=json.dumps({"video_url": "https://www.youtube.com/watch?v=Tef1e9FiSR0"}),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.json()["error"]["code"], "TRANSCRIPT_UNAVAILABLE")
+
+    def test_company_youtube_transcript_rejects_invalid_video_url(self):
+        company = Company.objects.create(name="Softverse")
+        company_user = User.objects.create_user(
+            email="company-transcript-invalid@example.com",
+            password="SecurePass123!",
+            full_name="Company Transcript Invalid User",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+
+        client, csrf_token = self.csrf_client()
+        client.force_login(company_user)
+        response = client.post(
+            "/api/v1/company/youtube-transcript",
+            data=json.dumps({"video_url": "https://example.com/video"}),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()["error"]["code"], "VALIDATION_ERROR")
+
+    def test_company_user_can_preview_shared_course_learning_flow(self):
+        company = Company.objects.create(name="Softverse")
+        other_company = Company.objects.create(name="Otherverse")
+        company_user = User.objects.create_user(
+            email="company-preview@example.com",
+            password="SecurePass123!",
+            full_name="Company Previewer",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+        other_company_user = User.objects.create_user(
+            email="other-company-preview-owner@example.com",
+            password="SecurePass123!",
+            full_name="Other Company Owner",
+            role=User.Role.COMPANY,
+            company=other_company,
+        )
+        course = Course.objects.create(
+            title="Previewable Platform Course",
+            description="A shared preview course.",
+            category="frontend",
+            difficulty_level="intermediate",
+            estimated_hours=5,
+            status=Course.Status.ACTIVE,
+            company=other_company,
+            created_by=other_company_user,
+        )
+        first_lesson = Lesson.objects.create(
+            course=course,
+            title="Lesson One",
+            summary="Step one",
+            content="Intro content",
+            sequence_number=1,
+            status=Lesson.Status.ACTIVE,
+        )
+        second_lesson = Lesson.objects.create(
+            course=course,
+            title="Lesson Two",
+            summary="Step two",
+            content="Advanced content",
+            sequence_number=2,
+            status=Lesson.Status.ACTIVE,
+        )
+        lesson_assessment = CourseAssessment.objects.create(
+            course=course,
+            lesson=first_lesson,
+            title="Lesson One Exam",
+            description="Check understanding.",
+            kind=CourseAssessment.Kind.LESSON,
+            passing_score_percent=90,
+            status=CourseAssessment.Status.ACTIVE,
+        )
+        lesson_question = CourseAssessmentQuestion.objects.create(
+            assessment=lesson_assessment,
+            prompt="Which option is correct?",
+            instructions="Choose one.",
+            question_type=CourseAssessmentQuestion.QuestionType.SINGLE_CHOICE,
+            sequence_number=1,
+            points=1,
+            status=CourseAssessmentQuestion.Status.ACTIVE,
+        )
+        correct_option = CourseAssessmentOption.objects.create(
+            question=lesson_question,
+            option_text="Correct",
+            sequence_number=1,
+            is_correct=True,
+            status=CourseAssessmentOption.Status.ACTIVE,
+        )
+        CourseAssessmentOption.objects.create(
+            question=lesson_question,
+            option_text="Incorrect",
+            sequence_number=2,
+            is_correct=False,
+            status=CourseAssessmentOption.Status.ACTIVE,
+        )
+        final_assessment = CourseAssessment.objects.create(
+            course=course,
+            title="Final Course Exam",
+            description="Finish the preview.",
+            kind=CourseAssessment.Kind.FINAL,
+            passing_score_percent=90,
+            status=CourseAssessment.Status.ACTIVE,
+        )
+        final_question = CourseAssessmentQuestion.objects.create(
+            assessment=final_assessment,
+            prompt="Final correct option?",
+            instructions="Choose one.",
+            question_type=CourseAssessmentQuestion.QuestionType.SINGLE_CHOICE,
+            sequence_number=1,
+            points=1,
+            status=CourseAssessmentQuestion.Status.ACTIVE,
+        )
+        final_correct_option = CourseAssessmentOption.objects.create(
+            question=final_question,
+            option_text="Correct",
+            sequence_number=1,
+            is_correct=True,
+            status=CourseAssessmentOption.Status.ACTIVE,
+        )
+        CourseAssessmentOption.objects.create(
+            question=final_question,
+            option_text="Incorrect",
+            sequence_number=2,
+            is_correct=False,
+            status=CourseAssessmentOption.Status.ACTIVE,
+        )
+
+        client, csrf_token = self.csrf_client()
+        client.force_login(company_user)
+
+        with mock.patch("services.gemini.GeminiExamGenerationService.is_available", return_value=False):
+            detail_response = client.get(f"/api/v1/company/courses/{course.id}/preview")
+            self.assertEqual(detail_response.status_code, 200)
+            detail_body = detail_response.json()["data"]
+            self.assertEqual(detail_body["next_step_label"], "Start preview")
+            self.assertEqual(len(detail_body["lessons"]), 2)
+            self.assertEqual(detail_body["lessons"][0]["detail_href"], f"/company/courses/{course.id}/preview/lessons/{first_lesson.id}")
+            self.assertEqual(detail_body["final_exam"]["assessment_id"], final_assessment.id)
+
+            lesson_detail_response = client.get(f"/api/v1/company/courses/{course.id}/preview/lessons/{second_lesson.id}")
+            self.assertEqual(lesson_detail_response.status_code, 200)
+            self.assertEqual(lesson_detail_response.json()["data"]["course_href"], f"/company/courses/{course.id}/preview")
+
+            lesson_exam_response = client.get(f"/api/v1/company/courses/{course.id}/preview/lessons/{first_lesson.id}/exam")
+            self.assertEqual(lesson_exam_response.status_code, 200)
+            lesson_exam_body = lesson_exam_response.json()["data"]
+            self.assertGreaterEqual(len(lesson_exam_body["questions"]), 1)
+
+            lesson_submit_response = client.post(
+                f"/api/v1/company/courses/{course.id}/preview/lessons/{first_lesson.id}/exam/submit",
+                data=json.dumps(
+                    {
+                        "answers": [
+                            {
+                                "question_id": question["question_id"],
+                                "selected_option_ids": [question["options"][0]["option_id"]],
+                            }
+                            for question in lesson_exam_body["questions"]
+                        ]
+                    }
+                ),
+                content_type="application/json",
+                HTTP_X_CSRFTOKEN=csrf_token,
+            )
+            self.assertEqual(lesson_submit_response.status_code, 201)
+            self.assertTrue(lesson_submit_response.json()["data"]["passed"])
+            self.assertEqual(lesson_submit_response.json()["data"]["attempt_id"], 0)
+
+            final_submit_response = client.post(
+                f"/api/v1/company/courses/{course.id}/preview/final-exam/submit",
+                data=json.dumps(
+                    {
+                        "answers": [
+                            {
+                                "question_id": final_question.id,
+                                "selected_option_ids": [final_correct_option.id],
+                            }
+                        ]
+                    }
+                ),
+                content_type="application/json",
+                HTTP_X_CSRFTOKEN=csrf_token,
+            )
+            self.assertEqual(final_submit_response.status_code, 201)
+            self.assertTrue(final_submit_response.json()["data"]["passed"])
+            self.assertTrue(final_submit_response.json()["data"]["course_completed"])
+            self.assertEqual(CourseAssessmentAttempt.objects.count(), 0)
+
+    def test_company_preview_includes_draft_lessons_for_company_authors(self):
+        company = Company.objects.create(name="Softverse")
+        company_user = User.objects.create_user(
+            email="company-draft-preview@example.com",
+            password="SecurePass123!",
+            full_name="Company Draft Previewer",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+        course = Course.objects.create(
+            title="Draft Company Course",
+            description="Still being prepared.",
+            category="frontend",
+            difficulty_level="beginner",
+            estimated_hours=3,
+            status=Course.Status.DRAFT,
+            company=company,
+            created_by=company_user,
+        )
+        lesson = Lesson.objects.create(
+            course=course,
+            title="Draft Lesson One",
+            summary="Preview this draft lesson",
+            content="Draft content",
+            sequence_number=1,
+            status=Lesson.Status.DRAFT,
+        )
+
+        client, csrf_token = self.csrf_client()
+        client.force_login(company_user)
+
+        with mock.patch("services.gemini.GeminiExamGenerationService.is_available", return_value=False):
+            detail_response = client.get(f"/api/v1/company/courses/{course.id}/preview")
+            self.assertEqual(detail_response.status_code, 200)
+            detail_body = detail_response.json()["data"]
+            self.assertEqual(len(detail_body["lessons"]), 1)
+            self.assertEqual(detail_body["lessons"][0]["lesson_id"], lesson.id)
+            self.assertEqual(detail_body["lessons"][0]["detail_href"], f"/company/courses/{course.id}/preview/lessons/{lesson.id}")
+            self.assertIsNotNone(detail_body["final_exam"])
+
+            lesson_detail_response = client.get(f"/api/v1/company/courses/{course.id}/preview/lessons/{lesson.id}")
+            self.assertEqual(lesson_detail_response.status_code, 200)
+            lesson_detail_body = lesson_detail_response.json()["data"]
+            self.assertEqual(lesson_detail_body["lesson_id"], lesson.id)
+            self.assertIsNotNone(lesson_detail_body["lesson_exam"])
+
+            lesson_exam_response = client.get(f"/api/v1/company/courses/{course.id}/preview/lessons/{lesson.id}/exam")
+            self.assertEqual(lesson_exam_response.status_code, 200)
+            lesson_exam_body = lesson_exam_response.json()["data"]
+            self.assertGreaterEqual(len(lesson_exam_body["questions"]), 1)
+
+            lesson_submit_response = client.post(
+                f"/api/v1/company/courses/{course.id}/preview/lessons/{lesson.id}/exam/submit",
+                data=json.dumps(
+                    {
+                        "answers": [
+                            {
+                                "question_id": question["question_id"],
+                                "selected_option_ids": [question["options"][0]["option_id"]],
+                            }
+                            for question in lesson_exam_body["questions"]
+                        ]
+                    }
+                ),
+                content_type="application/json",
+                HTTP_X_CSRFTOKEN=csrf_token,
+            )
+            self.assertEqual(lesson_submit_response.status_code, 201)
+            self.assertTrue(lesson_submit_response.json()["data"]["passed"])
+
+    def test_company_user_cannot_edit_other_company_course(self):
+        company = Company.objects.create(name="Softverse")
+        other_company = Company.objects.create(name="Otherverse")
+        company_user = User.objects.create_user(
+            email="company-course-viewer@example.com",
+            password="SecurePass123!",
+            full_name="Company Viewer",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+        other_company_user = User.objects.create_user(
+            email="other-company-course-owner@example.com",
+            password="SecurePass123!",
+            full_name="Other Company Owner",
+            role=User.Role.COMPANY,
+            company=other_company,
+        )
+        course = Course.objects.create(
+            title="Other Company Course",
+            description="Restricted",
+            category="backend",
+            difficulty_level="beginner",
+            estimated_hours=4,
+            status=Course.Status.ACTIVE,
+            company=other_company,
+            created_by=other_company_user,
+        )
+
+        client, csrf_token = self.csrf_client()
+        client.force_login(company_user)
+
+        update_response = client.put(
+            f"/api/v1/company/courses/{course.id}",
+            data=json.dumps(
+                {
+                    "title": "Updated Title",
+                    "description": "Restricted",
+                    "category": "backend",
+                    "difficulty_level": "beginner",
+                    "estimated_hours": 4,
+                    "status": "active",
+                }
+            ),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+
+        self.assertEqual(update_response.status_code, 403)
+        self.assertIn("course_id", update_response.json()["error"]["details"])
+
+    def test_company_user_cannot_manage_other_company_course_lessons(self):
+        company = Company.objects.create(name="Softverse")
+        other_company = Company.objects.create(name="Otherverse")
+        company_user = User.objects.create_user(
+            email="company-lessons-viewer@example.com",
+            password="SecurePass123!",
+            full_name="Company Viewer",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+        other_company_user = User.objects.create_user(
+            email="other-company-lessons-owner@example.com",
+            password="SecurePass123!",
+            full_name="Other Company Owner",
+            role=User.Role.COMPANY,
+            company=other_company,
+        )
+        course = Course.objects.create(
+            title="Other Company Course",
+            description="Restricted",
+            category="backend",
+            difficulty_level="beginner",
+            estimated_hours=4,
+            status=Course.Status.ACTIVE,
+            company=other_company,
+            created_by=other_company_user,
+        )
+        lesson = Lesson.objects.create(
+            course=course,
+            title="Locked Lesson",
+            summary="Restricted",
+            content="Restricted",
+            sequence_number=1,
+            status=Lesson.Status.ACTIVE,
+        )
+
+        client, csrf_token = self.csrf_client()
+        client.force_login(company_user)
+
+        create_response = client.post(
+            f"/api/v1/company/courses/{course.id}/lessons",
+            data=json.dumps(
+                {
+                    "title": "New Lesson",
+                    "summary": "Summary",
+                    "content": "Content",
+                    "video_url": "https://www.youtube.com/watch?v=IjS9eTpmhgk",
+                    "sequence_number": 2,
+                    "status": "active",
+                }
+            ),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+        update_response = client.put(
+            f"/api/v1/company/lessons/{lesson.id}",
+            data=json.dumps(
+                {
+                    "title": "Locked Lesson Updated",
+                    "summary": "Summary",
+                    "content": "Content",
+                    "video_url": "https://www.youtube.com/watch?v=IjS9eTpmhgk",
+                    "sequence_number": 1,
+                    "status": "active",
+                }
+            ),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+
+        self.assertEqual(create_response.status_code, 403)
+        self.assertIn("course_id", create_response.json()["error"]["details"])
+        self.assertEqual(update_response.status_code, 403)
+        self.assertIn("lesson_id", update_response.json()["error"]["details"])
 
     def test_company_user_cannot_enroll_in_student_course(self):
         company = Company.objects.create(name="Softverse")

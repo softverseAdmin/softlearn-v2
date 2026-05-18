@@ -17,27 +17,11 @@ import { useAuth } from '../../auth/useAuth'
 import { ApiError, apiRequest } from '../../lib/api'
 import type { CourseDetailResponse, CourseLessonSummary, StudentCourseEnrollmentResponse } from './types'
 import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
+import { cn, truncateText } from '@/lib/utils'
 import { getCourseMediaOverrideForCourse } from './courseMediaStorage'
+import { CourseReviewSection } from './CourseReviewSection'
 
 const favoriteStorageKey = 'student-course-favorites'
-const instructorNames = ['Ava Patel', 'Daniel Kim', 'Mina Sato', 'Noah Chen', 'Sophia Sharma', 'Leo Tan']
-const instructorRoles = [
-  'Senior Frontend Developer',
-  'React Engineer',
-  'Lead Web Instructor',
-  'Frontend Architect',
-  'Senior JavaScript Developer',
-  'UI Engineering Mentor',
-]
-const instructorBios = [
-  'Builds practical frontend learning paths focused on React fundamentals, reusable UI patterns, and project-based practice.',
-  'Helps learners turn JavaScript concepts into production-ready React interfaces with clean component design.',
-  'Focuses on beginner-friendly explanations, structured milestones, and real-world exercises that mirror team workflows.',
-  'Specializes in modern web apps, scalable component systems, and hands-on guidance for shipping polished features.',
-  'Teaches React, routing, state management, and frontend problem-solving with practical examples and career-oriented outcomes.',
-  'Supports students with clear walkthroughs, skill progression, and focused practice to build confidence in web development.',
-]
 
 const emptyDetail: CourseDetailResponse = {
   course_id: 0,
@@ -48,6 +32,9 @@ const emptyDetail: CourseDetailResponse = {
   estimated_hours: 0,
   status: 'active',
   lesson_count: 0,
+  learning_record_count: 0,
+  average_rating: null,
+  rating_count: 0,
   is_enrolled: false,
   enrollment_status: null,
   progress_percent: null,
@@ -55,6 +42,8 @@ const emptyDetail: CourseDetailResponse = {
   detail_href: '',
   next_step_label: '',
   next_step_href: '',
+  company_name: null,
+  created_by_name: null,
   enrollment: {
     is_enrolled: false,
     learning_record_id: null,
@@ -67,6 +56,8 @@ const emptyDetail: CourseDetailResponse = {
   lessons: [],
   final_exam: null,
   learning_outcomes: [],
+  reviews: [],
+  current_user_review: null,
 }
 
 const cardClassName = 'rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950'
@@ -130,21 +121,6 @@ function dedupeText(items: Array<string | null | undefined>) {
     seen.add(key)
     return true
   })
-}
-
-function buildCourseMeta(courseId: number) {
-  const index = courseId % instructorNames.length
-
-  return {
-    rating: (4.6 + ((courseId + 1) % 4) * 0.1).toFixed(1),
-    ratingCount: 1045 + ((courseId * 37) % 1200),
-    studentCount: 8240 + ((courseId * 113) % 24000),
-    instructorName: instructorNames[index],
-    instructorRole: instructorRoles[index],
-    instructorBio: instructorBios[index],
-    instructorCourseCount: 6 + (courseId % 5),
-    instructorStudentCount: 18350 + ((courseId * 79) % 22000),
-  }
 }
 
 function buildLearningHighlights(data: CourseDetailResponse) {
@@ -283,9 +259,9 @@ export function StudentCourseDetailPage() {
 
   const progressPercent = data.enrollment.progress_percent ?? data.progress_percent ?? 0
   const continueLesson = useMemo(() => getContinueLesson(data), [data])
-  const courseMeta = useMemo(() => buildCourseMeta(data.course_id), [data.course_id])
   const learningHighlights = useMemo(() => buildLearningHighlights(data), [data])
   const courseTags = useMemo(() => buildTags(data), [data])
+  const coursePreviewDescription = useMemo(() => truncateText(data.description, 160), [data.description])
   const mediaOverride = useMemo(
     () => (data.course_id ? getCourseMediaOverrideForCourse(data.course_id, data.title) : null),
     [data.course_id, data.title]
@@ -411,10 +387,10 @@ export function StudentCourseDetailPage() {
 
           <section className="mb-8 grid grid-cols-1 gap-8 lg:grid-cols-[320px_minmax(0,1fr)]">
             <div className="h-52 overflow-hidden rounded-xl bg-slate-950 shadow">
-              {mediaOverride?.thumbnailImage || mediaOverride?.previewImage ? (
+              {data.thumbnail_image || mediaOverride?.thumbnailImage || mediaOverride?.previewImage ? (
                 <img
-                  src={mediaOverride.thumbnailImage || mediaOverride.previewImage}
-                  alt={mediaOverride.thumbnailAltText || `${data.title} cover`}
+                  src={data.thumbnail_image || mediaOverride?.thumbnailImage || mediaOverride?.previewImage || ''}
+                  alt={data.thumbnail_alt_text || mediaOverride?.thumbnailAltText || `${data.title} cover`}
                   className="h-full w-full object-cover"
                 />
               ) : (
@@ -435,17 +411,24 @@ export function StudentCourseDetailPage() {
               <h1 className="text-3xl font-bold text-slate-900 lg:text-4xl dark:text-slate-100">{data.title || 'Course detail'}</h1>
 
               <p className="mt-3 max-w-2xl leading-7 text-slate-500 dark:text-slate-400">
-                {data.description || 'Learn step by step with practical lessons, guided progress, and project-focused outcomes.'}
+                {coursePreviewDescription || 'Learn step by step with practical lessons, guided progress, and project-focused outcomes.'}
               </p>
 
               <div className="mt-5 flex flex-wrap items-center gap-5 text-sm text-slate-600 dark:text-slate-300">
                 <span className="flex items-center gap-2">
                   <Star className="h-4 w-4 fill-current text-amber-400" />
-                  <b className="text-slate-900 dark:text-slate-100">{courseMeta.rating}</b> ({formatCompactNumber(courseMeta.ratingCount)} ratings)
+                  {data.average_rating !== null && data.rating_count > 0 ? (
+                    <>
+                      <b className="text-slate-900 dark:text-slate-100">{data.average_rating.toFixed(1)}</b> (
+                      {formatCompactNumber(data.rating_count)} ratings)
+                    </>
+                  ) : (
+                    <span className="text-slate-900 dark:text-slate-100">No ratings yet</span>
+                  )}
                 </span>
                 <span className="flex items-center gap-2">
                   <Users className="h-4 w-4 text-slate-400 dark:text-slate-500" />
-                  {formatCompactNumber(courseMeta.studentCount)} students
+                  {formatCompactNumber(data.learning_record_count)} learners
                 </span>
                 <span className="flex items-center gap-2">
                   <Clock3 className="h-4 w-4 text-slate-400 dark:text-slate-500" />
@@ -556,6 +539,14 @@ export function StudentCourseDetailPage() {
                 </p>
               ))}
             </div>
+          </section>
+
+          <section className={cn(cardClassName, 'mb-5')}>
+            <CourseReviewSection
+              course={data}
+              csrfToken={csrfToken}
+              onReviewSaved={() => loadCourse(true, false)}
+            />
           </section>
 
           <section className={cardClassName}>

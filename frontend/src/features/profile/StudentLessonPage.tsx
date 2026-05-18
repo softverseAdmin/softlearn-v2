@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { AlertCircle, ChevronLeft, ChevronRight, Lock, PlayCircle } from 'lucide-react'
 import { motion } from 'framer-motion'
 
@@ -16,7 +16,10 @@ import type {
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { MarkdownContent } from '@/components/markdown/MarkdownContent'
 import { containerVariants, itemVariants } from '../../lib/animations'
+import { truncateText } from '@/lib/utils'
+import { CourseReviewSection } from './CourseReviewSection'
 
 const emptyLesson: LessonDetailResponse = {
   lesson_id: 0,
@@ -49,6 +52,9 @@ const emptyCourseDetail: CourseDetailResponse = {
   estimated_hours: 0,
   status: 'active',
   lesson_count: 0,
+  learning_record_count: 0,
+  average_rating: null,
+  rating_count: 0,
   is_enrolled: false,
   enrollment_status: null,
   progress_percent: null,
@@ -56,6 +62,8 @@ const emptyCourseDetail: CourseDetailResponse = {
   detail_href: '',
   next_step_label: '',
   next_step_href: '',
+  company_name: null,
+  created_by_name: null,
   enrollment: {
     is_enrolled: false,
     learning_record_id: null,
@@ -68,6 +76,8 @@ const emptyCourseDetail: CourseDetailResponse = {
   lessons: [],
   final_exam: null,
   learning_outcomes: [],
+  reviews: [],
+  current_user_review: null,
 }
 
 const emptyAssessment: CourseAssessmentDetailResponse = {
@@ -82,10 +92,6 @@ const emptyAssessment: CourseAssessmentDetailResponse = {
   passed: false,
   questions: [],
 }
-
-type LessonContentBlock =
-  | { type: 'paragraph'; text: string }
-  | { type: 'list'; items: string[] }
 
 type AssessmentType = 'lesson' | 'final'
 
@@ -130,34 +136,6 @@ function getYouTubeEmbedUrl(videoUrl: string) {
   return null
 }
 
-function buildLessonContentBlocks(content: string): LessonContentBlock[] {
-  const sections = content
-    .split(/\n{2,}/)
-    .map((section) => section.trim())
-    .filter(Boolean)
-
-  if (sections.length === 0) {
-    return []
-  }
-
-  return sections.map((section) => {
-    const lines = section
-      .split('\n')
-      .map((line) => line.trim())
-      .filter(Boolean)
-
-    const listItems = lines
-      .filter((line) => line.startsWith('- ') || line.startsWith('* '))
-      .map((line) => line.slice(2).trim())
-
-    if (listItems.length === lines.length && listItems.length > 0) {
-      return { type: 'list', items: listItems }
-    }
-
-    return { type: 'paragraph', text: lines.join(' ') }
-  })
-}
-
 function getLessonState(summary: CourseLessonSummary, currentLessonId: number) {
   if (summary.lesson_id === currentLessonId) {
     return 'current'
@@ -180,6 +158,7 @@ function getLessonState(summary: CourseLessonSummary, currentLessonId: number) {
 
 export function StudentLessonPage() {
   const { courseId, lessonId } = useParams<{ courseId: string; lessonId: string }>()
+  const navigate = useNavigate()
   const { csrfToken } = useAuth()
   const [data, setData] = useState<LessonDetailResponse>(emptyLesson)
   const [courseDetail, setCourseDetail] = useState<CourseDetailResponse>(emptyCourseDetail)
@@ -311,6 +290,7 @@ export function StudentLessonPage() {
         csrfToken,
       })
       setAssessmentResult(response)
+      setAssessmentOpen(false)
       await loadPageData()
     } catch (error) {
       setAssessmentError(error instanceof ApiError ? error.message : 'Unable to submit exam.')
@@ -334,8 +314,8 @@ export function StudentLessonPage() {
   }, [courseDetail.enrollment.progress_percent, data.progress.status, data.sequence_number, data.total_lessons])
 
   const completedLessons = courseDetail.enrollment.completed_lesson_count
-  const lessonContentBlocks = useMemo(() => buildLessonContentBlocks(data.content), [data.content])
   const videoEmbedUrl = useMemo(() => getYouTubeEmbedUrl(data.video_url), [data.video_url])
+  const courseDescriptionPreview = useMemo(() => truncateText(courseDetail.description, 160), [courseDetail.description])
   const answeredAssessmentQuestions = useMemo(
     () => Object.values(assessmentSelections).filter((value) => value.length > 0).length,
     [assessmentSelections],
@@ -405,28 +385,25 @@ export function StudentLessonPage() {
                   <div>
                     <h1 className="text-3xl font-bold text-slate-900">{data.title || 'Lesson'}</h1>
                     <p className="mt-3 max-w-3xl text-slate-500">
-                      {data.summary || courseDetail.description || 'Continue through the lesson and track your course progress.'}
+                      {data.summary || courseDescriptionPreview || 'Continue through the lesson and track your course progress.'}
                     </p>
                   </div>
 
                   <div className="flex gap-3">
-                    <Button variant="outline" className="rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900" asChild>
-                      <Link
-                        to={data.previous_lesson_href || data.course_href || `/student/courses/${data.course_id}`}
-                        className="text-slate-600 hover:text-slate-900"
-                      >
+                    <Button
+                      variant="outline"
+                      className="rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                      onClick={() => navigate(data.previous_lesson_href || data.course_href || `/student/courses/${data.course_id}`)}
+                    >
                         <ChevronLeft className="h-4 w-4" />
                         {data.previous_lesson_href ? 'Previous' : 'Course'}
-                      </Link>
                     </Button>
-                    <Button className="rounded-xl px-6 !text-white hover:!text-white" asChild>
-                      <Link
-                        to={data.next_lesson_href || data.course_href || `/student/courses/${data.course_id}`}
-                        className="!text-white hover:!text-white"
-                      >
+                    <Button
+                      className="rounded-xl px-6 !text-white hover:!text-white"
+                      onClick={() => navigate(data.next_lesson_href || data.course_href || `/student/courses/${data.course_id}`)}
+                    >
                         <span className="text-white">{data.next_lesson_href ? 'Next' : 'Back to course'}</span>
                         <ChevronRight className="h-4 w-4 text-white" />
-                      </Link>
                     </Button>
                   </div>
                 </div>
@@ -460,30 +437,7 @@ export function StudentLessonPage() {
 
                 {data.summary ? <p className="max-w-3xl leading-8 text-slate-700">{data.summary}</p> : null}
 
-                {lessonContentBlocks.length > 0 ? (
-                  <div className="space-y-5">
-                    {lessonContentBlocks.map((block, index) =>
-                      block.type === 'paragraph' ? (
-                        <p key={`paragraph-${index}`} className="max-w-3xl leading-8 text-slate-700">
-                          {block.text}
-                        </p>
-                      ) : (
-                        <ul key={`list-${index}`} className="space-y-3 text-slate-700">
-                          {block.items.map((item) => (
-                            <li key={item} className="flex items-start gap-3">
-                              <span className="mt-1 flex h-5 w-5 items-center justify-center rounded-full border border-blue-600 text-xs text-blue-600">
-                                ✓
-                              </span>
-                              <span>{item}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      ),
-                    )}
-                  </div>
-                ) : (
-                  <p className="max-w-3xl leading-8 text-slate-700">No lesson content yet.</p>
-                )}
+                <MarkdownContent content={data.content} className="max-w-3xl" emptyMessage="No lesson content yet." />
               </section>
 
               <section className="space-y-4">
@@ -564,9 +518,9 @@ export function StudentLessonPage() {
           </Card>
         </motion.main>
 
-        <motion.aside variants={itemVariants}>
-          <Card className="rounded-2xl border border-slate-200 bg-white shadow-sm xl:sticky xl:top-24">
-            <CardContent className="p-6">
+        <motion.aside variants={itemVariants} className="xl:self-start">
+          <Card className="rounded-2xl border border-slate-200 bg-white shadow-sm xl:sticky xl:top-24 xl:max-h-[calc(100vh-7rem)] xl:overflow-hidden">
+            <CardContent className="p-6 xl:max-h-[calc(100vh-7rem)] xl:overflow-y-auto xl:pr-4">
               <div className="mb-8 flex items-center justify-between">
                 <h2 className="text-2xl font-bold text-slate-900">Lessons</h2>
                 <p className="text-sm text-slate-500">
@@ -653,8 +607,17 @@ export function StudentLessonPage() {
                     <span className="text-slate-500">{formatStatusLabel(data.progress.status)}</span>
                   </div>
                   <p className="mt-3 text-sm leading-6 text-slate-600">
-                    {courseDetail.description || 'Complete each lesson and pass the required exams to finish the course.'}
+                    {courseDescriptionPreview || 'Complete each lesson and pass the required exams to finish the course.'}
                   </p>
+                </div>
+
+                <div className="border-t pt-5">
+                  <CourseReviewSection
+                    course={courseDetail}
+                    csrfToken={csrfToken}
+                    onReviewSaved={loadPageData}
+                    compact
+                  />
                 </div>
               </div>
             </CardContent>
