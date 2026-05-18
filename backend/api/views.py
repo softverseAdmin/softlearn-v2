@@ -1,8 +1,13 @@
+import logging
+import re
+
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib.auth.password_validation import validate_password
+from django.conf import settings
+from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.db.models import Count, Max, Q
+from django.db.models import Avg, Count, Max, Q
 from django.utils import timezone
 from django.utils.dateparse import parse_date, parse_datetime
 from django.middleware.csrf import get_token
@@ -26,6 +31,7 @@ from users.models import (
     CourseAssessmentAttemptSelection,
     CourseAssessmentOption,
     CourseAssessmentQuestion,
+    CourseReview,
     Exam,
     ExamAnswerOption,
     ExamAttempt,
@@ -68,6 +74,31 @@ from users.models import (
     VacancySkillRequirement,
 )
 from users.notifications import emit_interview_event_notifications
+
+logger = logging.getLogger(__name__)
+
+
+EXAM_SOURCE_TOTAL_CHAR_LIMIT = 2600
+EXAM_SOURCE_DEFAULT_SECTION_LIMIT = 220
+EXAM_SOURCE_SECTION_LIMITS = {
+    "course": 320,
+    "assessment": 220,
+    "lesson-summary": 260,
+    "lesson-content": 640,
+    "lesson-transcript": 900,
+}
+
+
+def youtube_video_url_error(video_url: str) -> str | None:
+    if not video_url:
+        return None
+
+    parsed_video_url = urlparse(video_url)
+    hostname = (parsed_video_url.hostname or "").lower()
+    allowed_hosts = {"youtube.com", "www.youtube.com", "m.youtube.com", "youtu.be", "www.youtu.be"}
+    if parsed_video_url.scheme not in {"http", "https"} or hostname not in allowed_hosts:
+        return "Video URL must be a valid YouTube link."
+    return None
 
 
 def serialize_user(user: User) -> dict:
@@ -1463,7 +1494,15 @@ def serialize_admin_company(company: Company) -> dict:
     }
 
 
-def serialize_admin_course(course: Course) -> dict:
+def company_can_edit_course(user: User, course: Course) -> bool:
+    if user.role != User.Role.COMPANY:
+        return False
+    if user.company_id is None:
+        return False
+    return course.company_id == user.company_id
+
+
+def serialize_admin_course(course: Course, *, viewer: User | None = None) -> dict:
     return {
         "course_id": course.id,
         "title": course.title,
@@ -1471,9 +1510,16 @@ def serialize_admin_course(course: Course) -> dict:
         "category": course.category,
         "difficulty_level": course.difficulty_level,
         "estimated_hours": course.estimated_hours,
+        "thumbnail_image": course.thumbnail_image or None,
+        "thumbnail_alt_text": course.thumbnail_alt_text or None,
         "status": course.status,
         "lesson_count": course.lessons.count(),
         "learning_record_count": course.learning_records.count(),
+        "company_id": course.company_id,
+        "company_name": course.company.name if course.company_id else None,
+        "created_by_id": course.created_by_id,
+        "created_by_name": course.created_by.full_name if course.created_by_id else None,
+        "can_edit": company_can_edit_course(viewer, course) if viewer is not None else False,
         "created_at": course.created_at.isoformat(),
         "updated_at": course.updated_at.isoformat(),
     }
@@ -1487,6 +1533,7 @@ def serialize_admin_lesson(lesson: Lesson) -> dict:
         "title": lesson.title,
         "summary": lesson.summary,
         "content": lesson.content,
+        "transcript": lesson.transcript,
         "video_url": lesson.video_url,
         "sequence_number": lesson.sequence_number,
         "status": lesson.status,
@@ -1543,10 +1590,56 @@ def serialize_student_course_lesson(
     }
 
 
+def normalize_average_rating(value) -> float | None:
+    if value is None:
+        return None
+    return round(float(value), 1)
+
+
+def course_review_summary_map(course_ids: list[int]) -> dict[int, dict]:
+    summary_by_course_id = {
+        course_id: {
+            "average_rating": None,
+            "rating_count": 0,
+        }
+        for course_id in course_ids
+    }
+    if not course_ids:
+        return summary_by_course_id
+
+    for item in (
+        CourseReview.objects.filter(course_id__in=course_ids)
+        .values("course_id")
+        .annotate(average_rating=Avg("rating"), rating_count=Count("id"))
+    ):
+        summary_by_course_id[item["course_id"]] = {
+            "average_rating": normalize_average_rating(item["average_rating"]),
+            "rating_count": item["rating_count"],
+        }
+
+    return summary_by_course_id
+
+
+def serialize_course_review(review: CourseReview, *, current_user: User | None = None) -> dict:
+    return {
+        "review_id": review.id,
+        "student_id": review.student_id,
+        "student_name": review.student.full_name,
+        "rating": review.rating,
+        "review_text": review.review_text,
+        "created_at": review.created_at.isoformat(),
+        "updated_at": review.updated_at.isoformat(),
+        "is_current_user": current_user is not None and current_user.id == review.student_id,
+    }
+
+
 def serialize_student_course_summary(
     course: Course,
     *,
     learning_record: LearningRecord | None = None,
+    learning_record_count: int = 0,
+    average_rating: float | None = None,
+    rating_count: int = 0,
     lesson_count: int = 0,
     next_step_label: str | None = None,
     next_step_href: str | None = None,
@@ -1558,8 +1651,16 @@ def serialize_student_course_summary(
         "category": course.category,
         "difficulty_level": course.difficulty_level,
         "estimated_hours": course.estimated_hours,
+        "thumbnail_image": course.thumbnail_image or None,
+        "thumbnail_alt_text": course.thumbnail_alt_text or None,
         "status": course.status,
         "lesson_count": lesson_count,
+        "learning_record_count": learning_record_count,
+        "average_rating": average_rating,
+        "rating_count": rating_count,
+        "company_name": course.company.name if course.company_id else None,
+        "company_profile_image": course.company.profile_image if course.company_id and course.company.profile_image else None,
+        "created_by_name": course.created_by.full_name if course.created_by_id else None,
         "is_enrolled": learning_record is not None,
         "enrollment_status": learning_record.status if learning_record is not None else None,
         "progress_percent": learning_record.progress_percent if learning_record is not None else None,
@@ -1582,6 +1683,8 @@ def serialize_company_course_summary(
         "category": course.category,
         "difficulty_level": course.difficulty_level,
         "estimated_hours": course.estimated_hours,
+        "thumbnail_image": course.thumbnail_image or None,
+        "thumbnail_alt_text": course.thumbnail_alt_text or None,
         "status": course.status,
         "lesson_count": lesson_count,
         "is_enrolled": False,
@@ -1597,7 +1700,9 @@ def serialize_company_course_summary(
 def serialize_student_course_detail(
     course: Course,
     *,
+    current_user: User,
     learning_record: LearningRecord | None,
+    learning_record_count: int,
     lessons: list[Lesson],
     lesson_progress_map: dict[int, LessonProgress],
     next_step_label: str,
@@ -1619,10 +1724,18 @@ def serialize_student_course_detail(
         if lesson_progress_map.get(lesson.id) is not None
         and lesson_progress_map[lesson.id].status == LessonProgress.Status.COMPLETED
     )
+    review_summary = course_review_summary_map([course.id]).get(course.id, {"average_rating": None, "rating_count": 0})
+    recent_reviews = list(CourseReview.objects.filter(course=course).select_related("student")[:6])
+    current_user_review = (
+        CourseReview.objects.filter(course=course, student=current_user).select_related("student").first()
+    )
     return {
         **serialize_student_course_summary(
             course,
             learning_record=learning_record,
+            learning_record_count=learning_record_count,
+            average_rating=review_summary["average_rating"],
+            rating_count=review_summary["rating_count"],
             lesson_count=len(lessons),
             next_step_label=next_step_label,
             next_step_href=next_step_href,
@@ -1675,6 +1788,190 @@ def serialize_student_course_detail(
             ]
             if item
         ][:3],
+        "reviews": [serialize_course_review(review, current_user=current_user) for review in recent_reviews],
+        "current_user_review": serialize_course_review(current_user_review, current_user=current_user) if current_user_review is not None else None,
+    }
+
+
+def company_preview_lesson_href(course_id: int, lesson_id: int) -> str:
+    return f"/company/courses/{course_id}/preview/lessons/{lesson_id}"
+
+
+def serialize_company_preview_course_detail(course: Course, *, lessons: list[Lesson]) -> dict:
+    assessment_by_lesson_id, final_assessment = build_course_assessment_map(course)
+    review_summary = course_review_summary_map([course.id]).get(course.id, {"average_rating": None, "rating_count": 0})
+    return {
+        **serialize_student_course_summary(
+            course,
+            learning_record=None,
+            learning_record_count=course.learning_records.count(),
+            average_rating=review_summary["average_rating"],
+            rating_count=review_summary["rating_count"],
+            lesson_count=len(lessons),
+            next_step_label="Start preview",
+            next_step_href=company_preview_lesson_href(course.id, lessons[0].id) if lessons else None,
+        ),
+        "detail_href": f"/company/courses/{course.id}/preview",
+        "next_step_href": company_preview_lesson_href(course.id, lessons[0].id) if lessons else None,
+        "enrollment": {
+            "is_enrolled": False,
+            "learning_record_id": None,
+            "status": None,
+            "progress_percent": 0,
+            "completed_at": None,
+            "lesson_count": len(lessons),
+            "completed_lesson_count": 0,
+        },
+        "lessons": [
+            {
+                **serialize_student_course_lesson(
+                    lesson,
+                    progress=None,
+                    is_accessible=lesson.sequence_number == 1,
+                    assessment={
+                        "assessment_id": assessment.id,
+                        "title": assessment.title,
+                        "description": assessment.description,
+                        "kind": assessment.kind,
+                        "passing_score_percent": assessment.passing_score_percent,
+                        "question_count": CourseAssessmentQuestion.objects.filter(
+                            assessment=assessment,
+                            status=CourseAssessmentQuestion.Status.ACTIVE,
+                        ).count(),
+                        "is_unlocked": False,
+                        "attempt_count": 0,
+                        "best_score": None,
+                        "latest_score": None,
+                        "passed": False,
+                    }
+                    if (assessment := assessment_by_lesson_id.get(lesson.id)) is not None
+                    else None,
+                ),
+                "detail_href": company_preview_lesson_href(course.id, lesson.id) if lesson.sequence_number == 1 else None,
+            }
+            for lesson in lessons
+        ],
+        "final_exam": {
+            "assessment_id": final_assessment.id,
+            "title": final_assessment.title,
+            "description": final_assessment.description,
+            "kind": final_assessment.kind,
+            "passing_score_percent": final_assessment.passing_score_percent,
+            "question_count": CourseAssessmentQuestion.objects.filter(
+                assessment=final_assessment,
+                status=CourseAssessmentQuestion.Status.ACTIVE,
+            ).count(),
+            "is_unlocked": False,
+            "attempt_count": 0,
+            "best_score": None,
+            "latest_score": None,
+            "passed": False,
+        }
+        if final_assessment is not None
+        else None,
+        "learning_outcomes": [
+            item
+            for item in [
+                f"Build {course.category.replace('_', ' ')} readiness." if course.category.strip() else "",
+                f"Prepare for a {course.difficulty_level.lower()} learning path." if course.difficulty_level.strip() else "",
+                f"Plan roughly {course.estimated_hours} hours of study." if course.estimated_hours > 0 else "",
+            ]
+            if item
+        ][:3],
+        "reviews": [],
+        "current_user_review": None,
+    }
+
+
+def serialize_company_preview_lesson_detail(
+    lesson: Lesson,
+    *,
+    lessons: list[Lesson],
+    lesson_exam: CourseAssessment | None,
+    final_exam: CourseAssessment | None,
+) -> dict:
+    lesson_index = lessons.index(lesson)
+    previous_lesson = lessons[lesson_index - 1] if lesson_index > 0 else None
+    next_lesson = lessons[lesson_index + 1] if lesson_index < len(lessons) - 1 else None
+    return {
+        "lesson_id": lesson.id,
+        "course_id": lesson.course_id,
+        "course_title": lesson.course.title,
+        "course_href": f"/company/courses/{lesson.course_id}/preview",
+        "title": lesson.title,
+        "summary": lesson.summary,
+        "content": lesson.content,
+        "video_url": lesson.video_url,
+        "sequence_number": lesson.sequence_number,
+        "total_lessons": len(lessons),
+        "progress": {
+            "status": LessonProgress.Status.NOT_STARTED,
+            "started_at": None,
+            "completed_at": None,
+        },
+        "previous_lesson_href": company_preview_lesson_href(previous_lesson.course_id, previous_lesson.id) if previous_lesson else None,
+        "next_lesson_href": company_preview_lesson_href(next_lesson.course_id, next_lesson.id) if next_lesson else None,
+        "lesson_exam": {
+            "assessment_id": lesson_exam.id,
+            "title": lesson_exam.title,
+            "description": lesson_exam.description,
+            "kind": lesson_exam.kind,
+            "passing_score_percent": lesson_exam.passing_score_percent,
+            "question_count": CourseAssessmentQuestion.objects.filter(
+                assessment=lesson_exam,
+                status=CourseAssessmentQuestion.Status.ACTIVE,
+            ).count(),
+            "is_unlocked": False,
+            "attempt_count": 0,
+            "best_score": None,
+            "latest_score": None,
+            "passed": False,
+        }
+        if lesson_exam is not None
+        else None,
+        "final_exam": {
+            "assessment_id": final_exam.id,
+            "title": final_exam.title,
+            "description": final_exam.description,
+            "kind": final_exam.kind,
+            "passing_score_percent": final_exam.passing_score_percent,
+            "question_count": CourseAssessmentQuestion.objects.filter(
+                assessment=final_exam,
+                status=CourseAssessmentQuestion.Status.ACTIVE,
+            ).count(),
+            "is_unlocked": False,
+            "attempt_count": 0,
+            "best_score": None,
+            "latest_score": None,
+            "passed": False,
+        }
+        if lesson_index == len(lessons) - 1 and final_exam is not None
+        else None,
+    }
+
+
+def serialize_company_preview_assessment_detail(assessment: CourseAssessment, *, user: User) -> dict:
+    questions, is_generated = resolve_course_assessment_questions(
+        assessment,
+        user=user,
+        audience_label="company reviewer",
+    )
+    return {
+        "assessment_id": assessment.id,
+        "title": assessment.title,
+        "description": assessment.description,
+        "kind": assessment.kind,
+        "passing_score_percent": assessment.passing_score_percent,
+        "attempt_count": 0,
+        "next_attempt_number": 1,
+        "latest_score": None,
+        "passed": False,
+        "questions": [
+            serialize_generated_course_assessment_question(question)
+            if is_generated
+            else serialize_student_course_assessment_question(question)
+            for question in questions
+        ],
     }
 
 
@@ -1820,6 +2117,279 @@ def serialize_student_course_assessment_question(question: CourseAssessmentQuest
     }
 
 
+GENERATED_COURSE_ASSESSMENT_CACHE_TIMEOUT_SECONDS = 60 * 30
+GENERATED_COURSE_ASSESSMENT_FAILURE_MIN_RETRY_SECONDS = 30
+
+
+def generated_course_assessment_cache_key(*, assessment: CourseAssessment, user: User) -> str:
+    return f"generated-course-assessment:{assessment.id}:{user.role}:{user.id}"
+
+
+def normalize_exam_source_text(text: str, max_chars: int) -> str:
+    normalized = " ".join(text.split()).strip()
+    if not normalized or max_chars <= 0:
+        return ""
+
+    sentence_candidates = re.split(r"(?<=[.!?])\s+", normalized)
+    filtered_sentences: list[str] = []
+    seen = set()
+
+    for sentence in sentence_candidates:
+        candidate = sentence.strip()
+        if not candidate:
+            continue
+        key = candidate.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        filtered_sentences.append(candidate)
+
+    if not filtered_sentences:
+        filtered_sentences = [normalized]
+
+    result_parts: list[str] = []
+    current_length = 0
+    for sentence in filtered_sentences:
+        sentence_length = len(sentence)
+        separator_length = 1 if result_parts else 0
+        if current_length + separator_length + sentence_length > max_chars:
+            remaining = max_chars - current_length - separator_length
+            if remaining > 24:
+                result_parts.append(sentence[: remaining - 1].rstrip() + "…")
+            break
+        result_parts.append(sentence)
+        current_length += separator_length + sentence_length
+
+    return " ".join(result_parts).strip()
+
+
+def append_exam_source_section(parts: list[str], label: str, text: str, section_key: str) -> None:
+    section_limit = EXAM_SOURCE_SECTION_LIMITS.get(section_key, EXAM_SOURCE_DEFAULT_SECTION_LIMIT)
+    normalized_text = normalize_exam_source_text(text, section_limit)
+    if normalized_text:
+        parts.append(f"{label}: {normalized_text}")
+
+
+def build_course_assessment_generation_source(assessment: CourseAssessment) -> str:
+    filtered_parts: list[str] = []
+
+    append_exam_source_section(
+        filtered_parts,
+        "Course",
+        "\n\n".join([assessment.course.title.strip(), assessment.course.description.strip()]),
+        "course",
+    )
+    append_exam_source_section(
+        filtered_parts,
+        "Assessment",
+        "\n\n".join([assessment.title.strip(), assessment.description.strip()]),
+        "assessment",
+    )
+
+    if assessment.lesson_id is not None and assessment.lesson is not None:
+        lessons = [assessment.lesson]
+    else:
+        lessons = active_course_lessons(assessment.course)
+
+    for lesson in lessons:
+        append_exam_source_section(filtered_parts, "Lesson title", lesson.title, "lesson-summary")
+        append_exam_source_section(filtered_parts, "Lesson summary", lesson.summary, "lesson-summary")
+        append_exam_source_section(filtered_parts, "Lesson content", lesson.content, "lesson-content")
+        append_exam_source_section(filtered_parts, "Lesson transcript", lesson.transcript, "lesson-transcript")
+
+    combined_source = "\n\n".join(part for part in filtered_parts if part)
+    return normalize_exam_source_text(combined_source, EXAM_SOURCE_TOTAL_CHAR_LIMIT)
+
+
+def build_generated_course_assessment_questions(
+    assessment: CourseAssessment,
+    generated_questions,
+) -> list[dict]:
+    payload: list[dict] = []
+    for question_index, question in enumerate(generated_questions, start=1):
+        question_id = -((assessment.id * 100) + question_index)
+        options = []
+        for option_index, option in enumerate(question.options, start=1):
+            options.append(
+                {
+                    "option_id": -((assessment.id * 1000) + (question_index * 10) + option_index),
+                    "option_text": option.option_text,
+                    "sequence_number": option_index,
+                    "is_correct": option.is_correct,
+                }
+            )
+        payload.append(
+            {
+                "question_id": question_id,
+                "prompt": question.prompt,
+                "instructions": question.instructions,
+                "question_type": question.question_type,
+                "sequence_number": question_index,
+                "points": 1,
+                "options": options,
+            }
+        )
+    return payload
+
+
+def serialize_generated_course_assessment_question(question: dict) -> dict:
+    return {
+        "question_id": question["question_id"],
+        "prompt": question["prompt"],
+        "instructions": question["instructions"],
+        "question_type": question["question_type"],
+        "sequence_number": question["sequence_number"],
+        "points": question["points"],
+        "options": [
+            {
+                "option_id": option["option_id"],
+                "option_text": option["option_text"],
+                "sequence_number": option["sequence_number"],
+            }
+            for option in question["options"]
+        ],
+    }
+
+
+def get_cached_generated_course_assessment_questions(
+    assessment: CourseAssessment,
+    *,
+    user: User,
+) -> list[dict]:
+    cached = cache.get(generated_course_assessment_cache_key(assessment=assessment, user=user))
+    if not isinstance(cached, list):
+        return []
+    return cached
+
+
+def generated_course_assessment_failure_cache_key(*, assessment: CourseAssessment, user: User) -> str:
+    return f"generated-course-assessment-failure:{assessment.id}:{user.role}:{user.id}"
+
+
+def get_cached_generated_course_assessment_failure(
+    assessment: CourseAssessment,
+    *,
+    user: User,
+) -> dict | None:
+    cached = cache.get(generated_course_assessment_failure_cache_key(assessment=assessment, user=user))
+    if not isinstance(cached, dict):
+        return None
+    return cached
+
+
+def clear_cached_generated_course_assessment_failure(
+    assessment: CourseAssessment,
+    *,
+    user: User,
+) -> None:
+    cache.delete(generated_course_assessment_failure_cache_key(assessment=assessment, user=user))
+
+
+def parse_gemini_retry_seconds(message: str) -> int:
+    retry_match = re.search(r"retryDelay\":\s*\"(?P<seconds>\d+)s\"", message)
+    if retry_match is not None:
+        return max(int(retry_match.group("seconds")), GENERATED_COURSE_ASSESSMENT_FAILURE_MIN_RETRY_SECONDS)
+
+    fallback_match = re.search(r"Please retry in (?P<seconds>\d+)", message)
+    if fallback_match is not None:
+        return max(int(fallback_match.group("seconds")), GENERATED_COURSE_ASSESSMENT_FAILURE_MIN_RETRY_SECONDS)
+
+    return GENERATED_COURSE_ASSESSMENT_FAILURE_MIN_RETRY_SECONDS
+
+
+def course_assessment_unavailable_message(
+    assessment: CourseAssessment,
+    *,
+    user: User,
+) -> str:
+    failure = get_cached_generated_course_assessment_failure(assessment, user=user)
+    if failure is None:
+        return "No exam questions are available for this assessment right now."
+
+    error_message = str(failure.get("message", ""))
+    if "quota exceeded" in error_message.lower() or "resource_exhausted" in error_message.lower():
+        return "Gemini quota is currently exhausted for this assessment. Try again later."
+    return "Gemini exam generation is temporarily unavailable for this assessment. Try again later."
+
+
+def clear_cached_generated_course_assessment_questions(
+    assessment: CourseAssessment,
+    *,
+    user: User,
+) -> None:
+    cache.delete(generated_course_assessment_cache_key(assessment=assessment, user=user))
+
+
+def resolve_course_assessment_questions(
+    assessment: CourseAssessment,
+    *,
+    user: User,
+    audience_label: str,
+) -> tuple[list, bool]:
+    stored_questions = active_course_assessment_questions(assessment)
+
+    from services.gemini import (
+        GeminiExamGenerationError,
+        GeminiExamRequest,
+        get_gemini_exam_generation_service,
+    )
+
+    service = get_gemini_exam_generation_service()
+    if not service.is_available():
+        return stored_questions, False
+
+    cached_generated_questions = get_cached_generated_course_assessment_questions(
+        assessment,
+        user=user,
+    )
+    if cached_generated_questions:
+        return cached_generated_questions, True
+
+    cached_failure = get_cached_generated_course_assessment_failure(assessment, user=user)
+    if cached_failure is not None:
+        return [], False
+
+    source_text = build_course_assessment_generation_source(assessment)
+    if not source_text.strip():
+        return [], False
+
+    try:
+        generated_questions = service.generate_questions(
+            GeminiExamRequest(
+                course_title=assessment.course.title,
+                assessment_title=assessment.title,
+                source_text=source_text,
+                difficulty_level=assessment.course.difficulty_level,
+                question_count=settings.GEMINI_EXAM_DEFAULT_QUESTION_COUNT,
+                audience_label=audience_label,
+            )
+        )
+    except GeminiExamGenerationError as exc:
+        logger.warning(
+            "Gemini course assessment generation failed for assessment %s and user %s: %s",
+            assessment.id,
+            user.id,
+            exc,
+        )
+        cache.set(
+            generated_course_assessment_failure_cache_key(assessment=assessment, user=user),
+            {"message": str(exc)},
+            parse_gemini_retry_seconds(str(exc)),
+        )
+        return [], False
+
+    cached_payload = build_generated_course_assessment_questions(assessment, generated_questions)
+    if cached_payload:
+        clear_cached_generated_course_assessment_failure(assessment, user=user)
+        cache.set(
+            generated_course_assessment_cache_key(assessment=assessment, user=user),
+            cached_payload,
+            GENERATED_COURSE_ASSESSMENT_CACHE_TIMEOUT_SECONDS,
+        )
+        return cached_payload, True
+    return [], False
+
+
 def latest_course_assessment_attempt(student: User, assessment: CourseAssessment) -> CourseAssessmentAttempt | None:
     return (
         CourseAssessmentAttempt.objects.filter(student=student, assessment=assessment)
@@ -1838,6 +2408,80 @@ def next_course_assessment_attempt_number(student: User, assessment: CourseAsses
     return (latest_attempt or 0) + 1
 
 
+def build_default_course_assessment_description(*, title: str, is_final: bool) -> str:
+    if is_final:
+        return f"Final course check for {title}. Pass with 90% or higher to complete the course."
+    return f"Check understanding for {title}. Score 90% or higher to unlock the next lesson."
+
+
+def ensure_default_course_assessment_questions(
+    assessment: CourseAssessment,
+    *,
+    lessons: list[Lesson],
+) -> None:
+    if CourseAssessmentQuestion.objects.filter(assessment=assessment).exists():
+        return
+
+    if assessment.kind == CourseAssessment.Kind.LESSON and assessment.lesson is not None:
+        correct_option = assessment.lesson.title.strip() or f"Lesson {assessment.lesson.sequence_number}"
+        prompt = f"Which lesson are you reviewing in the exam for '{correct_option}'?"
+        option_candidates = [
+            correct_option,
+            assessment.course.title.strip(),
+            "The final course review",
+            "An unrelated platform workflow",
+        ]
+    else:
+        correct_option = assessment.course.title.strip() or "This course"
+        prompt = "Which course does this final exam belong to?"
+        option_candidates = [
+            correct_option,
+            *(lesson.title.strip() for lesson in lessons[:2]),
+            "A different company training course",
+            "A mock interview preparation path",
+        ]
+
+    unique_options: list[str] = []
+    seen_options: set[str] = set()
+    for option_text in option_candidates:
+        normalized = option_text.strip()
+        if not normalized:
+            continue
+        key = normalized.lower()
+        if key in seen_options:
+            continue
+        seen_options.add(key)
+        unique_options.append(normalized)
+        if len(unique_options) == 4:
+            break
+
+    if len(unique_options) < 2:
+        unique_options.append("An unrelated lesson")
+
+    question = CourseAssessmentQuestion(
+        assessment=assessment,
+        prompt=prompt,
+        instructions="Choose the best answer based on the lesson or course you just reviewed.",
+        question_type=CourseAssessmentQuestion.QuestionType.SINGLE_CHOICE,
+        sequence_number=1,
+        points=1,
+        status=CourseAssessmentQuestion.Status.ACTIVE,
+    )
+    question.full_clean()
+    question.save()
+
+    for sequence_number, option_text in enumerate(unique_options, start=1):
+        option = CourseAssessmentOption(
+            question=question,
+            option_text=option_text,
+            sequence_number=sequence_number,
+            is_correct=option_text == correct_option,
+            status=CourseAssessmentOption.Status.ACTIVE,
+        )
+        option.full_clean()
+        option.save()
+
+
 def build_course_assessment_map(course: Course) -> tuple[dict[int, CourseAssessment], CourseAssessment | None]:
     assessments = list(
         CourseAssessment.objects.filter(course=course, status=CourseAssessment.Status.ACTIVE)
@@ -1853,6 +2497,66 @@ def build_course_assessment_map(course: Course) -> tuple[dict[int, CourseAssessm
         (assessment for assessment in assessments if assessment.kind == CourseAssessment.Kind.FINAL),
         None,
     )
+    return by_lesson_id, final_assessment
+
+
+def ensure_company_preview_course_assessment_map(
+    course: Course,
+    *,
+    lessons: list[Lesson],
+) -> tuple[dict[int, CourseAssessment], CourseAssessment | None]:
+    assessments = list(
+        CourseAssessment.objects.filter(course=course)
+        .select_related("lesson")
+        .order_by("kind", "lesson__sequence_number", "id")
+    )
+    by_lesson_id = {
+        assessment.lesson_id: assessment
+        for assessment in assessments
+        if assessment.kind == CourseAssessment.Kind.LESSON and assessment.lesson_id is not None
+    }
+    final_assessment = next(
+        (assessment for assessment in assessments if assessment.kind == CourseAssessment.Kind.FINAL),
+        None,
+    )
+
+    for assessment in [*by_lesson_id.values(), final_assessment]:
+        if assessment is not None and assessment.status == CourseAssessment.Status.INACTIVE:
+            assessment.status = CourseAssessment.Status.ACTIVE
+            assessment.full_clean()
+            assessment.save(update_fields=["status", "updated_at"])
+
+    for lesson in lessons:
+        if lesson.id in by_lesson_id:
+            continue
+
+        assessment = CourseAssessment(
+            course=course,
+            lesson=lesson,
+            title=f"{lesson.title} lesson exam",
+            description=build_default_course_assessment_description(title=lesson.title, is_final=False),
+            kind=CourseAssessment.Kind.LESSON,
+            passing_score_percent=90,
+            status=CourseAssessment.Status.ACTIVE,
+        )
+        assessment.full_clean()
+        assessment.save()
+        ensure_default_course_assessment_questions(assessment, lessons=lessons)
+        by_lesson_id[lesson.id] = assessment
+
+    if final_assessment is None:
+        final_assessment = CourseAssessment(
+            course=course,
+            title=f"{course.title} final exam",
+            description=build_default_course_assessment_description(title=course.title, is_final=True),
+            kind=CourseAssessment.Kind.FINAL,
+            passing_score_percent=90,
+            status=CourseAssessment.Status.ACTIVE,
+        )
+        final_assessment.full_clean()
+        final_assessment.save()
+        ensure_default_course_assessment_questions(final_assessment, lessons=lessons)
+
     return by_lesson_id, final_assessment
 
 
@@ -1960,7 +2664,11 @@ def serialize_course_assessment_summary(
 
 def serialize_course_assessment_detail(assessment: CourseAssessment, *, student: User) -> dict:
     latest_attempt = latest_course_assessment_attempt(student, assessment)
-    questions = active_course_assessment_questions(assessment)
+    questions, is_generated = resolve_course_assessment_questions(
+        assessment,
+        user=student,
+        audience_label="student learner",
+    )
     return {
         "assessment_id": assessment.id,
         "title": assessment.title,
@@ -1971,7 +2679,12 @@ def serialize_course_assessment_detail(assessment: CourseAssessment, *, student:
         "next_attempt_number": next_course_assessment_attempt_number(student, assessment),
         "latest_score": latest_attempt.score_percent if latest_attempt is not None else None,
         "passed": latest_attempt.passed if latest_attempt is not None else False,
-        "questions": [serialize_student_course_assessment_question(question) for question in questions],
+        "questions": [
+            serialize_generated_course_assessment_question(question)
+            if is_generated
+            else serialize_student_course_assessment_question(question)
+            for question in questions
+        ],
     }
 
 
@@ -3035,6 +3748,8 @@ def validate_admin_course_payload(payload: dict) -> dict:
     description = str(payload.get("description", "")).strip()
     category = str(payload.get("category", "")).strip()
     difficulty_level = str(payload.get("difficulty_level", "")).strip()
+    thumbnail_image = str(payload.get("thumbnail_image", "")).strip()
+    thumbnail_alt_text = str(payload.get("thumbnail_alt_text", "")).strip()
     status = str(payload.get("status", Course.Status.DRAFT)).strip().lower()
     raw_estimated_hours = payload.get("estimated_hours", 0)
 
@@ -3064,6 +3779,8 @@ def validate_admin_course_payload(payload: dict) -> dict:
         "category": category,
         "difficulty_level": difficulty_level,
         "estimated_hours": estimated_hours,
+        "thumbnail_image": thumbnail_image,
+        "thumbnail_alt_text": thumbnail_alt_text,
         "status": status,
     }
 
@@ -3072,6 +3789,7 @@ def validate_admin_lesson_payload(payload: dict) -> dict:
     title = str(payload.get("title", "")).strip()
     summary = str(payload.get("summary", "")).strip()
     content = str(payload.get("content", "")).strip()
+    transcript = str(payload.get("transcript", "")).strip()
     video_url = str(payload.get("video_url", "")).strip()
     status = str(payload.get("status", Lesson.Status.DRAFT)).strip().lower()
     raw_sequence_number = payload.get("sequence_number")
@@ -3093,12 +3811,9 @@ def validate_admin_lesson_payload(payload: dict) -> dict:
         if sequence_number <= 0:
             errors["sequence_number"] = ["Sequence number must be greater than zero."]
 
-    if video_url:
-        parsed_video_url = urlparse(video_url)
-        hostname = (parsed_video_url.hostname or "").lower()
-        allowed_hosts = {"youtube.com", "www.youtube.com", "m.youtube.com", "youtu.be", "www.youtu.be"}
-        if parsed_video_url.scheme not in {"http", "https"} or hostname not in allowed_hosts:
-            errors["video_url"] = ["Video URL must be a valid YouTube link."]
+    video_url_error = youtube_video_url_error(video_url)
+    if video_url_error:
+        errors["video_url"] = [video_url_error]
 
     if errors:
         raise ValidationError(errors)
@@ -3107,6 +3822,7 @@ def validate_admin_lesson_payload(payload: dict) -> dict:
         "title": title,
         "summary": summary,
         "content": content,
+        "transcript": transcript,
         "video_url": video_url,
         "sequence_number": sequence_number,
         "status": status,
@@ -3281,6 +3997,32 @@ def validate_student_lesson_progress_payload(payload: dict) -> dict:
     return {"status": status}
 
 
+def validate_student_course_review_payload(payload: dict) -> dict:
+    raw_rating = payload.get("rating")
+    review_text = str(payload.get("review_text", "")).strip()
+    errors = {}
+
+    try:
+        rating = int(raw_rating)
+    except (TypeError, ValueError):
+        rating = 0
+        errors["rating"] = ["Rating must be a valid integer."]
+    else:
+        if rating < 1 or rating > 5:
+            errors["rating"] = ["Rating must be between 1 and 5."]
+
+    if len(review_text) > 1200:
+        errors["review_text"] = ["Review text must be 1200 characters or fewer."]
+
+    if errors:
+        raise ValidationError(errors)
+
+    return {
+        "rating": rating,
+        "review_text": review_text,
+    }
+
+
 def validate_exam_submission_payload(payload: dict, *, exam: Exam) -> dict:
     raw_answers = payload.get("answers")
     if not isinstance(raw_answers, list) or not raw_answers:
@@ -3338,15 +4080,26 @@ def validate_exam_submission_payload(payload: dict, *, exam: Exam) -> dict:
     return {"answers_by_question_id": answers_by_question_id}
 
 
-def validate_course_assessment_submission_payload(payload: dict, *, assessment: CourseAssessment) -> dict:
+def validate_course_assessment_submission_payload(
+    payload: dict,
+    *,
+    assessment: CourseAssessment,
+    generated_questions: list[dict] | None = None,
+) -> dict:
     raw_answers = payload.get("answers")
     if not isinstance(raw_answers, list) or not raw_answers:
         raise ValidationError({"answers": ["A non-empty answers list is required."]})
 
-    questions = {
-        question.id: question
-        for question in active_course_assessment_questions(assessment)
-    }
+    if generated_questions is not None:
+        questions = {
+            int(question["question_id"]): question
+            for question in generated_questions
+        }
+    else:
+        questions = {
+            question.id: question
+            for question in active_course_assessment_questions(assessment)
+        }
     if not questions:
         raise ValidationError({"assessment": ["This assessment has no active questions."]})
 
@@ -3379,21 +4132,31 @@ def validate_course_assessment_submission_payload(payload: dict, *, assessment: 
             errors.append(f"Answer #{index + 1} contains an invalid selected option id.")
             continue
 
-        active_option_ids = {
-            option.id
-            for option in question.options.all()
-            if option.status == CourseAssessmentOption.Status.ACTIVE
-        }
+        if generated_questions is not None:
+            active_option_ids = {int(option["option_id"]) for option in question["options"]}
+        else:
+            active_option_ids = {
+                option.id
+                for option in question.options.all()
+                if option.status == CourseAssessmentOption.Status.ACTIVE
+            }
         if not set(selected_option_ids).issubset(active_option_ids):
-            errors.append(f"Answer #{index + 1} contains an invalid option for question {question.sequence_number}.")
+            question_sequence_number = question["sequence_number"] if generated_questions is not None else question.sequence_number
+            errors.append(f"Answer #{index + 1} contains an invalid option for question {question_sequence_number}.")
             continue
 
         unique_option_ids = sorted(set(selected_option_ids))
         if (
-            question.question_type == CourseAssessmentQuestion.QuestionType.SINGLE_CHOICE
+            (
+                question["question_type"]
+                if generated_questions is not None
+                else question.question_type
+            )
+            == CourseAssessmentQuestion.QuestionType.SINGLE_CHOICE
             and len(unique_option_ids) != 1
         ):
-            errors.append(f"Question {question.sequence_number} requires exactly one selected option.")
+            question_sequence_number = question["sequence_number"] if generated_questions is not None else question.sequence_number
+            errors.append(f"Question {question_sequence_number} requires exactly one selected option.")
             continue
 
         answers_by_question_id[question_id] = unique_option_ids
@@ -3764,15 +4527,40 @@ def get_admin_vacancy(vacancy_id: int) -> Vacancy | None:
 
 
 def get_admin_course(course_id: int) -> Course | None:
-    return Course.objects.filter(pk=course_id).first()
+    return Course.objects.filter(pk=course_id).select_related("company", "created_by").first()
 
 
 def get_admin_lesson(lesson_id: int) -> Lesson | None:
-    return Lesson.objects.filter(pk=lesson_id).select_related("course").first()
+    return Lesson.objects.filter(pk=lesson_id).select_related("course", "course__company", "course__created_by").first()
+
+
+def publish_course_if_has_active_lessons(course: Course) -> None:
+    if course.status != Course.Status.DRAFT:
+        return
+    if not Lesson.objects.filter(course=course, status=Lesson.Status.ACTIVE).exists():
+        return
+    course.status = Course.Status.ACTIVE
+    course.full_clean()
+    course.save(update_fields=["status", "updated_at"])
+
+
+def publish_draft_courses_with_active_lessons() -> None:
+    draft_course_ids = list(
+        Course.objects.filter(status=Course.Status.DRAFT, lessons__status=Lesson.Status.ACTIVE)
+        .values_list("id", flat=True)
+        .distinct()
+    )
+    if not draft_course_ids:
+        return
+    Course.objects.filter(id__in=draft_course_ids).update(
+        status=Course.Status.ACTIVE,
+        updated_at=timezone.now(),
+    )
 
 
 def visible_student_courses_queryset():
-    return Course.objects.filter(status=Course.Status.ACTIVE).order_by("-updated_at", "-id")
+    publish_draft_courses_with_active_lessons()
+    return Course.objects.select_related("company", "created_by").filter(status=Course.Status.ACTIVE).order_by("-updated_at", "-id")
 
 
 def get_visible_student_course(course_id: int) -> Course | None:
@@ -3790,6 +4578,15 @@ def get_student_course_learning_record(student: User, course: Course) -> Learnin
 def active_course_lessons(course: Course) -> list[Lesson]:
     return list(
         Lesson.objects.filter(course=course, status=Lesson.Status.ACTIVE)
+        .select_related("course")
+        .order_by("sequence_number", "id")
+    )
+
+
+def company_preview_course_lessons(course: Course) -> list[Lesson]:
+    return list(
+        Lesson.objects.filter(course=course)
+        .exclude(status=Lesson.Status.INACTIVE)
         .select_related("course")
         .order_by("sequence_number", "id")
     )
@@ -4194,26 +4991,42 @@ def score_exam_submission_details(exam: Exam, answers_by_question_id: dict[int, 
 def score_course_assessment_submission_details(
     assessment: CourseAssessment,
     answers_by_question_id: dict[int, list[int]],
+    *,
+    generated_questions: list[dict] | None = None,
 ) -> tuple[int, bool, int, int]:
-    questions = active_course_assessment_questions(assessment)
-    total_points = sum(question.points for question in questions)
+    if generated_questions is not None:
+        questions = generated_questions
+        total_points = sum(int(question.get("points", 1)) for question in questions)
+    else:
+        questions = active_course_assessment_questions(assessment)
+        total_points = sum(question.points for question in questions)
     if total_points == 0:
         return 0, False, 0, 0
 
     earned_points = 0
     correct_answer_count = 0
     for question in questions:
-        selected_option_ids = set(answers_by_question_id.get(question.id, []))
+        question_id = int(question["question_id"]) if generated_questions is not None else question.id
+        selected_option_ids = set(answers_by_question_id.get(question_id, []))
         if not selected_option_ids:
             continue
 
-        correct_option_ids = {
-            option.id
-            for option in question.options.all()
-            if option.status == CourseAssessmentOption.Status.ACTIVE and option.is_correct
-        }
+        if generated_questions is not None:
+            correct_option_ids = {
+                int(option["option_id"])
+                for option in question["options"]
+                if option.get("is_correct")
+            }
+            question_points = int(question.get("points", 1))
+        else:
+            correct_option_ids = {
+                option.id
+                for option in question.options.all()
+                if option.status == CourseAssessmentOption.Status.ACTIVE and option.is_correct
+            }
+            question_points = question.points
         if selected_option_ids == correct_option_ids:
-            earned_points += question.points
+            earned_points += question_points
             correct_answer_count += 1
 
     score_percent = round((earned_points / total_points) * 100)
@@ -5109,15 +5922,23 @@ def student_jobs_view(request):
 @api_endpoint(["GET"], authentication_required=True, roles=[User.Role.STUDENT])
 def student_courses_view(request):
     courses = list(visible_student_courses_queryset())
+    course_ids = [course.id for course in courses]
     lesson_counts = {
         item["course_id"]: item["lesson_count"]
-        for item in Lesson.objects.filter(course_id__in=[course.id for course in courses], status=Lesson.Status.ACTIVE)
+        for item in Lesson.objects.filter(course_id__in=course_ids, status=Lesson.Status.ACTIVE)
         .values("course_id")
         .annotate(lesson_count=Count("id"))
     }
+    learning_record_counts = {
+        item["course_id"]: item["learning_record_count"]
+        for item in LearningRecord.objects.filter(course_id__in=course_ids)
+        .values("course_id")
+        .annotate(learning_record_count=Count("id"))
+    }
+    review_summaries = course_review_summary_map(course_ids)
     learning_records = {
         record.course_id: sync_learning_record_progress(record)
-        for record in LearningRecord.objects.filter(student=request.user, course_id__in=[course.id for course in courses]).select_related("course")
+        for record in LearningRecord.objects.filter(student=request.user, course_id__in=course_ids).select_related("course")
     }
     return success_response(
         {
@@ -5126,6 +5947,9 @@ def student_courses_view(request):
                 serialize_student_course_summary(
                     course,
                     learning_record=learning_records.get(course.id),
+                    learning_record_count=learning_record_counts.get(course.id, 0),
+                    average_rating=review_summaries.get(course.id, {}).get("average_rating"),
+                    rating_count=review_summaries.get(course.id, {}).get("rating_count", 0),
                     lesson_count=lesson_counts.get(course.id, 0),
                     next_step_label=(
                         "Continue course"
@@ -5149,8 +5973,8 @@ def student_courses_view(request):
 @api_endpoint(["GET", "POST"], authentication_required=True, roles=[User.Role.COMPANY])
 def company_courses_view(request):
     if request.method == "GET":
-        courses = list(Course.objects.order_by("-updated_at", "-id"))
-        return success_response({"courses": [serialize_admin_course(course) for course in courses]})
+        courses = list(Course.objects.select_related("company", "created_by").order_by("-updated_at", "-id"))
+        return success_response({"courses": [serialize_admin_course(course, viewer=request.user) for course in courses]})
 
     payload = validate_admin_course_payload(parse_json_body(request))
     course = Course(
@@ -5159,11 +5983,16 @@ def company_courses_view(request):
         category=payload["category"],
         difficulty_level=payload["difficulty_level"],
         estimated_hours=payload["estimated_hours"],
+        thumbnail_image=payload["thumbnail_image"],
+        thumbnail_alt_text=payload["thumbnail_alt_text"],
         status=payload["status"],
+        company=request.user.company,
+        created_by=request.user,
     )
     course.full_clean()
     course.save()
-    return success_response(serialize_admin_course(course), status=201)
+    course = get_admin_course(course.id)
+    return success_response(serialize_admin_course(course, viewer=request.user), status=201)
 
 
 @api_endpoint(["PUT", "DELETE"], authentication_required=True, roles=[User.Role.COMPANY])
@@ -5178,11 +6007,21 @@ def company_course_detail_view(request, course_id: int):
             status=404,
         )
 
+    if not company_can_edit_course(request.user, course):
+        return error_response(
+            request,
+            "FORBIDDEN",
+            "You can only edit courses created by your company.",
+            details={"course_id": [str(course_id)]},
+            status=403,
+        )
+
     if request.method == "DELETE":
         course.status = Course.Status.INACTIVE
         course.full_clean()
         course.save(update_fields=["status", "updated_at"])
-        return success_response(serialize_admin_course(course))
+        course = get_admin_course(course.id)
+        return success_response(serialize_admin_course(course, viewer=request.user))
 
     payload = validate_admin_course_payload(parse_json_body(request))
     course.title = payload["title"]
@@ -5190,6 +6029,8 @@ def company_course_detail_view(request, course_id: int):
     course.category = payload["category"]
     course.difficulty_level = payload["difficulty_level"]
     course.estimated_hours = payload["estimated_hours"]
+    course.thumbnail_image = payload["thumbnail_image"]
+    course.thumbnail_alt_text = payload["thumbnail_alt_text"]
     course.status = payload["status"]
     course.full_clean()
     course.save(
@@ -5199,11 +6040,14 @@ def company_course_detail_view(request, course_id: int):
             "category",
             "difficulty_level",
             "estimated_hours",
+            "thumbnail_image",
+            "thumbnail_alt_text",
             "status",
             "updated_at",
         ]
     )
-    return success_response(serialize_admin_course(course))
+    course = get_admin_course(course.id)
+    return success_response(serialize_admin_course(course, viewer=request.user))
 
 
 @api_endpoint(["GET", "POST"], authentication_required=True, roles=[User.Role.COMPANY])
@@ -5226,9 +6070,18 @@ def company_course_lessons_view(request, course_id: int):
         )
         return success_response(
             {
-                "course": serialize_admin_course(course),
+                "course": serialize_admin_course(course, viewer=request.user),
                 "lessons": [serialize_admin_lesson(lesson) for lesson in lessons],
             }
+        )
+
+    if not company_can_edit_course(request.user, course):
+        return error_response(
+            request,
+            "FORBIDDEN",
+            "You can only manage lessons for courses created by your company.",
+            details={"course_id": [str(course_id)]},
+            status=403,
         )
 
     payload = validate_admin_lesson_payload(parse_json_body(request))
@@ -5237,14 +6090,48 @@ def company_course_lessons_view(request, course_id: int):
         title=payload["title"],
         summary=payload["summary"],
         content=payload["content"],
+        transcript=payload["transcript"],
         video_url=payload["video_url"],
         sequence_number=payload["sequence_number"],
         status=payload["status"],
     )
     lesson.full_clean()
     lesson.save()
+    publish_course_if_has_active_lessons(course)
     lesson = get_admin_lesson(lesson.id)
     return success_response(serialize_admin_lesson(lesson), status=201)
+
+
+@api_endpoint(["POST"], authentication_required=True, roles=[User.Role.COMPANY])
+def company_youtube_transcript_view(request):
+    from services.youtube_transcript import YouTubeTranscriptService, YouTubeTranscriptServiceError
+
+    payload = parse_json_body(request)
+    video_url = str(payload.get("video_url", "")).strip()
+    errors = {}
+
+    if not video_url:
+        errors["video_url"] = ["This field is required."]
+    else:
+        video_url_error = youtube_video_url_error(video_url)
+        if video_url_error:
+            errors["video_url"] = [video_url_error]
+
+    if errors:
+        raise ValidationError(errors)
+
+    try:
+        transcript_text = YouTubeTranscriptService().fetch_transcript_text(video_url)
+    except YouTubeTranscriptServiceError as exc:
+        return error_response(
+            request,
+            "TRANSCRIPT_UNAVAILABLE",
+            str(exc),
+            details={"video_url": [video_url]},
+            status=422,
+        )
+
+    return success_response({"transcript": transcript_text})
 
 
 @api_endpoint(["PUT", "DELETE"], authentication_required=True, roles=[User.Role.COMPANY])
@@ -5259,6 +6146,15 @@ def company_lesson_detail_view(request, lesson_id: int):
             status=404,
         )
 
+    if not company_can_edit_course(request.user, lesson.course):
+        return error_response(
+            request,
+            "FORBIDDEN",
+            "You can only manage lessons for courses created by your company.",
+            details={"lesson_id": [str(lesson_id)]},
+            status=403,
+        )
+
     if request.method == "DELETE":
         lesson.status = Lesson.Status.INACTIVE
         lesson.full_clean()
@@ -5270,6 +6166,7 @@ def company_lesson_detail_view(request, lesson_id: int):
     lesson.title = payload["title"]
     lesson.summary = payload["summary"]
     lesson.content = payload["content"]
+    lesson.transcript = payload["transcript"]
     lesson.video_url = payload["video_url"]
     lesson.sequence_number = payload["sequence_number"]
     lesson.status = payload["status"]
@@ -5279,14 +6176,210 @@ def company_lesson_detail_view(request, lesson_id: int):
             "title",
             "summary",
             "content",
+            "transcript",
             "video_url",
             "sequence_number",
             "status",
             "updated_at",
         ]
     )
+    publish_course_if_has_active_lessons(lesson.course)
     lesson = get_admin_lesson(lesson.id)
     return success_response(serialize_admin_lesson(lesson))
+
+
+@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.COMPANY])
+def company_course_preview_detail_view(request, course_id: int):
+    course = get_admin_course(course_id)
+    if course is None:
+        return error_response(
+            request,
+            "NOT_FOUND",
+            "The requested course was not found.",
+            details={"course_id": [str(course_id)]},
+            status=404,
+        )
+
+    lessons = company_preview_course_lessons(course)
+    ensure_company_preview_course_assessment_map(course, lessons=lessons)
+    return success_response(serialize_company_preview_course_detail(course, lessons=lessons))
+
+
+@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.COMPANY])
+def company_course_preview_lesson_detail_view(request, course_id: int, lesson_id: int):
+    course = get_admin_course(course_id)
+    if course is None:
+        return error_response(
+            request,
+            "NOT_FOUND",
+            "The requested course was not found.",
+            details={"course_id": [str(course_id)]},
+            status=404,
+        )
+
+    lessons = company_preview_course_lessons(course)
+    lesson = next((item for item in lessons if item.id == lesson_id), None)
+    if lesson is None:
+        return error_response(
+            request,
+            "NOT_FOUND",
+            "The requested lesson is not available.",
+            details={"lesson_id": [str(lesson_id)]},
+            status=404,
+        )
+
+    assessment_by_lesson_id, final_assessment = ensure_company_preview_course_assessment_map(course, lessons=lessons)
+    return success_response(
+        serialize_company_preview_lesson_detail(
+            lesson,
+            lessons=lessons,
+            lesson_exam=assessment_by_lesson_id.get(lesson.id),
+            final_exam=final_assessment,
+        )
+    )
+
+
+@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.COMPANY])
+def company_course_preview_lesson_assessment_detail_view(request, course_id: int, lesson_id: int):
+    course = get_admin_course(course_id)
+    if course is None:
+        return error_response(request, "NOT_FOUND", "The requested course was not found.", details={"course_id": [str(course_id)]}, status=404)
+
+    lessons = company_preview_course_lessons(course)
+    lesson = next((item for item in lessons if item.id == lesson_id), None)
+    if lesson is None:
+        return error_response(request, "NOT_FOUND", "The requested lesson is not available.", details={"lesson_id": [str(lesson_id)]}, status=404)
+
+    assessment_by_lesson_id, _ = ensure_company_preview_course_assessment_map(course, lessons=lessons)
+    assessment = assessment_by_lesson_id.get(lesson.id)
+    if assessment is None:
+        return error_response(request, "NOT_FOUND", "No lesson exam is configured for this lesson.", details={"lesson_id": [str(lesson_id)]}, status=404)
+
+    response_payload = serialize_company_preview_assessment_detail(assessment, user=request.user)
+    if not response_payload["questions"]:
+        return error_response(
+            request,
+            "ASSESSMENT_UNAVAILABLE",
+            course_assessment_unavailable_message(assessment, user=request.user),
+            details={"lesson_id": [str(lesson_id)]},
+            status=503,
+        )
+    return success_response(response_payload)
+
+
+@api_endpoint(["POST"], authentication_required=True, roles=[User.Role.COMPANY])
+def company_course_preview_lesson_assessment_submit_view(request, course_id: int, lesson_id: int):
+    course = get_admin_course(course_id)
+    if course is None:
+        return error_response(request, "NOT_FOUND", "The requested course was not found.", details={"course_id": [str(course_id)]}, status=404)
+
+    lessons = company_preview_course_lessons(course)
+    lesson = next((item for item in lessons if item.id == lesson_id), None)
+    if lesson is None:
+        return error_response(request, "NOT_FOUND", "The requested lesson is not available.", details={"lesson_id": [str(lesson_id)]}, status=404)
+
+    assessment_by_lesson_id, _ = ensure_company_preview_course_assessment_map(course, lessons=lessons)
+    assessment = assessment_by_lesson_id.get(lesson.id)
+    if assessment is None:
+        return error_response(request, "NOT_FOUND", "No lesson exam is configured for this lesson.", details={"lesson_id": [str(lesson_id)]}, status=404)
+
+    generated_questions = get_cached_generated_course_assessment_questions(assessment, user=request.user)
+    payload = validate_course_assessment_submission_payload(
+        parse_json_body(request),
+        assessment=assessment,
+        generated_questions=generated_questions or None,
+    )
+    score_percent, passed, _, _ = score_course_assessment_submission_details(
+        assessment,
+        payload["answers_by_question_id"],
+        generated_questions=generated_questions or None,
+    )
+    if generated_questions:
+        clear_cached_generated_course_assessment_questions(assessment, user=request.user)
+    message = (
+        "Lesson exam passed. The next lesson is now unlocked."
+        if passed
+        else f"Lesson exam submitted. Score {score_percent}%. Reach {assessment.passing_score_percent}% to unlock the next lesson."
+    )
+    return success_response(
+        {
+            "message": message,
+            "assessment_id": assessment.id,
+            "attempt_id": 0,
+            "attempt_number": 1,
+            "score_percent": score_percent,
+            "passed": passed,
+            "passing_score_percent": assessment.passing_score_percent,
+        },
+        status=201,
+    )
+
+
+@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.COMPANY])
+def company_course_preview_final_assessment_detail_view(request, course_id: int):
+    course = get_admin_course(course_id)
+    if course is None:
+        return error_response(request, "NOT_FOUND", "The requested course was not found.", details={"course_id": [str(course_id)]}, status=404)
+
+    lessons = company_preview_course_lessons(course)
+    _, final_assessment = ensure_company_preview_course_assessment_map(course, lessons=lessons)
+    if final_assessment is None:
+        return error_response(request, "NOT_FOUND", "No final exam is configured for this course.", details={"course_id": [str(course_id)]}, status=404)
+
+    response_payload = serialize_company_preview_assessment_detail(final_assessment, user=request.user)
+    if not response_payload["questions"]:
+        return error_response(
+            request,
+            "ASSESSMENT_UNAVAILABLE",
+            course_assessment_unavailable_message(final_assessment, user=request.user),
+            details={"course_id": [str(course_id)]},
+            status=503,
+        )
+    return success_response(response_payload)
+
+
+@api_endpoint(["POST"], authentication_required=True, roles=[User.Role.COMPANY])
+def company_course_preview_final_assessment_submit_view(request, course_id: int):
+    course = get_admin_course(course_id)
+    if course is None:
+        return error_response(request, "NOT_FOUND", "The requested course was not found.", details={"course_id": [str(course_id)]}, status=404)
+
+    lessons = company_preview_course_lessons(course)
+    _, final_assessment = ensure_company_preview_course_assessment_map(course, lessons=lessons)
+    if final_assessment is None:
+        return error_response(request, "NOT_FOUND", "No final exam is configured for this course.", details={"course_id": [str(course_id)]}, status=404)
+
+    generated_questions = get_cached_generated_course_assessment_questions(final_assessment, user=request.user)
+    payload = validate_course_assessment_submission_payload(
+        parse_json_body(request),
+        assessment=final_assessment,
+        generated_questions=generated_questions or None,
+    )
+    score_percent, passed, _, _ = score_course_assessment_submission_details(
+        final_assessment,
+        payload["answers_by_question_id"],
+        generated_questions=generated_questions or None,
+    )
+    if generated_questions:
+        clear_cached_generated_course_assessment_questions(final_assessment, user=request.user)
+    message = (
+        "Final exam passed. Course completed."
+        if passed
+        else f"Final exam submitted. Score {score_percent}%. Reach {final_assessment.passing_score_percent}% to complete the course."
+    )
+    return success_response(
+        {
+            "message": message,
+            "assessment_id": final_assessment.id,
+            "attempt_id": 0,
+            "attempt_number": 1,
+            "score_percent": score_percent,
+            "passed": passed,
+            "passing_score_percent": final_assessment.passing_score_percent,
+            "course_completed": passed,
+        },
+        status=201,
+    )
 
 
 @api_endpoint(["GET"], authentication_required=True, roles=[User.Role.STUDENT])
@@ -5305,6 +6398,7 @@ def student_course_detail_view(request, course_id: int):
     if learning_record is not None:
         learning_record = sync_learning_record_progress(learning_record)
     lessons = active_course_lessons(course)
+    learning_record_count = course.learning_records.count()
     lesson_progress_map = get_learning_record_lesson_progress_map(learning_record, lessons)
     next_step_label = "Enroll to start" if learning_record is None else "Continue learning"
     if learning_record is not None and learning_record.status == LearningRecord.Status.COMPLETED:
@@ -5313,12 +6407,59 @@ def student_course_detail_view(request, course_id: int):
     return success_response(
         serialize_student_course_detail(
             course,
+            current_user=request.user,
             learning_record=learning_record,
+            learning_record_count=learning_record_count,
             lessons=lessons,
             lesson_progress_map=lesson_progress_map,
             next_step_label=next_step_label,
             next_step_href=get_learning_record_resume_href(learning_record) if learning_record is not None else None,
         )
+    )
+
+
+@api_endpoint(["POST"], authentication_required=True, roles=[User.Role.STUDENT])
+def student_course_review_view(request, course_id: int):
+    course = get_visible_student_course(course_id)
+    if course is None:
+        return error_response(
+            request,
+            "NOT_FOUND",
+            "The requested course is not available.",
+            details={"course_id": [str(course_id)]},
+            status=404,
+        )
+
+    learning_record = get_student_course_learning_record(request.user, course)
+    if learning_record is None:
+        return error_response(
+            request,
+            "FORBIDDEN",
+            "You must enroll in this course before leaving a review.",
+            details={"course_id": [str(course_id)]},
+            status=403,
+        )
+
+    payload = validate_student_course_review_payload(parse_json_body(request))
+    review = CourseReview.objects.filter(course=course, student=request.user).first()
+    created = review is None
+    if review is None:
+        review = CourseReview(course=course, student=request.user)
+
+    review.rating = payload["rating"]
+    review.review_text = payload["review_text"]
+    review.full_clean()
+    review.save()
+
+    review_summary = course_review_summary_map([course.id]).get(course.id, {"average_rating": None, "rating_count": 0})
+    return success_response(
+        {
+            "message": "Your course review was saved.",
+            "review": serialize_course_review(review, current_user=request.user),
+            "average_rating": review_summary["average_rating"],
+            "rating_count": review_summary["rating_count"],
+        },
+        status=201 if created else 200,
     )
 
 
@@ -5620,7 +6761,16 @@ def student_lesson_assessment_detail_view(request, course_id: int, lesson_id: in
     if not lesson_assessment_unlocked(lesson, progress_map=progress_map):
         return error_response(request, "FORBIDDEN", "Complete the lesson before taking its exam.", details={"lesson_id": [str(lesson_id)]}, status=403)
 
-    return success_response(serialize_course_assessment_detail(assessment, student=request.user))
+    response_payload = serialize_course_assessment_detail(assessment, student=request.user)
+    if not response_payload["questions"]:
+        return error_response(
+            request,
+            "ASSESSMENT_UNAVAILABLE",
+            course_assessment_unavailable_message(assessment, user=request.user),
+            details={"lesson_id": [str(lesson_id)]},
+            status=503,
+        )
+    return success_response(response_payload)
 
 
 @api_endpoint(["POST"], authentication_required=True, roles=[User.Role.STUDENT])
@@ -5647,7 +6797,12 @@ def student_lesson_assessment_submit_view(request, course_id: int, lesson_id: in
     if not lesson_assessment_unlocked(lesson, progress_map=progress_map):
         return error_response(request, "FORBIDDEN", "Complete the lesson before taking its exam.", details={"lesson_id": [str(lesson_id)]}, status=403)
 
-    payload = validate_course_assessment_submission_payload(parse_json_body(request), assessment=assessment)
+    generated_questions = get_cached_generated_course_assessment_questions(assessment, user=request.user)
+    payload = validate_course_assessment_submission_payload(
+        parse_json_body(request),
+        assessment=assessment,
+        generated_questions=generated_questions or None,
+    )
     now = timezone.now()
     attempt_number = next_course_assessment_attempt_number(request.user, assessment)
     with transaction.atomic():
@@ -5664,21 +6819,28 @@ def student_lesson_assessment_submit_view(request, course_id: int, lesson_id: in
         attempt.full_clean()
         attempt.save()
 
-        for question_id, selected_option_ids in payload["answers_by_question_id"].items():
-            for option_id in selected_option_ids:
-                selection = CourseAssessmentAttemptSelection(
-                    attempt=attempt,
-                    question_id=question_id,
-                    option_id=option_id,
-                )
-                selection.full_clean()
-                selection.save()
+        if not generated_questions:
+            for question_id, selected_option_ids in payload["answers_by_question_id"].items():
+                for option_id in selected_option_ids:
+                    selection = CourseAssessmentAttemptSelection(
+                        attempt=attempt,
+                        question_id=question_id,
+                        option_id=option_id,
+                    )
+                    selection.full_clean()
+                    selection.save()
 
-        score_percent, passed, _, _ = score_course_assessment_submission_details(assessment, payload["answers_by_question_id"])
+        score_percent, passed, _, _ = score_course_assessment_submission_details(
+            assessment,
+            payload["answers_by_question_id"],
+            generated_questions=generated_questions or None,
+        )
         attempt.score_percent = score_percent
         attempt.passed = passed
         attempt.full_clean()
         attempt.save(update_fields=["score_percent", "passed", "updated_at"])
+    if generated_questions:
+        clear_cached_generated_course_assessment_questions(assessment, user=request.user)
 
     message = (
         "Lesson exam passed. The next lesson is now unlocked."
@@ -5730,7 +6892,16 @@ def student_course_final_assessment_detail_view(request, course_id: int):
             status=403,
         )
 
-    return success_response(serialize_course_assessment_detail(final_assessment, student=request.user))
+    response_payload = serialize_course_assessment_detail(final_assessment, student=request.user)
+    if not response_payload["questions"]:
+        return error_response(
+            request,
+            "ASSESSMENT_UNAVAILABLE",
+            course_assessment_unavailable_message(final_assessment, user=request.user),
+            details={"course_id": [str(course_id)]},
+            status=503,
+        )
+    return success_response(response_payload)
 
 
 @api_endpoint(["POST"], authentication_required=True, roles=[User.Role.STUDENT])
@@ -5764,7 +6935,12 @@ def student_course_final_assessment_submit_view(request, course_id: int):
             status=403,
         )
 
-    payload = validate_course_assessment_submission_payload(parse_json_body(request), assessment=final_assessment)
+    generated_questions = get_cached_generated_course_assessment_questions(final_assessment, user=request.user)
+    payload = validate_course_assessment_submission_payload(
+        parse_json_body(request),
+        assessment=final_assessment,
+        generated_questions=generated_questions or None,
+    )
     now = timezone.now()
     attempt_number = next_course_assessment_attempt_number(request.user, final_assessment)
     with transaction.atomic():
@@ -5781,21 +6957,28 @@ def student_course_final_assessment_submit_view(request, course_id: int):
         attempt.full_clean()
         attempt.save()
 
-        for question_id, selected_option_ids in payload["answers_by_question_id"].items():
-            for option_id in selected_option_ids:
-                selection = CourseAssessmentAttemptSelection(
-                    attempt=attempt,
-                    question_id=question_id,
-                    option_id=option_id,
-                )
-                selection.full_clean()
-                selection.save()
+        if not generated_questions:
+            for question_id, selected_option_ids in payload["answers_by_question_id"].items():
+                for option_id in selected_option_ids:
+                    selection = CourseAssessmentAttemptSelection(
+                        attempt=attempt,
+                        question_id=question_id,
+                        option_id=option_id,
+                    )
+                    selection.full_clean()
+                    selection.save()
 
-        score_percent, passed, _, _ = score_course_assessment_submission_details(final_assessment, payload["answers_by_question_id"])
+        score_percent, passed, _, _ = score_course_assessment_submission_details(
+            final_assessment,
+            payload["answers_by_question_id"],
+            generated_questions=generated_questions or None,
+        )
         attempt.score_percent = score_percent
         attempt.passed = passed
         attempt.full_clean()
         attempt.save(update_fields=["score_percent", "passed", "updated_at"])
+    if generated_questions:
+        clear_cached_generated_course_assessment_questions(final_assessment, user=request.user)
 
     learning_record = sync_learning_record_progress(learning_record)
     message = (
@@ -8148,6 +9331,7 @@ def admin_course_lessons_view(request, course_id: int):
         title=payload["title"],
         summary=payload["summary"],
         content=payload["content"],
+        transcript=payload["transcript"],
         video_url=payload["video_url"],
         sequence_number=payload["sequence_number"],
         status=payload["status"],
@@ -8181,6 +9365,7 @@ def admin_lesson_detail_view(request, lesson_id: int):
     lesson.title = payload["title"]
     lesson.summary = payload["summary"]
     lesson.content = payload["content"]
+    lesson.transcript = payload["transcript"]
     lesson.video_url = payload["video_url"]
     lesson.sequence_number = payload["sequence_number"]
     lesson.status = payload["status"]
@@ -8190,6 +9375,7 @@ def admin_lesson_detail_view(request, lesson_id: int):
             "title",
             "summary",
             "content",
+            "transcript",
             "video_url",
             "sequence_number",
             "status",
@@ -9107,6 +10293,36 @@ def admin_security_view(request):
             "signup_window": "1 minute per IP",
         }
     })
+
+
+@api_endpoint(["POST"], authentication_required=False)
+def web_vitals_view(request):
+    """Accept frontend web vitals beacons without requiring auth."""
+    from services.logging import LogAggregationService
+
+    try:
+        payload = parse_json_body(request)
+    except (ValueError, ValidationError):
+        payload = {}
+
+    if payload:
+        LogAggregationService.info(
+            service="frontend",
+            message="Web vitals received",
+            request_id=getattr(request, "request_id", None),
+            user_id=request.user.id if request.user.is_authenticated else None,
+            metadata={
+                "name": payload.get("name"),
+                "value": payload.get("value"),
+                "rating": payload.get("rating"),
+                "lcp": payload.get("lcp"),
+                "fid": payload.get("fid"),
+                "cls": payload.get("cls"),
+                "ttfb": payload.get("ttfb"),
+            },
+        )
+
+    return success_response({"received": True}, status=202)
 
 
 @api_endpoint(["POST"], authentication_required=False)

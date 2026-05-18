@@ -60,9 +60,16 @@ export interface AdminCourseRecord {
   category: string
   difficulty_level: string
   estimated_hours: number
+  thumbnail_image?: string | null
+  thumbnail_alt_text?: string | null
   status: string
   lesson_count: number
   learning_record_count: number
+  company_id?: number | null
+  company_name?: string | null
+  created_by_id?: number | null
+  created_by_name?: string | null
+  can_edit?: boolean
   created_at: string
   updated_at: string
 }
@@ -78,7 +85,8 @@ export interface AdminLessonRecord {
   title: string
   summary: string
   content: string
-   video_url: string
+  transcript: string
+  video_url: string
   sequence_number: number
   status: string
   progress_entry_count: number

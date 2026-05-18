@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.core.exceptions import ValidationError
@@ -511,15 +512,70 @@ class Course(models.Model):
         default=0,
         validators=[MinValueValidator(0)],
     )
+    thumbnail_image = models.TextField(blank=True, default="")
+    thumbnail_alt_text = models.CharField(max_length=255, blank=True, default="")
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.DRAFT)
+    company = models.ForeignKey(
+        Company,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="courses",
+    )
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="created_courses",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ["-updated_at", "-id"]
 
+    def clean(self) -> None:
+        super().clean()
+        if self.company_id is None and self.created_by_id is None:
+            return
+        if self.company_id is None or self.created_by_id is None:
+            raise ValidationError({"company": ["Company-owned courses must include both company and creator."]})
+        if self.created_by.role != User.Role.COMPANY:
+            raise ValidationError({"created_by": ["Course creator must be a company user."]})
+        if self.created_by.company_id != self.company_id:
+            raise ValidationError({"created_by": ["Course creator must belong to the same company."]})
+
     def __str__(self) -> str:
         return self.title
+
+
+class CourseReview(models.Model):
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="reviews")
+    student = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="course_reviews",
+        limit_choices_to={"role": "student"},
+    )
+    rating = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
+    review_text = models.TextField(blank=True, default="")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-updated_at", "-id"]
+        constraints = [
+            models.UniqueConstraint(fields=["course", "student"], name="unique_student_course_review"),
+        ]
+
+    def clean(self) -> None:
+        super().clean()
+        if self.student.role != User.Role.STUDENT:
+            raise ValidationError({"student": ["Course reviews may only belong to student users."]})
+
+    def __str__(self) -> str:
+        return f"{self.course.title} review by {self.student.email}"
 
 
 class Lesson(models.Model):
@@ -532,6 +588,7 @@ class Lesson(models.Model):
     title = models.CharField(max_length=255)
     summary = models.TextField(blank=True, default="")
     content = models.TextField(blank=True, default="")
+    transcript = models.TextField(blank=True, default="")
     video_url = models.URLField(blank=True, default="")
     sequence_number = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.DRAFT)

@@ -160,3 +160,28 @@ export function setCourseMediaOverride(courseId: number | string, title: string,
 
   writeCourseMediaState(courseMediaState)
 }
+
+export function clearCourseMediaOverride(courseId: number | string, title: string) {
+  const courseMediaState = readCourseMediaState()
+  const idKey = `id:${String(courseId)}`
+  const legacyIdKey = String(courseId)
+  const slugKey = slugify(title)
+  const aliasedCourseKey = courseMediaState.slugToCourseKey[slugKey]
+
+  delete courseMediaState.overrides[idKey]
+  delete courseMediaState.overrides[legacyIdKey]
+  delete courseMediaState.overrides[`slug:${slugKey}`]
+  if (aliasedCourseKey) {
+    delete courseMediaState.overrides[aliasedCourseKey]
+  }
+  delete courseMediaState.slugToCourseKey[slugKey]
+
+  for (const [savedSlug, savedCourseKey] of Object.entries(courseMediaState.slugToCourseKey)) {
+    if (savedCourseKey === idKey || savedCourseKey === aliasedCourseKey) {
+      delete courseMediaState.slugToCourseKey[savedSlug]
+      delete courseMediaState.overrides[`slug:${savedSlug}`]
+    }
+  }
+
+  writeCourseMediaState(courseMediaState)
+}

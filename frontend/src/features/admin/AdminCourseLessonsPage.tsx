@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import { useAuth } from '../../auth/useAuth'
 import { ApiError, apiRequest } from '../../lib/api'
 import type { AdminCourseLessonsResponse, AdminLessonRecord } from './types'
+import { MarkdownEditor } from '@/components/markdown/MarkdownEditor'
 
 const emptyLessonsResponse: AdminCourseLessonsResponse = {
   course: {
@@ -33,6 +34,7 @@ export function AdminCourseLessonsPage() {
   const [title, setTitle] = useState('')
   const [summary, setSummary] = useState('')
   const [content, setContent] = useState('')
+  const [transcript, setTranscript] = useState('')
   const [videoUrl, setVideoUrl] = useState('')
   const [sequenceNumber, setSequenceNumber] = useState('1')
   const [status, setStatus] = useState('draft')
@@ -48,6 +50,7 @@ export function AdminCourseLessonsPage() {
       setTitle('')
       setSummary('')
       setContent('')
+      setTranscript('')
       setVideoUrl('')
       setSequenceNumber(String(data.lessons.length + 1 || 1))
       setStatus('draft')
@@ -57,6 +60,7 @@ export function AdminCourseLessonsPage() {
     setTitle(selectedLesson.title)
     setSummary(selectedLesson.summary)
     setContent(selectedLesson.content)
+    setTranscript(selectedLesson.transcript)
     setVideoUrl(selectedLesson.video_url)
     setSequenceNumber(String(selectedLesson.sequence_number))
     setStatus(selectedLesson.status)
@@ -114,13 +118,14 @@ export function AdminCourseLessonsPage() {
     setError(null)
 
     try {
-      const body = {
-        title,
-        summary,
-        content,
-        video_url: videoUrl,
-        sequence_number: Number(sequenceNumber),
-        status,
+        const body = {
+          title,
+          summary,
+          content,
+          transcript,
+          video_url: videoUrl,
+          sequence_number: Number(sequenceNumber),
+          status,
       }
 
       if (selectedLesson) {
@@ -206,7 +211,11 @@ export function AdminCourseLessonsPage() {
             </label>
             <label>
               <span>Content</span>
-              <textarea value={content} onChange={(event) => setContent(event.target.value)} rows={8} />
+              <MarkdownEditor value={content} onChange={setContent} rows={10} placeholder="Write lesson content in Markdown." />
+            </label>
+            <label>
+              <span>Transcript</span>
+              <textarea value={transcript} onChange={(event) => setTranscript(event.target.value)} rows={8} />
             </label>
             <label>
               <span>YouTube video URL</span>

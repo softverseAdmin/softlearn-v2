@@ -2,8 +2,11 @@ import os
 from pathlib import Path
 import sys
 
+from dotenv import load_dotenv
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR.parent / ".env", override=True)
 
 
 def env_bool(name: str, default: bool) -> bool:
@@ -18,6 +21,16 @@ def env_list(name: str, default: list[str]) -> list[str]:
     if not value:
         return default
     return [item.strip() for item in value.split(",") if item.strip()]
+
+
+def env_int(name: str, default: int) -> int:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return default
 
 
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "change-me-before-production")
@@ -190,6 +203,15 @@ else:
 
 # Sentry Configuration
 SENTRY_DSN = os.getenv("SENTRY_DSN", "")
+
+# Gemini exam generation configuration
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
+GEMINI_EXAM_GENERATION_ENABLED = env_bool("GEMINI_EXAM_GENERATION_ENABLED", False)
+GEMINI_EXAM_REQUEST_TIMEOUT_SECONDS = env_int("GEMINI_EXAM_REQUEST_TIMEOUT_SECONDS", 15)
+GEMINI_EXAM_MAX_OUTPUT_TOKENS = env_int("GEMINI_EXAM_MAX_OUTPUT_TOKENS", 768)
+GEMINI_EXAM_SOURCE_CHAR_LIMIT = env_int("GEMINI_EXAM_SOURCE_CHAR_LIMIT", 4000)
+GEMINI_EXAM_DEFAULT_QUESTION_COUNT = env_int("GEMINI_EXAM_DEFAULT_QUESTION_COUNT", 5)
 
 # Logging Configuration
 LOGGING = {

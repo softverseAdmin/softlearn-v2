@@ -342,8 +342,16 @@ export interface CourseCatalogRecord {
   category: string
   difficulty_level: string
   estimated_hours: number
+  thumbnail_image?: string | null
+  thumbnail_alt_text?: string | null
   status: string
   lesson_count: number
+  learning_record_count: number
+  average_rating: number | null
+  rating_count: number
+  company_name?: string | null
+  company_profile_image?: string | null
+  created_by_name?: string | null
   is_enrolled: boolean
   enrollment_status: string | null
   progress_percent: number | null
@@ -379,11 +387,24 @@ export interface CourseLessonSummary {
   assessment: CourseAssessmentSummary | null
 }
 
+export interface CourseReviewRecord {
+  review_id: number
+  student_id: number
+  student_name: string
+  rating: number
+  review_text: string
+  created_at: string
+  updated_at: string
+  is_current_user: boolean
+}
+
 export interface CourseDetailResponse extends CourseCatalogRecord {
   enrollment: CourseEnrollmentState
   lessons: CourseLessonSummary[]
   final_exam: CourseAssessmentSummary | null
   learning_outcomes: string[]
+  reviews: CourseReviewRecord[]
+  current_user_review: CourseReviewRecord | null
 }
 
 export interface StudentCourseEnrollmentResponse {
@@ -392,6 +413,13 @@ export interface StudentCourseEnrollmentResponse {
   enrollment: CourseEnrollmentState
   next_step_href: string
   next_step_label: string
+}
+
+export interface StudentCourseReviewResponse {
+  message: string
+  review: CourseReviewRecord
+  average_rating: number | null
+  rating_count: number
 }
 
 export interface LessonProgressState {

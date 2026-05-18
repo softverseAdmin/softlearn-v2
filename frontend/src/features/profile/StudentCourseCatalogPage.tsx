@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { BookOpen, ChevronRight, Clock3, Heart, Search, SlidersHorizontal, Star } from 'lucide-react'
+import { BookOpen, CheckCircle2, ChevronRight, Clock3, Heart, Search, SlidersHorizontal, Star, Users } from 'lucide-react'
 
 import { ApiError, apiRequest } from '../../lib/api'
 import type { CourseCatalogRecord, CourseCatalogResponse } from './types'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -18,7 +18,6 @@ const emptyCatalog: CourseCatalogResponse = {
 }
 
 const favoriteStorageKey = 'student-course-favorites'
-const teacherNames = ['Ava Patel', 'Daniel Kim', 'Mina Sato', 'Noah Chen', 'Sophia Sharma', 'Leo Tan']
 const thumbnailBackgrounds = [
   'from-violet-600 via-indigo-600 to-blue-500',
   'from-cyan-500 via-sky-600 to-indigo-700',
@@ -43,16 +42,30 @@ function formatDifficultyLabel(value: string) {
   return value ? formatCategoryLabel(value) : 'General'
 }
 
-function getCourseMockMeta(course: CourseCatalogRecord) {
-  const teacherName = teacherNames[course.course_id % teacherNames.length]
-  const rating = (4.2 + ((course.course_id % 7) * 0.1)).toFixed(1)
+function formatCompactNumber(value: number) {
+  return new Intl.NumberFormat('en-US').format(value)
+}
+
+function getCourseCardMeta(course: CourseCatalogRecord) {
+  const companyName = course.company_name?.trim()
+  const creatorName = course.created_by_name?.trim()
+  const sourceName = companyName || creatorName || 'SoftLearn team'
   const background = thumbnailBackgrounds[course.course_id % thumbnailBackgrounds.length]
 
   return {
-    teacherName,
-    rating,
+    sourceName,
     background,
-    initials: teacherName
+    sourceLabel:
+      companyName && creatorName
+        ? `Created by ${creatorName}`
+        : companyName
+          ? 'Course provider'
+          : creatorName
+            ? 'Course author'
+            : 'Published by SoftLearn',
+    sourceImage: course.company_profile_image?.trim() || null,
+    learnerCount: course.learning_record_count ?? 0,
+    initials: sourceName
       .split(' ')
       .map((part) => part.charAt(0))
       .join('')
@@ -73,9 +86,10 @@ function getCourseRecommendationScore(course: CourseCatalogRecord, favoriteCours
 
 type StudentCourseCatalogPageProps = {
   favoritesOnly?: boolean
+  completedOnly?: boolean
 }
 
-function StudentCourseCatalogPageContent({ favoritesOnly = false }: StudentCourseCatalogPageProps) {
+function StudentCourseCatalogPageContent({ favoritesOnly = false, completedOnly = false }: StudentCourseCatalogPageProps) {
   const navigate = useNavigate()
   const [catalog, setCatalog] = useState<CourseCatalogResponse>(emptyCatalog)
   const [loading, setLoading] = useState(true)
@@ -93,8 +107,14 @@ function StudentCourseCatalogPageContent({ favoritesOnly = false }: StudentCours
     }
 
     try {
-      const parsedFavorites = JSON.parse(storedFavorites) as number[]
-      setFavoriteCourseIds(Array.isArray(parsedFavorites) ? parsedFavorites : [])
+      const parsedFavorites = JSON.parse(storedFavorites) as unknown
+      setFavoriteCourseIds(
+        Array.isArray(parsedFavorites)
+          ? parsedFavorites
+              .map((value) => Number(value))
+              .filter((value) => Number.isInteger(value) && value > 0)
+          : []
+      )
     } catch {
       setFavoriteCourseIds([])
     }
@@ -145,6 +165,7 @@ function StudentCourseCatalogPageContent({ favoritesOnly = false }: StudentCours
 
     const filtered = catalog.courses.filter((course) => {
       const matchesFavorites = !favoritesOnly || favoriteCourseIds.includes(course.course_id)
+      const matchesCompleted = !completedOnly || course.enrollment_status === 'completed'
       const matchesQuery =
         !normalizedQuery ||
         [course.title, course.description, course.category]
@@ -155,7 +176,7 @@ function StudentCourseCatalogPageContent({ favoritesOnly = false }: StudentCours
       const matchesCategory = category === 'All Categories' || course.category === category
       const matchesLevel = level === 'All Levels' || formatDifficultyLabel(course.difficulty_level) === level
 
-      return matchesFavorites && matchesQuery && matchesCategory && matchesLevel
+      return matchesFavorites && matchesCompleted && matchesQuery && matchesCategory && matchesLevel
     })
 
     return filtered.sort((left, right) => {
@@ -168,12 +189,16 @@ function StudentCourseCatalogPageContent({ favoritesOnly = false }: StudentCours
       }
 
       if (sortBy === 'Popular') {
-        return right.lesson_count - left.lesson_count || (right.estimated_hours || 0) - (left.estimated_hours || 0)
+        return (
+          (right.learning_record_count ?? 0) - (left.learning_record_count ?? 0) ||
+          right.lesson_count - left.lesson_count ||
+          (right.estimated_hours || 0) - (left.estimated_hours || 0)
+        )
       }
 
       return getCourseRecommendationScore(right, favoriteCourseIds) - getCourseRecommendationScore(left, favoriteCourseIds)
     })
-  }, [catalog.courses, category, favoriteCourseIds, favoritesOnly, level, searchQuery, sortBy])
+  }, [catalog.courses, category, completedOnly, favoriteCourseIds, favoritesOnly, level, searchQuery, sortBy])
 
   function toggleFavorite(courseId: number) {
     setFavoriteCourseIds((currentFavorites) => {
@@ -186,16 +211,22 @@ function StudentCourseCatalogPageContent({ favoritesOnly = false }: StudentCours
     })
   }
 
-  const pageTitle = favoritesOnly ? 'Wishlisted Courses' : 'All Courses'
+  const pageTitle = favoritesOnly ? 'Wishlisted Courses' : completedOnly ? 'Completed Courses' : 'All Courses'
   const pageDescription = favoritesOnly
     ? 'Review the courses you saved to your wishlist and jump back into the ones you want to learn next.'
-    : 'Explore and enroll in courses to learn new skills and advance your career'
-  const emptyStateTitle = favoritesOnly ? 'No wishlisted courses yet' : 'No courses found'
+    : completedOnly
+      ? 'Browse the courses you have already finished and revisit the skills you completed.'
+      : 'Explore and enroll in courses to learn new skills and advance your career'
+  const emptyStateTitle = favoritesOnly ? 'No wishlisted courses yet' : completedOnly ? 'No completed courses yet' : 'No courses found'
   const emptyStateDescription = favoritesOnly
     ? 'Save courses with the heart button and they will appear here.'
-    : 'Try changing your search or filters to see more courses.'
+    : completedOnly
+      ? 'Complete a course to see it listed here.'
+      : 'Try changing your search or filters to see more courses.'
   const wishlistButtonLabel = favoritesOnly ? 'Browse All Courses' : 'Wishlisted Courses'
   const wishlistButtonHref = favoritesOnly ? '/student/courses' : '/student/courses/wishlist'
+  const completedButtonLabel = completedOnly ? 'Browse All Courses' : 'Completed Courses'
+  const completedButtonHref = completedOnly ? '/student/courses' : '/student/courses/completed'
 
   return (
     <div className="space-y-6 px-4 py-6 md:px-6 lg:px-8">
@@ -207,10 +238,10 @@ function StudentCourseCatalogPageContent({ favoritesOnly = false }: StudentCours
         <Link to="/student/courses" className="transition-colors hover:text-foreground">
           Courses
         </Link>
-        {favoritesOnly ? (
+        {favoritesOnly || completedOnly ? (
           <>
             <ChevronRight className="h-4 w-4" />
-            <span className="font-medium text-foreground">Wishlist</span>
+            <span className="font-medium text-foreground">{favoritesOnly ? 'Wishlist' : 'Completed'}</span>
           </>
         ) : null}
       </div>
@@ -291,6 +322,15 @@ function StudentCourseCatalogPageContent({ favoritesOnly = false }: StudentCours
         >
           <Heart className={cn('h-4 w-4', favoritesOnly && 'fill-current text-emerald-500')} />
         </Button>
+        <Button
+          type="button"
+          variant="outline"
+          className="h-11 w-11 rounded-none px-0"
+          onClick={() => navigate(completedButtonHref)}
+          aria-label={completedButtonLabel}
+        >
+          <CheckCircle2 className={cn('h-4 w-4', completedOnly && 'fill-current text-emerald-500')} />
+        </Button>
       </div>
 
       <div className="hidden flex-wrap gap-4 md:flex md:items-center">
@@ -350,6 +390,15 @@ function StudentCourseCatalogPageContent({ favoritesOnly = false }: StudentCours
           <Heart className={cn('mr-2 h-4 w-4', favoritesOnly && 'fill-current text-emerald-500')} />
           {wishlistButtonLabel}
         </Button>
+        <Button
+          type="button"
+          variant="outline"
+          className="h-11 rounded-none px-4"
+          onClick={() => navigate(completedButtonHref)}
+        >
+          <CheckCircle2 className={cn('mr-2 h-4 w-4', completedOnly && 'fill-current text-emerald-500')} />
+          {completedButtonLabel}
+        </Button>
       </div>
 
       <div className="flex gap-2 overflow-x-auto pb-2">
@@ -398,10 +447,10 @@ function StudentCourseCatalogPageContent({ favoritesOnly = false }: StudentCours
       ) : filteredCourses.length > 0 ? (
         <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
           {filteredCourses.map((course) => {
-            const meta = getCourseMockMeta(course)
+            const meta = getCourseCardMeta(course)
             const isFavorite = favoriteCourseIds.includes(course.course_id)
             const mediaOverride = getCourseMediaOverrideForCourse(course.course_id, course.title)
-            const courseThumbnail = mediaOverride?.thumbnailImage || mediaOverride?.previewImage || ''
+            const courseThumbnail = course.thumbnail_image || mediaOverride?.thumbnailImage || mediaOverride?.previewImage || ''
             const isCompleted = course.enrollment_status === 'completed'
             const isInProgress = course.enrollment_status === 'in_progress'
             const progressLabel = isCompleted
@@ -422,38 +471,43 @@ function StudentCourseCatalogPageContent({ favoritesOnly = false }: StudentCours
                     <>
                       <img
                         src={courseThumbnail}
-                        alt={mediaOverride?.thumbnailAltText || `${course.title} thumbnail`}
+                        alt={course.thumbnail_alt_text || mediaOverride?.thumbnailAltText || `${course.title} thumbnail`}
                         className="absolute inset-0 h-full w-full object-cover"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-black/10" />
                     </>
                   ) : null}
-                  <button
-                    type="button"
-                    onClick={() => toggleFavorite(course.course_id)}
-                    className={cn(
-                      'absolute right-4 top-4 z-10 inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-white/30 bg-black/20 text-white backdrop-blur-sm transition hover:bg-black/30',
-                      isFavorite && 'border-emerald-400/60 bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30'
-                    )}
-                    aria-label={isFavorite ? 'Remove from favorite courses' : 'Add to favorite courses'}
-                  >
-                    <Heart className={cn('h-5 w-5', isFavorite && 'fill-current text-emerald-300')} />
-                  </button>
-
                   <div className="relative z-10 flex h-full flex-col justify-between">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Badge variant="secondary" className="w-fit rounded-full bg-white/15 text-white hover:bg-white/15">
-                        {formatCategoryLabel(course.category)}
-                      </Badge>
-                      {isCompleted ? (
-                        <Badge className="rounded-full border-transparent bg-emerald-500 text-white hover:bg-emerald-500">
-                          Completed
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge variant="secondary" className="w-fit rounded-full bg-white/15 text-white hover:bg-white/15">
+                          {formatCategoryLabel(course.category)}
                         </Badge>
-                      ) : isInProgress ? (
-                        <Badge className="rounded-full border-transparent bg-blue-600 text-white hover:bg-blue-600">
-                          In progress
-                        </Badge>
-                      ) : null}
+                        {isCompleted ? (
+                          <Badge className="rounded-full border-transparent bg-emerald-500 text-white hover:bg-emerald-500">
+                            Completed
+                          </Badge>
+                        ) : isInProgress ? (
+                          <Badge className="rounded-full border-transparent bg-blue-600 text-white hover:bg-blue-600">
+                            In progress
+                          </Badge>
+                        ) : null}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          event.preventDefault()
+                          event.stopPropagation()
+                          toggleFavorite(course.course_id)
+                        }}
+                        className={cn(
+                          'inline-flex h-10 w-10 flex-none items-center justify-center rounded-2xl border border-white/30 bg-black/20 text-white backdrop-blur-sm transition hover:bg-black/30',
+                          isFavorite && 'border-emerald-400/60 bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30'
+                        )}
+                        aria-label={isFavorite ? 'Remove from favorite courses' : 'Add to favorite courses'}
+                      >
+                        <Heart className={cn('h-5 w-5', isFavorite && 'fill-current text-emerald-300')} />
+                      </button>
                     </div>
                     <div className="space-y-2">
                       <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-white/30 bg-white/10">
@@ -490,18 +544,25 @@ function StudentCourseCatalogPageContent({ favoritesOnly = false }: StudentCours
 
                   <div className="mt-4 flex items-center gap-3">
                     <Avatar size="default">
+                      {meta.sourceImage ? <AvatarImage src={meta.sourceImage} alt={meta.sourceName} /> : null}
                       <AvatarFallback>{meta.initials}</AvatarFallback>
                     </Avatar>
                     <div className="min-w-0">
-                      <p className="text-sm font-medium text-foreground">{meta.teacherName}</p>
-                      <p className="text-xs text-muted-foreground">Course instructor</p>
+                      <p className="text-sm font-medium text-foreground">{meta.sourceName}</p>
+                      <p className="text-xs text-muted-foreground">{meta.sourceLabel}</p>
                     </div>
                   </div>
 
                   <div className="mt-4 flex flex-nowrap items-center gap-2 overflow-x-auto">
                     <Badge variant="secondary" className="flex-none rounded-full whitespace-nowrap">
-                      <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-                      {meta.rating}
+                      <Star className={cn('h-3.5 w-3.5', course.rating_count > 0 && 'fill-amber-400 text-amber-400')} />
+                      {course.average_rating !== null && course.rating_count > 0
+                        ? `${course.average_rating.toFixed(1)} · ${formatCompactNumber(course.rating_count)} ratings`
+                        : 'No ratings yet'}
+                    </Badge>
+                    <Badge variant="secondary" className="flex-none rounded-full whitespace-nowrap">
+                      <Users className="h-3.5 w-3.5" />
+                      {formatCompactNumber(meta.learnerCount)} {meta.learnerCount === 1 ? 'learner' : 'learners'}
                     </Badge>
                     <Badge variant="secondary" className="flex-none rounded-full whitespace-nowrap">
                       <Clock3 className="h-3.5 w-3.5" />
@@ -549,4 +610,8 @@ export function StudentCourseCatalogPage() {
 
 export function StudentWishlistedCoursesPage() {
   return <StudentCourseCatalogPageContent favoritesOnly />
+}
+
+export function StudentCompletedCoursesPage() {
+  return <StudentCourseCatalogPageContent completedOnly />
 }
