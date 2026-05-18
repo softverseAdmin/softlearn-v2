@@ -37467,3 +37467,173 @@ django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'testserver'. Y
 [INFO] 2026-05-18 15:06:18,088 logging 35817 8331386496 GET /api/v1/notifications
 [WARNING] 2026-05-18 15:06:18,088 log 35817 8331386496 Unauthorized: /api/v1/notifications
 [INFO] 2026-05-18 15:06:18,236 logging 35817 8331386496 PUT /api/v1/notification-preferences/update
+[INFO] 2026-05-18 15:08:10,071 autoreload 36338 8331386496 Watching for file changes with StatReloader
+[WARNING] 2026-05-18 15:08:10,139 error_tracking 36338 6185627648 SENTRY_DSN not configured, error tracking disabled
+[INFO] 2026-05-18 15:09:57,520 autoreload 36723 8331386496 Watching for file changes with StatReloader
+[WARNING] 2026-05-18 15:09:57,636 error_tracking 36723 6115651584 SENTRY_DSN not configured, error tracking disabled
+[INFO] 2026-05-18 15:10:01,236 logging 36723 6132477952 GET /api/v1/auth/session
+[INFO] 2026-05-18 15:10:01,237 basehttp 36723 6132477952 "GET /api/v1/auth/session HTTP/1.1" 200 254
+[INFO] 2026-05-18 15:10:01,240 logging 36723 6132477952 GET /api/v1/auth/session
+[INFO] 2026-05-18 15:10:01,241 basehttp 36723 6132477952 "GET /api/v1/auth/session HTTP/1.1" 200 254
+[INFO] 2026-05-18 15:10:01,250 logging 36723 6132477952 GET /api/v1/notifications
+[INFO] 2026-05-18 15:10:01,250 basehttp 36723 6132477952 "GET /api/v1/notifications HTTP/1.1" 200 3779
+[INFO] 2026-05-18 15:10:01,251 logging 36723 6166130688 GET /api/v1/company/profile
+[INFO] 2026-05-18 15:10:01,253 basehttp 36723 6166130688 "GET /api/v1/company/profile HTTP/1.1" 200 69755
+[INFO] 2026-05-18 15:10:01,255 logging 36723 6149304320 GET /api/v1/company/messages
+[INFO] 2026-05-18 15:10:01,255 basehttp 36723 6149304320 "GET /api/v1/company/messages HTTP/1.1" 200 440930
+[INFO] 2026-05-18 15:10:01,265 logging 36723 6132477952 GET /api/v1/company/messages
+[INFO] 2026-05-18 15:10:01,266 basehttp 36723 6132477952 "GET /api/v1/company/messages HTTP/1.1" 200 440930
+[INFO] 2026-05-18 15:10:01,281 logging 36723 6149304320 GET /api/v1/company/profile
+[INFO] 2026-05-18 15:10:01,282 basehttp 36723 6149304320 "GET /api/v1/company/profile HTTP/1.1" 200 69755
+[INFO] 2026-05-18 15:10:01,284 logging 36723 6166130688 GET /api/v1/company/messages
+[INFO] 2026-05-18 15:10:01,284 logging 36723 6132477952 GET /api/v1/notifications
+[INFO] 2026-05-18 15:10:01,285 basehttp 36723 6166130688 "GET /api/v1/company/messages HTTP/1.1" 200 440930
+[INFO] 2026-05-18 15:10:01,285 basehttp 36723 6132477952 "GET /api/v1/notifications HTTP/1.1" 200 3779
+[INFO] 2026-05-18 15:10:01,308 logging 36723 6132477952 GET /api/v1/company/messages
+[INFO] 2026-05-18 15:10:01,308 basehttp 36723 6132477952 "GET /api/v1/company/messages HTTP/1.1" 200 440930
+[WARNING] 2026-05-18 15:10:01,347 log 36723 6166130688 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-18 15:10:01,348 logging 36723 6166130688 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-18 15:10:01,349 log 36723 6132477952 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[WARNING] 2026-05-18 15:10:01,349 basehttp 36723 6166130688 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-18 15:10:01,353 log 36723 6216609792 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-18 15:10:01,353 logging 36723 6132477952 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-18 15:10:01,354 log 36723 6149304320 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-18 15:10:01,355 logging 36723 6216609792 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-18 15:10:01,355 log 36723 6199783424 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-18 15:10:01,355 logging 36723 6149304320 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-18 15:10:01,355 log 36723 6182957056 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[WARNING] 2026-05-18 15:10:01,356 basehttp 36723 6132477952 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-18 15:10:01,356 basehttp 36723 6216609792 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[INFO] 2026-05-18 15:10:01,356 logging 36723 6199783424 POST /api/v1/metrics/web-vitals
+[INFO] 2026-05-18 15:10:01,356 logging 36723 6182957056 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-18 15:10:01,356 basehttp 36723 6149304320 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-18 15:10:01,357 basehttp 36723 6199783424 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-18 15:10:01,358 basehttp 36723 6182957056 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-18 15:10:01,365 log 36723 6166130688 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-18 15:10:01,365 logging 36723 6166130688 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-18 15:10:01,365 basehttp 36723 6166130688 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-18 15:10:01,366 log 36723 6216609792 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-18 15:10:01,366 logging 36723 6216609792 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-18 15:10:01,366 basehttp 36723 6216609792 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-18 15:10:01,367 log 36723 6250262528 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-18 15:10:01,367 logging 36723 6250262528 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-18 15:10:01,368 log 36723 6132477952 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[WARNING] 2026-05-18 15:10:01,368 basehttp 36723 6250262528 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[INFO] 2026-05-18 15:10:01,368 logging 36723 6132477952 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-18 15:10:01,369 basehttp 36723 6132477952 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-18 15:10:01,373 log 36723 6166130688 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-18 15:10:01,373 logging 36723 6166130688 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-18 15:10:01,373 log 36723 6149304320 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-18 15:10:01,373 logging 36723 6149304320 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-18 15:10:01,373 basehttp 36723 6166130688 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-18 15:10:01,373 basehttp 36723 6149304320 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-18 15:10:01,388 log 36723 6132477952 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-18 15:10:01,388 logging 36723 6132477952 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-18 15:10:01,389 basehttp 36723 6132477952 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-18 15:10:01,390 log 36723 6149304320 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-18 15:10:01,390 logging 36723 6149304320 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-18 15:10:01,390 basehttp 36723 6149304320 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-18 15:10:01,406 log 36723 6132477952 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[WARNING] 2026-05-18 15:10:01,407 log 36723 6149304320 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-18 15:10:01,407 logging 36723 6132477952 POST /api/v1/metrics/web-vitals
+[INFO] 2026-05-18 15:10:01,407 logging 36723 6149304320 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-18 15:10:01,407 basehttp 36723 6149304320 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-18 15:10:01,408 basehttp 36723 6132477952 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-18 15:10:01,422 log 36723 6132477952 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-18 15:10:01,422 logging 36723 6132477952 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-18 15:10:01,423 basehttp 36723 6132477952 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-18 15:10:01,423 log 36723 6149304320 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-18 15:10:01,423 logging 36723 6149304320 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-18 15:10:01,424 basehttp 36723 6149304320 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-18 15:10:01,440 log 36723 6132477952 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-18 15:10:01,440 logging 36723 6132477952 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-18 15:10:01,440 basehttp 36723 6132477952 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-18 15:10:01,441 log 36723 6149304320 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-18 15:10:01,441 logging 36723 6149304320 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-18 15:10:01,441 basehttp 36723 6149304320 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[INFO] 2026-05-18 15:10:01,445 logging 36723 6233436160 GET /api/v1/company/dashboard
+[INFO] 2026-05-18 15:10:01,445 basehttp 36723 6233436160 "GET /api/v1/company/dashboard HTTP/1.1" 200 3167
+[INFO] 2026-05-18 15:10:01,505 logging 36723 6132477952 GET /api/v1/company/dashboard
+[INFO] 2026-05-18 15:10:01,505 basehttp 36723 6132477952 "GET /api/v1/company/dashboard HTTP/1.1" 200 3167
+[WARNING] 2026-05-18 15:10:01,566 log 36723 6132477952 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[WARNING] 2026-05-18 15:10:01,567 log 36723 6149304320 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-18 15:10:01,567 logging 36723 6132477952 POST /api/v1/metrics/web-vitals
+[INFO] 2026-05-18 15:10:01,567 logging 36723 6149304320 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-18 15:10:01,567 basehttp 36723 6149304320 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-18 15:10:01,567 basehttp 36723 6132477952 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[INFO] 2026-05-18 15:10:03,885 logging 36723 6132477952 POST /api/v1/auth/logout
+[INFO] 2026-05-18 15:10:03,886 basehttp 36723 6132477952 "POST /api/v1/auth/logout HTTP/1.1" 200 49
+[INFO] 2026-05-18 15:10:03,897 logging 36723 6132477952 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:10:03,898 basehttp 36723 6132477952 "GET /api/v1/auth/csrf HTTP/1.1" 200 92
+[INFO] 2026-05-18 15:10:06,989 logging 36723 6132477952 POST /api/v1/auth/login
+[INFO] 2026-05-18 15:10:06,990 basehttp 36723 6132477952 "POST /api/v1/auth/login HTTP/1.1" 200 233
+[INFO] 2026-05-18 15:10:07,006 logging 36723 6132477952 GET /api/v1/notifications
+[INFO] 2026-05-18 15:10:07,007 basehttp 36723 6132477952 "GET /api/v1/notifications HTTP/1.1" 200 4608
+[INFO] 2026-05-18 15:10:07,017 logging 36723 6149304320 GET /api/v1/student/messages
+[INFO] 2026-05-18 15:10:07,020 basehttp 36723 6149304320 "GET /api/v1/student/messages HTTP/1.1" 200 859944
+[INFO] 2026-05-18 15:10:07,025 logging 36723 6182957056 GET /api/v1/student/profile
+[INFO] 2026-05-18 15:10:07,026 basehttp 36723 6182957056 "GET /api/v1/student/profile HTTP/1.1" 200 187299
+[INFO] 2026-05-18 15:10:07,035 logging 36723 6233436160 GET /api/v1/student/messages
+[INFO] 2026-05-18 15:10:07,037 basehttp 36723 6233436160 "GET /api/v1/student/messages HTTP/1.1" 200 859944
+[INFO] 2026-05-18 15:10:07,047 logging 36723 6199783424 GET /api/v1/student/dashboard-data
+[INFO] 2026-05-18 15:10:07,049 basehttp 36723 6199783424 "GET /api/v1/student/dashboard-data HTTP/1.1" 200 687
+[INFO] 2026-05-18 15:10:07,073 logging 36723 6149304320 GET /api/v1/student/dashboard-data
+[INFO] 2026-05-18 15:10:07,074 basehttp 36723 6149304320 "GET /api/v1/student/dashboard-data HTTP/1.1" 200 687
+[INFO] 2026-05-18 15:10:07,151 logging 36723 6132477952 GET /api/v1/student/dashboard
+[INFO] 2026-05-18 15:10:07,152 basehttp 36723 6132477952 "GET /api/v1/student/dashboard HTTP/1.1" 200 2115
+[INFO] 2026-05-18 15:10:07,176 logging 36723 6216609792 GET /api/v1/student/courses
+[INFO] 2026-05-18 15:10:07,182 basehttp 36723 6216609792 "GET /api/v1/student/courses HTTP/1.1" 200 2633392
+[INFO] 2026-05-18 15:10:07,192 logging 36723 6166130688 GET /api/v1/student/matches
+[INFO] 2026-05-18 15:10:07,193 basehttp 36723 6166130688 "GET /api/v1/student/matches HTTP/1.1" 200 23156
+[INFO] 2026-05-18 15:10:07,244 logging 36723 6149304320 GET /api/v1/student/dashboard
+[INFO] 2026-05-18 15:10:07,244 basehttp 36723 6149304320 "GET /api/v1/student/dashboard HTTP/1.1" 200 2115
+[INFO] 2026-05-18 15:10:07,267 logging 36723 6132477952 GET /api/v1/student/courses
+[INFO] 2026-05-18 15:10:07,268 basehttp 36723 6132477952 "GET /api/v1/student/courses HTTP/1.1" 200 2633392
+[INFO] 2026-05-18 15:10:09,950 logging 36723 6132477952 POST /api/v1/auth/logout
+[INFO] 2026-05-18 15:10:09,952 basehttp 36723 6132477952 "POST /api/v1/auth/logout HTTP/1.1" 200 49
+[INFO] 2026-05-18 15:10:09,961 logging 36723 6132477952 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:10:09,961 basehttp 36723 6132477952 "GET /api/v1/auth/csrf HTTP/1.1" 200 92
+[INFO] 2026-05-18 15:10:15,025 logging 36723 6132477952 POST /api/v1/auth/login
+[INFO] 2026-05-18 15:10:15,026 basehttp 36723 6132477952 "POST /api/v1/auth/login HTTP/1.1" 200 221
+[INFO] 2026-05-18 15:10:15,058 logging 36723 6149304320 GET /api/v1/notifications
+[INFO] 2026-05-18 15:10:15,059 logging 36723 6182957056 GET /api/v1/company/profile
+[INFO] 2026-05-18 15:10:15,059 basehttp 36723 6149304320 "GET /api/v1/notifications HTTP/1.1" 200 3779
+[INFO] 2026-05-18 15:10:15,060 basehttp 36723 6182957056 "GET /api/v1/company/profile HTTP/1.1" 200 69755
+[INFO] 2026-05-18 15:10:15,061 logging 36723 6166130688 GET /api/v1/company/messages
+[INFO] 2026-05-18 15:10:15,062 basehttp 36723 6166130688 "GET /api/v1/company/messages HTTP/1.1" 200 440930
+[INFO] 2026-05-18 15:10:15,067 logging 36723 6149304320 GET /api/v1/company/messages
+[INFO] 2026-05-18 15:10:15,068 basehttp 36723 6149304320 "GET /api/v1/company/messages HTTP/1.1" 200 440930
+[INFO] 2026-05-18 15:10:15,119 logging 36723 6132477952 GET /api/v1/company/dashboard
+[INFO] 2026-05-18 15:10:15,119 basehttp 36723 6132477952 "GET /api/v1/company/dashboard HTTP/1.1" 200 3167
+[INFO] 2026-05-18 15:10:15,174 logging 36723 6132477952 GET /api/v1/company/dashboard
+[INFO] 2026-05-18 15:10:15,175 basehttp 36723 6132477952 "GET /api/v1/company/dashboard HTTP/1.1" 200 3167
+[INFO] 2026-05-18 15:10:19,083 logging 36723 6132477952 POST /api/v1/auth/logout
+[INFO] 2026-05-18 15:10:19,085 basehttp 36723 6132477952 "POST /api/v1/auth/logout HTTP/1.1" 200 49
+[INFO] 2026-05-18 15:10:19,093 logging 36723 6132477952 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:10:19,093 basehttp 36723 6132477952 "GET /api/v1/auth/csrf HTTP/1.1" 200 92
+[INFO] 2026-05-18 15:10:21,231 logging 36723 6132477952 POST /api/v1/auth/login
+[INFO] 2026-05-18 15:10:21,233 basehttp 36723 6132477952 "POST /api/v1/auth/login HTTP/1.1" 200 233
+[INFO] 2026-05-18 15:10:21,268 logging 36723 6182957056 GET /api/v1/notifications
+[INFO] 2026-05-18 15:10:21,269 basehttp 36723 6182957056 "GET /api/v1/notifications HTTP/1.1" 200 4608
+[INFO] 2026-05-18 15:10:21,269 logging 36723 6132477952 GET /api/v1/student/dashboard-data
+[INFO] 2026-05-18 15:10:21,271 basehttp 36723 6132477952 "GET /api/v1/student/dashboard-data HTTP/1.1" 200 687
+[INFO] 2026-05-18 15:10:21,274 logging 36723 6199783424 GET /api/v1/student/messages
+[INFO] 2026-05-18 15:10:21,275 basehttp 36723 6199783424 "GET /api/v1/student/messages HTTP/1.1" 200 859944
+[INFO] 2026-05-18 15:10:21,289 logging 36723 6233436160 GET /api/v1/student/profile
+[INFO] 2026-05-18 15:10:21,291 basehttp 36723 6233436160 "GET /api/v1/student/profile HTTP/1.1" 200 187299
+[INFO] 2026-05-18 15:10:21,293 logging 36723 6182957056 GET /api/v1/student/messages
+[INFO] 2026-05-18 15:10:21,294 basehttp 36723 6182957056 "GET /api/v1/student/messages HTTP/1.1" 200 859944
+[INFO] 2026-05-18 15:10:21,301 logging 36723 6250262528 GET /api/v1/student/dashboard-data
+[INFO] 2026-05-18 15:10:21,302 basehttp 36723 6250262528 "GET /api/v1/student/dashboard-data HTTP/1.1" 200 687
+[INFO] 2026-05-18 15:10:21,392 logging 36723 6149304320 GET /api/v1/student/dashboard
+[INFO] 2026-05-18 15:10:21,393 basehttp 36723 6149304320 "GET /api/v1/student/dashboard HTTP/1.1" 200 2115
+[INFO] 2026-05-18 15:10:21,419 logging 36723 6166130688 GET /api/v1/student/courses
+[INFO] 2026-05-18 15:10:21,420 basehttp 36723 6166130688 "GET /api/v1/student/courses HTTP/1.1" 200 2633392
+[INFO] 2026-05-18 15:10:21,440 logging 36723 6216609792 GET /api/v1/student/matches
+[INFO] 2026-05-18 15:10:21,440 basehttp 36723 6216609792 "GET /api/v1/student/matches HTTP/1.1" 200 23156
+[INFO] 2026-05-18 15:10:21,492 logging 36723 6132477952 GET /api/v1/student/dashboard
+[INFO] 2026-05-18 15:10:21,493 basehttp 36723 6132477952 "GET /api/v1/student/dashboard HTTP/1.1" 200 2115
+[INFO] 2026-05-18 15:10:21,512 logging 36723 6149304320 GET /api/v1/student/courses
+[INFO] 2026-05-18 15:10:21,513 basehttp 36723 6149304320 "GET /api/v1/student/courses HTTP/1.1" 200 2633392
+[INFO] 2026-05-18 15:10:29,388 logging 36723 6132477952 GET /api/v1/health
+[INFO] 2026-05-18 15:10:29,389 basehttp 36723 6132477952 "GET /api/v1/health HTTP/1.1" 200 60
