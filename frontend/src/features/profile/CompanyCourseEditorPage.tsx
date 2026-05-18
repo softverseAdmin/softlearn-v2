@@ -1,222 +1,30 @@
 import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ArrowRight, BookOpen, ChevronRight, Clock3, FileText, PlayCircle, Star, Users, X } from 'lucide-react'
+import { ArrowRight, ChevronRight } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { useAuth } from '../../auth/useAuth'
 import { ApiError, apiRequest } from '../../lib/api'
-import type { AdminCourseLessonsResponse, AdminCourseRecord, AdminCoursesResponse, AdminLessonRecord } from '../admin/types'
+import type { AdminCourseLessonsResponse, AdminCourseRecord, AdminCoursesResponse } from '../admin/types'
 import { clearCourseMediaOverride, getCourseMediaOverrideForCourse } from './courseMediaStorage'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-
-const emptyCoursesResponse: AdminCoursesResponse = {
-  courses: [],
-}
-
-const fieldClassName =
-  'h-11 w-full rounded-none border border-input bg-background px-4 text-sm text-foreground outline-none transition focus-visible:ring-2 focus-visible:ring-ring/50'
-const textAreaClassName =
-  'w-full rounded-none border border-input bg-background px-4 py-3 text-sm text-foreground outline-none transition focus-visible:ring-2 focus-visible:ring-ring/50'
-const editorCardClassName = 'rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950'
-const supportedTechnologies = [
-  'HTML',
-  'CSS',
-  'JavaScript',
-  'TypeScript',
-  'React',
-  'Next.js',
-  'Tailwind CSS',
-  'Git',
-  'Testing',
-  'AI Tools',
-]
-
-type CompanyCourseEditorPageProps = {
-  mode: 'create' | 'edit'
-}
-
-type LessonDraft = {
-  lessonId: number | null
-  id: string
-  title: string
-  description: string
-  transcript: string
-  type: 'video' | 'article' | 'quiz' | 'project' | 'external-link'
-  videoUrl: string
-  content: string
-  externalResourceUrl: string
-  duration: string
-  isPreviewFree: boolean
-  order: string
-}
-
-type ImageUploadPanelProps = {
-  label: string
-  image: string
-  alt: string
-  isLoading: boolean
-  onChange: (event: ChangeEvent<HTMLInputElement>) => void
-  onRemove: () => void
-}
-
-function createDraftId(prefix: string) {
-  return `${prefix}-${Math.random().toString(36).slice(2, 10)}`
-}
-
-function createLessonDraftFromRecord(lesson: AdminLessonRecord): LessonDraft {
-  return {
-    lessonId: lesson.lesson_id,
-    id: createDraftId('lesson'),
-    title: lesson.title,
-    description: lesson.summary,
-    transcript: lesson.transcript,
-    type: lesson.video_url ? 'video' : 'article',
-    videoUrl: lesson.video_url,
-    content: lesson.content,
-    externalResourceUrl: '',
-    duration: '',
-    isPreviewFree: false,
-    order: String(lesson.sequence_number),
-  }
-}
-
-function slugify(value: string) {
-  return value
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-}
-
-function readImageFile(file: File) {
-  return new Promise<string>((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => {
-      if (typeof reader.result === 'string') {
-        resolve(reader.result)
-        return
-      }
-
-      reject(new Error('Unable to read image file.'))
-    }
-    reader.onerror = () => reject(new Error('Unable to read image file.'))
-    reader.readAsDataURL(file)
-  })
-}
-
-function ImageUploadPanel({ label, image, alt, isLoading, onChange, onRemove }: ImageUploadPanelProps) {
-  return (
-    <div className="space-y-3">
-      <label className="block text-sm font-medium text-foreground">{label}</label>
-      <div className="space-y-4 rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900/50">
-        {image ? (
-          <div className="relative">
-            <img src={image} alt={alt} className="h-56 w-full rounded-xl object-cover" />
-            <Button
-              type="button"
-              variant="inverse"
-              size="icon-xs"
-              className="absolute right-3 top-3 rounded-full bg-slate-950/80 text-white hover:bg-slate-950"
-              onClick={onRemove}
-              aria-label="Remove image"
-            >
-              <X />
-            </Button>
-          </div>
-        ) : (
-          <div className="flex min-h-44 items-center justify-center rounded-xl border border-slate-200 bg-white px-6 text-center dark:border-slate-800 dark:bg-slate-950">
-            <div className="space-y-1">
-              <p className="text-sm font-medium text-foreground">Upload image</p>
-              <p className="text-xs text-muted-foreground">PNG, JPG, or WEBP recommended.</p>
-            </div>
-          </div>
-        )}
-
-        <div className="flex flex-wrap items-center gap-3">
-          <input
-            type="file"
-            accept="image/png,image/jpeg,image/jpg,image/webp"
-            onChange={onChange}
-            className="block w-full text-sm text-muted-foreground file:mr-4 file:rounded-xl file:border-0 file:bg-primary file:px-4 file:py-2 file:text-sm file:font-medium file:text-primary-foreground hover:file:bg-primary/90"
-          />
-          {isLoading ? <span className="text-xs text-muted-foreground">Loading preview…</span> : null}
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function formatLabel(value: string) {
-  return value
-    .replace(/[_-]+/g, ' ')
-    .trim()
-    .replace(/\b\w/g, (character) => character.toUpperCase())
-}
-
-function formatDuration(hours: number) {
-  if (hours <= 0) {
-    return 'Self-paced'
-  }
-
-  const wholeHours = Math.floor(hours)
-  const minutes = Math.round((hours - wholeHours) * 60)
-
-  if (wholeHours === 0) {
-    return `${minutes}m total`
-  }
-
-  if (minutes === 0) {
-    return `${wholeHours}h total`
-  }
-
-  return `${wholeHours}h ${minutes}m total`
-}
-
-function formatCompactNumber(value: number) {
-  return new Intl.NumberFormat('en-US').format(value)
-}
-
-function buildPreviewSummarySeed(value: string) {
-  const normalized = value.replace(/\s+/g, ' ').trim()
-  if (!normalized) {
-    return ''
-  }
-
-  if (normalized.length <= 160) {
-    return normalized
-  }
-
-  const firstSentence = normalized.match(/^(.{1,160}?[.!?])(\s|$)/)?.[1]?.trim()
-  if (firstSentence) {
-    return firstSentence
-  }
-
-  return `${normalized.slice(0, 157).trimEnd()}...`
-}
-
-function dedupeText(items: Array<string | null | undefined>) {
-  const seen = new Set<string>()
-
-  return items.filter((item): item is string => {
-    if (!item) {
-      return false
-    }
-
-    const normalized = item.trim()
-    if (!normalized) {
-      return false
-    }
-
-    const key = normalized.toLowerCase()
-    if (seen.has(key)) {
-      return false
-    }
-
-    seen.add(key)
-    return true
-  })
-}
+import { CoursePreviewHero, CoursePreviewSidebar } from './company-course-editor/EditorPreview'
+import { ImageUploadPanel } from './company-course-editor/ImageUploadPanel'
+import {
+  buildPreviewSummarySeed,
+  createLessonDraftFromRecord,
+  dedupeText,
+  editorCardClassName,
+  emptyCoursesResponse,
+  fieldClassName,
+  formatLabel,
+  readImageFile,
+  slugify,
+  supportedTechnologies,
+  textAreaClassName,
+} from './company-course-editor/shared'
+import type { CompanyCourseEditorPageProps, LessonDraft } from './company-course-editor/shared'
 
 export function CompanyCourseEditorPage({ mode }: CompanyCourseEditorPageProps) {
   const { courseId } = useParams<{ courseId: string }>()
@@ -591,87 +399,19 @@ export function CompanyCourseEditorPage({ mode }: CompanyCourseEditorPageProps) 
               </div>
             ) : null}
 
-            <section className="mb-8 grid grid-cols-1 gap-8 lg:grid-cols-[320px_minmax(0,1fr)]">
-              <div className="h-52 overflow-hidden rounded-xl bg-slate-950 shadow">
-                {thumbnailImage ? (
-                  <img
-                    src={thumbnailImage}
-                    alt={thumbnailAltText || `${previewTitle} cover`}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <div className="flex h-full items-center justify-center bg-gradient-to-br from-slate-950 via-slate-900 to-blue-950 text-white">
-                    <div className="text-center">
-                      <div className="mb-3 text-6xl text-cyan-400">⚛</div>
-                      <h2 className="text-3xl font-bold">
-                        {previewTitle.split(' ').slice(0, 1).join(' ') || 'Course'}{' '}
-                        <span className="rounded bg-blue-600 px-2">
-                          {previewTitle.split(' ').slice(1, 2).join(' ') || 'Design'}
-                        </span>
-                      </h2>
-                      <p className="mt-1 text-xl">{previewTitle.split(' ').slice(2).join(' ') || 'Blueprint'}</p>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-blue-600">
-                  Build course preview
-                </p>
-                <h1 className="mt-3 text-3xl font-bold text-slate-900 lg:text-4xl dark:text-slate-100">
-                  {previewTitle}
-                </h1>
-                <p className="mt-3 max-w-2xl leading-7 text-slate-500 dark:text-slate-400">{previewDescription}</p>
-
-                  <div className="mt-5 flex flex-wrap items-center gap-5 text-sm text-slate-600 dark:text-slate-300">
-                    <span className="flex items-center gap-2">
-                      <Star className="h-4 w-4 fill-current text-amber-400" />
-                      <span className="text-slate-900 dark:text-slate-100">No ratings yet</span>
-                    </span>
-                    <span className="flex items-center gap-2">
-                      <Users className="h-4 w-4 text-slate-400 dark:text-slate-500" />
-                      {formatCompactNumber(learnerCount)} learners
-                    </span>
-                  <span className="flex items-center gap-2">
-                    <Clock3 className="h-4 w-4 text-slate-400 dark:text-slate-500" />
-                    {formatDuration(estimatedHours)}
-                  </span>
-                </div>
-
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {courseTags.length > 0 ? (
-                    courseTags.map((tag) => (
-                      <span
-                        key={tag}
-                        className="rounded-md bg-slate-100 px-3 py-1 text-sm text-slate-600 dark:bg-slate-900 dark:text-slate-300"
-                      >
-                        {tag}
-                      </span>
-                    ))
-                  ) : (
-                    <span className="rounded-md bg-slate-100 px-3 py-1 text-sm text-slate-600 dark:bg-slate-900 dark:text-slate-300">
-                      Add category, level, and format details
-                    </span>
-                  )}
-                </div>
-
-                <div className="mt-6 flex flex-wrap gap-4">
-                  <Button type="submit" className="rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white shadow-sm hover:bg-blue-700 hover:text-white" disabled={saving}>
-                    <PlayCircle className="mr-2 h-4 w-4" />
-                    {saving ? 'Saving…' : mode === 'edit' ? 'Update course' : 'Create course'}
-                  </Button>
-                  <Button type="button" variant="outline" className="rounded-xl border-slate-200 px-6 py-3 font-semibold text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900" onClick={() => navigate('/company/courses')}>
-                    Back to courses
-                  </Button>
-                  {mode === 'edit' && courseId ? (
-                    <Button type="button" variant="outline" className="rounded-xl border-slate-200 px-6 py-3 font-semibold text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900" onClick={() => navigate(`/company/courses/${courseId}/lessons`)}>
-                      Lessons
-                    </Button>
-                  ) : null}
-                </div>
-              </div>
-            </section>
+            <CoursePreviewHero
+              thumbnailImage={thumbnailImage}
+              thumbnailAltText={thumbnailAltText}
+              previewTitle={previewTitle}
+              previewDescription={previewDescription}
+              learnerCount={learnerCount}
+              estimatedHours={estimatedHours}
+              courseTags={courseTags}
+              mode={mode}
+              courseId={courseId}
+              saving={saving}
+              onBack={() => navigate('/company/courses')}
+            />
 
             <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
               <div className="space-y-6">
@@ -1001,115 +741,24 @@ export function CompanyCourseEditorPage({ mode }: CompanyCourseEditorPageProps) 
                 </div>
               </div>
 
-              <aside className="space-y-6 xl:sticky xl:top-24 xl:self-start">
-                <section className={editorCardClassName}>
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">Course snapshot</h2>
-                      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                        Live summary of what learners will see on the course detail page.
-                      </p>
-                    </div>
-                    <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-blue-700 dark:bg-blue-950/50 dark:text-blue-300">
-                      {status ? formatLabel(status) : 'Draft'}
-                    </span>
-                  </div>
-
-                  <div className="mt-6 grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
-                    <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 dark:border-slate-800 dark:bg-slate-900/50">
-                      <div className="flex items-center gap-3">
-                        <Clock3 className="h-5 w-5 text-blue-600" />
-                        <div>
-                          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Duration</p>
-                          <p className="mt-1 text-sm font-semibold text-slate-900 dark:text-slate-100">{formatDuration(estimatedHours)}</p>
-                        </div>
-                      </div>
-                      </div>
-                      <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 dark:border-slate-800 dark:bg-slate-900/50">
-                        <div className="flex items-center gap-3">
-                          <FileText className="h-5 w-5 text-violet-600" />
-                          <div>
-                            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Transcripts</p>
-                            <p className="mt-1 text-sm font-semibold text-slate-900 dark:text-slate-100">{lessonsWithTranscriptCount} ready</p>
-                          </div>
-                        </div>
-                      </div>
-                    <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 dark:border-slate-800 dark:bg-slate-900/50">
-                      <div className="flex items-center gap-3">
-                        <BookOpen className="h-5 w-5 text-emerald-600" />
-                        <div>
-                          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Lessons</p>
-                          <p className="mt-1 text-sm font-semibold text-slate-900 dark:text-slate-100">{populatedLessonCount || lessons.length}</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="mt-6 space-y-3">
-                    <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">What learners get</p>
-                    <div className="space-y-3">
-                      {learningHighlights.length > 0 ? (
-                        learningHighlights.map((item) => (
-                          <p key={item} className="flex gap-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
-                            <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-blue-600 text-xs text-white">
-                              ✓
-                            </span>
-                            <span>{item}</span>
-                          </p>
-                        ))
-                      ) : (
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
-                          Add descriptions, technologies, transcripts, or lessons to build out the learner promise.
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </section>
-
-                <section className={editorCardClassName}>
-                  <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">Publishing checklist</h2>
-                  <div className="mt-4 space-y-3 text-sm text-slate-600 dark:text-slate-300">
-                    <p className="flex items-center justify-between gap-3">
-                      <span>Title and description</span>
-                      <span className={title.trim() && (shortDescription.trim() || fullDescription.trim()) ? 'text-emerald-600' : 'text-slate-400'}>
-                        {title.trim() && (shortDescription.trim() || fullDescription.trim()) ? 'Ready' : 'Missing'}
-                      </span>
-                    </p>
-                    <p className="flex items-center justify-between gap-3">
-                      <span>Category and level</span>
-                      <span className={category.trim() && courseLevel.trim() ? 'text-emerald-600' : 'text-slate-400'}>
-                        {category.trim() && courseLevel.trim() ? 'Ready' : 'Missing'}
-                      </span>
-                    </p>
-                    <p className="flex items-center justify-between gap-3">
-                      <span>Cover media</span>
-                      <span className={thumbnailImage ? 'text-emerald-600' : 'text-slate-400'}>
-                        {thumbnailImage ? 'Ready' : 'Optional'}
-                      </span>
-                    </p>
-                    <p className="flex items-center justify-between gap-3">
-                      <span>Lesson outline</span>
-                      <span className={populatedLessonCount > 0 ? 'text-emerald-600' : 'text-slate-400'}>
-                        {populatedLessonCount > 0 ? 'Ready' : 'Draft'}
-                      </span>
-                    </p>
-                  </div>
-
-                  <div className="mt-6 flex flex-col gap-3">
-                    <Button type="submit" className="rounded-xl bg-blue-600 text-white hover:bg-blue-700 hover:text-white" disabled={saving}>
-                      {saving ? 'Saving…' : mode === 'edit' ? 'Update course' : 'Create course'}
-                    </Button>
-                    <Button type="button" variant="outline" className="rounded-xl" onClick={() => navigate('/company/courses')}>
-                      Back to courses
-                    </Button>
-                    {mode === 'edit' ? (
-                      <Button type="button" variant="destructive" className="rounded-xl" onClick={() => void handleRetire()} disabled={saving}>
-                        Retire
-                      </Button>
-                    ) : null}
-                  </div>
-                </section>
-              </aside>
+              <CoursePreviewSidebar
+                status={status}
+                estimatedHours={estimatedHours}
+                lessonsWithTranscriptCount={lessonsWithTranscriptCount}
+                populatedLessonCount={populatedLessonCount}
+                lessonsLength={lessons.length}
+                learningHighlights={learningHighlights}
+                title={title}
+                shortDescription={shortDescription}
+                fullDescription={fullDescription}
+                category={category}
+                courseLevel={courseLevel}
+                thumbnailImage={thumbnailImage}
+                mode={mode}
+                saving={saving}
+                onBack={() => navigate('/company/courses')}
+                onRetire={() => void handleRetire()}
+              />
             </div>
           </main>
         </form>

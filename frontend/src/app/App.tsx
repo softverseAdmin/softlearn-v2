@@ -3,7 +3,7 @@ import { useEffect } from 'react'
 import { Toaster } from 'sonner'
 
 import { AuthProvider } from '../auth/AuthContext'
-import { ThemeProvider } from '../auth/ThemeContext'
+import { WorkspaceStateProvider } from '../app/workspace/WorkspaceStateContext'
 import { PageTitle } from './PageTitle'
 import { AppRouter } from '../router/AppRouter'
 import { useServiceWorker, useWebVitals, usePerformanceMetrics, useNetworkStatus } from '../hooks/usePerformance'
@@ -36,11 +36,11 @@ function AppContent() {
 function App() {
   return (
     <BrowserRouter>
-      <ThemeProvider>
-        <AuthProvider>
+      <AuthProvider>
+        <WorkspaceStateProvider>
           <AppContent />
-        </AuthProvider>
-      </ThemeProvider>
+        </WorkspaceStateProvider>
+      </AuthProvider>
     </BrowserRouter>
   )
 }

@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 
 import { useAuth } from '../../auth/useAuth'
@@ -45,6 +45,45 @@ export function MockExamPage() {
   const [isPaused, setIsPaused] = useState(false)
   const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const hasAutoSubmittedRef = useRef(false)
+
+  const handleSubmitExam = useCallback(async () => {
+    if (!exam || examId === undefined || submitting) {
+      return
+    }
+
+    setSubmitting(true)
+    setError(null)
+
+    try {
+      const answers: AnswerSubmission[] = exam.questions
+        .filter((q) => selectedAnswers[q.question_id] !== undefined)
+        .map((q) => ({
+          question_id: q.question_id,
+          selected_option_id: selectedAnswers[q.question_id],
+        }))
+
+      const response = await apiRequest<MockExamResult>(
+        `/student/mock-exams/${examId}/submit`,
+        {
+          method: 'POST',
+          body: { answers },
+          csrfToken,
+        }
+      )
+      navigate(response.history_href, {
+        state: {
+          score: response.score_percent,
+          correctCount: response.correct_answer_count,
+          totalCount: response.total_questions,
+        },
+      })
+    } catch (submitError) {
+      setError(submitError instanceof ApiError ? submitError.message : 'Unable to submit exam.')
+    } finally {
+      setSubmitting(false)
+    }
+  }, [csrfToken, exam, examId, navigate, selectedAnswers, submitting])
 
   useEffect(() => {
     let active = true
@@ -59,6 +98,7 @@ export function MockExamPage() {
       try {
         const response = await apiRequest<MockExamDetail>(`/student/exams/${examId}/mock`)
         if (active) {
+          hasAutoSubmittedRef.current = false
           setExam(response)
           setRemainingSeconds(response.duration_minutes * 60)
         }
@@ -80,7 +120,7 @@ export function MockExamPage() {
   }, [examId])
 
   useEffect(() => {
-    if (isPaused || !remainingSeconds || remainingSeconds <= 0) {
+    if (isPaused || remainingSeconds === null || remainingSeconds <= 0) {
       if (timerRef.current) {
         clearInterval(timerRef.current)
         timerRef.current = null
@@ -91,11 +131,6 @@ export function MockExamPage() {
     timerRef.current = setInterval(() => {
       setRemainingSeconds((prev) => {
         if (prev === null || prev <= 1) {
-          if (timerRef.current) {
-            clearInterval(timerRef.current)
-            timerRef.current = null
-          }
-          handleSubmitExam()
           return 0
         }
         return prev - 1
@@ -105,9 +140,19 @@ export function MockExamPage() {
     return () => {
       if (timerRef.current) {
         clearInterval(timerRef.current)
+        timerRef.current = null
       }
     }
-  }, [isPaused])
+  }, [isPaused, remainingSeconds])
+
+  useEffect(() => {
+    if (remainingSeconds !== 0 || hasAutoSubmittedRef.current) {
+      return
+    }
+
+    hasAutoSubmittedRef.current = true
+    void handleSubmitExam()
+  }, [handleSubmitExam, remainingSeconds])
 
   if (loading) {
     return (
@@ -157,42 +202,6 @@ export function MockExamPage() {
   function handlePreviousQuestion() {
     if (currentIndex > 0) {
       setCurrentIndex(currentIndex - 1)
-    }
-  }
-
-  async function handleSubmitExam() {
-    if (examId === undefined) return
-
-    setSubmitting(true)
-    setError(null)
-
-    try {
-      const answers: AnswerSubmission[] = exam.questions
-        .filter((q) => selectedAnswers[q.question_id] !== undefined)
-        .map((q) => ({
-          question_id: q.question_id,
-          selected_option_id: selectedAnswers[q.question_id],
-        }))
-
-      const response = await apiRequest<MockExamResult>(
-        `/student/mock-exams/${examId}/submit`,
-        {
-          method: 'POST',
-          body: { answers },
-          csrfToken,
-        }
-      )
-      navigate(response.history_href, {
-        state: {
-          score: response.score_percent,
-          correctCount: response.correct_answer_count,
-          totalCount: response.total_questions,
-        },
-      })
-    } catch (submitError) {
-      setError(submitError instanceof ApiError ? submitError.message : 'Unable to submit exam.')
-    } finally {
-      setSubmitting(false)
     }
   }
 

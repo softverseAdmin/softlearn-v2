@@ -11,9 +11,10 @@ import {
   Star,
   Trash2,
 } from 'lucide-react'
-import { Link, useOutletContext, useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 
 import { useAuth } from '@/auth/useAuth'
+import { useWorkspaceState } from '@/app/workspace/workspace-state'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -25,7 +26,6 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTr
 import { Textarea } from '@/components/ui/textarea'
 import { ApiError, apiRequest } from '@/lib/api'
 import { cn } from '@/lib/utils'
-import type { AppLayoutOutletContext } from '@/router/AppLayoutWrapper'
 
 import { messageFilters } from './messages/mockData'
 import type {
@@ -82,7 +82,7 @@ function upsertThread(currentThreads: ConversationThread[], nextThread: Conversa
 
 export function CompanyMessagesPage() {
   const { csrfToken } = useAuth()
-  const outletContext = useOutletContext<AppLayoutOutletContext | undefined>()
+  const { setUnreadMessageCount } = useWorkspaceState()
   const [searchParams, setSearchParams] = useSearchParams()
   const [threads, setThreads] = useState<ConversationThread[]>([])
   const [composeContacts, setComposeContacts] = useState<ComposeContact[]>([])
@@ -110,8 +110,6 @@ export function CompanyMessagesPage() {
   const [updatingThreadId, setUpdatingThreadId] = useState<number | null>(null)
   const [threadPendingDeletion, setThreadPendingDeletion] = useState<ConversationThread | null>(null)
   const [deletingThreadId, setDeletingThreadId] = useState<number | null>(null)
-  const setUnreadMessageCount = outletContext?.setUnreadMessageCount
-
   const filteredThreads = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase()
 
@@ -232,7 +230,7 @@ export function CompanyMessagesPage() {
   )
 
   useEffect(() => {
-    setUnreadMessageCount?.(inboxSummary.unread)
+    setUnreadMessageCount(inboxSummary.unread)
   }, [inboxSummary.unread, setUnreadMessageCount])
 
   const composeCompanies = useMemo(

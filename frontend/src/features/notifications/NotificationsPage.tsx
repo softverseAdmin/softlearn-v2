@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Bell, BriefcaseBusiness, ChevronRight, FileBadge2, LoaderCircle, Mail, Search, SlidersHorizontal, Sparkles, Workflow } from 'lucide-react'
-import { Link, useNavigate, useOutletContext } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
 import { useAuth } from '@/auth/useAuth'
+import { useWorkspaceState } from '@/app/workspace/workspace-state'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -10,8 +11,6 @@ import { Input } from '@/components/ui/input'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { ApiError, apiRequest } from '@/lib/api'
 import { cn } from '@/lib/utils'
-import type { AppLayoutOutletContext } from '@/router/AppLayoutWrapper'
-
 import type { CompanyMessagesResponse, ConversationThreadResponse, StudentMessagesResponse } from '../profile/messages/types'
 import type { StudentMatchesResponse } from '../profile/types'
 import type { NotificationItem, NotificationsResponse } from './types'
@@ -317,7 +316,7 @@ function mapMatchToFeedItem(match: StudentMatchesResponse['matches'][number], se
 export function NotificationsPage() {
   const navigate = useNavigate()
   const { csrfToken, user } = useAuth()
-  const outletContext = useOutletContext<AppLayoutOutletContext | undefined>()
+  const { setUnreadNotificationCount, setUnreadMessageCount } = useWorkspaceState()
   const [notificationsData, setNotificationsData] = useState<NotificationsResponse>(emptyNotificationsResponse)
   const [messagesData, setMessagesData] = useState<MessagesResponse>(emptyMessagesResponse)
   const [matchesData, setMatchesData] = useState<StudentMatchesResponse>(emptyMatchesResponse)
@@ -330,9 +329,6 @@ export function NotificationsPage() {
 
   const role = user?.role ?? 'student'
   const roleLabel = role.charAt(0).toUpperCase() + role.slice(1)
-  const setUnreadNotificationCount = outletContext?.setUnreadNotificationCount
-  const setUnreadMessageCount = outletContext?.setUnreadMessageCount
-
   useEffect(() => {
     if (role !== 'student' || !user) {
       setSeenMatchIds(new Set())
@@ -459,16 +455,16 @@ export function NotificationsPage() {
   )
 
   useEffect(() => {
-    setUnreadNotificationCount?.(summary.unread)
+    setUnreadNotificationCount(summary.unread)
   }, [setUnreadNotificationCount, summary.unread])
 
   useEffect(() => {
     if (role === 'student' || role === 'company') {
-      setUnreadMessageCount?.(messagesData.unread_count)
+      setUnreadMessageCount(messagesData.unread_count)
       return
     }
 
-    setUnreadMessageCount?.(0)
+    setUnreadMessageCount(0)
   }, [messagesData.unread_count, role, setUnreadMessageCount])
 
   function updateSeenMatchIds(nextSeenMatchIds: Set<number>) {
