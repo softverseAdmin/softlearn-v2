@@ -1,17 +1,82 @@
 import logging
 import time
 import json
+from datetime import datetime, timezone
 from contextvars import ContextVar
 from typing import Any, Optional
-from django.utils import timezone
-from common.models import ApplicationLogEntry
-from django.contrib.auth import get_user_model
-
-User = get_user_model()
+from django.conf import settings
 
 # Context variable for storing request ID in async contexts
 _request_id_context: ContextVar[Optional[str]] = ContextVar('request_id', default=None)
 _user_context: ContextVar[Optional[int]] = ContextVar('user_id', default=None)
+
+_STANDARD_LOG_RECORD_ATTRIBUTES = {
+    "args",
+    "asctime",
+    "created",
+    "exc_info",
+    "exc_text",
+    "filename",
+    "funcName",
+    "levelname",
+    "levelno",
+    "lineno",
+    "module",
+    "msecs",
+    "message",
+    "msg",
+    "name",
+    "pathname",
+    "process",
+    "processName",
+    "relativeCreated",
+    "stack_info",
+    "thread",
+    "threadName",
+}
+
+
+class RequestContextFilter(logging.Filter):
+    """Attach request-scoped context to every emitted log record."""
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        if not getattr(record, "request_id", None):
+            record.request_id = _request_id_context.get()
+        if getattr(record, "user_id", None) is None:
+            record.user_id = _user_context.get()
+        return True
+
+
+class JsonLogFormatter(logging.Formatter):
+    """Emit structured JSON logs for container/runtime aggregation."""
+
+    def format(self, record: logging.LogRecord) -> str:
+        payload: dict[str, Any] = {
+            "timestamp": datetime.fromtimestamp(record.created, tz=timezone.utc).isoformat(),
+            "level": record.levelname,
+            "logger": record.name,
+            "message": record.getMessage(),
+        }
+
+        request_id = getattr(record, "request_id", None)
+        user_id = getattr(record, "user_id", None)
+        if request_id:
+            payload["request_id"] = request_id
+        if user_id is not None:
+            payload["user_id"] = user_id
+
+        for key, value in record.__dict__.items():
+            if key in _STANDARD_LOG_RECORD_ATTRIBUTES or key.startswith("_"):
+                continue
+            if value is not None:
+                payload[key] = value
+
+        if record.exc_info:
+            payload["exception"] = self.formatException(record.exc_info)
+        if record.stack_info:
+            payload["stack"] = self.formatStack(record.stack_info)
+
+        return json.dumps(payload, default=str)
 
 
 class RequestIDContextManager:
@@ -56,6 +121,7 @@ class LogAggregationService:
         level: str,
         service: str,
         message: str,
+        *,
         request_id: Optional[str] = None,
         user_id: Optional[int] = None,
         request_method: Optional[str] = None,
@@ -63,62 +129,80 @@ class LogAggregationService:
         response_status: Optional[int] = None,
         duration_ms: Optional[float] = None,
         metadata: Optional[dict] = None,
-    ) -> ApplicationLogEntry:
-        """Log a structured message to the database"""
+        persist_db: bool = True,
+    ) -> Any:
+        """Log a structured message to the configured sinks."""
         
         # Use context values if not explicitly provided
         request_id = request_id or LogAggregationService.get_request_id()
         user_id = user_id or LogAggregationService.get_user_id()
         
-        user = None
-        if user_id:
-            try:
-                user = User.objects.get(id=user_id)
-            except User.DoesNotExist:
-                pass
-        
-        entry = ApplicationLogEntry.objects.create(
-            level=level.upper(),
-            service=service,
-            message=message,
-            request_id=request_id,
-            user=user,
-            request_method=request_method,
-            request_path=request_path,
-            response_status=response_status,
-            duration_ms=duration_ms,
-            metadata=metadata or {},
-        )
-        
-        # Also log to Python logger
+        entry = None
+        if persist_db:
+            from django.contrib.auth import get_user_model
+            from common.models import ApplicationLogEntry
+
+            User = get_user_model()
+            user = None
+            if user_id:
+                try:
+                    user = User.objects.get(id=user_id)
+                except User.DoesNotExist:
+                    pass
+
+            entry = ApplicationLogEntry.objects.create(
+                level=level.upper(),
+                service=service,
+                message=message,
+                request_id=request_id,
+                user=user,
+                request_method=request_method,
+                request_path=request_path,
+                response_status=response_status,
+                duration_ms=duration_ms,
+                metadata=metadata or {},
+            )
+
         logger = logging.getLogger(service)
         log_func = getattr(logger, level.lower(), logger.info)
-        log_func(f"[{request_id}] {message}", extra={'user_id': user_id})
+        log_func(
+            message,
+            extra={
+                "service": service,
+                "request_id": request_id,
+                "user_id": user_id,
+                "request_method": request_method,
+                "request_path": request_path,
+                "response_status": response_status,
+                "duration_ms": round(duration_ms, 2) if duration_ms is not None else None,
+                "metadata": metadata or {},
+            },
+        )
         
         return entry
     
     @staticmethod
-    def debug(service: str, message: str, **kwargs) -> ApplicationLogEntry:
+    def debug(service: str, message: str, **kwargs) -> Any:
         """Log a debug message"""
         return LogAggregationService.log('DEBUG', service, message, **kwargs)
     
     @staticmethod
-    def info(service: str, message: str, **kwargs) -> ApplicationLogEntry:
+    def info(service: str, message: str, **kwargs) -> Any:
         """Log an info message"""
         return LogAggregationService.log('INFO', service, message, **kwargs)
     
     @staticmethod
-    def warning(service: str, message: str, **kwargs) -> ApplicationLogEntry:
+    def warning(service: str, message: str, **kwargs) -> Any:
         """Log a warning message"""
         return LogAggregationService.log('WARNING', service, message, **kwargs)
     
     @staticmethod
-    def error(service: str, message: str, **kwargs) -> ApplicationLogEntry:
+    def error(service: str, message: str, **kwargs) -> Any:
         """Log an error message"""
         return LogAggregationService.log('ERROR', service, message, **kwargs)
     
     @staticmethod
-    def critical(service: str, message: str, **kwargs) -> ApplicationLogEntry:
+    def critical(service: str, message: str, **kwargs) -> Any:
         """Log a critical message"""
         return LogAggregationService.log('CRITICAL', service, message, **kwargs)
 
@@ -161,7 +245,8 @@ class RequestLoggingMiddleware:
                     duration_ms=duration_ms,
                     metadata={
                         'client_ip': self._get_client_ip(request),
-                    }
+                    },
+                    persist_db=getattr(settings, "PERSIST_REQUEST_LOGS", False),
                 )
             
             return response

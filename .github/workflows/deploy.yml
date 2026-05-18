@@ -1,4 +1,4 @@
-name: Deploy
+name: Publish Deployment Images
 
 on:
   workflow_dispatch:
@@ -12,72 +12,65 @@ on:
           - staging
           - production
 
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+
 jobs:
-  deploy:
+  publish-images:
     runs-on: ubuntu-latest
     environment: ${{ github.event.inputs.environment }}
-    
+
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Set environment variables
-      run: |
-        if [ "${{ github.event.inputs.environment }}" = "production" ]; then
-          echo "DEPLOY_ENV=production" >> $GITHUB_ENV
-          echo "REGISTRY=softlearn-prod"
-        else
-          echo "DEPLOY_ENV=staging" >> $GITHUB_ENV
-          echo "REGISTRY=softlearn-staging"
-        fi
-    
-    - name: Build backend image
-      run: |
-        docker build -f docker/Dockerfile.backend -t $REGISTRY-backend:$GITHUB_SHA .
-        docker tag $REGISTRY-backend:$GITHUB_SHA $REGISTRY-backend:latest
-    
-    - name: Build frontend image
-      run: |
-        docker build -f docker/Dockerfile.frontend -t $REGISTRY-frontend:$GITHUB_SHA .
-        docker tag $REGISTRY-frontend:$GITHUB_SHA $REGISTRY-frontend:latest
-    
-    - name: Push images to registry
-      run: |
-        echo "Images built successfully"
-        echo "Backend: $REGISTRY-backend:$GITHUB_SHA"
-        echo "Frontend: $REGISTRY-frontend:$GITHUB_SHA"
-      continue-on-error: true
-    
-    - name: Deploy to staging
-      if: github.event.inputs.environment == 'staging'
-      run: |
-        echo "Deploying to staging environment..."
-        echo "Backend: $REGISTRY-backend:$GITHUB_SHA"
-        echo "Frontend: $REGISTRY-frontend:$GITHUB_SHA"
-      continue-on-error: true
-    
-    - name: Deploy to production
-      if: github.event.inputs.environment == 'production'
-      run: |
-        echo "Deploying to production environment..."
-        echo "Backend: $REGISTRY-backend:$GITHUB_SHA"
-        echo "Frontend: $REGISTRY-frontend:$GITHUB_SHA"
-      continue-on-error: true
-    
-    - name: Run smoke tests
-      run: |
-        echo "Running smoke tests..."
-        sleep 30  # Wait for deployment
-        curl -f http://localhost:8000/api/v1/health || exit 1
-      continue-on-error: true
-    
-    - name: Monitor for errors
-      run: |
-        echo "Monitoring deployment for errors in first 5 minutes..."
-        for i in {1..5}; do
-          echo "Check $i of 5..."
-          sleep 60
-        done
-    
-    - name: Deployment complete
-      run: |
-        echo "Deployment to ${{ github.event.inputs.environment }} completed successfully"
+      - uses: actions/checkout@v4
+
+      - name: Set image metadata
+        run: |
+          IMAGE_PREFIX="${REGISTRY}/${GITHUB_REPOSITORY,,}/${{ github.event.inputs.environment }}"
+          echo "IMAGE_PREFIX=$IMAGE_PREFIX" >> "$GITHUB_ENV"
+          echo "IMAGE_TAG=${GITHUB_SHA}" >> "$GITHUB_ENV"
+          echo "LATEST_TAG=${{ github.event.inputs.environment }}-latest" >> "$GITHUB_ENV"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push backend image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/Dockerfile.backend
+          push: true
+          tags: |
+            ${{ env.IMAGE_PREFIX }}-backend:${{ env.IMAGE_TAG }}
+            ${{ env.IMAGE_PREFIX }}-backend:${{ env.LATEST_TAG }}
+
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/Dockerfile.frontend
+          push: true
+          tags: |
+            ${{ env.IMAGE_PREFIX }}-frontend:${{ env.IMAGE_TAG }}
+            ${{ env.IMAGE_PREFIX }}-frontend:${{ env.LATEST_TAG }}
+
+      - name: Publish summary
+        run: |
+          {
+            echo "## Published deployment images"
+            echo ""
+            echo "- Backend: \`${IMAGE_PREFIX}-backend:${IMAGE_TAG}\`"
+            echo "- Backend latest: \`${IMAGE_PREFIX}-backend:${LATEST_TAG}\`"
+            echo "- Frontend: \`${IMAGE_PREFIX}-frontend:${IMAGE_TAG}\`"
+            echo "- Frontend latest: \`${IMAGE_PREFIX}-frontend:${LATEST_TAG}\`"
+          } >> "$GITHUB_STEP_SUMMARY"

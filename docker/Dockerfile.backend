@@ -47,4 +47,4 @@ CMD ["sh", "-c", "python manage.py migrate && python manage.py collectstatic --n
 
 EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD python -c "import requests; requests.get('http://localhost:8000/api/v1/health')" || exit 1
+    CMD python -c "from urllib.request import urlopen; urlopen('http://localhost:8000/api/v1/ready', timeout=5).read()" || exit 1

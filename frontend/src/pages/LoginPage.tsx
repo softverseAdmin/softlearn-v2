@@ -11,6 +11,10 @@ function InputIcon({ children }: { children: ReactNode }) {
   return <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">{children}</span>
 }
 
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+type LoginFormErrors = Partial<Record<'role' | 'email' | 'password', string>>
+
 function RoleOption({
   role,
   selected,
@@ -32,6 +36,7 @@ function RoleOption({
           : 'border-transparent bg-transparent text-slate-500'
       }`}
       type="button"
+      aria-pressed={selected}
       onClick={() => onClick(role)}
     >
       {children}
@@ -51,24 +56,47 @@ export function LoginPage() {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [recoveryMessage, setRecoveryMessage] = useState<string | null>(null)
+  const [fieldErrors, setFieldErrors] = useState<LoginFormErrors>({})
 
   const redirectTarget = useMemo(() => {
     const state = location.state as { from?: string } | null
     return state?.from
   }, [location.state])
 
+  function validateForm() {
+    const nextErrors: LoginFormErrors = {}
+    const normalizedEmail = email.trim()
+
+    if (!selectedRole) {
+      nextErrors.role = 'Choose the workspace you want to enter.'
+    }
+    if (!normalizedEmail) {
+      nextErrors.email = 'Email is required.'
+    } else if (!EMAIL_PATTERN.test(normalizedEmail)) {
+      nextErrors.email = 'Enter a valid email address.'
+    }
+    if (!password.trim()) {
+      nextErrors.password = 'Password is required.'
+    }
+
+    return nextErrors
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (!selectedRole) {
-      setError('Select an account type before logging in.')
+    const nextErrors = validateForm()
+    setFieldErrors(nextErrors)
+    if (Object.keys(nextErrors).length > 0) {
+      setError('Fix the highlighted login fields and try again.')
       return
     }
 
     setSubmitting(true)
     setError(null)
+    setFieldErrors({})
 
     try {
-      const user = await login({ email, password, role: selectedRole })
+      const user = await login({ email: email.trim(), password, role: selectedRole as UserRole })
       navigate(redirectTarget ?? getHomePath(user), { replace: true })
     } catch (submitError) {
       setError(submitError instanceof ApiError ? submitError.message : 'Unable to log in.')
@@ -85,28 +113,59 @@ export function LoginPage() {
       fullViewport
       mode="login"
     >
-      <form className="space-y-3.5 sm:space-y-4" onSubmit={handleSubmit}>
-        <div className="space-y-2">
-          <p className="text-sm font-medium text-[var(--sl-text)]">Select account type</p>
+      <form className="space-y-3.5 sm:space-y-4" onSubmit={handleSubmit} noValidate>
+        <fieldset className="space-y-2">
+          <legend className="text-sm font-medium text-[var(--sl-text)]">Select account type</legend>
           <div className="grid grid-cols-3 rounded-2xl border border-[var(--sl-border)] bg-[#f8fafc] p-1.5">
-            <RoleOption role="student" selected={selectedRole === 'student'} label="Student" onClick={setSelectedRole}>
+            <RoleOption
+              role="student"
+              selected={selectedRole === 'student'}
+              label="Student"
+              onClick={(role) => {
+                setSelectedRole(role)
+                setFieldErrors((current) => ({ ...current, role: undefined }))
+                setError(null)
+              }}
+            >
               <svg aria-hidden="true" className="h-4 w-4" viewBox="0 0 20 20" fill="none">
                 <path d="M10 3 3 6.5 10 10l5.6-2.8V12H17V6.5L10 3Zm-4 8.2V13c0 .9 1.8 2.5 4 2.5s4-1.6 4-2.5v-1.8L10 13l-4-1.8Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
               </svg>
             </RoleOption>
-            <RoleOption role="company" selected={selectedRole === 'company'} label="Company" onClick={setSelectedRole}>
+            <RoleOption
+              role="company"
+              selected={selectedRole === 'company'}
+              label="Company"
+              onClick={(role) => {
+                setSelectedRole(role)
+                setFieldErrors((current) => ({ ...current, role: undefined }))
+                setError(null)
+              }}
+            >
               <svg aria-hidden="true" className="h-4 w-4" viewBox="0 0 20 20" fill="none">
                 <path d="M4.25 6.5h11.5v8.75H4.25V6.5Zm3-1.75h5.5V6.5h-5.5V4.75Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
               </svg>
             </RoleOption>
-            <RoleOption role="admin" selected={selectedRole === 'admin'} label="Admin" onClick={setSelectedRole}>
+            <RoleOption
+              role="admin"
+              selected={selectedRole === 'admin'}
+              label="Admin"
+              onClick={(role) => {
+                setSelectedRole(role)
+                setFieldErrors((current) => ({ ...current, role: undefined }))
+                setError(null)
+              }}
+            >
               <svg aria-hidden="true" className="h-4 w-4" viewBox="0 0 20 20" fill="none">
                 <path d="M10 3.75 5.5 5.5v3.5c0 3.2 1.95 5.96 4.5 7.25 2.55-1.3 4.5-4.05 4.5-7.25V5.5L10 3.75Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
               </svg>
             </RoleOption>
           </div>
-          {!selectedRole ? <p className="text-sm text-red-600">Choose the workspace you want to enter.</p> : null}
-        </div>
+          {fieldErrors.role ? (
+            <p className="text-sm text-red-600" role="alert">
+              {fieldErrors.role}
+            </p>
+          ) : null}
+        </fieldset>
 
         <div className="space-y-1.5">
           <label className="text-sm font-medium text-[var(--sl-text)]" htmlFor="email">
@@ -123,11 +182,22 @@ export function LoginPage() {
               className="h-11 w-full rounded-[12px] border border-[var(--sl-border)] pl-11 pr-3.5 text-[15px] text-[var(--sl-text)] outline-none transition focus:border-[var(--sl-primary)] focus:ring-4 focus:ring-[var(--sl-soft)] sm:h-12"
               type="email"
               value={email}
-              onChange={(event) => setEmail(event.target.value)}
+              onChange={(event) => {
+                setEmail(event.target.value)
+                setFieldErrors((current) => ({ ...current, email: undefined }))
+                setError(null)
+              }}
               placeholder="Enter your email"
-              required
+              autoComplete="email"
+              aria-invalid={fieldErrors.email ? 'true' : undefined}
+              aria-describedby={fieldErrors.email ? 'login-email-error' : undefined}
             />
           </div>
+          {fieldErrors.email ? (
+            <p id="login-email-error" className="text-sm text-red-600" role="alert">
+              {fieldErrors.email}
+            </p>
+          ) : null}
         </div>
 
         <div className="space-y-1.5">
@@ -145,11 +215,22 @@ export function LoginPage() {
               className="h-11 w-full rounded-[12px] border border-[var(--sl-border)] pl-11 pr-3.5 text-[15px] text-[var(--sl-text)] outline-none transition focus:border-[var(--sl-primary)] focus:ring-4 focus:ring-[var(--sl-soft)] sm:h-12"
               type="password"
               value={password}
-              onChange={(event) => setPassword(event.target.value)}
+              onChange={(event) => {
+                setPassword(event.target.value)
+                setFieldErrors((current) => ({ ...current, password: undefined }))
+                setError(null)
+              }}
               placeholder="Enter your password"
-              required
+              autoComplete="current-password"
+              aria-invalid={fieldErrors.password ? 'true' : undefined}
+              aria-describedby={fieldErrors.password ? 'login-password-error' : undefined}
             />
           </div>
+          {fieldErrors.password ? (
+            <p id="login-password-error" className="text-sm text-red-600" role="alert">
+              {fieldErrors.password}
+            </p>
+          ) : null}
         </div>
 
         <div className="flex flex-col gap-2 text-sm text-[var(--sl-muted)] sm:flex-row sm:items-center sm:justify-between">
@@ -171,8 +252,16 @@ export function LoginPage() {
           </button>
         </div>
 
-        {recoveryMessage ? <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm text-amber-800">{recoveryMessage}</p> : null}
-        {error ? <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-sm text-red-700">{error}</p> : null}
+        {recoveryMessage ? (
+          <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm text-amber-800" role="status">
+            {recoveryMessage}
+          </p>
+        ) : null}
+        {error ? (
+          <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-sm text-red-700" role="alert">
+            {error}
+          </p>
+        ) : null}
 
         <button
           className="inline-flex h-11 w-full items-center justify-center rounded-[10px] bg-[var(--sl-primary)] px-5 text-sm font-semibold text-white shadow-sm transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-70"

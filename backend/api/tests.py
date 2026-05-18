@@ -3,9 +3,10 @@ from datetime import timedelta
 from unittest import mock
 
 from django.core.exceptions import ValidationError
-from django.test import Client, TestCase
+from django.test import Client, TestCase, override_settings
 from django.utils import timezone
 
+from common.models import ApplicationLogEntry
 from users.models import (
     Application,
     ApplicationStatusHistory,
@@ -76,6 +77,44 @@ class ApiFoundationTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["data"]["status"], "ok")
         self.assertIn("X-Request-ID", response.headers)
+
+    def test_health_endpoint_sets_hardened_security_headers(self):
+        response = self.client.get("/api/v1/health")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.headers["Cross-Origin-Opener-Policy"], "same-origin")
+        self.assertEqual(response.headers["Cross-Origin-Resource-Policy"], "same-origin")
+        self.assertEqual(response.headers["X-Permitted-Cross-Domain-Policies"], "none")
+        self.assertIn("object-src 'none'", response.headers["Content-Security-Policy"])
+        self.assertIn("base-uri 'self'", response.headers["Content-Security-Policy"])
+        self.assertIn("form-action 'self'", response.headers["Content-Security-Policy"])
+
+    def test_readiness_endpoint_reports_dependency_status(self):
+        response = self.client.get("/api/v1/ready")
+
+        self.assertEqual(response.status_code, 200)
+        body = response.json()["data"]
+        self.assertEqual(body["status"], "ok")
+        self.assertEqual(body["environment"], "development")
+        self.assertEqual(body["checks"]["database"]["status"], "ok")
+        self.assertEqual(body["checks"]["cache"]["status"], "disabled")
+        self.assertIn("structured_logging", body["observability"])
+        self.assertIn("persist_request_logs", body["observability"])
+
+    def test_request_logging_does_not_persist_by_default(self):
+        self.client.get("/api/v1/health")
+
+        self.assertEqual(ApplicationLogEntry.objects.count(), 0)
+
+    @override_settings(PERSIST_REQUEST_LOGS=True)
+    def test_request_logging_can_be_persisted_when_enabled(self):
+        response = self.client.get("/api/v1/health")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(ApplicationLogEntry.objects.count(), 1)
+        log_entry = ApplicationLogEntry.objects.get()
+        self.assertEqual(log_entry.service, "api")
+        self.assertEqual(log_entry.request_path, "/api/v1/health")
 
     def test_session_endpoint_returns_unauthenticated_payload(self):
         response = self.client.get("/api/v1/auth/session")
@@ -178,10 +217,12 @@ class ApiFoundationTests(TestCase):
             data=json.dumps({"email": "student@example.com", "password": "wrong-password", "role": "student"}),
             content_type="application/json",
             HTTP_X_CSRFTOKEN=csrf_token,
+            REMOTE_ADDR="203.0.113.20",
         )
 
         self.assertEqual(response.status_code, 401)
         self.assertEqual(response.json()["error"]["code"], "INVALID_CREDENTIALS")
+        self.assertEqual(response.json()["error"]["details"]["remaining_attempts"], 4)
 
     def test_login_requires_role(self):
         User.objects.create_user(
@@ -214,10 +255,41 @@ class ApiFoundationTests(TestCase):
             data=json.dumps({"email": "student@example.com", "password": "SecurePass123!", "role": "company"}),
             content_type="application/json",
             HTTP_X_CSRFTOKEN=csrf_token,
+            REMOTE_ADDR="203.0.113.21",
         )
 
         self.assertEqual(response.status_code, 403)
         self.assertEqual(response.json()["error"]["code"], "ROLE_MISMATCH")
+
+    def test_login_rate_limits_after_repeated_failures(self):
+        User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        client, csrf_token = self.csrf_client()
+
+        for _ in range(5):
+            response = client.post(
+                "/api/v1/auth/login",
+                data=json.dumps({"email": "student@example.com", "password": "wrong-password", "role": "student"}),
+                content_type="application/json",
+                HTTP_X_CSRFTOKEN=csrf_token,
+                REMOTE_ADDR="203.0.113.10",
+            )
+            self.assertEqual(response.status_code, 401)
+
+        rate_limited_response = client.post(
+            "/api/v1/auth/login",
+            data=json.dumps({"email": "student@example.com", "password": "wrong-password", "role": "student"}),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+            REMOTE_ADDR="203.0.113.10",
+        )
+
+        self.assertEqual(rate_limited_response.status_code, 429)
+        self.assertEqual(rate_limited_response.json()["error"]["code"], "RATE_LIMITED")
 
     def test_logout_requires_csrf(self):
         user = User.objects.create_user(
@@ -4737,6 +4809,42 @@ class ApiFoundationTests(TestCase):
             )
             self.assertEqual(lesson_submit_response.status_code, 201)
             self.assertTrue(lesson_submit_response.json()["data"]["passed"])
+
+    def test_company_preview_rejects_other_company_draft_course(self):
+        company = Company.objects.create(name="Softverse")
+        other_company = Company.objects.create(name="Otherverse")
+        company_user = User.objects.create_user(
+            email="company-draft-blocked@example.com",
+            password="SecurePass123!",
+            full_name="Company Draft Blocked",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+        other_company_user = User.objects.create_user(
+            email="other-company-draft-owner@example.com",
+            password="SecurePass123!",
+            full_name="Other Draft Owner",
+            role=User.Role.COMPANY,
+            company=other_company,
+        )
+        course = Course.objects.create(
+            title="Other Company Draft Course",
+            description="Should not be previewable by other companies.",
+            category="frontend",
+            difficulty_level="beginner",
+            estimated_hours=2,
+            status=Course.Status.DRAFT,
+            company=other_company,
+            created_by=other_company_user,
+        )
+
+        client, _ = self.csrf_client()
+        client.force_login(company_user)
+
+        response = client.get(f"/api/v1/company/courses/{course.id}/preview")
+
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.json()["error"]["code"], "NOT_FOUND")
 
     def test_company_user_cannot_edit_other_company_course(self):
         company = Company.objects.create(name="Softverse")

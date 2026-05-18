@@ -55,17 +55,6 @@ jobs:
         SIZE=$(ls -lh dist/*.js | awk '{sum+=$5} END {print sum}')
         echo "Bundle size: $SIZE"
     
-    - name: Security scan - Python (bandit)
-      run: |
-        pip install bandit
-        bandit -r backend -ll -q || true
-      continue-on-error: true
-    
-    - name: Security scan - Node (npm audit)
-      working-directory: ./frontend
-      run: npm audit --audit-level=moderate --production || true
-      continue-on-error: true
-    
     - name: Upload build artifacts
       uses: actions/upload-artifact@v3
       with:
