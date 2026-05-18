@@ -37637,3 +37637,533 @@ django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'testserver'. Y
 [INFO] 2026-05-18 15:10:21,513 basehttp 36723 6149304320 "GET /api/v1/student/courses HTTP/1.1" 200 2633392
 [INFO] 2026-05-18 15:10:29,388 logging 36723 6132477952 GET /api/v1/health
 [INFO] 2026-05-18 15:10:29,389 basehttp 36723 6132477952 "GET /api/v1/health HTTP/1.1" 200 60
+[INFO] 2026-05-18 15:10:57,801 logging 36723 6132477952 GET /api/v1/auth/session
+[INFO] 2026-05-18 15:10:57,801 basehttp 36723 6132477952 "GET /api/v1/auth/session HTTP/1.1" 200 266
+[INFO] 2026-05-18 15:10:57,806 logging 36723 6132477952 GET /api/v1/auth/session
+[INFO] 2026-05-18 15:10:57,806 basehttp 36723 6132477952 "GET /api/v1/auth/session HTTP/1.1" 200 266
+[INFO] 2026-05-18 15:10:57,823 logging 36723 6132477952 GET /api/v1/notifications
+[INFO] 2026-05-18 15:10:57,823 basehttp 36723 6132477952 "GET /api/v1/notifications HTTP/1.1" 200 4608
+[INFO] 2026-05-18 15:10:57,839 logging 36723 6149304320 GET /api/v1/student/messages
+[INFO] 2026-05-18 15:10:57,843 logging 36723 6182957056 GET /api/v1/student/profile
+[INFO] 2026-05-18 15:10:57,844 basehttp 36723 6149304320 "GET /api/v1/student/messages HTTP/1.1" 200 859944
+[INFO] 2026-05-18 15:10:57,846 basehttp 36723 6182957056 "GET /api/v1/student/profile HTTP/1.1" 200 187299
+[INFO] 2026-05-18 15:10:57,864 logging 36723 6233436160 GET /api/v1/student/messages
+[INFO] 2026-05-18 15:10:57,866 basehttp 36723 6233436160 "GET /api/v1/student/messages HTTP/1.1" 200 859944
+[INFO] 2026-05-18 15:10:57,879 logging 36723 6132477952 GET /api/v1/student/dashboard-data
+[INFO] 2026-05-18 15:10:57,880 basehttp 36723 6132477952 "GET /api/v1/student/dashboard-data HTTP/1.1" 200 687
+[INFO] 2026-05-18 15:10:57,904 logging 36723 6149304320 GET /api/v1/student/dashboard-data
+[INFO] 2026-05-18 15:10:57,905 basehttp 36723 6149304320 "GET /api/v1/student/dashboard-data HTTP/1.1" 200 687
+[WARNING] 2026-05-18 15:10:57,911 log 36723 6132477952 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-18 15:10:57,912 logging 36723 6132477952 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-18 15:10:57,913 basehttp 36723 6132477952 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-18 15:10:57,918 log 36723 6132477952 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-18 15:10:57,919 logging 36723 6132477952 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-18 15:10:57,920 basehttp 36723 6132477952 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-18 15:10:57,926 log 36723 6149304320 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-18 15:10:57,927 logging 36723 6149304320 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-18 15:10:57,927 basehttp 36723 6149304320 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-18 15:10:57,934 log 36723 6132477952 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-18 15:10:57,935 logging 36723 6132477952 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-18 15:10:57,936 basehttp 36723 6132477952 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-18 15:10:57,941 log 36723 6149304320 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-18 15:10:57,941 logging 36723 6149304320 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-18 15:10:57,942 basehttp 36723 6149304320 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-18 15:10:57,946 log 36723 6132477952 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-18 15:10:57,946 logging 36723 6132477952 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-18 15:10:57,946 basehttp 36723 6132477952 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-18 15:10:57,949 log 36723 6149304320 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-18 15:10:57,950 logging 36723 6149304320 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-18 15:10:57,951 basehttp 36723 6149304320 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-18 15:10:57,956 log 36723 6132477952 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-18 15:10:57,956 logging 36723 6132477952 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-18 15:10:57,959 basehttp 36723 6132477952 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-18 15:10:57,965 log 36723 6149304320 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-18 15:10:57,965 logging 36723 6149304320 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-18 15:10:57,965 basehttp 36723 6149304320 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-18 15:10:57,971 log 36723 6132477952 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-18 15:10:57,972 logging 36723 6132477952 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-18 15:10:57,972 basehttp 36723 6132477952 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-18 15:10:57,976 log 36723 6149304320 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-18 15:10:57,977 logging 36723 6149304320 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-18 15:10:57,977 basehttp 36723 6149304320 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-18 15:10:57,981 log 36723 6132477952 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-18 15:10:57,982 logging 36723 6132477952 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-18 15:10:57,982 basehttp 36723 6132477952 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-18 15:10:57,988 log 36723 6149304320 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-18 15:10:57,989 logging 36723 6149304320 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-18 15:10:57,989 basehttp 36723 6149304320 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-18 15:10:57,993 log 36723 6132477952 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-18 15:10:57,994 logging 36723 6132477952 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-18 15:10:57,995 basehttp 36723 6132477952 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[INFO] 2026-05-18 15:10:57,997 logging 36723 6199783424 GET /api/v1/student/dashboard
+[INFO] 2026-05-18 15:10:57,997 basehttp 36723 6199783424 "GET /api/v1/student/dashboard HTTP/1.1" 200 2115
+[WARNING] 2026-05-18 15:10:58,000 log 36723 6149304320 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-18 15:10:58,000 logging 36723 6149304320 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-18 15:10:58,000 basehttp 36723 6149304320 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-18 15:10:58,004 log 36723 6182957056 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-18 15:10:58,004 logging 36723 6182957056 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-18 15:10:58,005 basehttp 36723 6182957056 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-18 15:10:58,007 log 36723 6132477952 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-18 15:10:58,007 logging 36723 6132477952 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-18 15:10:58,007 basehttp 36723 6132477952 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-18 15:10:58,011 log 36723 6149304320 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-18 15:10:58,011 logging 36723 6149304320 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-18 15:10:58,012 basehttp 36723 6149304320 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-18 15:10:58,013 log 36723 6182957056 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-18 15:10:58,014 logging 36723 6182957056 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-18 15:10:58,014 basehttp 36723 6182957056 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-18 15:10:58,016 log 36723 6199783424 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-18 15:10:58,016 logging 36723 6199783424 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-18 15:10:58,019 basehttp 36723 6199783424 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[INFO] 2026-05-18 15:10:58,064 logging 36723 6216609792 GET /api/v1/student/courses
+[INFO] 2026-05-18 15:10:58,067 basehttp 36723 6216609792 "GET /api/v1/student/courses HTTP/1.1" 200 2633392
+[INFO] 2026-05-18 15:10:58,073 logging 36723 6166130688 GET /api/v1/student/matches
+[INFO] 2026-05-18 15:10:58,073 basehttp 36723 6166130688 "GET /api/v1/student/matches HTTP/1.1" 200 23156
+[INFO] 2026-05-18 15:10:58,105 logging 36723 6233436160 GET /api/v1/student/dashboard
+[INFO] 2026-05-18 15:10:58,106 basehttp 36723 6233436160 "GET /api/v1/student/dashboard HTTP/1.1" 200 2115
+[INFO] 2026-05-18 15:10:58,142 logging 36723 6132477952 GET /api/v1/student/courses
+[INFO] 2026-05-18 15:10:58,143 basehttp 36723 6132477952 "GET /api/v1/student/courses HTTP/1.1" 200 2633392
+[WARNING] 2026-05-18 15:10:58,190 log 36723 6132477952 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[WARNING] 2026-05-18 15:10:58,191 log 36723 6149304320 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-18 15:10:58,191 logging 36723 6132477952 POST /api/v1/metrics/web-vitals
+[INFO] 2026-05-18 15:10:58,191 logging 36723 6149304320 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-18 15:10:58,191 basehttp 36723 6132477952 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-18 15:10:58,191 basehttp 36723 6149304320 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-18 15:10:58,217 log 36723 6132477952 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[WARNING] 2026-05-18 15:10:58,217 log 36723 6149304320 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-18 15:10:58,217 logging 36723 6132477952 POST /api/v1/metrics/web-vitals
+[INFO] 2026-05-18 15:10:58,217 logging 36723 6149304320 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-18 15:10:58,217 basehttp 36723 6132477952 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-18 15:10:58,218 basehttp 36723 6149304320 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[INFO] 2026-05-18 15:11:04,205 logging 36723 6132477952 GET /api/v1/student/courses
+[INFO] 2026-05-18 15:11:04,206 basehttp 36723 6132477952 "GET /api/v1/student/courses HTTP/1.1" 200 2633392
+[INFO] 2026-05-18 15:11:04,271 logging 36723 6132477952 GET /api/v1/student/courses
+[INFO] 2026-05-18 15:11:04,272 basehttp 36723 6132477952 "GET /api/v1/student/courses HTTP/1.1" 200 2633392
+[INFO] 2026-05-18 15:11:12,166 logging 36723 6132477952 GET /api/v1/student/courses/14/lessons/48
+[INFO] 2026-05-18 15:11:12,166 basehttp 36723 6132477952 "GET /api/v1/student/courses/14/lessons/48 HTTP/1.1" 200 836
+[INFO] 2026-05-18 15:11:12,191 logging 36723 6149304320 GET /api/v1/student/courses/14
+[INFO] 2026-05-18 15:11:12,192 basehttp 36723 6149304320 "GET /api/v1/student/courses/14 HTTP/1.1" 200 2630739
+[INFO] 2026-05-18 15:11:12,206 logging 36723 6132477952 GET /api/v1/student/courses/14/lessons/48
+[INFO] 2026-05-18 15:11:12,206 basehttp 36723 6132477952 "GET /api/v1/student/courses/14/lessons/48 HTTP/1.1" 200 836
+[INFO] 2026-05-18 15:11:12,240 logging 36723 6149304320 GET /api/v1/student/courses/14
+[INFO] 2026-05-18 15:11:12,241 basehttp 36723 6149304320 "GET /api/v1/student/courses/14 HTTP/1.1" 200 2630739
+[INFO] 2026-05-18 15:11:14,472 logging 36723 6132477952 GET /api/v1/student/courses/14
+[INFO] 2026-05-18 15:11:14,473 basehttp 36723 6132477952 "GET /api/v1/student/courses/14 HTTP/1.1" 200 2630739
+[INFO] 2026-05-18 15:11:14,517 logging 36723 6132477952 GET /api/v1/student/courses/14
+[INFO] 2026-05-18 15:11:14,518 basehttp 36723 6132477952 "GET /api/v1/student/courses/14 HTTP/1.1" 200 2630739
+[INFO] 2026-05-18 15:11:18,369 logging 36723 6132477952 GET /api/v1/student/courses
+[INFO] 2026-05-18 15:11:18,370 basehttp 36723 6132477952 "GET /api/v1/student/courses HTTP/1.1" 200 2633392
+[INFO] 2026-05-18 15:11:18,434 logging 36723 6132477952 GET /api/v1/student/courses
+[INFO] 2026-05-18 15:11:18,435 basehttp 36723 6132477952 "GET /api/v1/student/courses HTTP/1.1" 200 2633392
+[INFO] 2026-05-18 15:12:49,206 autoreload 36723 8331386496 /Users/adhikarirabin/Desktop/softlearn-v2/backend/config/settings.py changed, reloading.
+[INFO] 2026-05-18 15:12:49,460 autoreload 37629 8331386496 Watching for file changes with StatReloader
+[WARNING] 2026-05-18 15:12:49,547 error_tracking 37629 6120255488 SENTRY_DSN not configured, error tracking disabled
+[INFO] 2026-05-18 15:13:06,725 autoreload 37629 8331386496 /Users/adhikarirabin/Desktop/softlearn-v2/backend/config/settings.py changed, reloading.
+[INFO] 2026-05-18 15:13:06,889 autoreload 37708 8331386496 Watching for file changes with StatReloader
+[WARNING] 2026-05-18 15:13:06,949 error_tracking 37708 6174945280 SENTRY_DSN not configured, error tracking disabled
+[WARNING] 2026-05-18 15:13:12,576 error_tracking 37722 8331386496 SENTRY_DSN not configured, error tracking disabled
+[WARNING] 2026-05-18 15:13:12,602 course_assessments 37722 8331386496 Gemini course assessment generation failed for assessment 1 and user 1: {"retryDelay":"48s","message":"Quota exceeded"}
+[INFO] 2026-05-18 15:13:12,603 logging 37722 8331386496 GET /api/v1/company/courses/1/preview/lessons/1/exam
+[INFO] 2026-05-18 15:13:12,605 logging 37722 8331386496 GET /api/v1/company/courses/1/preview/lessons/1/exam
+[WARNING] 2026-05-18 15:13:12,777 course_assessments 37722 8331386496 Gemini course assessment generation failed for assessment 1 and user 1: quota exhausted
+[INFO] 2026-05-18 15:13:12,778 logging 37722 8331386496 GET /api/v1/company/courses/1/preview/lessons/1/exam
+[WARNING] 2026-05-18 15:13:12,947 course_assessments 37722 8331386496 Gemini course assessment generation failed for assessment 2 and user 1: Gemini exam generation returned 1 questions, expected 15.
+[INFO] 2026-05-18 15:13:12,949 logging 37722 8331386496 GET /api/v1/company/courses/1/preview/final-exam
+[INFO] 2026-05-18 15:13:13,119 logging 37722 8331386496 GET /api/v1/company/courses/1/preview/final-exam
+[INFO] 2026-05-18 15:13:13,289 logging 37722 8331386496 GET /api/v1/company/courses/1/preview/lessons/1/exam
+[INFO] 2026-05-18 15:13:13,290 logging 37722 8331386496 POST /api/v1/company/courses/1/preview/lessons/1/exam/submit
+[INFO] 2026-05-18 15:13:13,458 logging 37722 8331386496 GET /api/v1/company/courses/1/preview/lessons/1/exam
+[INFO] 2026-05-18 15:13:13,626 logging 37722 8331386496 GET /api/v1/company/courses/1/preview/lessons/2/exam
+[WARNING] 2026-05-18 15:13:14,416 course_assessments 37722 8331386496 Gemini course assessment generation failed for assessment 1 and user 1: quota exhausted
+[INFO] 2026-05-18 15:13:14,416 logging 37722 8331386496 GET /api/v1/company/courses/1/preview/lessons/1/exam
+[WARNING] 2026-05-18 15:13:14,888 course_assessments 37722 8331386496 Gemini course assessment generation failed for assessment 1 and user 2: quota exhausted
+[INFO] 2026-05-18 15:13:14,889 logging 37722 8331386496 GET /api/v1/student/courses/1/lessons/1/exam
+[INFO] 2026-05-18 15:13:15,060 logging 37722 8331386496 GET /api/v1/student/courses/1/lessons/1/exam
+[INFO] 2026-05-18 15:13:15,066 logging 37722 8331386496 POST /api/v1/student/courses/1/lessons/1/exam/submit
+[INFO] 2026-05-18 15:13:15,069 logging 37722 8331386496 Web vitals received
+[INFO] 2026-05-18 15:13:15,069 logging 37722 8331386496 POST /api/v1/metrics/web-vitals
+[INFO] 2026-05-18 15:13:15,290 logging 37722 8331386496 POST /api/v1/practice-questions/1
+[INFO] 2026-05-18 15:13:15,511 logging 37722 8331386496 POST /api/v1/exam-categories
+[WARNING] 2026-05-18 15:13:15,514 log 37722 8331386496 Forbidden: /api/v1/exam-categories
+[INFO] 2026-05-18 15:13:15,588 logging 37722 8331386496 POST /api/v1/exam-categories
+[INFO] 2026-05-18 15:13:15,809 logging 37722 8331386496 POST /api/v1/exams/1/mock-exams
+[INFO] 2026-05-18 15:13:16,030 logging 37722 8331386496 POST /api/v1/exams/1/practice-questions
+[INFO] 2026-05-18 15:13:16,251 logging 37722 8331386496 DELETE /api/v1/exam-categories/2
+[INFO] 2026-05-18 15:13:16,398 logging 37722 8331386496 GET /api/v1/exam-categories/1
+[INFO] 2026-05-18 15:13:16,545 logging 37722 8331386496 GET /api/v1/practice-questions/1
+[INFO] 2026-05-18 15:13:16,765 logging 37722 8331386496 GET /api/v1/student/performance
+[INFO] 2026-05-18 15:13:16,986 logging 37722 8331386496 GET /api/v1/student/performance/1
+[INFO] 2026-05-18 15:13:17,217 logging 37722 8331386496 GET /api/v1/study-plan
+[INFO] 2026-05-18 15:13:17,364 logging 37722 8331386496 GET /api/v1/exam-categories
+[INFO] 2026-05-18 15:13:17,510 logging 37722 8331386496 GET /api/v1/exams/1/mock-exams
+[INFO] 2026-05-18 15:13:17,657 logging 37722 8331386496 GET /api/v1/exams/1/practice-questions
+[INFO] 2026-05-18 15:13:17,886 logging 37722 8331386496 PUT /api/v1/exam-categories/1
+[INFO] 2026-05-18 15:13:18,181 logging 37722 8331386496 GET /api/v1/admin/export/users/
+[INFO] 2026-05-18 15:13:18,329 logging 37722 8331386496 GET /api/v1/admin/export/users/
+[WARNING] 2026-05-18 15:13:18,330 log 37722 8331386496 Forbidden: /api/v1/admin/export/users/
+[INFO] 2026-05-18 15:13:18,478 logging 37722 8331386496 GET /api/v1/admin/scheduled-tasks/
+[INFO] 2026-05-18 15:13:19,582 logging 37722 8331386496 GET /api/v1/student/data-access-log
+[INFO] 2026-05-18 15:13:20,025 logging 37722 8331386496 POST /api/v1/student/deletion-request
+[WARNING] 2026-05-18 15:13:20,025 log 37722 8331386496 Bad Request: /api/v1/student/deletion-request
+[INFO] 2026-05-18 15:13:20,173 logging 37722 8331386496 POST /api/v1/student/deletion-request
+[INFO] 2026-05-18 15:13:20,324 logging 37722 8331386496 GET /api/v1/student/deletion-status
+[INFO] 2026-05-18 15:13:20,622 logging 37722 8331386496 POST /api/v1/student/data-export-request
+[INFO] 2026-05-18 15:13:20,770 logging 37722 8331386496 GET /api/v1/student/data-export/1
+[INFO] 2026-05-18 15:13:22,382 logging 37722 8331386496 GET /api/v1/student/consent
+[INFO] 2026-05-18 15:13:22,531 logging 37722 8331386496 PUT /api/v1/student/consent
+[INFO] 2026-05-18 15:13:22,972 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:22,975 logging 37722 8331386496 POST /api/v1/company/courses/1/lessons
+[INFO] 2026-05-18 15:13:22,978 logging 37722 8331386496 GET /api/v1/student/courses
+[INFO] 2026-05-18 15:13:23,051 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:23,126 logging 37722 8331386496 POST /api/v1/admin/users
+[INFO] 2026-05-18 15:13:23,128 logging 37722 8331386496 GET /api/v1/admin/users
+[INFO] 2026-05-18 15:13:23,211 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:23,213 logging 37722 8331386496 POST /api/v1/admin/companies
+[INFO] 2026-05-18 15:13:23,288 logging 37722 8331386496 GET /api/v1/admin/companies
+[INFO] 2026-05-18 15:13:23,289 logging 37722 8331386496 GET /api/v1/admin/companies/1
+[INFO] 2026-05-18 15:13:23,291 logging 37722 8331386496 PUT /api/v1/admin/companies/1
+[INFO] 2026-05-18 15:13:23,292 logging 37722 8331386496 DELETE /api/v1/admin/companies/1
+[INFO] 2026-05-18 15:13:23,365 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:23,367 logging 37722 8331386496 POST /api/v1/admin/courses
+[INFO] 2026-05-18 15:13:23,369 logging 37722 8331386496 PUT /api/v1/admin/courses/1
+[INFO] 2026-05-18 15:13:23,370 logging 37722 8331386496 DELETE /api/v1/admin/courses/1
+[INFO] 2026-05-18 15:13:23,443 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:23,445 logging 37722 8331386496 POST /api/v1/admin/exams
+[INFO] 2026-05-18 15:13:23,446 logging 37722 8331386496 PUT /api/v1/admin/exams/1
+[INFO] 2026-05-18 15:13:23,447 logging 37722 8331386496 DELETE /api/v1/admin/exams/1
+[INFO] 2026-05-18 15:13:23,521 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:23,535 logging 37722 8331386496 POST /api/v1/admin/courses/1/lessons
+[INFO] 2026-05-18 15:13:23,537 logging 37722 8331386496 PUT /api/v1/admin/lessons/1
+[INFO] 2026-05-18 15:13:23,538 logging 37722 8331386496 DELETE /api/v1/admin/lessons/1
+[INFO] 2026-05-18 15:13:23,758 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:23,761 logging 37722 8331386496 POST /api/v1/admin/vacancies
+[INFO] 2026-05-18 15:13:23,764 logging 37722 8331386496 PUT /api/v1/admin/vacancies/1
+[INFO] 2026-05-18 15:13:23,765 logging 37722 8331386496 DELETE /api/v1/admin/vacancies/1
+[INFO] 2026-05-18 15:13:23,839 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:23,842 logging 37722 8331386496 POST /api/v1/admin/exams/1/questions
+[INFO] 2026-05-18 15:13:23,843 logging 37722 8331386496 POST /api/v1/admin/questions/1/options
+[INFO] 2026-05-18 15:13:23,845 logging 37722 8331386496 PUT /api/v1/admin/options/1
+[INFO] 2026-05-18 15:13:23,991 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:23,994 logging 37722 8331386496 PUT /api/v1/admin/users/2
+[INFO] 2026-05-18 15:13:24,144 logging 37722 8331386496 GET /api/v1/admin/vacancies
+[INFO] 2026-05-18 15:13:24,217 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:24,219 logging 37722 8331386496 PUT /api/v1/admin/users/1
+[WARNING] 2026-05-18 15:13:24,219 log 37722 8331386496 Bad Request: /api/v1/admin/users/1
+[INFO] 2026-05-18 15:13:24,443 logging 37722 8331386496 GET /api/v1/admin/dashboard
+[INFO] 2026-05-18 15:13:24,590 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:24,592 logging 37722 8331386496 POST /api/v1/admin/vacancies
+[WARNING] 2026-05-18 15:13:24,592 log 37722 8331386496 Bad Request: /api/v1/admin/vacancies
+[INFO] 2026-05-18 15:13:24,741 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:24,747 logging 37722 8331386496 POST /api/v1/company/interviews/1/confirm
+[INFO] 2026-05-18 15:13:24,907 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:24,912 logging 37722 8331386496 POST /api/v1/company/messages/threads
+[INFO] 2026-05-18 15:13:24,915 logging 37722 8331386496 PUT /api/v1/company/messages/threads/1
+[INFO] 2026-05-18 15:13:24,918 logging 37722 8331386496 POST /api/v1/company/messages/threads/1/messages
+[INFO] 2026-05-18 15:13:25,067 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:25,071 logging 37722 8331386496 POST /api/v1/company/messages/threads
+[INFO] 2026-05-18 15:13:25,146 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:25,149 logging 37722 8331386496 POST /api/v1/company/vacancies
+[INFO] 2026-05-18 15:13:25,151 logging 37722 8331386496 PUT /api/v1/company/vacancies/1
+[INFO] 2026-05-18 15:13:25,153 logging 37722 8331386496 DELETE /api/v1/company/vacancies/1
+[INFO] 2026-05-18 15:13:25,302 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:25,307 logging 37722 8331386496 POST /api/v1/company/applications/1/reject
+[INFO] 2026-05-18 15:13:25,457 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:25,462 logging 37722 8331386496 POST /api/v1/company/candidates/1/interviews
+[INFO] 2026-05-18 15:13:25,611 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:25,618 logging 37722 8331386496 POST /api/v1/company/candidates/1/interviews
+[INFO] 2026-05-18 15:13:25,620 logging 37722 8331386496 GET /api/v1/student/interviews
+[INFO] 2026-05-18 15:13:25,772 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:25,775 logging 37722 8331386496 GET /api/v1/company/applications
+[INFO] 2026-05-18 15:13:25,781 logging 37722 8331386496 POST /api/v1/company/applications/1/shortlist
+[INFO] 2026-05-18 15:13:25,933 logging 37722 8331386496 GET /api/v1/company/candidates/1/exam-results
+[INFO] 2026-05-18 15:13:25,934 logging 37722 8331386496 GET /api/v1/company/candidates/1/exam-results
+[INFO] 2026-05-18 15:13:26,085 logging 37722 8331386496 GET /api/v1/company/candidates/1/learning-record
+[INFO] 2026-05-18 15:13:26,234 logging 37722 8331386496 GET /api/v1/company/candidates/1/notes
+[WARNING] 2026-05-18 15:13:26,234 log 37722 8331386496 Forbidden: /api/v1/company/candidates/1/notes
+[INFO] 2026-05-18 15:13:26,234 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:26,237 logging 37722 8331386496 POST /api/v1/company/candidates/1/notes
+[INFO] 2026-05-18 15:13:26,238 logging 37722 8331386496 GET /api/v1/company/candidates/1/notes
+[INFO] 2026-05-18 15:13:26,391 logging 37722 8331386496 GET /api/v1/company/candidates/1/preview
+[INFO] 2026-05-18 15:13:26,541 logging 37722 8331386496 GET /api/v1/company/candidates/1/preview
+[INFO] 2026-05-18 15:13:26,689 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:26,692 logging 37722 8331386496 POST /api/v1/company/candidates/1/shortlist
+[INFO] 2026-05-18 15:13:26,693 logging 37722 8331386496 GET /api/v1/company/shortlist
+[INFO] 2026-05-18 15:13:26,694 logging 37722 8331386496 DELETE /api/v1/company/candidates/1/shortlist
+[INFO] 2026-05-18 15:13:26,846 logging 37722 8331386496 GET /api/v1/company/candidates
+[INFO] 2026-05-18 15:13:26,998 logging 37722 8331386496 GET /api/v1/company/candidates
+[INFO] 2026-05-18 15:13:27,149 logging 37722 8331386496 GET /api/v1/company/candidates/1/preview
+[WARNING] 2026-05-18 15:13:27,149 log 37722 8331386496 Bad Request: /api/v1/company/candidates/1/preview
+[INFO] 2026-05-18 15:13:27,238 logging 37722 8331386496 GET /api/v1/student/profile
+[WARNING] 2026-05-18 15:13:27,238 log 37722 8331386496 Forbidden: /api/v1/student/profile
+[INFO] 2026-05-18 15:13:27,392 logging 37722 8331386496 GET /api/v1/company/dashboard
+[INFO] 2026-05-18 15:13:27,546 logging 37722 8331386496 GET /api/v1/company/dashboard
+[INFO] 2026-05-18 15:13:27,697 logging 37722 8331386496 GET /api/v1/company/messages/contacts
+[INFO] 2026-05-18 15:13:27,846 logging 37722 8331386496 GET /api/v1/company/messages/contacts
+[INFO] 2026-05-18 15:13:27,997 logging 37722 8331386496 GET /api/v1/company/messages
+[INFO] 2026-05-18 15:13:28,072 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:28,094 logging 37722 8331386496 GET /api/v1/company/courses/1/preview
+[INFO] 2026-05-18 15:13:28,096 logging 37722 8331386496 GET /api/v1/company/courses/1/preview/lessons/1
+[INFO] 2026-05-18 15:13:28,098 logging 37722 8331386496 GET /api/v1/company/courses/1/preview/lessons/1/exam
+[INFO] 2026-05-18 15:13:28,100 logging 37722 8331386496 POST /api/v1/company/courses/1/preview/lessons/1/exam/submit
+[INFO] 2026-05-18 15:13:28,254 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:28,256 logging 37722 8331386496 GET /api/v1/company/courses/1/preview
+[WARNING] 2026-05-18 15:13:28,256 log 37722 8331386496 Not Found: /api/v1/company/courses/1/preview
+[INFO] 2026-05-18 15:13:28,332 logging 37722 8331386496 GET /api/v1/company/profile
+[INFO] 2026-05-18 15:13:28,406 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:28,408 logging 37722 8331386496 PUT /api/v1/company/profile
+[INFO] 2026-05-18 15:13:28,409 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:28,483 logging 37722 8331386496 POST /api/v1/auth/signup
+[INFO] 2026-05-18 15:13:28,485 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:28,485 logging 37722 8331386496 POST /api/v1/auth/signup
+[WARNING] 2026-05-18 15:13:28,485 log 37722 8331386496 Bad Request: /api/v1/auth/signup
+[INFO] 2026-05-18 15:13:28,562 logging 37722 8331386496 GET /api/v1/company/courses
+[INFO] 2026-05-18 15:13:28,637 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:28,639 logging 37722 8331386496 POST /api/v1/company/courses
+[INFO] 2026-05-18 15:13:28,641 logging 37722 8331386496 PUT /api/v1/company/courses/1
+[INFO] 2026-05-18 15:13:28,642 logging 37722 8331386496 DELETE /api/v1/company/courses/1
+[INFO] 2026-05-18 15:13:28,720 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:28,722 logging 37722 8331386496 POST /api/v1/company/youtube-transcript
+[INFO] 2026-05-18 15:13:28,796 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:28,799 logging 37722 8331386496 POST /api/v1/company/courses/1/lessons
+[INFO] 2026-05-18 15:13:28,801 logging 37722 8331386496 PUT /api/v1/company/lessons/1
+[INFO] 2026-05-18 15:13:28,802 logging 37722 8331386496 GET /api/v1/company/courses/1/lessons
+[INFO] 2026-05-18 15:13:28,804 logging 37722 8331386496 DELETE /api/v1/company/lessons/1
+[INFO] 2026-05-18 15:13:28,961 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:28,996 logging 37722 8331386496 GET /api/v1/company/courses/1/preview
+[INFO] 2026-05-18 15:13:28,998 logging 37722 8331386496 GET /api/v1/company/courses/1/preview/lessons/2
+[INFO] 2026-05-18 15:13:29,001 logging 37722 8331386496 GET /api/v1/company/courses/1/preview/lessons/1/exam
+[INFO] 2026-05-18 15:13:29,005 logging 37722 8331386496 POST /api/v1/company/courses/1/preview/lessons/1/exam/submit
+[INFO] 2026-05-18 15:13:29,007 logging 37722 8331386496 POST /api/v1/company/courses/1/preview/final-exam/submit
+[INFO] 2026-05-18 15:13:29,097 logging 37722 8331386496 GET /api/v1/admin/courses
+[WARNING] 2026-05-18 15:13:29,097 log 37722 8331386496 Forbidden: /api/v1/admin/courses
+[INFO] 2026-05-18 15:13:29,177 logging 37722 8331386496 GET /api/v1/admin/exams
+[WARNING] 2026-05-18 15:13:29,177 log 37722 8331386496 Forbidden: /api/v1/admin/exams
+[INFO] 2026-05-18 15:13:29,254 logging 37722 8331386496 GET /api/v1/student/courses
+[WARNING] 2026-05-18 15:13:29,254 log 37722 8331386496 Forbidden: /api/v1/student/courses
+[INFO] 2026-05-18 15:13:29,331 logging 37722 8331386496 GET /api/v1/student/jobs
+[WARNING] 2026-05-18 15:13:29,331 log 37722 8331386496 Forbidden: /api/v1/student/jobs
+[INFO] 2026-05-18 15:13:29,407 logging 37722 8331386496 GET /api/v1/student/messages
+[WARNING] 2026-05-18 15:13:29,407 log 37722 8331386496 Forbidden: /api/v1/student/messages
+[INFO] 2026-05-18 15:13:29,482 logging 37722 8331386496 GET /api/v1/student/skills
+[WARNING] 2026-05-18 15:13:29,482 log 37722 8331386496 Forbidden: /api/v1/student/skills
+[INFO] 2026-05-18 15:13:29,641 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:29,643 logging 37722 8331386496 PUT /api/v1/company/courses/1
+[WARNING] 2026-05-18 15:13:29,644 log 37722 8331386496 Forbidden: /api/v1/company/courses/1
+[INFO] 2026-05-18 15:13:29,722 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:29,723 logging 37722 8331386496 POST /api/v1/student/courses/1/enrollment
+[WARNING] 2026-05-18 15:13:29,724 log 37722 8331386496 Forbidden: /api/v1/student/courses/1/enrollment
+[INFO] 2026-05-18 15:13:29,873 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:29,875 logging 37722 8331386496 POST /api/v1/company/courses/1/lessons
+[WARNING] 2026-05-18 15:13:29,875 log 37722 8331386496 Forbidden: /api/v1/company/courses/1/lessons
+[INFO] 2026-05-18 15:13:29,876 logging 37722 8331386496 PUT /api/v1/company/lessons/1
+[WARNING] 2026-05-18 15:13:29,876 log 37722 8331386496 Forbidden: /api/v1/company/lessons/1
+[INFO] 2026-05-18 15:13:29,952 logging 37722 8331386496 GET /api/v1/student/exams/1
+[WARNING] 2026-05-18 15:13:29,953 log 37722 8331386496 Forbidden: /api/v1/student/exams/1
+[INFO] 2026-05-18 15:13:30,178 logging 37722 8331386496 GET /api/v1/company/vacancies
+[INFO] 2026-05-18 15:13:30,487 logging 37722 8331386496 GET /api/v1/company/vacancies/1/matches
+[INFO] 2026-05-18 15:13:30,494 logging 37722 8331386496 GET /api/v1/company/candidates
+[INFO] 2026-05-18 15:13:30,569 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:30,573 logging 37722 8331386496 POST /api/v1/company/vacancies
+[INFO] 2026-05-18 15:13:30,576 logging 37722 8331386496 PUT /api/v1/company/vacancies/1
+[INFO] 2026-05-18 15:13:30,578 logging 37722 8331386496 GET /api/v1/company/vacancies
+[INFO] 2026-05-18 15:13:30,653 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:30,654 logging 37722 8331386496 POST /api/v1/company/youtube-transcript
+[WARNING] 2026-05-18 15:13:30,654 log 37722 8331386496 Bad Request: /api/v1/company/youtube-transcript
+[INFO] 2026-05-18 15:13:30,729 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:30,731 logging 37722 8331386496 POST /api/v1/company/youtube-transcript
+[WARNING] 2026-05-18 15:13:30,731 log 37722 8331386496 Unprocessable Entity: /api/v1/company/youtube-transcript
+[INFO] 2026-05-18 15:13:30,879 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:30,883 logging 37722 8331386496 POST /api/v1/interviews/1/complete
+[INFO] 2026-05-18 15:13:30,959 logging 37722 8331386496 GET /api/v1/health
+[INFO] 2026-05-18 15:13:30,959 logging 37722 8331386496 GET /api/v1/health
+[INFO] 2026-05-18 15:13:31,107 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:31,112 logging 37722 8331386496 POST /api/v1/interviews/1/cancel
+[INFO] 2026-05-18 15:13:31,261 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:31,266 logging 37722 8331386496 POST /api/v1/interviews/1/reschedule
+[INFO] 2026-05-18 15:13:31,341 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:31,415 logging 37722 8331386496 POST /api/v1/auth/login
+[WARNING] 2026-05-18 15:13:31,415 log 37722 8331386496 Unauthorized: /api/v1/auth/login
+[INFO] 2026-05-18 15:13:31,489 logging 37722 8331386496 POST /api/v1/auth/login
+[WARNING] 2026-05-18 15:13:31,489 log 37722 8331386496 Unauthorized: /api/v1/auth/login
+[INFO] 2026-05-18 15:13:31,563 logging 37722 8331386496 POST /api/v1/auth/login
+[WARNING] 2026-05-18 15:13:31,563 log 37722 8331386496 Unauthorized: /api/v1/auth/login
+[INFO] 2026-05-18 15:13:31,636 logging 37722 8331386496 POST /api/v1/auth/login
+[WARNING] 2026-05-18 15:13:31,636 log 37722 8331386496 Unauthorized: /api/v1/auth/login
+[INFO] 2026-05-18 15:13:31,711 logging 37722 8331386496 POST /api/v1/auth/login
+[WARNING] 2026-05-18 15:13:31,711 log 37722 8331386496 Unauthorized: /api/v1/auth/login
+[INFO] 2026-05-18 15:13:31,712 logging 37722 8331386496 POST /api/v1/auth/login
+[WARNING] 2026-05-18 15:13:31,712 log 37722 8331386496 Too Many Requests: /api/v1/auth/login
+[INFO] 2026-05-18 15:13:31,789 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:31,864 logging 37722 8331386496 POST /api/v1/auth/login
+[WARNING] 2026-05-18 15:13:31,864 log 37722 8331386496 Forbidden: /api/v1/auth/login
+[INFO] 2026-05-18 15:13:31,940 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:31,940 logging 37722 8331386496 POST /api/v1/auth/login
+[WARNING] 2026-05-18 15:13:31,940 log 37722 8331386496 Bad Request: /api/v1/auth/login
+[INFO] 2026-05-18 15:13:32,026 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:32,101 logging 37722 8331386496 POST /api/v1/auth/login
+[WARNING] 2026-05-18 15:13:32,101 log 37722 8331386496 Unauthorized: /api/v1/auth/login
+[WARNING] 2026-05-18 15:13:32,177 log 37722 8331386496 Forbidden (CSRF cookie not set.): /api/v1/auth/logout
+[INFO] 2026-05-18 15:13:32,177 logging 37722 8331386496 POST /api/v1/auth/logout
+[INFO] 2026-05-18 15:13:32,252 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:32,254 logging 37722 8331386496 POST /api/v1/notifications/read-all
+[INFO] 2026-05-18 15:13:32,404 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:32,407 logging 37722 8331386496 POST /api/v1/company/candidates/1/interviews
+[WARNING] 2026-05-18 15:13:32,407 log 37722 8331386496 Bad Request: /api/v1/company/candidates/1/interviews
+[INFO] 2026-05-18 15:13:32,556 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:32,560 logging 37722 8331386496 PUT /api/v1/interviews/1/meeting-link
+[INFO] 2026-05-18 15:13:32,562 logging 37722 8331386496 PUT /api/v1/interviews/1/meeting-link
+[WARNING] 2026-05-18 15:13:32,562 log 37722 8331386496 Bad Request: /api/v1/interviews/1/meeting-link
+[INFO] 2026-05-18 15:13:32,710 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:32,712 logging 37722 8331386496 PUT /api/v1/interviews/1/meeting-link
+[WARNING] 2026-05-18 15:13:32,712 log 37722 8331386496 Bad Request: /api/v1/interviews/1/meeting-link
+[INFO] 2026-05-18 15:13:32,787 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:32,789 logging 37722 8331386496 GET /api/v1/notifications
+[INFO] 2026-05-18 15:13:32,790 logging 37722 8331386496 POST /api/v1/notifications/1/read
+[INFO] 2026-05-18 15:13:32,941 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:32,943 logging 37722 8331386496 POST /api/v1/interviews/1/complete
+[WARNING] 2026-05-18 15:13:32,943 log 37722 8331386496 Bad Request: /api/v1/interviews/1/complete
+[INFO] 2026-05-18 15:13:33,020 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:33,176 logging 37722 8331386496 POST /api/v1/auth/password/change
+[INFO] 2026-05-18 15:13:33,251 logging 37722 8331386496 GET /api/v1/ready
+[INFO] 2026-05-18 15:13:33,252 logging 37722 8331386496 GET /api/v1/health
+[INFO] 2026-05-18 15:13:33,253 logging 37722 8331386496 GET /api/v1/health
+[INFO] 2026-05-18 15:13:33,478 logging 37722 8331386496 GET /api/v1/access/student
+[INFO] 2026-05-18 15:13:33,479 logging 37722 8331386496 GET /api/v1/access/company
+[WARNING] 2026-05-18 15:13:33,479 log 37722 8331386496 Forbidden: /api/v1/access/company
+[INFO] 2026-05-18 15:13:33,480 logging 37722 8331386496 GET /api/v1/access/company
+[INFO] 2026-05-18 15:13:33,481 logging 37722 8331386496 GET /api/v1/access/admin
+[WARNING] 2026-05-18 15:13:33,481 log 37722 8331386496 Forbidden: /api/v1/access/admin
+[INFO] 2026-05-18 15:13:33,482 logging 37722 8331386496 GET /api/v1/access/admin
+[INFO] 2026-05-18 15:13:33,483 logging 37722 8331386496 GET /api/v1/auth/session
+[INFO] 2026-05-18 15:13:33,484 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:33,484 logging 37722 8331386496 POST /api/v1/auth/signup
+[WARNING] 2026-05-18 15:13:33,484 log 37722 8331386496 Bad Request: /api/v1/auth/signup
+[INFO] 2026-05-18 15:13:33,632 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:33,636 logging 37722 8331386496 POST /api/v1/interviews/1/availability
+[INFO] 2026-05-18 15:13:33,636 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:33,640 logging 37722 8331386496 POST /api/v1/interviews/1/availability
+[INFO] 2026-05-18 15:13:33,789 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:33,792 logging 37722 8331386496 POST /api/v1/student/applications
+[WARNING] 2026-05-18 15:13:33,792 log 37722 8331386496 Bad Request: /api/v1/student/applications
+[INFO] 2026-05-18 15:13:33,939 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:33,944 logging 37722 8331386496 POST /api/v1/student/applications
+[INFO] 2026-05-18 15:13:33,945 logging 37722 8331386496 GET /api/v1/student/applications
+[INFO] 2026-05-18 15:13:34,020 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:34,024 logging 37722 8331386496 POST /api/v1/student/messages/threads
+[INFO] 2026-05-18 15:13:34,172 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:34,176 logging 37722 8331386496 POST /api/v1/student/messages/threads
+[INFO] 2026-05-18 15:13:34,250 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:34,254 logging 37722 8331386496 POST /api/v1/student/profile/education
+[INFO] 2026-05-18 15:13:34,257 logging 37722 8331386496 PUT /api/v1/student/profile/education/1
+[INFO] 2026-05-18 15:13:34,258 logging 37722 8331386496 DELETE /api/v1/student/profile/education/1
+[INFO] 2026-05-18 15:13:34,333 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:34,335 logging 37722 8331386496 DELETE /api/v1/student/messages/threads/1
+[INFO] 2026-05-18 15:13:34,485 logging 37722 8331386496 GET /api/v1/student/interviews
+[INFO] 2026-05-18 15:13:34,486 logging 37722 8331386496 GET /api/v1/interviews/1
+[INFO] 2026-05-18 15:13:34,562 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:34,566 logging 37722 8331386496 GET /api/v1/student/exams/1
+[INFO] 2026-05-18 15:13:34,571 logging 37722 8331386496 POST /api/v1/student/exams/1/submit
+[INFO] 2026-05-18 15:13:34,646 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:34,650 logging 37722 8331386496 POST /api/v1/student/profile/certificates
+[INFO] 2026-05-18 15:13:34,653 logging 37722 8331386496 PUT /api/v1/student/profile/certificates/1
+[INFO] 2026-05-18 15:13:34,655 logging 37722 8331386496 DELETE /api/v1/student/profile/certificates/1
+[INFO] 2026-05-18 15:13:34,730 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:34,733 logging 37722 8331386496 POST /api/v1/student/profile/experience
+[INFO] 2026-05-18 15:13:34,736 logging 37722 8331386496 PUT /api/v1/student/profile/availability
+[INFO] 2026-05-18 15:13:34,885 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:34,890 logging 37722 8331386496 PUT /api/v1/student/messages/threads/1
+[INFO] 2026-05-18 15:13:34,894 logging 37722 8331386496 POST /api/v1/student/messages/threads/1/messages
+[INFO] 2026-05-18 15:13:34,970 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:34,973 logging 37722 8331386496 GET /api/v1/student/mock-exams/1
+[INFO] 2026-05-18 15:13:34,977 logging 37722 8331386496 POST /api/v1/student/mock-exams/1/submit
+[INFO] 2026-05-18 15:13:35,052 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:35,056 logging 37722 8331386496 POST /api/v1/student/practice-questions/1/attempt
+[INFO] 2026-05-18 15:13:35,131 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:35,141 logging 37722 8331386496 PUT /api/v1/student/courses/1/lessons/1/progress
+[INFO] 2026-05-18 15:13:35,149 logging 37722 8331386496 PUT /api/v1/student/courses/1/lessons/1/progress
+[INFO] 2026-05-18 15:13:35,157 logging 37722 8331386496 PUT /api/v1/student/courses/1/lessons/2/progress
+[INFO] 2026-05-18 15:13:35,307 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:35,312 logging 37722 8331386496 POST /api/v1/student/applications/1/withdraw
+[INFO] 2026-05-18 15:13:35,387 logging 37722 8331386496 GET /api/v1/company/profile
+[WARNING] 2026-05-18 15:13:35,387 log 37722 8331386496 Forbidden: /api/v1/company/profile
+[INFO] 2026-05-18 15:13:35,539 logging 37722 8331386496 GET /api/v1/student/courses/1
+[INFO] 2026-05-18 15:13:35,691 logging 37722 8331386496 GET /api/v1/student/courses/1
+[INFO] 2026-05-18 15:13:35,844 logging 37722 8331386496 GET /api/v1/student/courses/1
+[INFO] 2026-05-18 15:13:35,845 logging 37722 8331386496 GET /api/v1/student/courses/2
+[WARNING] 2026-05-18 15:13:35,845 log 37722 8331386496 Not Found: /api/v1/student/courses/2
+[INFO] 2026-05-18 15:13:35,921 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:35,928 logging 37722 8331386496 POST /api/v1/student/courses/1/enrollment
+[INFO] 2026-05-18 15:13:35,933 logging 37722 8331386496 POST /api/v1/student/courses/1/enrollment
+[INFO] 2026-05-18 15:13:36,085 logging 37722 8331386496 GET /api/v1/student/courses
+[INFO] 2026-05-18 15:13:36,161 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:36,164 logging 37722 8331386496 POST /api/v1/student/courses/1/review
+[INFO] 2026-05-18 15:13:36,166 logging 37722 8331386496 POST /api/v1/student/courses/1/review
+[INFO] 2026-05-18 15:13:36,242 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:36,245 logging 37722 8331386496 POST /api/v1/student/courses/1/review
+[WARNING] 2026-05-18 15:13:36,245 log 37722 8331386496 Forbidden: /api/v1/student/courses/1/review
+[INFO] 2026-05-18 15:13:36,397 logging 37722 8331386496 GET /api/v1/student/courses
+[INFO] 2026-05-18 15:13:36,477 logging 37722 8331386496 GET /api/v1/student/dashboard
+[INFO] 2026-05-18 15:13:36,557 logging 37722 8331386496 GET /api/v1/student/exam-results
+[INFO] 2026-05-18 15:13:36,635 logging 37722 8331386496 GET /api/v1/student/exams/1
+[WARNING] 2026-05-18 15:13:36,635 log 37722 8331386496 Forbidden: /api/v1/student/exams/1
+[INFO] 2026-05-18 15:13:36,859 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:36,864 logging 37722 8331386496 GET /api/v1/student/jobs
+[INFO] 2026-05-18 15:13:36,866 logging 37722 8331386496 POST /api/v1/student/jobs/1/bookmark
+[INFO] 2026-05-18 15:13:36,866 logging 37722 8331386496 POST /api/v1/student/jobs/3/bookmark
+[WARNING] 2026-05-18 15:13:36,866 log 37722 8331386496 Not Found: /api/v1/student/jobs/3/bookmark
+[INFO] 2026-05-18 15:13:36,870 logging 37722 8331386496 GET /api/v1/student/jobs
+[INFO] 2026-05-18 15:13:36,870 logging 37722 8331386496 DELETE /api/v1/student/jobs/1/bookmark
+[INFO] 2026-05-18 15:13:37,101 logging 37722 8331386496 GET /api/v1/student/jobs
+[INFO] 2026-05-18 15:13:37,263 logging 37722 8331386496 GET /api/v1/student/jobs
+[INFO] 2026-05-18 15:13:37,340 logging 37722 8331386496 GET /api/v1/student/learning-summary
+[INFO] 2026-05-18 15:13:37,421 logging 37722 8331386496 GET /api/v1/student/courses/1/lessons/1
+[INFO] 2026-05-18 15:13:37,578 logging 37722 8331386496 GET /api/v1/student/matches
+[INFO] 2026-05-18 15:13:37,731 logging 37722 8331386496 GET /api/v1/student/messages/contacts
+[INFO] 2026-05-18 15:13:37,883 logging 37722 8331386496 GET /api/v1/student/messages
+[INFO] 2026-05-18 15:13:37,960 logging 37722 8331386496 GET /api/v1/student/courses/1/lessons/1
+[WARNING] 2026-05-18 15:13:37,960 log 37722 8331386496 Forbidden: /api/v1/student/courses/1/lessons/1
+[INFO] 2026-05-18 15:13:38,043 logging 37722 8331386496 GET /api/v1/student/preparation-summary
+[INFO] 2026-05-18 15:13:38,120 logging 37722 8331386496 GET /api/v1/student/privacy-settings
+[INFO] 2026-05-18 15:13:38,194 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:38,197 logging 37722 8331386496 PUT /api/v1/student/privacy-settings
+[INFO] 2026-05-18 15:13:38,277 logging 37722 8331386496 GET /api/v1/student/profile
+[INFO] 2026-05-18 15:13:38,353 logging 37722 8331386496 GET /api/v1/student/profile
+[INFO] 2026-05-18 15:13:38,428 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:38,431 logging 37722 8331386496 PUT /api/v1/student/profile
+[INFO] 2026-05-18 15:13:38,505 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:38,508 logging 37722 8331386496 POST /api/v1/student/profile/resumes
+[INFO] 2026-05-18 15:13:38,512 logging 37722 8331386496 POST /api/v1/student/profile/resumes
+[INFO] 2026-05-18 15:13:38,664 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:38,668 logging 37722 8331386496 POST /api/v1/student/messages/threads
+[INFO] 2026-05-18 15:13:38,669 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:38,743 logging 37722 8331386496 POST /api/v1/auth/signup
+[INFO] 2026-05-18 15:13:38,744 logging 37722 8331386496 GET /api/v1/auth/session
+[INFO] 2026-05-18 15:13:38,819 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:38,821 logging 37722 8331386496 DELETE /api/v1/student/skills/1
+[INFO] 2026-05-18 15:13:38,897 logging 37722 8331386496 GET /api/v1/student/skills
+[INFO] 2026-05-18 15:13:38,971 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:38,973 logging 37722 8331386496 POST /api/v1/student/skills
+[INFO] 2026-05-18 15:13:39,047 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:39,050 logging 37722 8331386496 PUT /api/v1/student/skills/1
+[INFO] 2026-05-18 15:13:39,124 logging 37722 8331386496 GET /api/v1/auth/csrf
+[INFO] 2026-05-18 15:13:39,126 logging 37722 8331386496 POST /api/v1/student/skills
+[WARNING] 2026-05-18 15:13:39,126 log 37722 8331386496 Bad Request: /api/v1/student/skills
+[INFO] 2026-05-18 15:13:39,203 logging 37722 8331386496 GET /api/v1/admin/dashboard-data
+[INFO] 2026-05-18 15:13:39,352 logging 37722 8331386496 GET /api/v1/admin/dashboard-data
+[WARNING] 2026-05-18 15:13:39,352 log 37722 8331386496 Forbidden: /api/v1/admin/dashboard-data
+[INFO] 2026-05-18 15:13:40,334 logging 37722 8331386496 GET /api/v1/company/dashboard-data
+[INFO] 2026-05-18 15:13:40,408 logging 37722 8331386496 GET /api/v1/company/dashboard-data
+[WARNING] 2026-05-18 15:13:40,408 log 37722 8331386496 Unauthorized: /api/v1/company/dashboard-data
+[INFO] 2026-05-18 15:13:40,487 logging 37722 8331386496 GET /api/v1/company/dashboard-data/pipeline
+[INFO] 2026-05-18 15:13:40,566 logging 37722 8331386496 GET /api/v1/student/dashboard-data/applications
+[INFO] 2026-05-18 15:13:40,644 logging 37722 8331386496 GET /api/v1/student/dashboard-data
+[INFO] 2026-05-18 15:13:40,719 logging 37722 8331386496 GET /api/v1/student/dashboard-data
+[WARNING] 2026-05-18 15:13:40,719 log 37722 8331386496 Unauthorized: /api/v1/student/dashboard-data
+[INFO] 2026-05-18 15:13:40,797 logging 37722 8331386496 GET /api/v1/student/dashboard-data/learning
+[INFO] 2026-05-18 15:13:40,946 logging 37722 8331386496 GET /api/v1/notification-preferences
+[INFO] 2026-05-18 15:13:41,095 logging 37722 8331386496 POST /api/v1/notifications/read-all
+[INFO] 2026-05-18 15:13:41,246 logging 37722 8331386496 POST /api/v1/notifications/1/read
+[INFO] 2026-05-18 15:13:41,395 logging 37722 8331386496 GET /api/v1/notifications
+[INFO] 2026-05-18 15:13:41,544 logging 37722 8331386496 GET /api/v1/notifications
+[WARNING] 2026-05-18 15:13:41,544 log 37722 8331386496 Unauthorized: /api/v1/notifications
+[INFO] 2026-05-18 15:13:41,710 logging 37722 8331386496 PUT /api/v1/notification-preferences/update
