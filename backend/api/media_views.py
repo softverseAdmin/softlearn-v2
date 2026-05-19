@@ -4,6 +4,7 @@ from django.core.exceptions import PermissionDenied, ValidationError
 
 from common.decorators import api_endpoint
 from common.http import error_response, success_response
+from users.media import compress_uploaded_image
 from users.models import Course, StudentProfile, User
 
 
@@ -42,8 +43,8 @@ def student_profile_image_upload_view(request, image_kind: str):
 
     profile, _ = StudentProfile.objects.get_or_create(user=request.user)
     field_map = {
-        "profile": ("profile_image_file", "profile_image"),
-        "cover": ("cover_image_file", "cover_image"),
+        "profile": ("profile_image_file", "profile_image", "student_profile"),
+        "cover": ("cover_image_file", "cover_image", "student_cover"),
     }
     field_names = field_map.get(image_kind)
     if field_names is None:
@@ -55,7 +56,7 @@ def student_profile_image_upload_view(request, image_kind: str):
             status=404,
         )
 
-    file_field_name, text_field_name = field_names
+    file_field_name, text_field_name, image_variant = field_names
     if request.method == "DELETE":
         _clear_field_file(profile, field_name=file_field_name, clear_text_field=text_field_name)
         profile.save(update_fields=[file_field_name, text_field_name, "updated_at"])
@@ -63,7 +64,8 @@ def student_profile_image_upload_view(request, image_kind: str):
         return success_response(serialize_student_profile(request.user))
 
     uploaded_file = _validate_uploaded_image(request)
-    _replace_field_file(profile, field_name=file_field_name, uploaded_file=uploaded_file, clear_text_field=text_field_name)
+    processed_file = compress_uploaded_image(uploaded_file, variant=image_variant)
+    _replace_field_file(profile, field_name=file_field_name, uploaded_file=processed_file, clear_text_field=text_field_name)
     profile.save(update_fields=[file_field_name, text_field_name, "updated_at"])
     invalidate_student_profile_cache(request.user)
     return success_response(serialize_student_profile(request.user))
@@ -78,8 +80,8 @@ def company_profile_image_upload_view(request, image_kind: str):
         raise ValidationError({"company": ["Company context is required for company users."]})
 
     field_map = {
-        "profile": ("profile_image_file", "profile_image"),
-        "cover": ("cover_image_file", "cover_image"),
+        "profile": ("profile_image_file", "profile_image", "company_profile"),
+        "cover": ("cover_image_file", "cover_image", "company_cover"),
     }
     field_names = field_map.get(image_kind)
     if field_names is None:
@@ -91,14 +93,15 @@ def company_profile_image_upload_view(request, image_kind: str):
             status=404,
         )
 
-    file_field_name, text_field_name = field_names
+    file_field_name, text_field_name, image_variant = field_names
     if request.method == "DELETE":
         _clear_field_file(company, field_name=file_field_name, clear_text_field=text_field_name)
         company.save(update_fields=[file_field_name, text_field_name, "updated_at"])
         return success_response(serialize_company_profile(request.user))
 
     uploaded_file = _validate_uploaded_image(request)
-    _replace_field_file(company, field_name=file_field_name, uploaded_file=uploaded_file, clear_text_field=text_field_name)
+    processed_file = compress_uploaded_image(uploaded_file, variant=image_variant)
+    _replace_field_file(company, field_name=file_field_name, uploaded_file=processed_file, clear_text_field=text_field_name)
     company.save(update_fields=[file_field_name, text_field_name, "updated_at"])
     return success_response(serialize_company_profile(request.user))
 
@@ -126,6 +129,7 @@ def company_course_thumbnail_upload_view(request, course_id: int):
         return success_response(serialize_company_course_record(course, viewer=request.user))
 
     uploaded_file = _validate_uploaded_image(request)
-    _replace_field_file(course, field_name="thumbnail_image_file", uploaded_file=uploaded_file, clear_text_field="thumbnail_image")
+    processed_file = compress_uploaded_image(uploaded_file, variant="course_thumbnail")
+    _replace_field_file(course, field_name="thumbnail_image_file", uploaded_file=processed_file, clear_text_field="thumbnail_image")
     course.save(update_fields=["thumbnail_image_file", "thumbnail_image", "updated_at"])
     return success_response(serialize_company_course_record(course, viewer=request.user))
