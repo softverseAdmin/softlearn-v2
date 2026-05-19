@@ -1,4 +1,5 @@
 import json
+import tempfile
 from datetime import timedelta
 from unittest import mock
 
@@ -105,6 +106,19 @@ class ApiFoundationTests(TestCase):
         self.assertEqual(body["checks"]["cache"]["status"], "disabled")
         self.assertNotIn("environment", body)
         self.assertNotIn("observability", body)
+
+    @override_settings(DEBUG=False, MEDIA_URL="/media/")
+    def test_media_files_are_served_when_debug_is_disabled(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            with override_settings(MEDIA_ROOT=tmpdir):
+                media_file_path = f"{tmpdir}/preview.txt"
+                with open(media_file_path, "wb") as media_file:
+                    media_file.write(b"preview-ready")
+
+                response = self.client.get("/media/preview.txt")
+
+                self.assertEqual(response.status_code, 200)
+                self.assertEqual(b"".join(response.streaming_content), b"preview-ready")
 
     def test_production_configuration_requires_postgres(self):
         with self.assertRaises(ImproperlyConfigured):

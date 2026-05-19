@@ -56952,3 +56952,4 @@ django.core.exceptions.FieldError: Cannot resolve keyword 'job_bookmarks' into f
 [INFO] 2026-05-19 08:36:46,871 basehttp 34353 6170636288 "GET /api/v1/student/dashboard HTTP/1.1" 200 2115
 [INFO] 2026-05-19 08:36:46,922 logging 34353 6187462656 GET /api/v1/student/courses
 [INFO] 2026-05-19 08:36:46,923 basehttp 34353 6187462656 "GET /api/v1/student/courses HTTP/1.1" 200 2645002
+[INFO] 2026-05-19 10:30:46,011 autoreload 34353 8428543616 /Users/adhikarirabin/Desktop/softlearn-v2/backend/config/urls.py changed, reloading.
