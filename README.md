@@ -105,6 +105,7 @@ This repository is an **AI-DLC-first** workspace for a learning and job-matching
 - Signup uses Django password validation rules, so weak passwords are rejected at account creation time.
 - User-role invariants are enforced at the model level: company users must belong to a company, while student and admin users must not.
 - CI sets an explicit Django secret key for backend validation instead of relying on development defaults.
+- GitHub Actions runs CI on `main` and `dev`, while pushes to `main` also auto-deploy to the Hetzner production environment.
 
 ## Frontend quick start
 
