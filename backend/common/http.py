@@ -1,6 +1,7 @@
 import json
 from json import JSONDecodeError
 
+from django import forms
 from django.core.exceptions import ValidationError
 from django.http import HttpRequest, JsonResponse
 from django.middleware.csrf import get_token
@@ -51,6 +52,16 @@ def parse_json_body(request: HttpRequest) -> dict:
         raise ValidationError({"body": ["JSON request body must be an object."]})
 
     return payload
+
+
+def parse_json_form(
+    request: HttpRequest,
+    form_class: type[forms.Form],
+) -> forms.Form:
+    form = form_class(parse_json_body(request))
+    if not form.is_valid():
+        raise ValidationError(form.errors)
+    return form
 
 
 def validation_error_details(exc: ValidationError) -> dict:

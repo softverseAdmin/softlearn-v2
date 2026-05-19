@@ -15,10 +15,16 @@ logger = logging.getLogger(__name__)
 
 def client_ip_from_request(request) -> str:
     """Extract client IP from request."""
+    remote_addr = (request.META.get('REMOTE_ADDR') or '').strip()
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-    if x_forwarded_for:
-        return x_forwarded_for.split(',')[0].strip()
-    return request.META.get('REMOTE_ADDR', '')
+    trusted_proxies = set(getattr(settings, "TRUSTED_PROXY_IPS", []))
+
+    if remote_addr and remote_addr in trusted_proxies and x_forwarded_for:
+        forwarded_ip = x_forwarded_for.split(',')[0].strip()
+        if forwarded_ip:
+            return forwarded_ip
+
+    return remote_addr
 
 
 class SecurityManager:
@@ -29,6 +35,7 @@ class SecurityManager:
     LOGIN_IP_LIMIT_KEY = 'rate_limit:login:ip:{}'
     API_LIMIT_KEY = 'rate_limit:api:{}'
     SIGNUP_LIMIT_KEY = 'rate_limit:signup:{}'
+    PASSWORD_RESET_LIMIT_KEY = 'rate_limit:password_reset:{}'
     
     # Rate limit thresholds
     LOGIN_ACCOUNT_LIMIT = 5  # per 5 minutes per IP/email pair
@@ -36,7 +43,10 @@ class SecurityManager:
     LOGIN_WINDOW_SECONDS = 300
     API_LIMIT = 100  # per minute
     SIGNUP_LIMIT = 1  # per minute per IP
+    PASSWORD_RESET_LIMIT = 3  # per 15 minutes per IP
     WHITELIST_IPS: Set[str] = set()
+    SIGNUP_WINDOW_SECONDS = 60
+    PASSWORD_RESET_WINDOW_SECONDS = 900
     
     @staticmethod
     def add_whitelist_ip(ip: str):
@@ -71,8 +81,13 @@ class SecurityManager:
     @staticmethod
     def _increment_limit(key_template: str, identifier: str, *, window_seconds: int) -> None:
         key = key_template.format(identifier)
-        count = cache.get(key, 0)
-        cache.set(key, count + 1, window_seconds)
+        if cache.add(key, 1, window_seconds):
+            return
+
+        try:
+            cache.incr(key)
+        except ValueError:
+            cache.set(key, 1, window_seconds)
 
     @staticmethod
     def _reset_limit(key_template: str, identifier: str) -> None:
@@ -129,13 +144,16 @@ class SecurityManager:
     def check_api_rate_limit(user_id: int) -> bool:
         """Check API rate limit per user"""
         key = SecurityManager.API_LIMIT_KEY.format(user_id)
-        count = cache.get(key, 0)
-        
-        if count >= SecurityManager.API_LIMIT:
-            return False
-        
-        cache.set(key, count + 1, 60)  # 1 minute
-        return True
+        if cache.add(key, 1, 60):
+            return True
+
+        try:
+            count = int(cache.incr(key))
+        except ValueError:
+            cache.set(key, 1, 60)
+            return True
+
+        return count <= SecurityManager.API_LIMIT
     
     @staticmethod
     def get_api_rate_limit_remaining(user_id: int) -> int:
@@ -147,14 +165,36 @@ class SecurityManager:
     @staticmethod
     def check_signup_rate_limit(ip: str) -> bool:
         """Check signup rate limit per IP"""
-        key = SecurityManager.SIGNUP_LIMIT_KEY.format(ip)
-        count = cache.get(key, 0)
-        
-        if count >= SecurityManager.SIGNUP_LIMIT:
-            return False
-        
-        cache.set(key, count + 1, 60)  # 1 minute
-        return True
+        return SecurityManager._check_ip_limit(
+            SecurityManager.SIGNUP_LIMIT_KEY,
+            ip,
+            limit=SecurityManager.SIGNUP_LIMIT,
+            window_seconds=SecurityManager.SIGNUP_WINDOW_SECONDS,
+        )
+
+    @staticmethod
+    def check_password_reset_rate_limit(ip: str) -> bool:
+        """Check password reset request rate limit per IP"""
+        return SecurityManager._check_ip_limit(
+            SecurityManager.PASSWORD_RESET_LIMIT_KEY,
+            ip,
+            limit=SecurityManager.PASSWORD_RESET_LIMIT,
+            window_seconds=SecurityManager.PASSWORD_RESET_WINDOW_SECONDS,
+        )
+
+    @staticmethod
+    def _check_ip_limit(key_template: str, ip: str, *, limit: int, window_seconds: int) -> bool:
+        key = key_template.format(ip)
+        if cache.add(key, 1, window_seconds):
+            return True
+
+        try:
+            count = int(cache.incr(key))
+        except ValueError:
+            cache.set(key, 1, window_seconds)
+            return True
+
+        return count <= limit
     
     @staticmethod
     def get_security_metrics() -> Dict[str, Any]:
@@ -165,6 +205,7 @@ class SecurityManager:
             'login_ip_rate_limit': SecurityManager.LOGIN_IP_LIMIT,
             'api_rate_limit': SecurityManager.API_LIMIT,
             'signup_rate_limit': SecurityManager.SIGNUP_LIMIT,
+            'password_reset_rate_limit': SecurityManager.PASSWORD_RESET_LIMIT,
             'csrf_protection': getattr(settings, 'CSRF_COOKIE_SECURE', False),
             'secure_cookies': getattr(settings, 'SESSION_COOKIE_SECURE', False),
             'https_only': not settings.DEBUG,
@@ -218,6 +259,19 @@ class SecurityHeadersMiddleware:
 
 class RateLimitingMiddleware:
     """Middleware to enforce rate limiting"""
+
+    PUBLIC_RATE_LIMITS = {
+        ('/api/v1/auth/signup', 'POST'): {
+            'checker': SecurityManager.check_signup_rate_limit,
+            'message': 'Too many signup attempts. Please try again later.',
+            'details': {'scope': 'signup', 'retry_after_seconds': SecurityManager.SIGNUP_WINDOW_SECONDS},
+        },
+        ('/api/v1/auth/password/reset', 'POST'): {
+            'checker': SecurityManager.check_password_reset_rate_limit,
+            'message': 'Too many password reset attempts. Please try again later.',
+            'details': {'scope': 'password_reset', 'retry_after_seconds': SecurityManager.PASSWORD_RESET_WINDOW_SECONDS},
+        },
+    }
     
     def __init__(self, get_response):
         self.get_response = get_response
@@ -225,17 +279,16 @@ class RateLimitingMiddleware:
     def __call__(self, request):
         # Get client IP
         ip = client_ip_from_request(request)
-        
-        # Check signup rate limit for signup endpoint
-        if request.path == '/api/v1/auth/signup' and request.method == 'POST':
-            if not SecurityManager.check_signup_rate_limit(ip):
-                return error_response(
-                    request,
-                    "RATE_LIMITED",
-                    "Too many signup attempts. Please try again later.",
-                    details={"scope": "signup", "retry_after_seconds": 60},
-                    status=429
-                )
+
+        public_limit = self.PUBLIC_RATE_LIMITS.get((request.path, request.method))
+        if public_limit is not None and not public_limit['checker'](ip):
+            return error_response(
+                request,
+                "RATE_LIMITED",
+                public_limit['message'],
+                details=public_limit['details'],
+                status=429
+            )
         
         # Check API rate limit for authenticated users
         if request.user.is_authenticated:

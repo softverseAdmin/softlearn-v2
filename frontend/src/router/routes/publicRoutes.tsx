@@ -5,6 +5,8 @@ import { loadableNamed } from '@/router/loadable'
 const LandingPage = loadableNamed(() => import('@/pages/LandingPage'), 'LandingPage')
 const LoginPage = loadableNamed(() => import('@/pages/LoginPage'), 'LoginPage')
 const SignupPage = loadableNamed(() => import('@/pages/SignupPage'), 'SignupPage')
+const ForgotPasswordPage = loadableNamed(() => import('@/pages/ForgotPasswordPage'), 'ForgotPasswordPage')
+const ResetPasswordPage = loadableNamed(() => import('@/pages/ResetPasswordPage'), 'ResetPasswordPage')
 
 export function renderPublicRoutes() {
   return (
@@ -12,6 +14,8 @@ export function renderPublicRoutes() {
       <Route index element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/signup" element={<SignupPage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
     </>
   )
 }

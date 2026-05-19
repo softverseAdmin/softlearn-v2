@@ -3,17 +3,13 @@ Privacy and data access utilities for enforcing consent and permission checks.
 """
 
 from django.core.exceptions import ValidationError
+from services.security import client_ip_from_request
 from users.models import DataConsent, StudentDataAccessLog, User
 
 
 def get_client_ip(request) -> str:
     """Extract client IP from request."""
-    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-    if x_forwarded_for:
-        ip = x_forwarded_for.split(',')[0]
-    else:
-        ip = request.META.get('REMOTE_ADDR')
-    return ip
+    return client_ip_from_request(request)
 
 
 def check_student_data_access(requesting_user: User, student: User, access_type: str = 'profile') -> bool:

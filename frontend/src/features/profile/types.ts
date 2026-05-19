@@ -13,6 +13,9 @@ export interface StudentProfile {
   about_me: string
   profile_image: string | null
   cover_image: string | null
+  linkedin_url?: string | null
+  github_url?: string | null
+  portfolio_url?: string | null
   profile_complete: boolean
   education_records: StudentEducationRecord[]
   experience_records: StudentExperienceRecord[]
@@ -64,6 +67,9 @@ export interface StudentResumeRecord {
   display_name: string
   file_name: string
   source_type: string
+  download_url: string
+  file_size_bytes: number
+  content_type?: string | null
   is_active: boolean
   created_at: string
   updated_at: string
@@ -222,6 +228,8 @@ export interface StudentJobsResponse {
   available_work_styles: SelectOption[]
 }
 
+export type StudentJobDetailResponse = VacancyRecord
+
 export interface MatchFactorBreakdown {
   skill: number
   language: number
@@ -374,6 +382,46 @@ export interface CourseEnrollmentState {
   completed_at: string | null
   lesson_count: number
   completed_lesson_count: number
+}
+
+export interface CompanyCourseRecord {
+  course_id: number
+  title: string
+  description: string
+  category: string
+  difficulty_level: string
+  estimated_hours: number
+  thumbnail_image?: string | null
+  thumbnail_alt_text?: string | null
+  status: string
+  lesson_count: number
+  learning_record_count: number
+  company_id?: number | null
+  company_name?: string | null
+  created_by_id?: number | null
+  created_by_name?: string | null
+  can_edit?: boolean
+  is_bookmarked?: boolean
+  detail_href?: string
+  bookmark_href?: string
+  created_at: string
+  updated_at: string
+}
+
+export interface PaginationState {
+  page: number
+  page_size: number
+  total_count: number
+  total_pages: number
+  has_previous: boolean
+  has_next: boolean
+}
+
+export interface CompanyCoursesResponse {
+  courses: CompanyCourseRecord[]
+  pagination?: PaginationState
+  available_categories?: string[]
+  available_difficulty_levels?: string[]
 }
 
 export interface CourseLessonSummary {

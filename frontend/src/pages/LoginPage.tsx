@@ -1,19 +1,18 @@
-import { useMemo, useState, type FormEvent, type ReactNode } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from 'react-hook-form'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 
 import { useAuth } from '../auth/useAuth'
+import type { UserRole } from '../auth/types'
 import { AuthShell } from '../features/auth/AuthShell'
+import { type LoginFormValues, loginFormSchema } from '../features/auth/formSchemas'
 import { ApiError } from '../lib/api'
 import { getHomePath } from '../router/navigation'
-import type { UserRole } from '../auth/types'
 
 function InputIcon({ children }: { children: ReactNode }) {
   return <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">{children}</span>
 }
-
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-
-type LoginFormErrors = Partial<Record<'role' | 'email' | 'password', string>>
 
 function RoleOption({
   role,
@@ -49,54 +48,42 @@ export function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const { login } = useAuth()
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [selectedRole, setSelectedRole] = useState<UserRole | null>(null)
   const [rememberMe, setRememberMe] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [recoveryMessage, setRecoveryMessage] = useState<string | null>(null)
-  const [fieldErrors, setFieldErrors] = useState<LoginFormErrors>({})
+  const locationState = location.state as { from?: string; message?: string } | null
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    clearErrors,
+    formState: { errors },
+  } = useForm<LoginFormValues>({
+    resolver: zodResolver(loginFormSchema),
+    defaultValues: {
+      role: 'student',
+      email: '',
+      password: '',
+    },
+  })
 
+  const selectedRole = watch('role')
   const redirectTarget = useMemo(() => {
-    const state = location.state as { from?: string } | null
-    return state?.from
-  }, [location.state])
+    return locationState?.from
+  }, [locationState])
+  const statusMessage = locationState?.message ?? null
 
-  function validateForm() {
-    const nextErrors: LoginFormErrors = {}
-    const normalizedEmail = email.trim()
-
-    if (!selectedRole) {
-      nextErrors.role = 'Choose the workspace you want to enter.'
-    }
-    if (!normalizedEmail) {
-      nextErrors.email = 'Email is required.'
-    } else if (!EMAIL_PATTERN.test(normalizedEmail)) {
-      nextErrors.email = 'Enter a valid email address.'
-    }
-    if (!password.trim()) {
-      nextErrors.password = 'Password is required.'
-    }
-
-    return nextErrors
-  }
-
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    const nextErrors = validateForm()
-    setFieldErrors(nextErrors)
-    if (Object.keys(nextErrors).length > 0) {
-      setError('Fix the highlighted login fields and try again.')
-      return
-    }
-
+  async function onSubmit(values: LoginFormValues) {
     setSubmitting(true)
     setError(null)
-    setFieldErrors({})
 
     try {
-      const user = await login({ email: email.trim(), password, role: selectedRole as UserRole })
+      const user = await login({
+        email: values.email.trim(),
+        password: values.password,
+        role: values.role,
+      })
       navigate(redirectTarget ?? getHomePath(user), { replace: true })
     } catch (submitError) {
       setError(submitError instanceof ApiError ? submitError.message : 'Unable to log in.')
@@ -113,7 +100,7 @@ export function LoginPage() {
       fullViewport
       mode="login"
     >
-      <form className="space-y-3.5 sm:space-y-4" onSubmit={handleSubmit} noValidate>
+      <form className="space-y-3.5 sm:space-y-4" onSubmit={handleSubmit(onSubmit)} noValidate>
         <fieldset className="space-y-2">
           <legend className="text-sm font-medium text-[var(--sl-text)]">Select account type</legend>
           <div className="grid grid-cols-3 rounded-2xl border border-[var(--sl-border)] bg-[#f8fafc] p-1.5">
@@ -122,8 +109,8 @@ export function LoginPage() {
               selected={selectedRole === 'student'}
               label="Student"
               onClick={(role) => {
-                setSelectedRole(role)
-                setFieldErrors((current) => ({ ...current, role: undefined }))
+                setValue('role', role, { shouldDirty: true, shouldValidate: true })
+                clearErrors('role')
                 setError(null)
               }}
             >
@@ -136,8 +123,8 @@ export function LoginPage() {
               selected={selectedRole === 'company'}
               label="Company"
               onClick={(role) => {
-                setSelectedRole(role)
-                setFieldErrors((current) => ({ ...current, role: undefined }))
+                setValue('role', role, { shouldDirty: true, shouldValidate: true })
+                clearErrors('role')
                 setError(null)
               }}
             >
@@ -150,8 +137,8 @@ export function LoginPage() {
               selected={selectedRole === 'admin'}
               label="Admin"
               onClick={(role) => {
-                setSelectedRole(role)
-                setFieldErrors((current) => ({ ...current, role: undefined }))
+                setValue('role', role, { shouldDirty: true, shouldValidate: true })
+                clearErrors('role')
                 setError(null)
               }}
             >
@@ -160,9 +147,9 @@ export function LoginPage() {
               </svg>
             </RoleOption>
           </div>
-          {fieldErrors.role ? (
+          {errors.role ? (
             <p className="text-sm text-red-600" role="alert">
-              {fieldErrors.role}
+              {errors.role.message}
             </p>
           ) : null}
         </fieldset>
@@ -181,21 +168,18 @@ export function LoginPage() {
               id="email"
               className="h-11 w-full rounded-[12px] border border-[var(--sl-border)] pl-11 pr-3.5 text-[15px] text-[var(--sl-text)] outline-none transition focus:border-[var(--sl-primary)] focus:ring-4 focus:ring-[var(--sl-soft)] sm:h-12"
               type="email"
-              value={email}
-              onChange={(event) => {
-                setEmail(event.target.value)
-                setFieldErrors((current) => ({ ...current, email: undefined }))
-                setError(null)
-              }}
               placeholder="Enter your email"
               autoComplete="email"
-              aria-invalid={fieldErrors.email ? 'true' : undefined}
-              aria-describedby={fieldErrors.email ? 'login-email-error' : undefined}
+              aria-invalid={errors.email ? 'true' : undefined}
+              aria-describedby={errors.email ? 'login-email-error' : undefined}
+              {...register('email', {
+                onChange: () => setError(null),
+              })}
             />
           </div>
-          {fieldErrors.email ? (
+          {errors.email ? (
             <p id="login-email-error" className="text-sm text-red-600" role="alert">
-              {fieldErrors.email}
+              {errors.email.message}
             </p>
           ) : null}
         </div>
@@ -214,21 +198,18 @@ export function LoginPage() {
               id="password"
               className="h-11 w-full rounded-[12px] border border-[var(--sl-border)] pl-11 pr-3.5 text-[15px] text-[var(--sl-text)] outline-none transition focus:border-[var(--sl-primary)] focus:ring-4 focus:ring-[var(--sl-soft)] sm:h-12"
               type="password"
-              value={password}
-              onChange={(event) => {
-                setPassword(event.target.value)
-                setFieldErrors((current) => ({ ...current, password: undefined }))
-                setError(null)
-              }}
               placeholder="Enter your password"
               autoComplete="current-password"
-              aria-invalid={fieldErrors.password ? 'true' : undefined}
-              aria-describedby={fieldErrors.password ? 'login-password-error' : undefined}
+              aria-invalid={errors.password ? 'true' : undefined}
+              aria-describedby={errors.password ? 'login-password-error' : undefined}
+              {...register('password', {
+                onChange: () => setError(null),
+              })}
             />
           </div>
-          {fieldErrors.password ? (
+          {errors.password ? (
             <p id="login-password-error" className="text-sm text-red-600" role="alert">
-              {fieldErrors.password}
+              {errors.password.message}
             </p>
           ) : null}
         </div>
@@ -243,18 +224,13 @@ export function LoginPage() {
             />
             <span>Remember me</span>
           </label>
-          <button
-            className="w-fit font-medium text-[var(--sl-primary)]"
-            type="button"
-            onClick={() => setRecoveryMessage('Password reset is not set up yet in this local build. Use an admin-managed account reset for now.')}
-          >
+          <Link className="w-fit font-medium text-[var(--sl-primary)]" to="/forgot-password">
             Forgot password?
-          </button>
+          </Link>
         </div>
-
-        {recoveryMessage ? (
-          <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm text-amber-800" role="status">
-            {recoveryMessage}
+        {statusMessage ? (
+          <p className="rounded-xl border border-green-200 bg-green-50 px-4 py-2.5 text-sm text-green-800" role="status">
+            {statusMessage}
           </p>
         ) : null}
         {error ? (

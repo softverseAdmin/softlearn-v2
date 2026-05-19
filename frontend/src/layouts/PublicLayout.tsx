@@ -16,7 +16,7 @@ export function PublicLayout() {
 
   if (isAuthRoute) {
     return (
-      <div className="min-h-[100dvh] overflow-x-hidden bg-[radial-gradient(circle_at_top,#dbeafe_0%,#eef2ff_24%,#f8fafc_62%,#f8fafc_100%)]">
+      <div className="min-h-[100dvh] overflow-x-hidden bg-[image:var(--sl-marketing-auth-bg)]">
         <main className="min-h-[100dvh] overflow-x-hidden overflow-y-auto">
           <Outlet />
         </main>
@@ -25,21 +25,21 @@ export function PublicLayout() {
   }
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(212,227,255,0.82),_rgba(255,255,255,0.98)_24%,_rgba(255,255,255,1)_56%,_rgba(243,247,255,0.95)_100%)]">
-      <header className="sticky top-0 z-30 border-b border-[#E8EEF9] bg-white/90 backdrop-blur">
+    <div className="min-h-screen bg-[image:var(--sl-marketing-shell-bg)]">
+      <header className="sticky top-0 z-30 border-b border-[var(--sl-marketing-border)] bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-[1320px] items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
-          <NavLink className="flex items-center gap-3 text-[#122059]" to="/">
-            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#2563FF] text-white shadow-[0_12px_24px_rgba(37,99,255,0.18)]">
+          <NavLink className="flex items-center gap-3 text-[var(--sl-marketing-text)]" to="/">
+            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[var(--sl-marketing-brand)] text-white shadow-[0_12px_24px_var(--sl-marketing-brand-shadow)]">
               <BookOpenText className="size-6" />
             </span>
             <span className="text-[2rem] font-bold tracking-[-0.04em]">
-              soft<span className="text-[#2563FF]">Learn</span>
+              soft<span className="text-[var(--sl-marketing-brand)]">Learn</span>
             </span>
           </NavLink>
 
-          <nav className="hidden items-center gap-10 text-[1.02rem] font-medium text-[#22315F] lg:flex">
+          <nav className="hidden items-center gap-10 text-[1.02rem] font-medium text-[var(--sl-marketing-nav)] lg:flex">
             {marketingLinks.map((item) => (
-              <a key={item.label} href={item.href} className="inline-flex items-center gap-1 transition-colors hover:text-[#2563FF]">
+              <a key={item.label} href={item.href} className="inline-flex items-center gap-1 transition-colors hover:text-[var(--sl-marketing-brand)]">
                 {item.label}
                 {item.hasChevron ? <ChevronDown className="mt-0.5 size-4" /> : null}
               </a>
@@ -48,13 +48,13 @@ export function PublicLayout() {
 
           <div className="flex items-center gap-3">
             <NavLink
-              className="inline-flex h-12 min-w-[132px] items-center justify-center rounded-2xl border border-[#2563FF] bg-white px-6 text-base font-semibold text-[#2563FF] transition hover:bg-blue-50"
+              className="inline-flex h-12 min-w-[132px] items-center justify-center rounded-2xl border border-[var(--sl-marketing-brand)] bg-white px-6 text-base font-semibold text-[var(--sl-marketing-brand)] transition hover:bg-[var(--sl-marketing-brand-soft)]"
               to="/login"
             >
               Log In
             </NavLink>
             <NavLink
-              className="inline-flex h-12 min-w-[132px] items-center justify-center rounded-2xl bg-[#2563FF] px-6 text-base font-semibold text-white shadow-[0_16px_35px_rgba(37,99,255,0.22)] transition hover:bg-[#1d4ed8]"
+              className="inline-flex h-12 min-w-[132px] items-center justify-center rounded-2xl bg-[var(--sl-marketing-brand)] px-6 text-base font-semibold text-white shadow-[0_16px_35px_var(--sl-marketing-brand-shadow-lg)] transition hover:bg-[var(--sl-marketing-brand-hover)]"
               to="/signup"
             >
               Sign Up

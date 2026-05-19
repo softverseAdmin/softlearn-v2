@@ -4,15 +4,15 @@ import { loadableNamed } from '@/router/loadable'
 
 const DashboardPage = loadableNamed(() => import('@/pages/DashboardPage'), 'DashboardPage')
 const NotificationsPage = loadableNamed(() => import('@/features/notifications/NotificationsPage'), 'NotificationsPage')
-const CompanyMessagesPage = loadableNamed(() => import('@/features/profile/CompanyMessagesPage'), 'CompanyMessagesPage')
+const CompanyMessagesPage = loadableNamed(() => import('@/features/profile/messages/pages/CompanyMessagesPage'), 'CompanyMessagesPage')
 const CompanyApplicationsPage = loadableNamed(() => import('@/features/profile/CompanyApplicationsPage'), 'CompanyApplicationsPage')
-const CompanyCourseCatalogPage = loadableNamed(() => import('@/features/profile/CompanyCourseCatalogPage'), 'CompanyCourseCatalogPage')
+const CompanyCourseCatalogPage = loadableNamed(() => import('@/features/profile/courses/pages/CompanyCourseCatalogPage'), 'CompanyCourseCatalogPage')
 const CompanySavedCoursesPage = loadableNamed(
-  () => import('@/features/profile/CompanyCourseCatalogPage'),
+  () => import('@/features/profile/courses/pages/CompanyCourseCatalogPage'),
   'CompanySavedCoursesPage',
 )
 const CompanyRetiredCoursesPage = loadableNamed(
-  () => import('@/features/profile/CompanyCourseCatalogPage'),
+  () => import('@/features/profile/courses/pages/CompanyCourseCatalogPage'),
   'CompanyRetiredCoursesPage',
 )
 const CompanyCourseEditorPage = loadableNamed(() => import('@/features/profile/CompanyCourseEditorPage'), 'CompanyCourseEditorPage')

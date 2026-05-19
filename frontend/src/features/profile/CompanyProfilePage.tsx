@@ -166,6 +166,10 @@ export function CompanyProfilePage() {
   const [profile, setProfile] = useState<CompanyProfile>(emptyProfile)
   const [savedImages, setSavedImages] = useState<StoredProfileImages>({ profileImage: null, coverImage: null })
   const [draftImages, setDraftImages] = useState<StoredProfileImages>({ profileImage: null, coverImage: null })
+  const [pendingImageFiles, setPendingImageFiles] = useState<{ profileImage: File | null; coverImage: File | null }>({
+    profileImage: null,
+    coverImage: null,
+  })
   const [loading, setLoading] = useState(true)
   const [savingImages, setSavingImages] = useState(false)
   const [isEditingName, setIsEditingName] = useState(false)
@@ -279,6 +283,10 @@ export function CompanyProfilePage() {
         ...current,
         [field]: imageDataUrl,
       }))
+      setPendingImageFiles((current) => ({
+        ...current,
+        [field]: file,
+      }))
     } catch (uploadError) {
       toast.error(uploadError instanceof Error ? uploadError.message : 'Unable to load the selected image.')
     }
@@ -296,19 +304,31 @@ export function CompanyProfilePage() {
     setSavingImages(true)
 
     try {
-      const updated = await apiRequest<CompanyProfile>('/company/profile', {
-        method: 'PUT',
-        body: buildCompanyProfilePayload({
-          profile_image: draftImages.profileImage ?? '',
-          cover_image: draftImages.coverImage ?? '',
-        }),
-        csrfToken,
-      })
+      let updated = profile
+      if (pendingImageFiles.coverImage) {
+        const formData = new FormData()
+        formData.set('file', pendingImageFiles.coverImage)
+        updated = await apiRequest<CompanyProfile>('/company/profile/images/cover', {
+          method: 'POST',
+          body: formData,
+          csrfToken,
+        })
+      }
+      if (pendingImageFiles.profileImage) {
+        const formData = new FormData()
+        formData.set('file', pendingImageFiles.profileImage)
+        updated = await apiRequest<CompanyProfile>('/company/profile/images/profile', {
+          method: 'POST',
+          body: formData,
+          csrfToken,
+        })
+      }
       setProfile(updated)
       setDetailsDraft(toDetailsDraft(updated))
       const nextImages = toStoredProfileImages(updated)
       setSavedImages(nextImages)
       setDraftImages(nextImages)
+      setPendingImageFiles({ profileImage: null, coverImage: null })
       emitStoredProfileImages(user?.user_id, nextImages)
       toast.success('Company profile images saved successfully.')
     } catch (error) {

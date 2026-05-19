@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useParams } from 'react-router-dom'
 import {
   Bookmark,
@@ -12,29 +13,13 @@ import {
 
 import { useAuth } from '../../auth/useAuth'
 import { ApiError, apiRequest } from '../../lib/api'
-import type { StudentApplicationRecord, StudentJobsResponse } from './types'
+import { studentJobDetailQueryOptions, studentJobQueryKeys } from './jobs/queries'
+import type { StudentApplicationRecord, StudentJobDetailResponse, VacancyRecord } from './types'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
-
-const emptyJobsResponse: StudentJobsResponse = {
-  vacancies: [],
-  query: '',
-  filters: {
-    skills: [],
-    languages: [],
-    locations: [],
-    work_styles: [],
-  },
-  result_count: 0,
-  bookmark_count: 0,
-  available_skills: [],
-  available_languages: [],
-  available_locations: [],
-  available_work_styles: [],
-}
 
 function formatSalary(minSalary: number | null, maxSalary: number | null) {
   if (minSalary === null && maxSalary === null) {
@@ -75,57 +60,36 @@ function getCompanyInitials(companyName: string) {
 export function StudentJobDetailPage() {
   const { csrfToken } = useAuth()
   const params = useParams<{ vacancyId: string }>()
-  const [jobs, setJobs] = useState<StudentJobsResponse>(emptyJobsResponse)
-  const [loading, setLoading] = useState(true)
+  const queryClient = useQueryClient()
   const [saving, setSaving] = useState(false)
   const [applying, setApplying] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [actionError, setActionError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<'job' | 'company'>('job')
+  const vacancyId = params.vacancyId ?? ''
+  const vacancyQuery = useQuery({
+    ...studentJobDetailQueryOptions(vacancyId),
+    enabled: Boolean(params.vacancyId),
+  })
+  const vacancy = vacancyQuery.data ?? null
+  const loadError =
+    !params.vacancyId
+      ? 'Job detail context is missing.'
+      : vacancyQuery.error instanceof ApiError
+        ? vacancyQuery.error.message
+        : vacancyQuery.isError
+          ? 'Unable to load job detail.'
+          : null
 
-  useEffect(() => {
-    let active = true
-
-    async function loadJobs() {
-      if (!params.vacancyId) {
-        setError('Job detail context is missing.')
-        setLoading(false)
-        return
-      }
-
-      try {
-        const response = await apiRequest<StudentJobsResponse>('/student/jobs')
-        if (!active) {
-          return
-        }
-
-        const hasMatch = response.vacancies.some((vacancy) => vacancy.vacancy_id === Number(params.vacancyId))
-        if (!hasMatch) {
-          setError('This job is no longer available.')
-        }
-
-        setJobs(response)
-      } catch (loadError) {
-        if (active) {
-          setError(loadError instanceof ApiError ? loadError.message : 'Unable to load job detail.')
-        }
-      } finally {
-        if (active) {
-          setLoading(false)
-        }
-      }
+  function updateVacancyCache(updater: (currentVacancy: VacancyRecord) => VacancyRecord) {
+    if (!params.vacancyId) {
+      return
     }
 
-    void loadJobs()
-
-    return () => {
-      active = false
-    }
-  }, [params.vacancyId])
-
-  const vacancy = useMemo(
-    () => jobs.vacancies.find((currentVacancy) => currentVacancy.vacancy_id === Number(params.vacancyId)) ?? null,
-    [jobs.vacancies, params.vacancyId]
-  )
+    queryClient.setQueryData<StudentJobDetailResponse>(
+      studentJobQueryKeys.detail(params.vacancyId),
+      (currentVacancy) => (currentVacancy ? updater(currentVacancy) : currentVacancy),
+    )
+  }
 
   const jobRows = useMemo(
     () =>
@@ -169,6 +133,7 @@ export function StudentJobDetailPage() {
     }
 
     setSaving(true)
+    setActionError(null)
 
     try {
       await apiRequest(`/student/jobs/${vacancy.vacancy_id}/bookmark`, {
@@ -176,14 +141,12 @@ export function StudentJobDetailPage() {
         csrfToken,
       })
 
-      setJobs((current) => ({
-        ...current,
-        vacancies: current.vacancies.map((currentVacancy) =>
-          currentVacancy.vacancy_id === vacancy.vacancy_id
-            ? { ...currentVacancy, is_bookmarked: !currentVacancy.is_bookmarked }
-            : currentVacancy
-        ),
+      updateVacancyCache((currentVacancy) => ({
+        ...currentVacancy,
+        is_bookmarked: !currentVacancy.is_bookmarked,
       }))
+    } catch (error) {
+      setActionError(error instanceof ApiError ? error.message : 'Unable to update the bookmark right now.')
     } finally {
       setSaving(false)
     }
@@ -195,6 +158,7 @@ export function StudentJobDetailPage() {
     }
 
     setApplying(true)
+    setActionError(null)
 
     try {
       await apiRequest<StudentApplicationRecord>('/student/applications', {
@@ -202,20 +166,19 @@ export function StudentJobDetailPage() {
         body: { vacancy_id: vacancy.vacancy_id },
         csrfToken,
       })
-      setJobs((current) => ({
-        ...current,
-        vacancies: current.vacancies.map((currentVacancy) =>
-          currentVacancy.vacancy_id === vacancy.vacancy_id
-            ? { ...currentVacancy, has_active_application: true, can_apply: false }
-            : currentVacancy
-        ),
+      updateVacancyCache((currentVacancy) => ({
+        ...currentVacancy,
+        has_active_application: true,
+        can_apply: false,
       }))
+    } catch (error) {
+      setActionError(error instanceof ApiError ? error.message : 'Unable to submit the application right now.')
     } finally {
       setApplying(false)
     }
   }
 
-  if (loading) {
+  if (vacancyQuery.isLoading) {
     return (
       <div className="space-y-6 px-4 py-6 md:px-6 lg:px-8">
         <div className="h-5 w-40 animate-pulse rounded bg-muted" />
@@ -239,7 +202,7 @@ export function StudentJobDetailPage() {
 
         <Card className="border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950">
           <CardContent className="px-6 py-6 text-sm text-red-800 dark:text-red-200">
-            {error ?? 'This job could not be found.'}
+            {loadError ?? actionError ?? 'This job could not be found.'}
           </CardContent>
         </Card>
       </div>
@@ -262,9 +225,9 @@ export function StudentJobDetailPage() {
         <span className="font-medium text-foreground">{vacancy.title}</span>
       </div>
 
-      {error ? (
+      {actionError ? (
         <Card className="border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950">
-          <CardContent className="px-6 py-4 text-sm text-red-800 dark:text-red-200">{error}</CardContent>
+          <CardContent className="px-6 py-4 text-sm text-red-800 dark:text-red-200">{actionError}</CardContent>
         </Card>
       ) : null}
       <Card className="rounded-[28px] border border-slate-200/80 bg-white shadow-sm">

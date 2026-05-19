@@ -4,7 +4,7 @@ import { loadable, loadableNamed } from '@/router/loadable'
 
 const DashboardPage = loadableNamed(() => import('@/pages/DashboardPage'), 'DashboardPage')
 const NotificationsPage = loadableNamed(() => import('@/features/notifications/NotificationsPage'), 'NotificationsPage')
-const StudentMessagesPage = loadableNamed(() => import('@/features/profile/StudentMessagesPage'), 'StudentMessagesPage')
+const StudentMessagesPage = loadableNamed(() => import('@/features/profile/messages/pages/StudentMessagesPage'), 'StudentMessagesPage')
 const StudentMatchesPage = loadableNamed(() => import('@/features/profile/StudentMatchesPage'), 'StudentMatchesPage')
 const StudentApplicationsPage = loadableNamed(() => import('@/features/profile/StudentApplicationsPage'), 'StudentApplicationsPage')
 const StudentProfilePage = loadableNamed(() => import('@/features/profile/StudentProfilePage'), 'StudentProfilePage')
@@ -41,7 +41,7 @@ const StudentWorkspacePlaceholderPage = loadableNamed(
   () => import('@/features/profile/StudentWorkspacePlaceholderPage'),
   'StudentWorkspacePlaceholderPage',
 )
-const StudentWorkHistoryPage = loadableNamed(() => import('@/features/profile/StudentWorkHistoryPage'), 'StudentWorkHistoryPage')
+const StudentWorkHistoryPage = loadableNamed(() => import('@/features/profile/work-history/pages/StudentWorkHistoryPage'), 'StudentWorkHistoryPage')
 const ExamCategoryPage = loadableNamed(() => import('@/features/learning/ExamCategoryPage'), 'ExamCategoryPage')
 const PracticeQuestionPage = loadableNamed(() => import('@/features/learning/PracticeQuestionPage'), 'PracticeQuestionPage')
 const MockExamPage = loadableNamed(() => import('@/features/learning/MockExamPage'), 'MockExamPage')

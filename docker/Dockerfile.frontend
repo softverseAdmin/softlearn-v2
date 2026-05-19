@@ -3,6 +3,10 @@ FROM node:20-alpine as builder
 
 WORKDIR /app
 
+# Inject runtime API base URL at build time for static hosting.
+ARG VITE_API_BASE_URL=/api/v1
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+
 # Copy package files
 COPY frontend/package*.json ./
 
@@ -16,29 +20,17 @@ COPY frontend/ .
 RUN npm run build
 
 # Runtime stage
-FROM node:20-alpine
+FROM nginxinc/nginx-unprivileged:1.27-alpine
 
-WORKDIR /app
-
-# Install serve to run the built application
-RUN npm install -g serve
-
-# Copy built application from builder
-COPY --from=builder /app/dist ./dist
-
-# Create non-root user
-RUN addgroup -g 1000 appuser && \
-    adduser -D -u 1000 -G appuser appuser && \
-    chown -R appuser:appuser /app
-
-USER appuser
+COPY docker/nginx/default.conf /etc/nginx/conf.d/default.conf
+COPY --from=builder /app/dist /usr/share/nginx/html
 
 # Expose port
-EXPOSE 3000
+EXPOSE 8080
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
-    CMD wget --quiet --tries=1 --spider http://localhost:3000 || exit 1
+    CMD wget --quiet --tries=1 --spider http://localhost:8080/healthz || exit 1
 
 # Start application
-CMD ["serve", "-s", "dist", "-l", "3000"]
+CMD ["nginx", "-g", "daemon off;"]

@@ -8,6 +8,7 @@ type ProfileLinksCardProps = {
   links: WorkHistoryLinks
   validation: Record<keyof WorkHistoryLinks, boolean>
   onChange: (field: keyof WorkHistoryLinks, value: string) => void
+  onBlur?: () => void
   title?: string
   description?: string
 }
@@ -42,6 +43,7 @@ export function ProfileLinksCard({
   links,
   validation,
   onChange,
+  onBlur,
   title = 'Add Links Optional',
   description = 'Add public profile links that support your uploaded work history document.',
 }: ProfileLinksCardProps) {
@@ -63,6 +65,7 @@ export function ProfileLinksCard({
                 <Input
                   value={links[field.key]}
                   onChange={(event) => onChange(field.key, event.target.value)}
+                  onBlur={onBlur}
                   placeholder={field.placeholder}
                   className="h-11 rounded-xl border-slate-200 bg-white pl-10 pr-11 text-slate-900 placeholder:text-slate-400"
                 />

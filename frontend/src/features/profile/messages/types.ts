@@ -53,7 +53,7 @@ export interface ConversationThreadResponse {
   last_activity: string
   preview: string
   participant_image: string | null
-  messages: MessageRecordResponse[]
+  messages?: MessageRecordResponse[]
 }
 
 export interface StudentMessagesResponse {
@@ -62,6 +62,14 @@ export interface StudentMessagesResponse {
   unread_count: number
   starred_count: number
   threads: ConversationThreadResponse[]
+  pagination?: {
+    page: number
+    page_size: number
+    total_count: number
+    total_pages: number
+    has_previous: boolean
+    has_next: boolean
+  }
 }
 
 export interface CompanyMessagesResponse {
@@ -70,6 +78,14 @@ export interface CompanyMessagesResponse {
   unread_count: number
   starred_count: number
   threads: ConversationThreadResponse[]
+  pagination?: {
+    page: number
+    page_size: number
+    total_count: number
+    total_pages: number
+    has_previous: boolean
+    has_next: boolean
+  }
 }
 
 export interface ComposeContact {
@@ -85,4 +101,12 @@ export interface ComposeContactsResponse {
   company_id?: number
   contact_count: number
   contacts: ComposeContact[]
+  pagination?: {
+    page: number
+    page_size: number
+    total_count: number
+    total_pages: number
+    has_previous: boolean
+    has_next: boolean
+  }
 }

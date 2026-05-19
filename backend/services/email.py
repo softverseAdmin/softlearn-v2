@@ -1,6 +1,7 @@
 import os
 from django.template.loader import render_to_string
 from django.conf import settings
+from django.core.mail import EmailMultiAlternatives
 
 
 class EmailService:
@@ -25,26 +26,33 @@ class EmailService:
         Returns:
             True if successful, False otherwise
         """
-        if not self.enabled:
-            return False
-
         try:
-            # Render HTML email template
             html_content = render_to_string(f"emails/{template_name}", context)
-            
-            # Send email via SendGrid
-            from sendgrid import SendGridAPIClient
-            from sendgrid.helpers.mail import Mail
-            
-            message = Mail(
-                from_email=self.from_email,
-                to_emails=to_email,
+
+            if self.enabled:
+                from sendgrid import SendGridAPIClient
+                from sendgrid.helpers.mail import Mail
+
+                message = Mail(
+                    from_email=self.from_email,
+                    to_emails=to_email,
+                    subject=subject,
+                    html_content=html_content,
+                )
+
+                sg = SendGridAPIClient(self.api_key)
+                sg.send(message)
+                return True
+
+            plain_text_content = render_to_string(f"emails/{template_name}", context | {"plain_text": True})
+            message = EmailMultiAlternatives(
                 subject=subject,
-                html_content=html_content,
+                body=plain_text_content,
+                from_email=getattr(settings, "DEFAULT_FROM_EMAIL", self.from_email),
+                to=[to_email],
             )
-            
-            sg = SendGridAPIClient(self.api_key)
-            sg.send(message)
+            message.attach_alternative(html_content, "text/html")
+            message.send(fail_silently=False)
             return True
         except Exception as e:
             print(f"Error sending email to {to_email}: {str(e)}")
@@ -123,6 +131,20 @@ class EmailService:
             student_email,
             "Your Personalized Study Plan is Ready",
             "study_plan_ready.html",
+            context,
+        )
+
+    def send_password_reset(self, user_email: str, user_name: str, reset_url: str) -> bool:
+        """Send password reset email."""
+        context = {
+            "user_name": user_name,
+            "reset_url": reset_url,
+            "app_url": getattr(settings, "FRONTEND_URL", os.getenv("FRONTEND_URL", "http://localhost:5173")),
+        }
+        return self.send_email(
+            user_email,
+            "Reset your Softlearn password",
+            "password_reset.html",
             context,
         )
 

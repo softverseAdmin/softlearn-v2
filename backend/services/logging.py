@@ -129,7 +129,7 @@ class LogAggregationService:
         response_status: Optional[int] = None,
         duration_ms: Optional[float] = None,
         metadata: Optional[dict] = None,
-        persist_db: bool = True,
+        persist_db: Optional[bool] = None,
     ) -> Any:
         """Log a structured message to the configured sinks."""
         
@@ -137,6 +137,9 @@ class LogAggregationService:
         request_id = request_id or LogAggregationService.get_request_id()
         user_id = user_id or LogAggregationService.get_user_id()
         
+        if persist_db is None:
+            persist_db = getattr(settings, "PERSIST_APP_DIAGNOSTIC_LOGS", False)
+
         entry = None
         if persist_db:
             from django.contrib.auth import get_user_model

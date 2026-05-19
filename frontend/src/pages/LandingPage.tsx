@@ -126,7 +126,7 @@ const journeyCards = [
 export function LandingPage() {
   return (
     <div className="pb-18 pt-8 sm:pb-24 sm:pt-10">
-      <section className="grid items-center gap-10 lg:grid-cols-[minmax(0,1fr)_540px] lg:gap-10">
+      <section id="students" className="scroll-mt-28 grid items-center gap-10 lg:grid-cols-[minmax(0,1fr)_540px] lg:gap-10">
         <div className="space-y-8">
           <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700 shadow-sm">
             <Sparkles className="size-4" />
@@ -246,7 +246,7 @@ export function LandingPage() {
         </div>
       </section>
 
-      <section className="mt-10 rounded-[30px] border border-[#E9EEF9] bg-white px-5 py-6 shadow-[0_25px_70px_rgba(15,23,42,0.06)] sm:px-8 sm:py-8">
+      <section id="courses" className="scroll-mt-28 mt-10 rounded-[30px] border border-[#E9EEF9] bg-white px-5 py-6 shadow-[0_25px_70px_rgba(15,23,42,0.06)] sm:px-8 sm:py-8">
         <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4 xl:gap-0">
           {statCards.map((stat, index) => {
             const Icon = stat.icon
@@ -269,7 +269,7 @@ export function LandingPage() {
         </div>
       </section>
 
-      <section className="pb-4 pt-16">
+      <section id="jobs" className="scroll-mt-28 pb-4 pt-16">
         <div className="text-center">
           <h2 className="text-[2.35rem] font-bold tracking-[-0.04em] text-[#14245C]">
             Built for modern student growth
@@ -299,9 +299,9 @@ export function LandingPage() {
         </div>
       </section>
 
-      <section className="mt-10 rounded-[34px] border border-[#E8EEF9] bg-[linear-gradient(135deg,#0F172A_0%,#172554_56%,#312E81_100%)] px-6 py-8 text-white shadow-[0_28px_80px_rgba(15,23,42,0.16)] sm:px-8 sm:py-10">
+      <section id="companies" className="scroll-mt-28 mt-10 rounded-[34px] border border-[#E8EEF9] bg-[linear-gradient(135deg,#0F172A_0%,#172554_56%,#312E81_100%)] px-6 py-8 text-white shadow-[0_28px_80px_rgba(15,23,42,0.16)] sm:px-8 sm:py-10">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-          <div className="max-w-2xl">
+          <div id="about" className="max-w-2xl scroll-mt-28">
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-blue-100">softLearn platform</p>
             <h2 className="mt-3 text-3xl font-bold tracking-tight">Start with a cleaner roadmap, dashboard, and hiring journey.</h2>
             <p className="mt-3 text-base leading-7 text-blue-100">

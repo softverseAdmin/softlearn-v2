@@ -48,6 +48,7 @@ DEFAULT_FRONTEND_ORIGINS = (
     if IS_PRODUCTION
     else ["http://localhost:5173", "http://127.0.0.1:5173"]
 )
+TRUSTED_PROXY_IPS = env_list("DJANGO_TRUSTED_PROXY_IPS", [])
 
 if not DEBUG and SECRET_KEY == DEFAULT_SECRET_KEY:
     raise ImproperlyConfigured("DJANGO_SECRET_KEY must be set when DJANGO_DEBUG is false.")
@@ -83,12 +84,6 @@ MIDDLEWARE = [
     "services.error_tracking.ErrorReportingMiddleware",
     "services.security.SecurityHeadersMiddleware",
 ]
-
-# Add rate limiting only in non-test environments
-ENABLE_RATE_LIMITING = env_bool("DJANGO_ENABLE_RATE_LIMITING", not DEBUG and not TESTING)
-
-if ENABLE_RATE_LIMITING:
-    MIDDLEWARE.append("services.security.RateLimitingMiddleware")
 
 ROOT_URLCONF = "config.urls"
 
@@ -153,6 +148,8 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
+MEDIA_URL = os.getenv("DJANGO_MEDIA_URL", "/media/")
+MEDIA_ROOT = BASE_DIR / os.getenv("DJANGO_MEDIA_ROOT", "media")
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 AUTH_USER_MODEL = "users.User"
 APPEND_SLASH = False
@@ -189,6 +186,16 @@ AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
 ]
 
+DEFAULT_FROM_EMAIL = os.getenv(
+    "DJANGO_DEFAULT_FROM_EMAIL",
+    os.getenv("SENDGRID_FROM_EMAIL", "noreply@softlearn.io"),
+)
+EMAIL_BACKEND = os.getenv(
+    "DJANGO_EMAIL_BACKEND",
+    "django.core.mail.backends.console.EmailBackend" if DEBUG else "django.core.mail.backends.dummy.EmailBackend",
+)
+FRONTEND_URL = os.getenv("FRONTEND_URL", DEFAULT_FRONTEND_ORIGINS[0])
+
 # Caching Configuration
 cache_location = os.getenv("REDIS_URL", "redis://127.0.0.1:6379/1")
 ENABLE_REDIS_CACHE = env_bool("DJANGO_ENABLE_REDIS_CACHE", IS_PRODUCTION and bool(os.getenv("REDIS_URL")))
@@ -212,7 +219,6 @@ if ENABLE_REDIS_CACHE:
         }
     }
 else:
-    # Redis is temporarily disabled unless explicitly re-enabled by env var.
     CACHES = {
         "default": {
             "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
@@ -221,10 +227,40 @@ else:
         }
     }
     if IS_PRODUCTION:
-        warnings.warn(
-            "Redis cache is disabled in production; falling back to per-process local memory cache.",
-            RuntimeWarning,
+        raise ImproperlyConfigured(
+            "Production requires a shared cache backend. Set DJANGO_ENABLE_REDIS_CACHE=true "
+            "and configure REDIS_URL before booting the application."
         )
+
+ENABLE_RATE_LIMITING = env_bool(
+    "DJANGO_ENABLE_RATE_LIMITING",
+    not DEBUG and not TESTING and ENABLE_REDIS_CACHE,
+)
+RATE_LIMITING_REQUIRES_SHARED_CACHE = env_bool(
+    "DJANGO_RATE_LIMITING_REQUIRES_SHARED_CACHE",
+    IS_PRODUCTION,
+)
+
+if ENABLE_RATE_LIMITING and RATE_LIMITING_REQUIRES_SHARED_CACHE and not ENABLE_REDIS_CACHE:
+    raise ImproperlyConfigured(
+        "DJANGO_ENABLE_RATE_LIMITING requires a shared cache backend. "
+        "Enable Redis caching or set DJANGO_RATE_LIMITING_REQUIRES_SHARED_CACHE=false explicitly."
+    )
+
+if ENABLE_RATE_LIMITING:
+    MIDDLEWARE.append("services.security.RateLimitingMiddleware")
+
+# Async jobs configuration
+CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", os.getenv("REDIS_URL", "redis://127.0.0.1:6379/2"))
+CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", CELERY_BROKER_URL)
+CELERY_TASK_ALWAYS_EAGER = env_bool("CELERY_TASK_ALWAYS_EAGER", TESTING)
+CELERY_TASK_EAGER_PROPAGATES = env_bool("CELERY_TASK_EAGER_PROPAGATES", TESTING)
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+MATCHING_ASYNC_REFRESH_ENABLED = env_bool(
+    "MATCHING_ASYNC_REFRESH_ENABLED",
+    bool(os.getenv("CELERY_BROKER_URL") or os.getenv("REDIS_URL")),
+)
+MATCHES_SNAPSHOT_TTL_SECONDS = env_int("MATCHES_SNAPSHOT_TTL_SECONDS", 300)
 
 # Sentry Configuration
 SENTRY_DSN = os.getenv("SENTRY_DSN", "")
@@ -244,6 +280,8 @@ LOG_LEVEL = os.getenv("DJANGO_LOG_LEVEL", "INFO")
 LOG_AS_JSON = env_bool("DJANGO_LOG_AS_JSON", IS_PRODUCTION)
 ENABLE_FILE_LOGGING = env_bool("DJANGO_ENABLE_FILE_LOGGING", not IS_PRODUCTION)
 PERSIST_REQUEST_LOGS = env_bool("DJANGO_PERSIST_REQUEST_LOGS", False)
+PERSIST_APP_DIAGNOSTIC_LOGS = env_bool("DJANGO_PERSIST_APP_DIAGNOSTIC_LOGS", False)
+PERSIST_ERROR_REPORTS = env_bool("DJANGO_PERSIST_ERROR_REPORTS", False)
 
 if ENABLE_FILE_LOGGING:
     os.makedirs(BASE_DIR / "logs", exist_ok=True)

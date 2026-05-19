@@ -179,7 +179,9 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}) 
     headers.set('X-CSRFToken', options.csrfToken)
   }
 
-  if (options.body !== undefined) {
+  const isFormDataBody = options.body instanceof FormData
+
+  if (options.body !== undefined && !isFormDataBody) {
     headers.set('Content-Type', 'application/json')
   }
 
@@ -187,7 +189,12 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}) 
     method,
     credentials: 'include',
     headers,
-    body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
+    body:
+      options.body === undefined
+        ? undefined
+        : isFormDataBody
+          ? (options.body as FormData)
+          : JSON.stringify(options.body),
     signal: options.signal,
   })
 
