@@ -377,6 +377,12 @@ The workflow will:
 5. start backend, worker, and frontend containers
 6. verify `http://127.0.0.1:8080/healthz` and `http://127.0.0.1:8080/api/v1/ready`
 
+Branch behavior is now:
+
+- `main`: runs CI and automatically deploys to the `production` GitHub environment on every push
+- `dev`: runs CI only, so it stays safe for localhost-focused development without touching the VPS
+- `workflow_dispatch`: still available when you want to run the Hetzner workflow manually for `staging` or rerun `production`
+
 #### First manual rollout on the VPS
 
 After the workflow secrets and `/apps/softlearn/.env` exist, you can either run the GitHub workflow or do the first rollout manually:

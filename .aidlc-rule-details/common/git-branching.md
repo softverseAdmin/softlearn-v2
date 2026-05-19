@@ -3,7 +3,7 @@
 ## Branch model
 
 - `main`: stable branch
-- `develop`: integration branch
+- `dev`: integration branch for local development
 - `feature/<unit-name>`: unit development
 - `fix/<issue-name>`: fixes
 - `chg/<chg-id>`: change requests

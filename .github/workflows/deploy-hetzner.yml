@@ -1,6 +1,8 @@
 name: Deploy to Hetzner
 
 on:
+  push:
+    branches: [ main ]
   workflow_dispatch:
     inputs:
       environment:
@@ -11,6 +13,10 @@ on:
         options:
           - staging
           - production
+
+concurrency:
+  group: deploy-hetzner-${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || 'production' }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
@@ -23,7 +29,7 @@ env:
 jobs:
   publish-images:
     runs-on: ubuntu-latest
-    environment: ${{ github.event.inputs.environment }}
+    environment: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || 'production' }}
 
     outputs:
       backend_image: ${{ steps.metadata.outputs.backend_image }}
@@ -35,7 +41,7 @@ jobs:
       - name: Set image metadata
         id: metadata
         run: |
-          IMAGE_PREFIX="${REGISTRY}/${GITHUB_REPOSITORY,,}/hetzner/${{ github.event.inputs.environment }}"
+          IMAGE_PREFIX="${REGISTRY}/${GITHUB_REPOSITORY,,}/hetzner/${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || 'production' }}"
           IMAGE_TAG="${GITHUB_SHA}"
           echo "backend_image=${IMAGE_PREFIX}-backend:${IMAGE_TAG}" >> "$GITHUB_OUTPUT"
           echo "frontend_image=${IMAGE_PREFIX}-frontend:${IMAGE_TAG}" >> "$GITHUB_OUTPUT"
@@ -80,7 +86,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     needs: publish-images
-    environment: ${{ github.event.inputs.environment }}
+    environment: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || 'production' }}
 
     steps:
       - uses: actions/checkout@v4
@@ -159,11 +165,11 @@ jobs:
         run: |
           {
             echo ""
-            echo "## Hetzner deployment"
-            echo ""
-            echo "- Environment: \`${{ github.event.inputs.environment }}\`"
-            echo "- Host: \`${HETZNER_HOST}\`"
-            echo "- Backend image: \`${{ needs.publish-images.outputs.backend_image }}\`"
-            echo "- Frontend image: \`${{ needs.publish-images.outputs.frontend_image }}\`"
+             echo "## Hetzner deployment"
+             echo ""
+             echo "- Environment: \`${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || 'production' }}\`"
+             echo "- Host: \`${HETZNER_HOST}\`"
+             echo "- Backend image: \`${{ needs.publish-images.outputs.backend_image }}\`"
+             echo "- Frontend image: \`${{ needs.publish-images.outputs.frontend_image }}\`"
             echo "- Health checks: passed on host"
           } >> "$GITHUB_STEP_SUMMARY"
