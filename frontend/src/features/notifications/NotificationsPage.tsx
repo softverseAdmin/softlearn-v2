@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
+import { useWorkspaceSearchQuery } from '@/hooks/useWorkspaceSearchQuery'
 import { ApiError, apiRequest } from '@/lib/api'
 import { cn } from '@/lib/utils'
 import type { CompanyMessagesResponse, ConversationThreadResponse, StudentMessagesResponse } from '../profile/messages/types'
@@ -323,7 +324,7 @@ export function NotificationsPage() {
   const [seenMatchIds, setSeenMatchIds] = useState<Set<number>>(new Set())
   const [loading, setLoading] = useState(true)
   const [savingKey, setSavingKey] = useState<string | 'all' | null>(null)
-  const [searchQuery, setSearchQuery] = useState('')
+  const [searchQuery, setSearchQuery] = useWorkspaceSearchQuery()
   const [activeFilter, setActiveFilter] = useState<NotificationFilter>('all')
   const [error, setError] = useState<string | null>(null)
 

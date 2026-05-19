@@ -53335,3 +53335,75 @@ django.db.utils.OperationalError: database is locked
 [INFO] 2026-05-19 06:38:32,092 basehttp 28899 6196293632 "GET /api/v1/company/messages HTTP/1.1" 200 102379
 [INFO] 2026-05-19 06:38:32,111 logging 28899 6196293632 GET /api/v1/company/messages/threads/6
 [INFO] 2026-05-19 06:38:32,111 basehttp 28899 6196293632 "GET /api/v1/company/messages/threads/6 HTTP/1.1" 200 440840
+[INFO] 2026-05-19 06:41:25,758 logging 28899 6196293632 GET /api/v1/auth/session
+[INFO] 2026-05-19 06:41:25,758 logging 28899 6213120000 GET /api/v1/auth/session
+[INFO] 2026-05-19 06:41:25,759 basehttp 28899 6196293632 "GET /api/v1/auth/session HTTP/1.1" 200 254
+[INFO] 2026-05-19 06:41:25,759 basehttp 28899 6213120000 "GET /api/v1/auth/session HTTP/1.1" 200 254
+[INFO] 2026-05-19 06:41:25,775 logging 28899 6196293632 GET /api/v1/workspace/summary
+[INFO] 2026-05-19 06:41:25,776 basehttp 28899 6196293632 "GET /api/v1/workspace/summary HTTP/1.1" 200 10798
+[INFO] 2026-05-19 06:41:25,793 logging 28899 6196293632 GET /api/v1/company/messages
+[INFO] 2026-05-19 06:41:25,793 basehttp 28899 6196293632 "GET /api/v1/company/messages HTTP/1.1" 200 102379
+[INFO] 2026-05-19 06:41:25,808 logging 28899 6196293632 GET /api/v1/company/messages/threads/6
+[INFO] 2026-05-19 06:41:25,808 basehttp 28899 6196293632 "GET /api/v1/company/messages/threads/6 HTTP/1.1" 200 440840
+[INFO] 2026-05-19 06:43:02,227 logging 28899 6196293632 GET /api/v1/company/messages
+[INFO] 2026-05-19 06:43:02,228 basehttp 28899 6196293632 "GET /api/v1/company/messages HTTP/1.1" 200 102379
+[INFO] 2026-05-19 06:43:02,376 logging 28899 6196293632 GET /api/v1/student/dashboard-data
+[INFO] 2026-05-19 06:43:02,376 basehttp 28899 6196293632 "GET /api/v1/student/dashboard-data HTTP/1.1" 200 687
+[INFO] 2026-05-19 06:43:02,398 logging 28899 6196293632 GET /api/v1/student/dashboard-data
+[INFO] 2026-05-19 06:43:02,399 basehttp 28899 6196293632 "GET /api/v1/student/dashboard-data HTTP/1.1" 200 687
+[INFO] 2026-05-19 06:43:02,477 logging 28899 6213120000 GET /api/v1/student/dashboard
+[INFO] 2026-05-19 06:43:02,477 basehttp 28899 6213120000 "GET /api/v1/student/dashboard HTTP/1.1" 200 2115
+[INFO] 2026-05-19 06:43:02,498 logging 28899 6229946368 GET /api/v1/student/courses
+[INFO] 2026-05-19 06:43:02,499 basehttp 28899 6229946368 "GET /api/v1/student/courses HTTP/1.1" 200 2633533
+[INFO] 2026-05-19 06:43:02,559 logging 28899 6196293632 GET /api/v1/student/dashboard
+[INFO] 2026-05-19 06:43:02,560 basehttp 28899 6196293632 "GET /api/v1/student/dashboard HTTP/1.1" 200 2115
+[INFO] 2026-05-19 06:43:02,589 logging 28899 6213120000 GET /api/v1/student/courses
+[INFO] 2026-05-19 06:43:02,590 basehttp 28899 6213120000 "GET /api/v1/student/courses HTTP/1.1" 200 2633533
+[INFO] 2026-05-19 06:43:29,433 logging 28899 6213120000 GET /api/v1/company/dashboard
+[INFO] 2026-05-19 06:43:29,434 basehttp 28899 6213120000 "GET /api/v1/company/dashboard HTTP/1.1" 200 3167
+[INFO] 2026-05-19 06:43:29,436 logging 28899 6196293632 GET /api/v1/company/dashboard
+[INFO] 2026-05-19 06:43:29,436 basehttp 28899 6196293632 "GET /api/v1/company/dashboard HTTP/1.1" 200 3167
+[INFO] 2026-05-19 06:43:43,516 logging 28899 6196293632 GET /api/v1/company/messages
+[INFO] 2026-05-19 06:43:43,516 basehttp 28899 6196293632 "GET /api/v1/company/messages HTTP/1.1" 200 102379
+[INFO] 2026-05-19 06:43:59,582 logging 28899 6196293632 GET /api/v1/company/dashboard
+[INFO] 2026-05-19 06:43:59,583 logging 28899 6213120000 GET /api/v1/company/dashboard
+[INFO] 2026-05-19 06:43:59,583 basehttp 28899 6196293632 "GET /api/v1/company/dashboard HTTP/1.1" 200 3167
+[INFO] 2026-05-19 06:43:59,584 basehttp 28899 6213120000 "GET /api/v1/company/dashboard HTTP/1.1" 200 3167
+[INFO] 2026-05-19 06:44:01,427 logging 28899 6196293632 GET /api/v1/company/vacancies
+[INFO] 2026-05-19 06:44:01,427 logging 28899 6213120000 GET /api/v1/company/vacancies
+[INFO] 2026-05-19 06:44:01,428 basehttp 28899 6196293632 "GET /api/v1/company/vacancies HTTP/1.1" 200 16735
+[INFO] 2026-05-19 06:44:01,428 basehttp 28899 6213120000 "GET /api/v1/company/vacancies HTTP/1.1" 200 16735
+[INFO] 2026-05-19 06:44:03,155 logging 28899 6196293632 GET /api/v1/company/applications
+[INFO] 2026-05-19 06:44:03,155 basehttp 28899 6196293632 "GET /api/v1/company/applications HTTP/1.1" 200 893
+[INFO] 2026-05-19 06:44:03,156 logging 28899 6213120000 GET /api/v1/company/applications
+[INFO] 2026-05-19 06:44:03,157 basehttp 28899 6213120000 "GET /api/v1/company/applications HTTP/1.1" 200 893
+[INFO] 2026-05-19 06:44:46,865 logging 28899 6213120000 GET /api/v1/company/candidates
+[INFO] 2026-05-19 06:44:46,866 logging 28899 6196293632 GET /api/v1/company/candidates
+[INFO] 2026-05-19 06:44:46,866 basehttp 28899 6213120000 "GET /api/v1/company/candidates HTTP/1.1" 200 208540
+[INFO] 2026-05-19 06:44:46,866 basehttp 28899 6196293632 "GET /api/v1/company/candidates HTTP/1.1" 200 208540
+[INFO] 2026-05-19 06:45:09,187 logging 28899 6213120000 GET /api/v1/company/interviews
+[INFO] 2026-05-19 06:45:09,187 logging 28899 6196293632 GET /api/v1/company/interviews
+[INFO] 2026-05-19 06:45:09,188 basehttp 28899 6196293632 "GET /api/v1/company/interviews HTTP/1.1" 200 1513
+[INFO] 2026-05-19 06:45:09,188 basehttp 28899 6213120000 "GET /api/v1/company/interviews HTTP/1.1" 200 1513
+[INFO] 2026-05-19 06:45:09,869 logging 28899 6213120000 GET /api/v1/company/applications
+[INFO] 2026-05-19 06:45:09,870 logging 28899 6196293632 GET /api/v1/company/applications
+[INFO] 2026-05-19 06:45:09,870 basehttp 28899 6213120000 "GET /api/v1/company/applications HTTP/1.1" 200 893
+[INFO] 2026-05-19 06:45:09,870 basehttp 28899 6196293632 "GET /api/v1/company/applications HTTP/1.1" 200 893
+[INFO] 2026-05-19 06:45:12,063 logging 28899 6196293632 GET /api/v1/company/courses
+[INFO] 2026-05-19 06:45:12,064 basehttp 28899 6196293632 "GET /api/v1/company/courses?page=1&page_size=24 HTTP/1.1" 200 2631357
+[INFO] 2026-05-19 06:45:12,586 logging 28899 6196293632 GET /api/v1/company/applications
+[INFO] 2026-05-19 06:45:12,587 logging 28899 6213120000 GET /api/v1/company/applications
+[INFO] 2026-05-19 06:45:12,587 basehttp 28899 6196293632 "GET /api/v1/company/applications HTTP/1.1" 200 893
+[INFO] 2026-05-19 06:45:12,587 basehttp 28899 6213120000 "GET /api/v1/company/applications HTTP/1.1" 200 893
+[INFO] 2026-05-19 06:45:13,042 logging 28899 6196293632 GET /api/v1/company/candidates
+[INFO] 2026-05-19 06:45:13,042 logging 28899 6213120000 GET /api/v1/company/candidates
+[INFO] 2026-05-19 06:45:13,043 basehttp 28899 6196293632 "GET /api/v1/company/candidates HTTP/1.1" 200 208540
+[INFO] 2026-05-19 06:45:13,043 basehttp 28899 6213120000 "GET /api/v1/company/candidates HTTP/1.1" 200 208540
+[INFO] 2026-05-19 06:45:14,939 logging 28899 6213120000 GET /api/v1/company/applications
+[INFO] 2026-05-19 06:45:14,940 basehttp 28899 6213120000 "GET /api/v1/company/applications HTTP/1.1" 200 893
+[INFO] 2026-05-19 06:45:14,943 logging 28899 6246772736 GET /api/v1/company/applications
+[INFO] 2026-05-19 06:45:14,945 basehttp 28899 6246772736 "GET /api/v1/company/applications HTTP/1.1" 200 893
+[INFO] 2026-05-19 06:45:14,947 logging 28899 6196293632 GET /api/v1/company/candidates/23/preview
+[INFO] 2026-05-19 06:45:14,948 logging 28899 6229946368 GET /api/v1/company/candidates/23/preview
+[INFO] 2026-05-19 06:45:14,948 basehttp 28899 6196293632 "GET /api/v1/company/candidates/23/preview HTTP/1.1" 200 2210
+[INFO] 2026-05-19 06:45:14,948 basehttp 28899 6229946368 "GET /api/v1/company/candidates/23/preview HTTP/1.1" 200 2210

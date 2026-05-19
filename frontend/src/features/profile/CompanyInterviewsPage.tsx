@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
+import { useWorkspaceSearchQuery } from '@/hooks/useWorkspaceSearchQuery'
 
 const emptyResponse: InterviewListResponse = {
   interviews: [],
@@ -73,7 +74,7 @@ export function CompanyInterviewsPage() {
   const [data, setData] = useState<InterviewListResponse>(emptyResponse)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [searchQuery, setSearchQuery] = useState('')
+  const [searchQuery, setSearchQuery] = useWorkspaceSearchQuery()
   const [status, setStatus] = useState('All Statuses')
   const [sortBy, setSortBy] = useState('Upcoming')
 

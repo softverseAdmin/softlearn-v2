@@ -23,6 +23,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
+import { useWorkspaceSearchQuery } from '@/hooks/useWorkspaceSearchQuery'
 import { cn } from '@/lib/utils'
 
 const emptyJobsResponse: StudentJobsResponse = {
@@ -132,7 +133,7 @@ function StudentJobsWorkspace({ savedOnly = false }: { savedOnly?: boolean }) {
   const [jobs, setJobs] = useState<StudentJobsResponse>(emptyJobsResponse)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [searchQuery, setSearchQuery] = useState('')
+  const [searchQuery, setSearchQuery] = useWorkspaceSearchQuery()
   const [skill, setSkill] = useState('All Skills')
   const [language, setLanguage] = useState('All Languages')
   const [location, setLocation] = useState('All Locations')
@@ -153,7 +154,6 @@ function StudentJobsWorkspace({ savedOnly = false }: { savedOnly?: boolean }) {
         }
 
         setJobs(response)
-        setSearchQuery(response.query)
         setError(null)
       } catch (loadError) {
         if (active) {

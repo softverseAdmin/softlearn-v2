@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
+import { useWorkspaceSearchQuery } from '@/hooks/useWorkspaceSearchQuery'
 import { cn } from '@/lib/utils'
 import { getCourseMediaOverrideForCourse } from './courseMediaStorage'
 
@@ -94,7 +95,7 @@ function StudentCourseCatalogPageContent({ favoritesOnly = false, completedOnly 
   const [catalog, setCatalog] = useState<CourseCatalogResponse>(emptyCatalog)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [searchQuery, setSearchQuery] = useState('')
+  const [searchQuery, setSearchQuery] = useWorkspaceSearchQuery()
   const [category, setCategory] = useState('All Categories')
   const [level, setLevel] = useState('All Levels')
   const [sortBy, setSortBy] = useState('Recommended')

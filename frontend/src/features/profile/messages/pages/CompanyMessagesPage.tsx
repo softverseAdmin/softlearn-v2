@@ -18,6 +18,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { Textarea } from '@/components/ui/textarea'
+import { useWorkspaceSearchQuery } from '@/hooks/useWorkspaceSearchQuery'
 import { ApiError, apiRequest } from '@/lib/api'
 import { cn } from '@/lib/utils'
 
@@ -47,7 +48,7 @@ export function CompanyMessagesPage() {
   const [threads, setThreads] = useState<ConversationThread[]>([])
   const [composeContacts, setComposeContacts] = useState<ComposeContact[]>([])
   const [activeThreadId, setActiveThreadId] = useState<number | null>(null)
-  const [searchQuery, setSearchQuery] = useState('')
+  const [searchQuery, setSearchQuery] = useWorkspaceSearchQuery()
   const [activeFilter, setActiveFilter] = useState<MessageFilter>('all')
   const [draftMessage, setDraftMessage] = useState('')
   const [isDesktopLayout, setIsDesktopLayout] = useState(() =>

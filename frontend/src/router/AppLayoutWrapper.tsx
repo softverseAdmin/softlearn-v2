@@ -1,4 +1,4 @@
-import { Outlet, useNavigate } from 'react-router-dom'
+import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import {
   Award,
   BarChart3,
@@ -24,6 +24,7 @@ import { AppLayout } from '@/components/AppLayout'
 import { Button } from '@/components/ui/button'
 import type { NavItem } from '@/components/Sidebar'
 import { navigationItemsByRole, shellNavigationTargetsByRole } from '@/router/navigation'
+import { getWorkspaceSearchPath, getWorkspaceSearchQuery, withWorkspaceSearchQuery } from '@/router/workspaceSearch'
 
 export function AppLayoutWrapper() {
   const { user, logout } = useAuth()
@@ -32,6 +33,7 @@ export function AppLayoutWrapper() {
     unreadMessageCount,
     profileAvatar,
   } = useWorkspaceState()
+  const location = useLocation()
   const navigate = useNavigate()
 
   if (!user) return null
@@ -39,6 +41,7 @@ export function AppLayoutWrapper() {
   const roleLabel = user.role.charAt(0).toUpperCase() + user.role.slice(1)
   const shellTargets = shellNavigationTargetsByRole[user.role]
   const showStudentUpgradeCard = false
+  const currentSearchQuery = getWorkspaceSearchQuery(new URLSearchParams(location.search))
   const studentUpgradeCard = (
     <div className="rounded-2xl border border-blue-100 bg-gradient-to-br from-white via-blue-50 to-indigo-50 p-4 shadow-sm">
       <div className="space-y-3">
@@ -95,6 +98,22 @@ export function AppLayoutWrapper() {
     navigate('/login')
   }
 
+  const handleSearch = (query: string) => {
+    if (user.role === 'admin') {
+      return
+    }
+
+    const pathname = getWorkspaceSearchPath(user.role, location.pathname)
+    const baseSearchParams = new URLSearchParams(pathname === location.pathname ? location.search : '')
+    const nextSearchParams = withWorkspaceSearchQuery(baseSearchParams, query)
+    const nextSearch = nextSearchParams.toString()
+
+    navigate({
+      pathname,
+      search: nextSearch.length > 0 ? `?${nextSearch}` : '',
+    })
+  }
+
   return (
     <AppLayout
       sidebarItems={getNavItems()}
@@ -115,7 +134,8 @@ export function AppLayoutWrapper() {
           user.role === 'student'
             ? 'Search for courses, jobs, skills and more...'
             : `Search ${user.role} ${user.role === 'company' ? 'candidates' : 'users'}...`,
-        onSearch: () => undefined,
+        searchValue: currentSearchQuery,
+        onSearch: handleSearch,
         showNotifications: true,
         notificationCount: unreadNotificationCount,
         messageCount: unreadMessageCount,

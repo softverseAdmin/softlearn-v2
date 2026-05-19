@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
+import { useWorkspaceSearchQuery } from '@/hooks/useWorkspaceSearchQuery'
 import { apiRequest } from '@/lib/api'
 import { cn } from '@/lib/utils'
 import { companyCourseCatalogQueryOptions } from '../queries'
@@ -81,7 +82,7 @@ type CompanyCourseCatalogPageProps = {
 
 function CompanyCourseCatalogPageContent({ favoritesOnly = false, retiredOnly = false }: CompanyCourseCatalogPageProps) {
   const navigate = useNavigate()
-  const [searchQuery, setSearchQuery] = useState('')
+  const [searchQuery, setSearchQuery] = useWorkspaceSearchQuery()
   const [category, setCategory] = useState('All Categories')
   const [level, setLevel] = useState('All Levels')
   const [sortBy, setSortBy] = useState('Recommended')
