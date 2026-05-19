@@ -163,15 +163,11 @@ jobs:
           HETZNER_USER: ${{ secrets.HETZNER_USER }}
           HETZNER_PORT: ${{ secrets.HETZNER_PORT }}
           HETZNER_SSH_PRIVATE_KEY: ${{ secrets.HETZNER_SSH_PRIVATE_KEY }}
-          GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
-          GHCR_READ_TOKEN: ${{ secrets.GHCR_READ_TOKEN }}
         run: |
           test -n "$HETZNER_HOST"
           test -n "$HETZNER_USER"
           test -n "$HETZNER_PORT"
           test -n "$HETZNER_SSH_PRIVATE_KEY"
-          test -n "$GHCR_USERNAME"
-          test -n "$GHCR_READ_TOKEN"
 
       - name: Configure SSH
         env:
@@ -199,8 +195,8 @@ jobs:
           HETZNER_HOST: ${{ secrets.HETZNER_HOST }}
           HETZNER_USER: ${{ secrets.HETZNER_USER }}
           HETZNER_PORT: ${{ secrets.HETZNER_PORT }}
-          GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
-          GHCR_READ_TOKEN: ${{ secrets.GHCR_READ_TOKEN }}
+          GHCR_USERNAME: ${{ github.actor }}
+          GHCR_READ_TOKEN: ${{ github.token }}
           BACKEND_IMAGE: ${{ needs.publish-images.outputs.backend_image }}
           FRONTEND_IMAGE: ${{ needs.publish-images.outputs.frontend_image }}
           HETZNER_APP_DIR: ${{ env.HETZNER_APP_DIR }}

@@ -355,8 +355,6 @@ HETZNER_HOST
 HETZNER_USER
 HETZNER_PORT
 HETZNER_SSH_PRIVATE_KEY
-GHCR_USERNAME
-GHCR_READ_TOKEN
 ```
 
 Recommended values:
@@ -365,8 +363,8 @@ Recommended values:
 - `HETZNER_USER`: `root` or your deploy user
 - `HETZNER_PORT`: `22`
 - `HETZNER_SSH_PRIVATE_KEY`: private key matching the public key installed on the VPS
-- `GHCR_USERNAME`: GitHub username that owns the package-read token
-- `GHCR_READ_TOKEN`: PAT with at least `read:packages`
+
+The workflow now uses the job-scoped `GITHUB_TOKEN` for GHCR login on the VPS, so you do **not** need separate `GHCR_USERNAME` or `GHCR_READ_TOKEN` environment secrets. This avoids package-read PAT drift and keeps the pull credentials aligned with the exact workflow run that published the images.
 
 The workflow will:
 
