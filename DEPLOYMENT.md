@@ -375,6 +375,8 @@ The workflow will:
 5. start backend, worker, and frontend containers
 6. verify `http://127.0.0.1:8080/healthz` and `http://127.0.0.1:8080/api/v1/ready`
 
+The deploy workflow now passes `--env-file .env` to every Hetzner `docker compose` command so required values such as `POSTGRES_DB`, `POSTGRES_USER`, and `POSTGRES_PASSWORD` are loaded explicitly from `/apps/softlearn/.env` during compose interpolation.
+
 Branch behavior is now:
 
 - `main`: runs CI and automatically deploys to the `production` GitHub environment on every push
