@@ -210,10 +210,10 @@ jobs:
 
           echo "$GHCR_READ_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
 
-          docker compose -f docker/docker-compose.hetzner.yml pull backend-release backend worker frontend postgres redis
-          docker compose -f docker/docker-compose.hetzner.yml up -d postgres redis
-          BACKEND_IMAGE="$BACKEND_IMAGE" FRONTEND_IMAGE="$FRONTEND_IMAGE" docker compose -f docker/docker-compose.hetzner.yml --profile release run --rm backend-release
-          BACKEND_IMAGE="$BACKEND_IMAGE" FRONTEND_IMAGE="$FRONTEND_IMAGE" docker compose -f docker/docker-compose.hetzner.yml up -d backend worker frontend
+          docker compose --env-file .env -f docker/docker-compose.hetzner.yml pull backend-release backend worker frontend postgres redis
+          docker compose --env-file .env -f docker/docker-compose.hetzner.yml up -d postgres redis
+          BACKEND_IMAGE="$BACKEND_IMAGE" FRONTEND_IMAGE="$FRONTEND_IMAGE" docker compose --env-file .env -f docker/docker-compose.hetzner.yml --profile release run --rm backend-release
+          BACKEND_IMAGE="$BACKEND_IMAGE" FRONTEND_IMAGE="$FRONTEND_IMAGE" docker compose --env-file .env -f docker/docker-compose.hetzner.yml up -d backend worker frontend
 
           curl --fail --silent http://127.0.0.1:8080/healthz > /dev/null
           curl --fail --silent http://127.0.0.1:8080/api/v1/ready > /dev/null
