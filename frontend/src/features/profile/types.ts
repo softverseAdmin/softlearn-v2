@@ -222,10 +222,13 @@ export interface StudentJobsResponse {
   }
   result_count: number
   bookmark_count: number
+  sort?: string
+  bookmarked_only?: boolean
   available_skills: SkillOption[]
   available_languages: SelectOption[]
   available_locations: string[]
   available_work_styles: SelectOption[]
+  pagination?: PaginationState
 }
 
 export type StudentJobDetailResponse = VacancyRecord
@@ -820,6 +823,14 @@ export interface CompanyCandidatesResponse {
   company_id: number
   candidate_count: number
   candidates: CompanyCandidate[]
+  pagination?: PaginationState
+  summary?: {
+    shortlisted: number
+    profile_visible: number
+    learning_visible: number
+    exam_visible: number
+    fully_visible: number
+  }
 }
 
 export interface CompanyVacancyMatchRecord {
@@ -856,6 +867,7 @@ export interface CompanyCandidatePreviewResponse {
   visibility: string
   shortlist: CandidateShortlist | null
   notes: CandidateNote[]
+  notes_pagination?: PaginationState
   student: (StudentProfile & { skills: StudentSkill[] }) | null
   restrictions: string[]
 }
@@ -884,6 +896,7 @@ export interface CandidateNote {
 export interface CandidateNotesResponse {
   candidate_access_id: number
   notes: CandidateNote[]
+  pagination?: PaginationState
 }
 
 export interface CandidateShortlistResponse {
@@ -905,6 +918,7 @@ export interface CompanyShortlistResponse {
   company_id: number
   shortlist_count: number
   shortlists: CompanyShortlistEntry[]
+  pagination?: PaginationState
 }
 
 export interface StudentVisibilityEvent {
@@ -969,6 +983,14 @@ export interface InterviewDetail extends InterviewSummary {
 
 export interface InterviewListResponse {
   interviews: InterviewSummary[]
+  pagination?: PaginationState
+  summary?: {
+    total: number
+    upcoming: number
+    awaiting_decision: number
+    completed: number
+    cancelled: number
+  }
 }
 
 export interface CandidateInterviewsResponse {

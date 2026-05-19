@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   Bookmark,
   BookmarkCheck,
@@ -14,7 +15,7 @@ import {
 } from 'lucide-react'
 
 import { useAuth } from '../../auth/useAuth'
-import { ApiError, apiRequest } from '../../lib/api'
+import { apiRequest } from '../../lib/api'
 import type { StudentApplicationRecord, StudentJobsResponse, VacancyRecord } from './types'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
@@ -70,10 +71,6 @@ function formatLabel(value: string) {
     .replace(/\b\w/g, (character) => character.toUpperCase())
 }
 
-function getCompensationScore(vacancy: VacancyRecord) {
-  return vacancy.max_salary ?? vacancy.min_salary ?? 0
-}
-
 function getCompanyInitials(companyName: string) {
   return companyName
     .split(' ')
@@ -100,22 +97,6 @@ function formatSkillsSummary(vacancy: VacancyRecord) {
   return vacancy.skill_requirements.map((requirement) => requirement.skill_name).join(', ')
 }
 
-function getPaginationItems(currentPage: number, totalPages: number) {
-  if (totalPages <= 5) {
-    return Array.from({ length: totalPages }, (_, index) => index + 1)
-  }
-
-  if (currentPage <= 3) {
-    return [1, 2, 3, 'end-ellipsis', totalPages] as const
-  }
-
-  if (currentPage >= totalPages - 2) {
-    return [1, 'start-ellipsis', totalPages - 2, totalPages - 1, totalPages] as const
-  }
-
-  return [1, 'start-ellipsis', currentPage, 'end-ellipsis', totalPages] as const
-}
-
 export function StudentJobsPage() {
   return <StudentJobsWorkspace />
 }
@@ -127,12 +108,9 @@ export function StudentSavedJobsPage() {
 function StudentJobsWorkspace({ savedOnly = false }: { savedOnly?: boolean }) {
   const navigate = useNavigate()
   const { csrfToken } = useAuth()
-  const jobsPerPage = 5
+  const queryClient = useQueryClient()
   const togglePagePath = savedOnly ? '/student/jobs' : '/student/jobs/saved'
   const togglePageLabel = savedOnly ? 'All jobs' : 'Saved jobs'
-  const [jobs, setJobs] = useState<StudentJobsResponse>(emptyJobsResponse)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useWorkspaceSearchQuery()
   const [skill, setSkill] = useState('All Skills')
   const [language, setLanguage] = useState('All Languages')
@@ -143,35 +121,40 @@ function StudentJobsWorkspace({ savedOnly = false }: { savedOnly?: boolean }) {
   const [bookmarkingVacancyId, setBookmarkingVacancyId] = useState<number | null>(null)
   const [applyingVacancyId, setApplyingVacancyId] = useState<number | null>(null)
 
+  const queryParams = useMemo(() => {
+    const params = new URLSearchParams({
+      page: String(page),
+      page_size: '5',
+      sort:
+        sortBy === 'Company A-Z'
+          ? 'company_az'
+          : sortBy === 'Title A-Z'
+            ? 'title_az'
+            : sortBy === 'Compensation'
+              ? 'compensation'
+              : 'newest',
+    })
+    if (searchQuery.trim()) params.set('q', searchQuery.trim())
+    if (skill !== 'All Skills') params.set('skills', skill)
+    if (language !== 'All Languages') params.set('languages', language)
+    if (location !== 'All Locations') params.set('locations', location)
+    if (workStyle !== 'All Work Styles') params.set('work_styles', workStyle)
+    if (savedOnly) params.set('bookmarked', 'true')
+    return params.toString()
+  }, [language, location, page, savedOnly, searchQuery, skill, sortBy, workStyle])
+
+  const jobsQuery = useQuery({
+    queryKey: ['student-jobs', savedOnly, queryParams],
+    queryFn: () => apiRequest<StudentJobsResponse>(`/student/jobs?${queryParams}`),
+  })
+  const jobs = jobsQuery.data ?? emptyJobsResponse
+  const loading = jobsQuery.isLoading
+  const error =
+    jobsQuery.error instanceof Error ? jobsQuery.error.message : jobsQuery.isError ? 'Unable to load jobs.' : null
+
   useEffect(() => {
-    let active = true
-
-    async function loadJobs() {
-      try {
-        const response = await apiRequest<StudentJobsResponse>('/student/jobs')
-        if (!active) {
-          return
-        }
-
-        setJobs(response)
-        setError(null)
-      } catch (loadError) {
-        if (active) {
-          setError(loadError instanceof ApiError ? loadError.message : 'Unable to load jobs.')
-        }
-      } finally {
-        if (active) {
-          setLoading(false)
-        }
-      }
-    }
-
-    void loadJobs()
-
-    return () => {
-      active = false
-    }
-  }, [])
+    setPage(1)
+  }, [searchQuery, skill, language, location, workStyle, sortBy, savedOnly])
 
   const skillOptions = useMemo(() => {
     if (!savedOnly) {
@@ -213,59 +196,6 @@ function StudentJobsWorkspace({ savedOnly = false }: { savedOnly?: boolean }) {
     [jobs.available_work_styles]
   )
 
-  const filteredJobs = useMemo(() => {
-    const normalizedQuery = searchQuery.trim().toLowerCase()
-
-    const filtered = jobs.vacancies.filter((vacancy) => {
-      const matchesSavedState = !savedOnly || vacancy.is_bookmarked
-      const matchesQuery =
-        !normalizedQuery ||
-        [vacancy.title, vacancy.description, vacancy.company_name, vacancy.location]
-          .join(' ')
-          .toLowerCase()
-          .includes(normalizedQuery)
-
-      const matchesSkill =
-        skill === 'All Skills' || vacancy.skill_requirements.some((requirement) => requirement.skill_slug === skill)
-
-      const matchesLanguage =
-        language === 'All Languages' ||
-        vacancy.language_requirements.some((requirement) => requirement.language === language)
-
-      const matchesLocation = location === 'All Locations' || vacancy.location === location
-      const matchesWorkStyle = workStyle === 'All Work Styles' || vacancy.work_style === workStyle
-
-      return matchesSavedState && matchesQuery && matchesSkill && matchesLanguage && matchesLocation && matchesWorkStyle
-    })
-
-    return filtered.sort((left, right) => {
-      if (sortBy === 'Company A-Z') {
-        return left.company_name.localeCompare(right.company_name)
-      }
-
-      if (sortBy === 'Title A-Z') {
-        return left.title.localeCompare(right.title)
-      }
-
-      if (sortBy === 'Compensation') {
-        return getCompensationScore(right) - getCompensationScore(left)
-      }
-
-      return new Date(right.updated_at).getTime() - new Date(left.updated_at).getTime()
-    })
-  }, [jobs.vacancies, language, location, savedOnly, searchQuery, skill, sortBy, workStyle])
-
-  const totalPages = Math.max(1, Math.ceil(filteredJobs.length / jobsPerPage))
-  const currentPage = Math.min(page, totalPages)
-  const paginatedJobs = useMemo(() => {
-    const startIndex = (currentPage - 1) * jobsPerPage
-    return filteredJobs.slice(startIndex, startIndex + jobsPerPage)
-  }, [currentPage, filteredJobs])
-  const paginationItems = useMemo(
-    () => getPaginationItems(currentPage, totalPages),
-    [currentPage, totalPages]
-  )
-
   function resetFilters() {
     setSearchQuery('')
     setSkill('All Skills')
@@ -284,16 +214,7 @@ function StudentJobsWorkspace({ savedOnly = false }: { savedOnly?: boolean }) {
         method: vacancy.is_bookmarked ? 'DELETE' : 'POST',
         csrfToken,
       })
-
-      setJobs((current) => ({
-        ...current,
-        bookmark_count: vacancy.is_bookmarked ? Math.max(0, current.bookmark_count - 1) : current.bookmark_count + 1,
-        vacancies: current.vacancies.map((currentVacancy) =>
-          currentVacancy.vacancy_id === vacancy.vacancy_id
-            ? { ...currentVacancy, is_bookmarked: !currentVacancy.is_bookmarked }
-            : currentVacancy
-        ),
-      }))
+      await queryClient.invalidateQueries({ queryKey: ['student-jobs'] })
     } finally {
       setBookmarkingVacancyId(null)
     }
@@ -308,14 +229,7 @@ function StudentJobsWorkspace({ savedOnly = false }: { savedOnly?: boolean }) {
         body: { vacancy_id: vacancyId },
         csrfToken,
       })
-      setJobs((current) => ({
-        ...current,
-        vacancies: current.vacancies.map((currentVacancy) =>
-          currentVacancy.vacancy_id === vacancyId
-            ? { ...currentVacancy, has_active_application: true, can_apply: false }
-            : currentVacancy
-        ),
-      }))
+      await queryClient.invalidateQueries({ queryKey: ['student-jobs'] })
     } finally {
       setApplyingVacancyId(null)
     }
@@ -620,14 +534,14 @@ function StudentJobsWorkspace({ savedOnly = false }: { savedOnly?: boolean }) {
 
       <div className="flex items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground">
-          {filteredJobs.length} {savedOnly ? 'saved job' : 'job listing'}
-          {filteredJobs.length === 1 ? '' : 's'}
+          {jobs.result_count} {savedOnly ? 'saved job' : 'job listing'}
+          {jobs.result_count === 1 ? '' : 's'}
         </p>
       </div>
 
-      {filteredJobs.length > 0 ? (
+      {jobs.vacancies.length > 0 ? (
         <div className="space-y-4">
-          {paginatedJobs.map((vacancy) => {
+          {jobs.vacancies.map((vacancy) => {
             const isSaved = vacancy.is_bookmarked
             const hasActiveApplication = vacancy.has_active_application
             const canApply = vacancy.can_apply
@@ -826,7 +740,7 @@ function StudentJobsWorkspace({ savedOnly = false }: { savedOnly?: boolean }) {
         </div>
       )}
 
-      {filteredJobs.length > jobsPerPage ? (
+      {jobs.pagination && jobs.pagination.total_pages > 1 ? (
         <div className="flex items-center justify-center gap-2 pt-2">
           <Button
             type="button"
@@ -834,41 +748,23 @@ function StudentJobsWorkspace({ savedOnly = false }: { savedOnly?: boolean }) {
             size="icon"
             className="h-10 w-10 rounded-xl"
             onClick={() => setPage((current) => Math.max(1, current - 1))}
-            disabled={currentPage === 1}
+            disabled={!jobs.pagination.has_previous}
             aria-label="Previous page"
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
 
-          {paginationItems.map((item, index) =>
-            typeof item === 'number' ? (
-              <button
-                key={item}
-                type="button"
-                onClick={() => setPage(item)}
-                className={cn(
-                  'inline-flex h-10 min-w-10 items-center justify-center rounded-xl border px-3 text-sm font-medium transition',
-                  currentPage === item
-                    ? 'border-primary bg-primary text-primary-foreground'
-                    : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
-                )}
-              >
-                {item}
-              </button>
-            ) : (
-              <span key={`${item}-${index}`} className="px-1 text-sm text-slate-400">
-                ...
-              </span>
-            )
-          )}
+          <span className={cn('inline-flex h-10 items-center justify-center rounded-xl border px-4 text-sm font-medium', 'border-slate-200 bg-white text-slate-700')}>
+            {jobs.pagination.page} / {jobs.pagination.total_pages}
+          </span>
 
           <Button
             type="button"
             variant="outline"
             size="icon"
             className="h-10 w-10 rounded-xl"
-            onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
-            disabled={currentPage === totalPages}
+            onClick={() => setPage((current) => current + 1)}
+            disabled={!jobs.pagination.has_next}
             aria-label="Next page"
           >
             <ChevronRight className="h-4 w-4" />

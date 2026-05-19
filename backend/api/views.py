@@ -41,6 +41,7 @@ from api.message_views import (
     student_message_threads_view,
     student_messages_view,
 )
+from api.pagination import paginate_queryset, parse_pagination_params
 from api.student_profile_views import (
     get_student_availability_profile,
     get_student_profile,
@@ -2075,12 +2076,7 @@ def serialize_company_candidate(access: CandidateReviewAccess) -> dict:
     student_profile = get_student_profile(access.student)
     shortlist_entry = getattr(access, "shortlist_entry", None)
     notes_count = getattr(access, "notes_count", 0)
-    top_skills = list(
-        StudentSkill.objects.filter(student=access.student)
-        .select_related("skill")
-        .order_by("skill__name")
-        .values_list("skill__name", flat=True)[:3]
-    )
+    top_skills = sorted(student_skill.skill.name for student_skill in access.student.student_skills.all())[:3]
 
     return {
         "candidate_access_id": access.id,
@@ -4420,6 +4416,8 @@ def validate_student_jobs_filters(request) -> dict:
     languages = [value.lower() for value in parse_csv_query_values(request.GET.get("languages", ""))]
     locations = parse_csv_query_values(request.GET.get("locations", ""))
     work_styles = [value.lower() for value in parse_csv_query_values(request.GET.get("work_styles", ""))]
+    sort_by = request.GET.get("sort", "").strip().lower() or "newest"
+    bookmarked_only = request.GET.get("bookmarked", "").strip().lower() in {"1", "true", "yes"}
 
     errors = {}
     if skill_slugs:
@@ -4438,6 +4436,10 @@ def validate_student_jobs_filters(request) -> dict:
     if invalid_work_styles:
         errors["work_styles"] = [f"Work style filters must be one of: {', '.join(Vacancy.WorkStyle.values)}."]
 
+    valid_sort_options = {"newest", "company_az", "title_az", "compensation"}
+    if sort_by not in valid_sort_options:
+        errors["sort"] = [f"Sort must be one of: {', '.join(sorted(valid_sort_options))}."]
+
     if errors:
         raise ValidationError(errors)
 
@@ -4447,6 +4449,8 @@ def validate_student_jobs_filters(request) -> dict:
         "languages": languages,
         "locations": locations,
         "work_styles": work_styles,
+        "sort_by": sort_by,
+        "bookmarked_only": bookmarked_only,
     }
 
 
@@ -4473,11 +4477,21 @@ def build_student_jobs_response(user: User, filters: dict) -> dict:
     if filters["work_styles"]:
         filtered_queryset = filtered_queryset.filter(work_style__in=filters["work_styles"])
 
+    if filters["bookmarked_only"]:
+        filtered_queryset = filtered_queryset.filter(bookmarks__student=user)
+
+    filtered_queryset = filtered_queryset.distinct()
+    if filters["sort_by"] == "company_az":
+        filtered_queryset = filtered_queryset.order_by("company__name", "title", "id")
+    elif filters["sort_by"] == "title_az":
+        filtered_queryset = filtered_queryset.order_by("title", "company__name", "id")
+    elif filters["sort_by"] == "compensation":
+        filtered_queryset = filtered_queryset.order_by(F("max_salary").desc(nulls_last=True), F("min_salary").desc(nulls_last=True), "-updated_at", "-id")
+    else:
+        filtered_queryset = filtered_queryset.order_by("-updated_at", "-id")
+
     filtered_vacancies = list(
-        filtered_queryset.distinct()
-        .select_related("company", "created_by")
-        .prefetch_related("skill_requirements__skill", "language_requirements")
-        .order_by("-updated_at", "-id")
+        filtered_queryset.select_related("company", "created_by").prefetch_related("skill_requirements__skill", "language_requirements")
     )
     filtered_vacancy_ids = [vacancy.id for vacancy in filtered_vacancies]
     bookmarked_vacancy_ids = set(
@@ -4528,6 +4542,8 @@ def build_student_jobs_response(user: User, filters: dict) -> dict:
             "locations": filters["locations"],
             "work_styles": filters["work_styles"],
         },
+        "sort": filters["sort_by"],
+        "bookmarked_only": filters["bookmarked_only"],
         "result_count": len(filtered_vacancies),
         "bookmark_count": JobBookmark.objects.filter(student=user).count(),
         "available_skills": [serialize_skill(skill) for skill in available_skills],
@@ -6794,17 +6810,91 @@ def company_candidates_view(request):
     from api.matching_views import queue_company_match_refreshes
 
     queue_company_match_refreshes(company)
-    candidates = list(
+    page, page_size = parse_pagination_params(request)
+    search_query = request.GET.get("q", "").strip()
+    visibility_filter = (request.GET.get("visibility") or "all").strip().lower()
+    sort_by = (request.GET.get("sort") or "recently_updated").strip().lower()
+    profile_visible = Q(student__visibility_settings__share_profile_preview=True)
+    candidates_queryset = (
         CandidateReviewAccess.objects.filter(company=company, is_active=True)
-        .select_related("student", "company", "shortlist_entry", "shortlist_entry__created_by")
-        .annotate(notes_count=Count("notes"))
-        .order_by("-updated_at", "-id")
+        .select_related(
+            "student",
+            "company",
+            "student__student_profile",
+            "student__visibility_settings",
+            "shortlist_entry",
+            "shortlist_entry__created_by",
+        )
+        .prefetch_related("student__student_skills__skill")
+        .annotate(
+            notes_count=Count("notes", distinct=True),
+            skill_count=Count("student__student_skills", distinct=True),
+        )
     )
+
+    if search_query:
+        candidates_queryset = candidates_queryset.filter(
+            Q(source__icontains=search_query)
+            | (
+                profile_visible
+                & (
+                    Q(student__full_name__icontains=search_query)
+                    | Q(student__student_profile__desired_job_type__icontains=search_query)
+                    | Q(student__student_profile__desired_work_location__icontains=search_query)
+                    | Q(student__student_skills__skill__name__icontains=search_query)
+                )
+            )
+        )
+
+    if visibility_filter == "shortlisted":
+        candidates_queryset = candidates_queryset.filter(shortlist_entry__isnull=False)
+    elif visibility_filter == "profile_visible":
+        candidates_queryset = candidates_queryset.filter(student__visibility_settings__share_profile_preview=True)
+    elif visibility_filter == "learning_visible":
+        candidates_queryset = candidates_queryset.filter(student__visibility_settings__share_learning_record=True)
+    elif visibility_filter == "exams_visible":
+        candidates_queryset = candidates_queryset.filter(student__visibility_settings__share_exam_results=True)
+    elif visibility_filter == "fully_visible":
+        candidates_queryset = candidates_queryset.filter(
+            student__visibility_settings__share_profile_preview=True,
+            student__visibility_settings__share_learning_record=True,
+            student__visibility_settings__share_exam_results=True,
+        )
+
+    if sort_by == "candidate_az":
+        candidates_queryset = candidates_queryset.order_by("student__full_name", "id")
+    elif sort_by == "most_skills":
+        candidates_queryset = candidates_queryset.order_by("-skill_count", "-updated_at", "-id")
+    elif sort_by == "most_notes":
+        candidates_queryset = candidates_queryset.order_by("-notes_count", "-updated_at", "-id")
+    else:
+        candidates_queryset = candidates_queryset.order_by("-updated_at", "-id")
+
+    candidates_queryset = candidates_queryset.distinct()
+    summary = candidates_queryset.aggregate(
+        shortlisted=Count("id", filter=Q(shortlist_entry__isnull=False), distinct=True),
+        profile_visible=Count("id", filter=Q(student__visibility_settings__share_profile_preview=True), distinct=True),
+        learning_visible=Count("id", filter=Q(student__visibility_settings__share_learning_record=True), distinct=True),
+        exam_visible=Count("id", filter=Q(student__visibility_settings__share_exam_results=True), distinct=True),
+        fully_visible=Count(
+            "id",
+            filter=Q(
+                student__visibility_settings__share_profile_preview=True,
+                student__visibility_settings__share_learning_record=True,
+                student__visibility_settings__share_exam_results=True,
+            ),
+            distinct=True,
+        ),
+    )
+    page_candidates, pagination = paginate_queryset(candidates_queryset, page=page, page_size=page_size)
+    candidates = list(page_candidates)
     return success_response(
         {
             "company_id": company.id,
-            "candidate_count": len(candidates),
+            "candidate_count": pagination["total_count"],
             "candidates": [serialize_company_candidate(candidate) for candidate in candidates],
+            "pagination": pagination,
+            "summary": summary,
         }
     )
 
@@ -6815,15 +6905,18 @@ def company_shortlist_view(request):
     if company is None:
         raise ValidationError({"company": ["Company context is required for company users."]})
 
-    shortlists = list(
+    page, page_size = parse_pagination_params(request)
+    shortlist_queryset = (
         CandidateShortlist.objects.filter(company=company)
         .select_related("candidate_access", "created_by", "student")
         .order_by("-updated_at", "-id")
     )
+    page_shortlists, pagination = paginate_queryset(shortlist_queryset, page=page, page_size=page_size)
+    shortlists = list(page_shortlists)
     return success_response(
         {
             "company_id": company.id,
-            "shortlist_count": len(shortlists),
+            "shortlist_count": pagination["total_count"],
             "shortlists": [
                 {
                     "candidate_access_id": shortlist.candidate_access_id,
@@ -6835,6 +6928,7 @@ def company_shortlist_view(request):
                 }
                 for shortlist in shortlists
             ],
+            "pagination": pagination,
         }
     )
 
@@ -6888,15 +6982,19 @@ def company_candidate_notes_view(request, candidate_access_id: int):
         raise ValidationError({"company": ["Company context is required for company users."]})
 
     if request.method == "GET":
-        notes = list(
+        page, page_size = parse_pagination_params(request)
+        notes_queryset = (
             CandidateNote.objects.filter(candidate_access=candidate_access)
             .select_related("author")
             .order_by("-created_at", "-id")
         )
+        page_notes, pagination = paginate_queryset(notes_queryset, page=page, page_size=page_size)
+        notes = list(page_notes)
         return success_response(
             {
                 "candidate_access_id": candidate_access.id,
                 "notes": [serialize_candidate_note(note) for note in notes],
+                "pagination": pagination,
             }
         )
 
@@ -6911,15 +7009,19 @@ def company_candidate_notes_view(request, candidate_access_id: int):
     note.full_clean()
     note.save()
 
-    notes = list(
+    page, page_size = parse_pagination_params(request)
+    notes_queryset = (
         CandidateNote.objects.filter(candidate_access=candidate_access)
         .select_related("author")
         .order_by("-created_at", "-id")
     )
+    page_notes, pagination = paginate_queryset(notes_queryset, page=page, page_size=page_size)
+    notes = list(page_notes)
     return success_response(
         {
             "candidate_access_id": candidate_access.id,
             "notes": [serialize_candidate_note(note) for note in notes],
+            "pagination": pagination,
         },
         status=201,
     )
@@ -6930,11 +7032,14 @@ def company_candidate_preview_view(request, candidate_access_id: int):
     candidate_access = get_candidate_review_access(request.user, candidate_access_id)
     visibility = get_visibility_settings(candidate_access.student)
     shortlist_entry = CandidateShortlist.objects.filter(candidate_access=candidate_access).select_related("created_by").first()
-    notes = list(
+    page, page_size = parse_pagination_params(request)
+    notes_queryset = (
         CandidateNote.objects.filter(candidate_access=candidate_access)
         .select_related("author")
         .order_by("-created_at", "-id")
     )
+    page_notes, notes_pagination = paginate_queryset(notes_queryset, page=page, page_size=page_size)
+    notes = list(page_notes)
 
     if not visibility.share_profile_preview:
         return success_response(
@@ -6945,6 +7050,7 @@ def company_candidate_preview_view(request, candidate_access_id: int):
                 "student": None,
                 "shortlist": serialize_candidate_shortlist(shortlist_entry),
                 "notes": [serialize_candidate_note(note) for note in notes],
+                "notes_pagination": notes_pagination,
                 "restrictions": hidden_restrictions("Student profile preview is hidden by privacy settings."),
             }
         )
@@ -6966,6 +7072,7 @@ def company_candidate_preview_view(request, candidate_access_id: int):
             },
             "shortlist": serialize_candidate_shortlist(shortlist_entry),
             "notes": [serialize_candidate_note(note) for note in notes],
+            "notes_pagination": notes_pagination,
             "restrictions": [],
         }
     )
@@ -7047,12 +7154,56 @@ def company_interviews_view(request):
     if company is None:
         raise ValidationError({"company": ["Company context is required for company users."]})
 
-    interviews = list(
+    page, page_size = parse_pagination_params(request)
+    query = request.GET.get("q", "").strip()
+    status = request.GET.get("status", "").strip().lower()
+    sort_by = request.GET.get("sort", "").strip().lower() or "upcoming"
+
+    interviews_queryset = (
         Interview.objects.filter(company=company)
         .select_related("student", "company", "candidate_access", "requested_by")
-        .order_by("-updated_at", "-id")
     )
-    return success_response({"interviews": [serialize_interview(interview) for interview in interviews]})
+
+    if query:
+        interviews_queryset = interviews_queryset.filter(
+            Q(student__full_name__icontains=query)
+            | Q(purpose__icontains=query)
+            | Q(role_context__icontains=query)
+            | Q(status__icontains=query)
+        )
+
+    if status and status != "all":
+        interviews_queryset = interviews_queryset.filter(status=status)
+
+    if sort_by == "candidate_az":
+        interviews_queryset = interviews_queryset.order_by("student__full_name", "-updated_at", "-id")
+    elif sort_by == "status":
+        interviews_queryset = interviews_queryset.order_by("status", "-updated_at", "-id")
+    elif sort_by == "recently_updated":
+        interviews_queryset = interviews_queryset.order_by("-updated_at", "-id")
+    else:
+        interviews_queryset = interviews_queryset.order_by(
+            F("scheduled_start").asc(nulls_last=True),
+            "-updated_at",
+            "-id",
+        )
+
+    summary = interviews_queryset.aggregate(
+        total=Count("id"),
+        upcoming=Count("id", filter=Q(scheduled_start__isnull=False, completed_at__isnull=True, cancelled_at__isnull=True)),
+        awaiting_decision=Count("id", filter=Q(status__in=[Interview.Status.REQUESTED, Interview.Status.RESCHEDULED])),
+        completed=Count("id", filter=Q(status=Interview.Status.COMPLETED)),
+        cancelled=Count("id", filter=Q(status=Interview.Status.CANCELLED)),
+    )
+    page_interviews, pagination = paginate_queryset(interviews_queryset, page=page, page_size=page_size)
+    interviews = list(page_interviews)
+    return success_response(
+        {
+            "interviews": [serialize_interview(interview) for interview in interviews],
+            "pagination": pagination,
+            "summary": summary,
+        }
+    )
 
 
 @api_endpoint(["GET", "POST"], authentication_required=True, roles=[User.Role.COMPANY])

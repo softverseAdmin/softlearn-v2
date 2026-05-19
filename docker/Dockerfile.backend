@@ -3,6 +3,9 @@ FROM python:3.11-slim as builder
 
 WORKDIR /app
 
+ENV VIRTUAL_ENV=/opt/venv \
+    PATH=/opt/venv/bin:$PATH
+
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
@@ -11,7 +14,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Install Python dependencies
 COPY requirements.txt .
-RUN pip install --user --no-cache-dir -r requirements.txt
+RUN python -m venv "$VIRTUAL_ENV" && \
+    pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
 
 # Final stage
 FROM python:3.11-slim
@@ -24,10 +29,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy Python packages from builder
-COPY --from=builder /root/.local /root/.local
+COPY --from=builder /opt/venv /opt/venv
 
 # Set environment variables
-ENV PATH=/root/.local/bin:$PATH \
+ENV VIRTUAL_ENV=/opt/venv \
+    PATH=/opt/venv/bin:$PATH \
     PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     DJANGO_SETTINGS_MODULE=config.settings

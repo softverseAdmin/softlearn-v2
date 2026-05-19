@@ -20,6 +20,10 @@ from users.models import (
 from users.media import file_url_or_none, text_value_or_none
 
 
+def serialize_record_skill_ids(record) -> list[int]:
+    return sorted(skill.id for skill in record.skills.all())
+
+
 def get_student_profile(user: User) -> StudentProfile:
     profile, _ = StudentProfile.objects.get_or_create(user=user)
     return profile
@@ -41,7 +45,7 @@ def serialize_student_education(record: StudentEducation) -> dict:
         "grade": record.grade,
         "activities": record.activities,
         "description": record.description,
-        "skill_ids": list(record.skills.order_by("id").values_list("id", flat=True)),
+        "skill_ids": serialize_record_skill_ids(record),
     }
 
 
@@ -55,7 +59,7 @@ def serialize_student_experience(record: StudentExperience) -> dict:
         "end_date": record.end_date.isoformat() if record.end_date else None,
         "is_current": record.is_current,
         "summary": record.summary,
-        "skill_ids": list(record.skills.order_by("id").values_list("id", flat=True)),
+        "skill_ids": serialize_record_skill_ids(record),
     }
 
 
@@ -69,7 +73,7 @@ def serialize_student_certificate(record: StudentCertificate) -> dict:
         "credential_id": record.credential_id,
         "credential_url": record.credential_url,
         "description": record.description,
-        "skill_ids": list(record.skills.order_by("id").values_list("id", flat=True)),
+        "skill_ids": serialize_record_skill_ids(record),
     }
 
 

@@ -10,9 +10,10 @@
 6. [Docker Deployment](#docker-deployment)
 7. [Database Migrations](#database-migrations)
 8. [Production Deployment](#production-deployment)
-9. [Monitoring & Logging](#monitoring--logging)
-10. [Troubleshooting](#troubleshooting)
-11. [Rollback Procedure](#rollback-procedure)
+9. [Hetzner VPS Deployment](#hetzner-vps-deployment)
+10. [Monitoring & Logging](#monitoring--logging)
+11. [Troubleshooting](#troubleshooting)
+12. [Rollback Procedure](#rollback-procedure)
 
 ## Environment Setup
 
@@ -246,6 +247,156 @@ VERCEL_DEPLOY_HOOK_URL
 ```
 
 The workflow remains `workflow_dispatch`-driven so production rollout stays explicit.
+
+### Hetzner VPS deployment
+
+The repo now includes a **Hetzner-specific image rollout path** that keeps the current production container topology:
+
+- `docker/docker-compose.hetzner.yml` - image-based runtime compose for the VPS
+- `docker/nginx/softlearn.hetzner.conf` - system nginx site template for the VPS
+- `.github/workflows/deploy-hetzner.yml` - GHCR publish + SSH deploy workflow
+
+This is the intended Hetzner shape:
+
+```text
+Internet
+  -> Cloudflare (optional but recommended)
+  -> Hetzner VPS system nginx
+  -> frontend container on 127.0.0.1:8080
+  -> backend container on internal Docker network
+  -> postgres + redis + worker on internal Docker network
+```
+
+#### What to create in the Hetzner dashboard
+
+Create these resources:
+
+1. **One Cloud server**
+   - Location: `Singapore`
+   - Image: `Ubuntu 24.04`
+   - Type: `CX22` minimum
+   - Public IPv4: enabled
+   - SSH key: add the Mac SSH public key you will use for deployment
+2. **One firewall**
+   - Inbound TCP `22` from your admin IPs only
+   - Inbound TCP `80` from `0.0.0.0/0` and `::/0`
+   - Inbound TCP `443` from `0.0.0.0/0` and `::/0`
+   - No public `5432`, `6379`, `8000`, or `8080`
+3. **Reverse DNS / hostname**
+   - Set a hostname such as `app.yourdomain.com`
+4. **Optional volume/backups**
+   - Recommended once the environment matters beyond testing
+
+You do **not** need a Hetzner load balancer for a single-VPS rollout.
+
+#### Initial server bootstrap
+
+```bash
+ssh root@YOUR_SERVER_IP
+apt update && apt upgrade -y
+apt install -y ca-certificates curl gnupg lsb-release git nginx certbot python3-certbot-nginx
+
+mkdir -p /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" \
+  | tee /etc/apt/sources.list.d/docker.list > /dev/null
+apt update
+apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+mkdir -p /apps/softlearn/docker
+```
+
+Copy the nginx template into place:
+
+```bash
+cp /apps/softlearn/docker/nginx/softlearn.hetzner.conf /etc/nginx/sites-available/softlearn
+ln -sf /etc/nginx/sites-available/softlearn /etc/nginx/sites-enabled/softlearn
+nginx -t
+systemctl reload nginx
+```
+
+If you are bootstrapping from this repository checkout instead of the workflow upload, the source template lives at `docker/nginx/softlearn.hetzner.conf`.
+
+#### VPS environment file
+
+Create `/apps/softlearn/.env` from `.env.example` and set production values. For Hetzner, the important differences are:
+
+```env
+ENVIRONMENT=production
+DJANGO_ALLOWED_HOSTS=yourdomain.com,www.yourdomain.com
+DJANGO_CORS_ALLOWED_ORIGINS=https://yourdomain.com,https://www.yourdomain.com
+DJANGO_CSRF_TRUSTED_ORIGINS=https://yourdomain.com,https://www.yourdomain.com
+DJANGO_SESSION_COOKIE_SECURE=true
+DJANGO_CSRF_COOKIE_SECURE=true
+DJANGO_SESSION_COOKIE_SAMESITE=Lax
+DJANGO_CSRF_COOKIE_SAMESITE=Lax
+DJANGO_ENABLE_REDIS_CACHE=true
+DJANGO_ENABLE_RATE_LIMITING=true
+DJANGO_TRUSTED_PROXY_IPS=127.0.0.1,172.16.0.0/12
+POSTGRES_DB=softlearn
+POSTGRES_USER=softlearn
+POSTGRES_PASSWORD=replace-this
+FRONTEND_URL=https://yourdomain.com
+DJANGO_EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
+REDIS_URL=redis://redis:6379/1
+CELERY_BROKER_URL=redis://redis:6379/2
+CELERY_RESULT_BACKEND=redis://redis:6379/2
+MATCHING_ASYNC_REFRESH_ENABLED=true
+```
+
+`DJANGO_TRUSTED_PROXY_IPS` now supports both exact IPs and CIDR ranges. That matters on Hetzner because backend traffic reaches Django through Docker/Nginx proxy layers, so trusting only one static IP is too brittle.
+
+#### GitHub configuration for automated Hetzner deploys
+
+Create these **GitHub environment secrets** on the target environment (`staging` or `production`) before using `.github/workflows/deploy-hetzner.yml`:
+
+```text
+HETZNER_HOST
+HETZNER_USER
+HETZNER_PORT
+HETZNER_SSH_PRIVATE_KEY
+GHCR_USERNAME
+GHCR_READ_TOKEN
+```
+
+Recommended values:
+
+- `HETZNER_HOST`: VPS public IP or deploy hostname
+- `HETZNER_USER`: `root` or your deploy user
+- `HETZNER_PORT`: `22`
+- `HETZNER_SSH_PRIVATE_KEY`: private key matching the public key installed on the VPS
+- `GHCR_USERNAME`: GitHub username that owns the package-read token
+- `GHCR_READ_TOKEN`: PAT with at least `read:packages`
+
+The workflow will:
+
+1. build and push backend/frontend images to GHCR
+2. upload `docker/docker-compose.hetzner.yml` to `/apps/softlearn/docker/`
+3. pull the new images on the VPS
+4. run the release container for migrations
+5. start backend, worker, and frontend containers
+6. verify `http://127.0.0.1:8080/healthz` and `http://127.0.0.1:8080/api/v1/ready`
+
+#### First manual rollout on the VPS
+
+After the workflow secrets and `/apps/softlearn/.env` exist, you can either run the GitHub workflow or do the first rollout manually:
+
+```bash
+cd /apps/softlearn
+export BACKEND_IMAGE=ghcr.io/OWNER/REPO/hetzner/production-backend:YOUR_SHA
+export FRONTEND_IMAGE=ghcr.io/OWNER/REPO/hetzner/production-frontend:YOUR_SHA
+
+docker compose -f docker/docker-compose.hetzner.yml pull
+docker compose -f docker/docker-compose.hetzner.yml up -d postgres redis
+docker compose -f docker/docker-compose.hetzner.yml --profile release run --rm backend-release
+docker compose -f docker/docker-compose.hetzner.yml up -d backend worker frontend
+```
+
+Then enable TLS:
+
+```bash
+certbot --nginx -d yourdomain.com -d www.yourdomain.com
+```
 
 ### Security Configuration
 

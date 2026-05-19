@@ -45,8 +45,6 @@ export function CompanyMessagesPage() {
   const { setUnreadMessageCount } = useWorkspaceState()
   const queryClient = useQueryClient()
   const [searchParams, setSearchParams] = useSearchParams()
-  const [threads, setThreads] = useState<ConversationThread[]>([])
-  const [composeContacts, setComposeContacts] = useState<ComposeContact[]>([])
   const [activeThreadId, setActiveThreadId] = useState<number | null>(null)
   const [searchQuery, setSearchQuery] = useWorkspaceSearchQuery()
   const [activeFilter, setActiveFilter] = useState<MessageFilter>('all')
@@ -70,6 +68,7 @@ export function CompanyMessagesPage() {
   const [threadPendingDeletion, setThreadPendingDeletion] = useState<ConversationThread | null>(null)
   const [deletingThreadId, setDeletingThreadId] = useState<number | null>(null)
   const inboxQuery = useQuery(companyMessageInboxQueryOptions())
+  const threads = useMemo(() => [...(inboxQuery.data?.threads ?? [])].sort(sortThreads), [inboxQuery.data?.threads])
   const filteredThreads = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase()
 
@@ -104,14 +103,6 @@ export function CompanyMessagesPage() {
     const value = Number(searchParams.get('thread'))
     return Number.isInteger(value) && value > 0 ? value : null
   }, [searchParams])
-
-  useEffect(() => {
-    if (!inboxQuery.data) {
-      return
-    }
-
-    setThreads([...inboxQuery.data.threads].sort(sortThreads))
-  }, [inboxQuery.data])
 
   useEffect(() => {
     if (!inboxQuery.error) {
@@ -169,6 +160,7 @@ export function CompanyMessagesPage() {
     ...companyComposeContactsQueryOptions(recipientQuery.trim()),
     enabled: isComposeDialogOpen,
   })
+  const composeContacts = useMemo(() => composeContactsQuery.data ?? [], [composeContactsQuery.data])
   const loading = inboxQuery.isLoading
   const loadingComposeContacts = composeContactsQuery.isFetching
   const loadingActiveThreadId = activeThreadQuery.isFetching && activeThreadId !== null ? activeThreadId : null
@@ -185,12 +177,8 @@ export function CompanyMessagesPage() {
   }, [queryClient])
 
   const commitThreads = useCallback((updater: (currentThreads: ConversationThread[]) => ConversationThread[]) => {
-    setThreads((currentThreads) => {
-      const nextThreads = updater(currentThreads)
-      setCachedThreads(nextThreads)
-      return nextThreads
-    })
-  }, [setCachedThreads])
+    setCachedThreads(updater(threads))
+  }, [setCachedThreads, threads])
 
   const mergeThread = useCallback((nextThread: ConversationThread) => {
     queryClient.setQueryData(companyMessageQueryKeys.thread(nextThread.id), nextThread)
@@ -230,14 +218,6 @@ export function CompanyMessagesPage() {
   useEffect(() => {
     setUnreadMessageCount(inboxSummary.unread)
   }, [inboxSummary.unread, setUnreadMessageCount])
-
-  useEffect(() => {
-    if (!composeContactsQuery.data) {
-      return
-    }
-
-    setComposeContacts(composeContactsQuery.data)
-  }, [composeContactsQuery.data])
 
   useEffect(() => {
     if (!composeContactsQuery.error) {
@@ -448,6 +428,7 @@ export function CompanyMessagesPage() {
       setIsMobileThreadDialogOpen(false)
       setDraftMessage('')
       setThreadPendingDeletion(null)
+      await queryClient.invalidateQueries({ queryKey: companyMessageQueryKeys.inbox })
     } catch (deleteError) {
       setError(getMessageError(deleteError))
     } finally {
