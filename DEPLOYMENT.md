@@ -182,7 +182,7 @@ DJANGO_PERSIST_REQUEST_LOGS=false
 
 If your frontend is hosted on Vercel and the backend is hosted on Render, set the Gemini variables on **Render only**. Vercel only needs the backend API base URL such as `VITE_API_BASE_URL=https://your-render-service.onrender.com/api/v1`.
 
-For Vercel frontend + Render backend deployments, the frontend now prefers JWT bearer tokens so auth does not depend on third-party cookies. Render should still have:
+For Django session auth and CSRF to work across Vercel and Render, also make sure Render has:
 
 ```env
  ENVIRONMENT=production
@@ -197,7 +197,7 @@ For Vercel frontend + Render backend deployments, the frontend now prefers JWT b
 DJANGO_CSRF_COOKIE_SAMESITE=None
 ```
 
-The backend keeps Django sessions and CSRF for local or same-site usage, but also accepts bearer tokens for API authentication. Cross-site frontend deployments should point Vercel at `https://your-render-service.onrender.com/api/v1` and let the frontend use the returned access and refresh tokens.
+The backend now defaults to secure cross-site cookies only in production and trusts the proxy HTTPS headers Render sends, while local development keeps localhost-friendly defaults.
 
 Render builds may run `collectstatic` before a Redis service is attached. The backend now tolerates that and falls back to local-memory cache unless `DJANGO_ENABLE_REDIS_CACHE=true` is explicitly set with a working `REDIS_URL`. For real production traffic, Redis is still the recommended cache backend.
 

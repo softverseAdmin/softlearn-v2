@@ -39177,3 +39177,940 @@ django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'testserver'. Y
 [INFO] 2026-05-18 23:59:23,968 logging 5817 8428543616 GET /api/v1/notifications
 [WARNING] 2026-05-18 23:59:23,969 log 5817 8428543616 Unauthorized: /api/v1/notifications
 [INFO] 2026-05-18 23:59:24,118 logging 5817 8428543616 PUT /api/v1/notification-preferences/update
+[WARNING] 2026-05-19 00:05:09,744 log 5771 6201913344 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:09,744 log 5771 6269218816 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:09,744 log 5771 6286045184 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:09,745 log 5771 6235566080 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:09,745 log 5771 6218739712 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:09,745 log 5771 6252392448 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:09,746 logging 5771 6201913344 POST /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:09,746 logging 5771 6269218816 POST /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:09,746 logging 5771 6286045184 POST /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:09,746 logging 5771 6235566080 POST /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:09,746 logging 5771 6218739712 POST /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:09,746 logging 5771 6252392448 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:09,747 basehttp 5771 6201913344 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:09,747 basehttp 5771 6269218816 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:09,747 basehttp 5771 6235566080 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:09,747 basehttp 5771 6218739712 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:09,748 basehttp 5771 6286045184 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:09,748 basehttp 5771 6252392448 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:09,769 log 5771 6319697920 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:09,769 logging 5771 6319697920 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:09,770 log 5771 6302871552 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:09,770 log 5771 6353350656 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:09,770 basehttp 5771 6319697920 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:09,770 log 5771 6235566080 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:09,771 log 5771 6336524288 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:09,771 logging 5771 6302871552 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:09,771 log 5771 6269218816 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:09,771 logging 5771 6353350656 POST /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:09,771 logging 5771 6235566080 POST /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:09,771 logging 5771 6336524288 POST /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:09,772 logging 5771 6269218816 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:09,772 basehttp 5771 6302871552 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:09,773 basehttp 5771 6235566080 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:09,773 basehttp 5771 6353350656 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:09,773 basehttp 5771 6269218816 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:09,773 basehttp 5771 6336524288 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:09,775 log 5771 6201913344 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:09,776 logging 5771 6201913344 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:09,777 basehttp 5771 6201913344 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:09,779 log 5771 6218739712 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:09,779 logging 5771 6218739712 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:09,780 basehttp 5771 6218739712 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:09,781 log 5771 6252392448 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:09,781 logging 5771 6252392448 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:09,781 basehttp 5771 6252392448 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:09,788 log 5771 6286045184 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:09,788 logging 5771 6286045184 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:09,788 basehttp 5771 6286045184 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:09,790 log 5771 6302871552 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:09,790 logging 5771 6302871552 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:09,790 basehttp 5771 6302871552 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:09,792 log 5771 6319697920 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:09,792 logging 5771 6319697920 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:09,792 log 5771 6235566080 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:09,792 logging 5771 6235566080 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:09,793 basehttp 5771 6319697920 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:09,793 basehttp 5771 6235566080 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:09,794 log 5771 6201913344 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:09,794 logging 5771 6201913344 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:09,794 basehttp 5771 6201913344 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:09,797 log 5771 6218739712 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:09,797 logging 5771 6218739712 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:09,797 basehttp 5771 6218739712 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:09,798 log 5771 6252392448 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:09,798 logging 5771 6252392448 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:09,799 basehttp 5771 6252392448 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:09,800 log 5771 6269218816 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:09,801 logging 5771 6269218816 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:09,802 log 5771 6286045184 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:09,802 logging 5771 6286045184 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:09,802 basehttp 5771 6269218816 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:09,803 basehttp 5771 6286045184 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:09,805 log 5771 6201913344 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:09,805 logging 5771 6201913344 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:09,805 log 5771 6218739712 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:09,806 logging 5771 6218739712 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:09,806 basehttp 5771 6218739712 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:09,806 basehttp 5771 6201913344 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:09,808 log 5771 6252392448 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:09,808 logging 5771 6252392448 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:09,808 basehttp 5771 6252392448 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:09,808 log 5771 6235566080 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:09,809 logging 5771 6235566080 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:09,809 basehttp 5771 6235566080 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:09,819 log 5771 6218739712 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:09,819 logging 5771 6218739712 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:09,819 basehttp 5771 6218739712 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:09,823 log 5771 6235566080 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:09,823 logging 5771 6235566080 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:09,824 basehttp 5771 6235566080 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:09,824 log 5771 6201913344 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:09,824 logging 5771 6201913344 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:09,824 basehttp 5771 6201913344 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:09,824 log 5771 6252392448 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:09,824 logging 5771 6252392448 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:09,825 basehttp 5771 6252392448 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:09,842 log 5771 6252392448 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:09,842 logging 5771 6252392448 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:09,842 log 5771 6235566080 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:09,842 logging 5771 6235566080 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:09,843 basehttp 5771 6252392448 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:09,843 basehttp 5771 6235566080 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:09,843 log 5771 6218739712 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:09,843 log 5771 6201913344 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:09,844 logging 5771 6218739712 POST /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:09,844 logging 5771 6201913344 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:09,844 basehttp 5771 6218739712 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:09,844 basehttp 5771 6201913344 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:09,861 log 5771 6201913344 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:09,861 log 5771 6218739712 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:09,861 logging 5771 6201913344 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:09,861 log 5771 6235566080 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:09,861 logging 5771 6218739712 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:09,862 log 5771 6252392448 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:09,862 logging 5771 6235566080 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:09,862 basehttp 5771 6201913344 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:09,862 basehttp 5771 6218739712 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[INFO] 2026-05-19 00:05:09,862 logging 5771 6252392448 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:09,862 basehttp 5771 6235566080 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:09,863 basehttp 5771 6252392448 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[INFO] 2026-05-19 00:05:12,753 logging 5771 6201913344 GET /api/v1/auth/session
+[INFO] 2026-05-19 00:05:12,754 basehttp 5771 6201913344 "GET /api/v1/auth/session HTTP/1.1" 200 266
+[INFO] 2026-05-19 00:05:12,758 logging 5771 6201913344 GET /api/v1/auth/session
+[INFO] 2026-05-19 00:05:12,758 basehttp 5771 6201913344 "GET /api/v1/auth/session HTTP/1.1" 200 266
+[INFO] 2026-05-19 00:05:12,777 logging 5771 6201913344 GET /api/v1/notifications
+[INFO] 2026-05-19 00:05:12,778 basehttp 5771 6201913344 "GET /api/v1/notifications HTTP/1.1" 200 4608
+[INFO] 2026-05-19 00:05:12,792 logging 5771 6269218816 GET /api/v1/notifications
+[INFO] 2026-05-19 00:05:12,793 basehttp 5771 6269218816 "GET /api/v1/notifications HTTP/1.1" 200 4608
+[INFO] 2026-05-19 00:05:12,796 logging 5771 6218739712 GET /api/v1/student/messages
+[INFO] 2026-05-19 00:05:12,797 logging 5771 6252392448 GET /api/v1/student/profile
+[INFO] 2026-05-19 00:05:12,798 basehttp 5771 6252392448 "GET /api/v1/student/profile HTTP/1.1" 200 187299
+[INFO] 2026-05-19 00:05:12,798 basehttp 5771 6218739712 "GET /api/v1/student/messages HTTP/1.1" 200 859944
+[INFO] 2026-05-19 00:05:12,819 logging 5771 6201913344 GET /api/v1/student/profile
+[INFO] 2026-05-19 00:05:12,822 basehttp 5771 6201913344 "GET /api/v1/student/profile HTTP/1.1" 200 187299
+[INFO] 2026-05-19 00:05:12,824 logging 5771 6218739712 GET /api/v1/student/messages
+[INFO] 2026-05-19 00:05:12,826 basehttp 5771 6218739712 "GET /api/v1/student/messages HTTP/1.1" 200 859944
+[INFO] 2026-05-19 00:05:12,851 logging 5771 6252392448 GET /api/v1/student/dashboard-data
+[INFO] 2026-05-19 00:05:12,852 basehttp 5771 6252392448 "GET /api/v1/student/dashboard-data HTTP/1.1" 200 687
+[INFO] 2026-05-19 00:05:12,854 logging 5771 6302871552 GET /api/v1/student/messages
+[INFO] 2026-05-19 00:05:12,857 basehttp 5771 6302871552 "GET /api/v1/student/messages HTTP/1.1" 200 859944
+[INFO] 2026-05-19 00:05:12,881 logging 5771 6218739712 GET /api/v1/student/messages
+[INFO] 2026-05-19 00:05:12,883 basehttp 5771 6218739712 "GET /api/v1/student/messages HTTP/1.1" 200 859944
+[INFO] 2026-05-19 00:05:12,895 logging 5771 6201913344 GET /api/v1/student/dashboard-data
+[INFO] 2026-05-19 00:05:12,897 basehttp 5771 6201913344 "GET /api/v1/student/dashboard-data HTTP/1.1" 200 687
+[INFO] 2026-05-19 00:05:12,993 logging 5771 6269218816 GET /api/v1/student/dashboard
+[INFO] 2026-05-19 00:05:12,993 basehttp 5771 6269218816 "GET /api/v1/student/dashboard HTTP/1.1" 200 2115
+[WARNING] 2026-05-19 00:05:13,000 log 5771 6218739712 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:13,000 logging 5771 6218739712 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:13,001 basehttp 5771 6218739712 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:13,006 log 5771 6252392448 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:13,006 logging 5771 6252392448 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:13,007 basehttp 5771 6252392448 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:13,011 log 5771 6218739712 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:13,011 logging 5771 6218739712 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:13,012 basehttp 5771 6218739712 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:13,017 log 5771 6252392448 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:13,017 logging 5771 6252392448 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:13,017 basehttp 5771 6252392448 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:13,022 log 5771 6218739712 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:13,022 logging 5771 6218739712 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:13,023 basehttp 5771 6218739712 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:13,026 log 5771 6252392448 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:13,026 logging 5771 6252392448 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:13,027 basehttp 5771 6252392448 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:13,031 log 5771 6218739712 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:13,032 logging 5771 6218739712 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:13,033 basehttp 5771 6218739712 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:13,038 log 5771 6252392448 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:13,038 logging 5771 6252392448 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:13,039 basehttp 5771 6252392448 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[INFO] 2026-05-19 00:05:13,040 logging 5771 6235566080 GET /api/v1/student/matches
+[INFO] 2026-05-19 00:05:13,041 basehttp 5771 6235566080 "GET /api/v1/student/matches HTTP/1.1" 200 23156
+[WARNING] 2026-05-19 00:05:13,044 log 5771 6218739712 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:13,044 logging 5771 6218739712 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:13,045 basehttp 5771 6218739712 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:13,048 log 5771 6269218816 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:13,048 logging 5771 6269218816 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:13,049 basehttp 5771 6269218816 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:13,050 log 5771 6302871552 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:13,051 logging 5771 6302871552 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:13,051 basehttp 5771 6302871552 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:13,055 log 5771 6218739712 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:13,055 logging 5771 6218739712 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:13,055 basehttp 5771 6218739712 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:13,057 log 5771 6235566080 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:13,057 logging 5771 6235566080 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:13,058 basehttp 5771 6235566080 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:13,060 log 5771 6269218816 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:13,060 logging 5771 6269218816 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:13,061 basehttp 5771 6269218816 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:13,063 log 5771 6218739712 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:13,063 logging 5771 6218739712 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:13,064 basehttp 5771 6218739712 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:13,065 log 5771 6235566080 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:13,066 logging 5771 6235566080 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:13,066 basehttp 5771 6235566080 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[INFO] 2026-05-19 00:05:13,070 logging 5771 6286045184 GET /api/v1/student/courses
+[WARNING] 2026-05-19 00:05:13,071 log 5771 6269218816 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:13,071 logging 5771 6269218816 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:13,071 basehttp 5771 6269218816 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[INFO] 2026-05-19 00:05:13,073 basehttp 5771 6286045184 "GET /api/v1/student/courses HTTP/1.1" 200 2633411
+[WARNING] 2026-05-19 00:05:13,075 log 5771 6218739712 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:13,075 logging 5771 6218739712 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:13,076 basehttp 5771 6218739712 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:13,080 log 5771 6302871552 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:13,080 logging 5771 6302871552 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:13,082 log 5771 6319697920 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:13,082 logging 5771 6319697920 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:13,082 basehttp 5771 6302871552 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:13,082 basehttp 5771 6319697920 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[INFO] 2026-05-19 00:05:13,138 logging 5771 6201913344 GET /api/v1/student/dashboard
+[INFO] 2026-05-19 00:05:13,139 basehttp 5771 6201913344 "GET /api/v1/student/dashboard HTTP/1.1" 200 2115
+[INFO] 2026-05-19 00:05:13,203 logging 5771 6235566080 GET /api/v1/student/courses
+[INFO] 2026-05-19 00:05:13,205 basehttp 5771 6235566080 "GET /api/v1/student/courses HTTP/1.1" 200 2633411
+[INFO] 2026-05-19 00:05:13,206 logging 5771 6252392448 GET /api/v1/student/matches
+[INFO] 2026-05-19 00:05:13,206 basehttp 5771 6252392448 "GET /api/v1/student/matches HTTP/1.1" 200 23156
+[WARNING] 2026-05-19 00:05:13,255 log 5771 6218739712 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:13,256 log 5771 6201913344 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:13,256 logging 5771 6218739712 POST /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:13,256 logging 5771 6201913344 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:13,256 basehttp 5771 6201913344 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:13,256 basehttp 5771 6218739712 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:13,279 log 5771 6201913344 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:13,280 log 5771 6218739712 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:13,280 logging 5771 6201913344 POST /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:13,280 logging 5771 6218739712 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:13,280 basehttp 5771 6201913344 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:13,280 basehttp 5771 6218739712 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[INFO] 2026-05-19 00:05:15,389 logging 5771 6201913344 POST /api/v1/auth/logout
+[INFO] 2026-05-19 00:05:15,389 basehttp 5771 6201913344 "POST /api/v1/auth/logout HTTP/1.1" 200 49
+[INFO] 2026-05-19 00:05:15,397 logging 5771 6201913344 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:05:15,398 basehttp 5771 6201913344 "GET /api/v1/auth/csrf HTTP/1.1" 200 92
+[INFO] 2026-05-19 00:05:17,464 logging 5771 6201913344 POST /api/v1/auth/login
+[INFO] 2026-05-19 00:05:17,464 basehttp 5771 6201913344 "POST /api/v1/auth/login HTTP/1.1" 200 705
+[INFO] 2026-05-19 00:05:17,500 logging 5771 6252392448 GET /api/v1/notifications
+[INFO] 2026-05-19 00:05:17,501 basehttp 5771 6252392448 "GET /api/v1/notifications HTTP/1.1" 200 4608
+[INFO] 2026-05-19 00:05:17,506 logging 5771 6269218816 GET /api/v1/student/messages
+[INFO] 2026-05-19 00:05:17,507 basehttp 5771 6269218816 "GET /api/v1/student/messages HTTP/1.1" 200 859944
+[INFO] 2026-05-19 00:05:17,517 logging 5771 6201913344 GET /api/v1/student/dashboard-data
+[INFO] 2026-05-19 00:05:17,517 basehttp 5771 6201913344 "GET /api/v1/student/dashboard-data HTTP/1.1" 200 687
+[INFO] 2026-05-19 00:05:17,518 logging 5771 6302871552 GET /api/v1/student/profile
+[INFO] 2026-05-19 00:05:17,519 basehttp 5771 6302871552 "GET /api/v1/student/profile HTTP/1.1" 200 187299
+[INFO] 2026-05-19 00:05:17,526 logging 5771 6252392448 GET /api/v1/student/messages
+[INFO] 2026-05-19 00:05:17,527 basehttp 5771 6252392448 "GET /api/v1/student/messages HTTP/1.1" 200 859944
+[INFO] 2026-05-19 00:05:17,539 logging 5771 6269218816 GET /api/v1/student/dashboard-data
+[INFO] 2026-05-19 00:05:17,540 basehttp 5771 6269218816 "GET /api/v1/student/dashboard-data HTTP/1.1" 200 687
+[INFO] 2026-05-19 00:05:17,630 logging 5771 6218739712 GET /api/v1/student/dashboard
+[INFO] 2026-05-19 00:05:17,630 basehttp 5771 6218739712 "GET /api/v1/student/dashboard HTTP/1.1" 200 2115
+[INFO] 2026-05-19 00:05:17,661 logging 5771 6235566080 GET /api/v1/student/courses
+[INFO] 2026-05-19 00:05:17,662 basehttp 5771 6235566080 "GET /api/v1/student/courses HTTP/1.1" 200 2633411
+[INFO] 2026-05-19 00:05:17,680 logging 5771 6286045184 GET /api/v1/student/matches
+[INFO] 2026-05-19 00:05:17,680 basehttp 5771 6286045184 "GET /api/v1/student/matches HTTP/1.1" 200 23156
+[INFO] 2026-05-19 00:05:17,732 logging 5771 6201913344 GET /api/v1/student/dashboard
+[INFO] 2026-05-19 00:05:17,733 basehttp 5771 6201913344 "GET /api/v1/student/dashboard HTTP/1.1" 200 2115
+[INFO] 2026-05-19 00:05:17,756 logging 5771 6218739712 GET /api/v1/student/courses
+[INFO] 2026-05-19 00:05:17,757 basehttp 5771 6218739712 "GET /api/v1/student/courses HTTP/1.1" 200 2633411
+[INFO] 2026-05-19 00:05:21,541 logging 5771 6201913344 GET /api/v1/auth/session
+[INFO] 2026-05-19 00:05:21,541 basehttp 5771 6201913344 "GET /api/v1/auth/session HTTP/1.1" 200 266
+[INFO] 2026-05-19 00:05:21,545 logging 5771 6201913344 GET /api/v1/auth/session
+[INFO] 2026-05-19 00:05:21,545 basehttp 5771 6201913344 "GET /api/v1/auth/session HTTP/1.1" 200 266
+[INFO] 2026-05-19 00:05:21,560 logging 5771 6201913344 GET /api/v1/notifications
+[INFO] 2026-05-19 00:05:21,560 basehttp 5771 6201913344 "GET /api/v1/notifications HTTP/1.1" 200 4608
+[INFO] 2026-05-19 00:05:21,569 logging 5771 6269218816 GET /api/v1/notifications
+[INFO] 2026-05-19 00:05:21,570 basehttp 5771 6269218816 "GET /api/v1/notifications HTTP/1.1" 200 4608
+[INFO] 2026-05-19 00:05:21,573 logging 5771 6218739712 GET /api/v1/student/messages
+[INFO] 2026-05-19 00:05:21,577 basehttp 5771 6218739712 "GET /api/v1/student/messages HTTP/1.1" 200 859944
+[INFO] 2026-05-19 00:05:21,586 logging 5771 6252392448 GET /api/v1/student/profile
+[INFO] 2026-05-19 00:05:21,588 basehttp 5771 6252392448 "GET /api/v1/student/profile HTTP/1.1" 200 187299
+[INFO] 2026-05-19 00:05:21,597 logging 5771 6302871552 GET /api/v1/student/messages
+[INFO] 2026-05-19 00:05:21,600 basehttp 5771 6302871552 "GET /api/v1/student/messages HTTP/1.1" 200 859944
+[INFO] 2026-05-19 00:05:21,614 logging 5771 6201913344 GET /api/v1/student/dashboard-data
+[INFO] 2026-05-19 00:05:21,616 basehttp 5771 6201913344 "GET /api/v1/student/dashboard-data HTTP/1.1" 200 687
+[INFO] 2026-05-19 00:05:21,627 logging 5771 6218739712 GET /api/v1/student/profile
+[INFO] 2026-05-19 00:05:21,629 basehttp 5771 6218739712 "GET /api/v1/student/profile HTTP/1.1" 200 187299
+[INFO] 2026-05-19 00:05:21,632 logging 5771 6252392448 GET /api/v1/student/messages
+[INFO] 2026-05-19 00:05:21,634 basehttp 5771 6252392448 "GET /api/v1/student/messages HTTP/1.1" 200 859944
+[INFO] 2026-05-19 00:05:21,655 logging 5771 6201913344 GET /api/v1/student/messages
+[INFO] 2026-05-19 00:05:21,655 logging 5771 6302871552 GET /api/v1/student/dashboard-data
+[INFO] 2026-05-19 00:05:21,656 basehttp 5771 6302871552 "GET /api/v1/student/dashboard-data HTTP/1.1" 200 687
+[INFO] 2026-05-19 00:05:21,656 basehttp 5771 6201913344 "GET /api/v1/student/messages HTTP/1.1" 200 859944
+[INFO] 2026-05-19 00:05:21,754 logging 5771 6269218816 GET /api/v1/student/dashboard
+[INFO] 2026-05-19 00:05:21,756 basehttp 5771 6269218816 "GET /api/v1/student/dashboard HTTP/1.1" 200 2115
+[WARNING] 2026-05-19 00:05:21,761 log 5771 6218739712 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:21,761 logging 5771 6218739712 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:21,762 basehttp 5771 6218739712 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:21,770 log 5771 6252392448 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:21,771 logging 5771 6252392448 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:21,772 basehttp 5771 6252392448 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:21,779 log 5771 6218739712 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:21,780 logging 5771 6218739712 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:21,781 basehttp 5771 6218739712 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:21,784 log 5771 6252392448 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:21,785 logging 5771 6252392448 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:21,787 basehttp 5771 6252392448 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:21,791 log 5771 6218739712 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:21,793 logging 5771 6218739712 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:21,794 basehttp 5771 6218739712 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[INFO] 2026-05-19 00:05:21,797 logging 5771 6286045184 GET /api/v1/student/courses
+[INFO] 2026-05-19 00:05:21,800 basehttp 5771 6286045184 "GET /api/v1/student/courses HTTP/1.1" 200 2633411
+[WARNING] 2026-05-19 00:05:21,805 log 5771 6252392448 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:21,805 logging 5771 6252392448 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:21,806 basehttp 5771 6252392448 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:21,807 log 5771 6269218816 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:21,807 logging 5771 6269218816 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:21,808 basehttp 5771 6269218816 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[INFO] 2026-05-19 00:05:21,810 logging 5771 6235566080 GET /api/v1/student/matches
+[INFO] 2026-05-19 00:05:21,811 basehttp 5771 6235566080 "GET /api/v1/student/matches HTTP/1.1" 200 23156
+[WARNING] 2026-05-19 00:05:21,813 log 5771 6286045184 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:21,813 logging 5771 6286045184 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:21,815 basehttp 5771 6286045184 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:21,815 log 5771 6252392448 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:21,816 logging 5771 6252392448 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:21,816 basehttp 5771 6252392448 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:21,820 log 5771 6319697920 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:21,820 logging 5771 6319697920 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:21,821 basehttp 5771 6319697920 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:21,822 log 5771 6269218816 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:21,822 logging 5771 6269218816 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:21,822 basehttp 5771 6269218816 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:21,824 log 5771 6336524288 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:21,826 logging 5771 6336524288 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:21,827 basehttp 5771 6336524288 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:21,827 log 5771 6235566080 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:21,828 logging 5771 6235566080 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:21,829 basehttp 5771 6235566080 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:21,830 log 5771 6252392448 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:21,830 logging 5771 6252392448 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:21,831 basehttp 5771 6252392448 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:21,834 log 5771 6269218816 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:21,835 logging 5771 6269218816 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:21,835 log 5771 6286045184 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:21,835 logging 5771 6286045184 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:21,836 basehttp 5771 6286045184 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:21,836 basehttp 5771 6269218816 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:21,837 log 5771 6319697920 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:21,838 logging 5771 6319697920 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:21,839 basehttp 5771 6319697920 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:21,844 log 5771 6235566080 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:21,844 logging 5771 6235566080 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:21,845 basehttp 5771 6235566080 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:21,845 log 5771 6252392448 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:21,845 logging 5771 6252392448 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:21,846 basehttp 5771 6252392448 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:21,847 log 5771 6269218816 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:21,847 logging 5771 6269218816 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:21,849 basehttp 5771 6269218816 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[INFO] 2026-05-19 00:05:21,914 logging 5771 6201913344 GET /api/v1/student/dashboard
+[INFO] 2026-05-19 00:05:21,915 basehttp 5771 6201913344 "GET /api/v1/student/dashboard HTTP/1.1" 200 2115
+[INFO] 2026-05-19 00:05:21,959 logging 5771 6218739712 GET /api/v1/student/courses
+[INFO] 2026-05-19 00:05:21,960 basehttp 5771 6218739712 "GET /api/v1/student/courses HTTP/1.1" 200 2633411
+[INFO] 2026-05-19 00:05:21,968 logging 5771 6302871552 GET /api/v1/student/matches
+[INFO] 2026-05-19 00:05:21,969 basehttp 5771 6302871552 "GET /api/v1/student/matches HTTP/1.1" 200 23156
+[WARNING] 2026-05-19 00:05:21,988 log 5771 6218739712 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:21,988 log 5771 6201913344 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:21,989 logging 5771 6218739712 POST /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:21,989 logging 5771 6201913344 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:21,989 basehttp 5771 6218739712 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:21,989 basehttp 5771 6201913344 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:22,011 log 5771 6201913344 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:22,011 logging 5771 6201913344 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:22,011 basehttp 5771 6201913344 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:22,012 log 5771 6218739712 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:22,012 logging 5771 6218739712 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:22,012 basehttp 5771 6218739712 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[INFO] 2026-05-19 00:05:23,542 logging 5771 6201913344 GET /api/v1/student/courses
+[INFO] 2026-05-19 00:05:23,543 basehttp 5771 6201913344 "GET /api/v1/student/courses HTTP/1.1" 200 2633411
+[INFO] 2026-05-19 00:05:23,609 logging 5771 6201913344 GET /api/v1/student/courses
+[INFO] 2026-05-19 00:05:23,610 basehttp 5771 6201913344 "GET /api/v1/student/courses HTTP/1.1" 200 2633411
+[INFO] 2026-05-19 00:05:25,904 logging 5771 6201913344 GET /api/v1/student/courses/14/lessons/48
+[INFO] 2026-05-19 00:05:25,905 basehttp 5771 6201913344 "GET /api/v1/student/courses/14/lessons/48 HTTP/1.1" 200 836
+[INFO] 2026-05-19 00:05:25,932 logging 5771 6218739712 GET /api/v1/student/courses/14
+[INFO] 2026-05-19 00:05:25,933 basehttp 5771 6218739712 "GET /api/v1/student/courses/14 HTTP/1.1" 200 2630739
+[INFO] 2026-05-19 00:05:25,945 logging 5771 6201913344 GET /api/v1/student/courses/14/lessons/48
+[INFO] 2026-05-19 00:05:25,945 basehttp 5771 6201913344 "GET /api/v1/student/courses/14/lessons/48 HTTP/1.1" 200 836
+[INFO] 2026-05-19 00:05:25,980 logging 5771 6218739712 GET /api/v1/student/courses/14
+[INFO] 2026-05-19 00:05:25,981 basehttp 5771 6218739712 "GET /api/v1/student/courses/14 HTTP/1.1" 200 2630739
+[WARNING] 2026-05-19 00:05:38,719 log 5771 6218739712 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:38,719 log 5771 6201913344 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:38,719 logging 5771 6218739712 POST /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:38,719 logging 5771 6201913344 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:38,720 basehttp 5771 6218739712 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:38,720 basehttp 5771 6201913344 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:39,979 log 5771 6218739712 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:39,980 log 5771 6201913344 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:39,980 logging 5771 6218739712 POST /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:39,980 logging 5771 6201913344 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:39,980 basehttp 5771 6218739712 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:39,981 basehttp 5771 6201913344 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[INFO] 2026-05-19 00:05:45,120 logging 5771 6201913344 POST /api/v1/student/courses/14/review
+[INFO] 2026-05-19 00:05:45,120 basehttp 5771 6201913344 "POST /api/v1/student/courses/14/review HTTP/1.1" 200 352
+[INFO] 2026-05-19 00:05:45,179 logging 5771 6201913344 GET /api/v1/student/courses/14/lessons/48
+[INFO] 2026-05-19 00:05:45,180 basehttp 5771 6201913344 "GET /api/v1/student/courses/14/lessons/48 HTTP/1.1" 200 836
+[INFO] 2026-05-19 00:05:45,198 logging 5771 6218739712 GET /api/v1/student/courses/14
+[INFO] 2026-05-19 00:05:45,199 basehttp 5771 6218739712 "GET /api/v1/student/courses/14 HTTP/1.1" 200 2630739
+[INFO] 2026-05-19 00:05:53,752 logging 5771 6201913344 POST /api/v1/student/courses/14/review
+[INFO] 2026-05-19 00:05:53,753 basehttp 5771 6201913344 "POST /api/v1/student/courses/14/review HTTP/1.1" 200 356
+[INFO] 2026-05-19 00:05:53,813 logging 5771 6201913344 GET /api/v1/student/courses/14/lessons/48
+[INFO] 2026-05-19 00:05:53,813 basehttp 5771 6201913344 "GET /api/v1/student/courses/14/lessons/48 HTTP/1.1" 200 836
+[INFO] 2026-05-19 00:05:53,832 logging 5771 6218739712 GET /api/v1/student/courses/14
+[INFO] 2026-05-19 00:05:53,833 basehttp 5771 6218739712 "GET /api/v1/student/courses/14 HTTP/1.1" 200 2630747
+[WARNING] 2026-05-19 00:05:59,312 log 5771 6201913344 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:59,313 logging 5771 6201913344 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:59,314 log 5771 6218739712 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:05:59,314 logging 5771 6218739712 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:05:59,314 basehttp 5771 6201913344 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:05:59,314 basehttp 5771 6218739712 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[INFO] 2026-05-19 00:06:02,011 logging 5771 6201913344 GET /api/v1/student/courses/14
+[INFO] 2026-05-19 00:06:02,012 basehttp 5771 6201913344 "GET /api/v1/student/courses/14 HTTP/1.1" 200 2630747
+[INFO] 2026-05-19 00:06:02,059 logging 5771 6201913344 GET /api/v1/student/courses/14
+[INFO] 2026-05-19 00:06:02,060 basehttp 5771 6201913344 "GET /api/v1/student/courses/14 HTTP/1.1" 200 2630747
+[INFO] 2026-05-19 00:11:59,058 autoreload 5771 8428543616 /Users/adhikarirabin/Desktop/softlearn-v2/backend/common/middleware.py changed, reloading.
+[INFO] 2026-05-19 00:11:59,333 autoreload 6882 8428543616 Watching for file changes with StatReloader
+[WARNING] 2026-05-19 00:11:59,453 error_tracking 6882 6176878592 SENTRY_DSN not configured, error tracking disabled
+[INFO] 2026-05-19 00:12:22,856 logging 6882 6244184064 GET /api/v1/auth/session
+[INFO] 2026-05-19 00:12:22,856 logging 6882 6193704960 GET /api/v1/notifications
+[INFO] 2026-05-19 00:12:22,858 basehttp 6882 6244184064 "GET /api/v1/auth/session HTTP/1.1" 200 266
+[INFO] 2026-05-19 00:12:22,860 logging 6882 6210531328 GET /api/v1/student/messages
+[INFO] 2026-05-19 00:12:22,860 basehttp 6882 6193704960 "GET /api/v1/notifications HTTP/1.1" 200 4608
+[INFO] 2026-05-19 00:12:22,861 basehttp 6882 6210531328 "GET /api/v1/student/messages HTTP/1.1" 200 859944
+[INFO] 2026-05-19 00:12:22,889 logging 6882 6193704960 GET /api/v1/auth/session
+[INFO] 2026-05-19 00:12:22,889 basehttp 6882 6193704960 "GET /api/v1/auth/session HTTP/1.1" 200 266
+[INFO] 2026-05-19 00:12:22,894 logging 6882 6210531328 GET /api/v1/auth/session
+[INFO] 2026-05-19 00:12:22,895 basehttp 6882 6210531328 "GET /api/v1/auth/session HTTP/1.1" 200 266
+[INFO] 2026-05-19 00:12:22,919 logging 6882 6193704960 GET /api/v1/notifications
+[INFO] 2026-05-19 00:12:22,920 basehttp 6882 6193704960 "GET /api/v1/notifications HTTP/1.1" 200 4608
+[INFO] 2026-05-19 00:12:22,930 logging 6882 6210531328 GET /api/v1/student/messages
+[INFO] 2026-05-19 00:12:22,931 basehttp 6882 6210531328 "GET /api/v1/student/messages HTTP/1.1" 200 859944
+[INFO] 2026-05-19 00:12:22,934 logging 6882 6294663168 GET /api/v1/notifications
+[INFO] 2026-05-19 00:12:22,934 basehttp 6882 6294663168 "GET /api/v1/notifications HTTP/1.1" 200 4608
+[INFO] 2026-05-19 00:12:22,939 logging 6882 6261010432 GET /api/v1/student/profile
+[INFO] 2026-05-19 00:12:22,940 basehttp 6882 6261010432 "GET /api/v1/student/profile HTTP/1.1" 200 187299
+[INFO] 2026-05-19 00:12:22,949 logging 6882 6193704960 GET /api/v1/student/messages
+[INFO] 2026-05-19 00:12:22,951 basehttp 6882 6193704960 "GET /api/v1/student/messages HTTP/1.1" 200 859944
+[INFO] 2026-05-19 00:12:22,964 logging 6882 6210531328 GET /api/v1/student/profile
+[INFO] 2026-05-19 00:12:22,965 basehttp 6882 6210531328 "GET /api/v1/student/profile HTTP/1.1" 200 187299
+[INFO] 2026-05-19 00:12:22,969 logging 6882 6261010432 GET /api/v1/student/messages
+[INFO] 2026-05-19 00:12:22,970 basehttp 6882 6261010432 "GET /api/v1/student/messages HTTP/1.1" 200 859944
+[INFO] 2026-05-19 00:12:22,984 logging 6882 6193704960 GET /api/v1/student/messages
+[INFO] 2026-05-19 00:12:22,986 basehttp 6882 6193704960 "GET /api/v1/student/messages HTTP/1.1" 200 859944
+[INFO] 2026-05-19 00:12:23,032 logging 6882 6227357696 GET /api/v1/student/matches
+[INFO] 2026-05-19 00:12:23,034 basehttp 6882 6227357696 "GET /api/v1/student/matches HTTP/1.1" 200 23156
+[INFO] 2026-05-19 00:12:23,039 logging 6882 6277836800 GET /api/v1/student/courses/14
+[INFO] 2026-05-19 00:12:23,040 basehttp 6882 6277836800 "GET /api/v1/student/courses/14 HTTP/1.1" 200 2630747
+[INFO] 2026-05-19 00:12:23,088 logging 6882 6244184064 GET /api/v1/student/matches
+[INFO] 2026-05-19 00:12:23,089 basehttp 6882 6244184064 "GET /api/v1/student/matches HTTP/1.1" 200 23156
+[INFO] 2026-05-19 00:12:23,102 logging 6882 6193704960 GET /api/v1/student/courses/14
+[INFO] 2026-05-19 00:12:23,103 basehttp 6882 6193704960 "GET /api/v1/student/courses/14 HTTP/1.1" 200 2630747
+[INFO] 2026-05-19 00:12:23,164 logging 6882 6210531328 GET /api/v1/student/matches
+[INFO] 2026-05-19 00:12:23,164 basehttp 6882 6210531328 "GET /api/v1/student/matches HTTP/1.1" 200 23156
+[WARNING] 2026-05-19 00:12:51,164 error_tracking 6992 8428543616 SENTRY_DSN not configured, error tracking disabled
+[WARNING] 2026-05-19 00:12:51,188 course_assessments 6992 8428543616 Gemini course assessment generation failed for assessment 1 and user 1: {"retryDelay":"48s","message":"Quota exceeded"}
+[INFO] 2026-05-19 00:12:51,188 logging 6992 8428543616 GET /api/v1/company/courses/1/preview/lessons/1/exam
+[INFO] 2026-05-19 00:12:51,190 logging 6992 8428543616 GET /api/v1/company/courses/1/preview/lessons/1/exam
+[WARNING] 2026-05-19 00:12:51,368 course_assessments 6992 8428543616 Gemini course assessment generation failed for assessment 1 and user 1: quota exhausted
+[INFO] 2026-05-19 00:12:51,369 logging 6992 8428543616 GET /api/v1/company/courses/1/preview/lessons/1/exam
+[WARNING] 2026-05-19 00:12:51,546 course_assessments 6992 8428543616 Gemini course assessment generation failed for assessment 2 and user 1: Gemini exam generation returned 1 questions, expected 15.
+[INFO] 2026-05-19 00:12:51,548 logging 6992 8428543616 GET /api/v1/company/courses/1/preview/final-exam
+[INFO] 2026-05-19 00:12:51,722 logging 6992 8428543616 GET /api/v1/company/courses/1/preview/final-exam
+[INFO] 2026-05-19 00:12:51,899 logging 6992 8428543616 GET /api/v1/company/courses/1/preview/lessons/1/exam
+[INFO] 2026-05-19 00:12:51,901 logging 6992 8428543616 POST /api/v1/company/courses/1/preview/lessons/1/exam/submit
+[INFO] 2026-05-19 00:12:52,077 logging 6992 8428543616 GET /api/v1/company/courses/1/preview/lessons/1/exam
+[INFO] 2026-05-19 00:12:52,252 logging 6992 8428543616 GET /api/v1/company/courses/1/preview/lessons/2/exam
+[WARNING] 2026-05-19 00:12:53,082 course_assessments 6992 8428543616 Gemini course assessment generation failed for assessment 1 and user 1: quota exhausted
+[INFO] 2026-05-19 00:12:53,082 logging 6992 8428543616 GET /api/v1/company/courses/1/preview/lessons/1/exam
+[WARNING] 2026-05-19 00:12:53,587 course_assessments 6992 8428543616 Gemini course assessment generation failed for assessment 1 and user 2: quota exhausted
+[INFO] 2026-05-19 00:12:53,588 logging 6992 8428543616 GET /api/v1/student/courses/1/lessons/1/exam
+[INFO] 2026-05-19 00:12:53,776 logging 6992 8428543616 GET /api/v1/student/courses/1/lessons/1/exam
+[INFO] 2026-05-19 00:12:53,782 logging 6992 8428543616 POST /api/v1/student/courses/1/lessons/1/exam/submit
+[INFO] 2026-05-19 00:12:53,785 logging 6992 8428543616 Web vitals received
+[INFO] 2026-05-19 00:12:53,785 logging 6992 8428543616 POST /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:12:54,042 logging 6992 8428543616 POST /api/v1/practice-questions/1
+[INFO] 2026-05-19 00:12:54,304 logging 6992 8428543616 POST /api/v1/exam-categories
+[WARNING] 2026-05-19 00:12:54,305 log 6992 8428543616 Forbidden: /api/v1/exam-categories
+[INFO] 2026-05-19 00:12:54,392 logging 6992 8428543616 POST /api/v1/exam-categories
+[INFO] 2026-05-19 00:12:54,651 logging 6992 8428543616 POST /api/v1/exams/1/mock-exams
+[INFO] 2026-05-19 00:12:54,885 logging 6992 8428543616 POST /api/v1/exams/1/practice-questions
+[INFO] 2026-05-19 00:12:55,120 logging 6992 8428543616 DELETE /api/v1/exam-categories/2
+[INFO] 2026-05-19 00:12:55,460 logging 6992 8428543616 GET /api/v1/exam-categories/1
+[INFO] 2026-05-19 00:12:55,785 logging 6992 8428543616 GET /api/v1/practice-questions/1
+[INFO] 2026-05-19 00:12:56,114 logging 6992 8428543616 GET /api/v1/student/performance
+[INFO] 2026-05-19 00:12:56,374 logging 6992 8428543616 GET /api/v1/student/performance/1
+[INFO] 2026-05-19 00:12:56,616 logging 6992 8428543616 GET /api/v1/study-plan
+[INFO] 2026-05-19 00:12:56,810 logging 6992 8428543616 GET /api/v1/exam-categories
+[INFO] 2026-05-19 00:12:56,965 logging 6992 8428543616 GET /api/v1/exams/1/mock-exams
+[INFO] 2026-05-19 00:12:57,115 logging 6992 8428543616 GET /api/v1/exams/1/practice-questions
+[INFO] 2026-05-19 00:12:57,352 logging 6992 8428543616 PUT /api/v1/exam-categories/1
+[INFO] 2026-05-19 00:12:57,671 logging 6992 8428543616 GET /api/v1/admin/export/users/
+[INFO] 2026-05-19 00:12:57,831 logging 6992 8428543616 GET /api/v1/admin/export/users/
+[WARNING] 2026-05-19 00:12:57,832 log 6992 8428543616 Forbidden: /api/v1/admin/export/users/
+[INFO] 2026-05-19 00:12:57,988 logging 6992 8428543616 GET /api/v1/admin/scheduled-tasks/
+[INFO] 2026-05-19 00:12:59,133 logging 6992 8428543616 GET /api/v1/student/data-access-log
+[INFO] 2026-05-19 00:12:59,581 logging 6992 8428543616 POST /api/v1/student/deletion-request
+[WARNING] 2026-05-19 00:12:59,581 log 6992 8428543616 Bad Request: /api/v1/student/deletion-request
+[INFO] 2026-05-19 00:12:59,729 logging 6992 8428543616 POST /api/v1/student/deletion-request
+[INFO] 2026-05-19 00:12:59,877 logging 6992 8428543616 GET /api/v1/student/deletion-status
+[INFO] 2026-05-19 00:13:00,173 logging 6992 8428543616 POST /api/v1/student/data-export-request
+[INFO] 2026-05-19 00:13:00,322 logging 6992 8428543616 GET /api/v1/student/data-export/1
+[INFO] 2026-05-19 00:13:02,025 logging 6992 8428543616 GET /api/v1/student/consent
+[INFO] 2026-05-19 00:13:02,183 logging 6992 8428543616 PUT /api/v1/student/consent
+[INFO] 2026-05-19 00:13:02,735 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:02,739 logging 6992 8428543616 POST /api/v1/company/courses/1/lessons
+[INFO] 2026-05-19 00:13:02,746 logging 6992 8428543616 GET /api/v1/student/courses
+[INFO] 2026-05-19 00:13:02,824 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:02,906 logging 6992 8428543616 POST /api/v1/admin/users
+[INFO] 2026-05-19 00:13:02,908 logging 6992 8428543616 GET /api/v1/admin/users
+[INFO] 2026-05-19 00:13:02,986 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:02,990 logging 6992 8428543616 POST /api/v1/admin/companies
+[INFO] 2026-05-19 00:13:03,069 logging 6992 8428543616 GET /api/v1/admin/companies
+[INFO] 2026-05-19 00:13:03,071 logging 6992 8428543616 GET /api/v1/admin/companies/1
+[INFO] 2026-05-19 00:13:03,072 logging 6992 8428543616 PUT /api/v1/admin/companies/1
+[INFO] 2026-05-19 00:13:03,073 logging 6992 8428543616 DELETE /api/v1/admin/companies/1
+[INFO] 2026-05-19 00:13:03,147 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:03,149 logging 6992 8428543616 POST /api/v1/admin/courses
+[INFO] 2026-05-19 00:13:03,150 logging 6992 8428543616 PUT /api/v1/admin/courses/1
+[INFO] 2026-05-19 00:13:03,151 logging 6992 8428543616 DELETE /api/v1/admin/courses/1
+[INFO] 2026-05-19 00:13:03,225 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:03,227 logging 6992 8428543616 POST /api/v1/admin/exams
+[INFO] 2026-05-19 00:13:03,228 logging 6992 8428543616 PUT /api/v1/admin/exams/1
+[INFO] 2026-05-19 00:13:03,228 logging 6992 8428543616 DELETE /api/v1/admin/exams/1
+[INFO] 2026-05-19 00:13:03,302 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:03,316 logging 6992 8428543616 POST /api/v1/admin/courses/1/lessons
+[INFO] 2026-05-19 00:13:03,318 logging 6992 8428543616 PUT /api/v1/admin/lessons/1
+[INFO] 2026-05-19 00:13:03,319 logging 6992 8428543616 DELETE /api/v1/admin/lessons/1
+[INFO] 2026-05-19 00:13:03,551 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:03,554 logging 6992 8428543616 POST /api/v1/admin/vacancies
+[INFO] 2026-05-19 00:13:03,557 logging 6992 8428543616 PUT /api/v1/admin/vacancies/1
+[INFO] 2026-05-19 00:13:03,559 logging 6992 8428543616 DELETE /api/v1/admin/vacancies/1
+[INFO] 2026-05-19 00:13:03,641 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:03,644 logging 6992 8428543616 POST /api/v1/admin/exams/1/questions
+[INFO] 2026-05-19 00:13:03,645 logging 6992 8428543616 POST /api/v1/admin/questions/1/options
+[INFO] 2026-05-19 00:13:03,647 logging 6992 8428543616 PUT /api/v1/admin/options/1
+[INFO] 2026-05-19 00:13:03,801 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:03,804 logging 6992 8428543616 PUT /api/v1/admin/users/2
+[INFO] 2026-05-19 00:13:03,962 logging 6992 8428543616 GET /api/v1/admin/vacancies
+[INFO] 2026-05-19 00:13:04,039 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:04,041 logging 6992 8428543616 PUT /api/v1/admin/users/1
+[WARNING] 2026-05-19 00:13:04,041 log 6992 8428543616 Bad Request: /api/v1/admin/users/1
+[INFO] 2026-05-19 00:13:04,272 logging 6992 8428543616 GET /api/v1/admin/dashboard
+[INFO] 2026-05-19 00:13:04,421 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:04,423 logging 6992 8428543616 POST /api/v1/admin/vacancies
+[WARNING] 2026-05-19 00:13:04,423 log 6992 8428543616 Bad Request: /api/v1/admin/vacancies
+[INFO] 2026-05-19 00:13:04,570 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:04,576 logging 6992 8428543616 POST /api/v1/company/interviews/1/confirm
+[INFO] 2026-05-19 00:13:04,723 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:04,728 logging 6992 8428543616 POST /api/v1/company/messages/threads
+[INFO] 2026-05-19 00:13:04,731 logging 6992 8428543616 PUT /api/v1/company/messages/threads/1
+[INFO] 2026-05-19 00:13:04,734 logging 6992 8428543616 POST /api/v1/company/messages/threads/1/messages
+[INFO] 2026-05-19 00:13:04,881 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:04,885 logging 6992 8428543616 POST /api/v1/company/messages/threads
+[INFO] 2026-05-19 00:13:04,958 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:04,961 logging 6992 8428543616 POST /api/v1/company/vacancies
+[INFO] 2026-05-19 00:13:04,963 logging 6992 8428543616 PUT /api/v1/company/vacancies/1
+[INFO] 2026-05-19 00:13:04,964 logging 6992 8428543616 DELETE /api/v1/company/vacancies/1
+[INFO] 2026-05-19 00:13:05,114 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:05,121 logging 6992 8428543616 POST /api/v1/company/applications/1/reject
+[INFO] 2026-05-19 00:13:05,268 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:05,274 logging 6992 8428543616 POST /api/v1/company/candidates/1/interviews
+[INFO] 2026-05-19 00:13:05,422 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:05,428 logging 6992 8428543616 POST /api/v1/company/candidates/1/interviews
+[INFO] 2026-05-19 00:13:05,430 logging 6992 8428543616 GET /api/v1/student/interviews
+[INFO] 2026-05-19 00:13:05,578 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:05,581 logging 6992 8428543616 GET /api/v1/company/applications
+[INFO] 2026-05-19 00:13:05,586 logging 6992 8428543616 POST /api/v1/company/applications/1/shortlist
+[INFO] 2026-05-19 00:13:05,735 logging 6992 8428543616 GET /api/v1/company/candidates/1/exam-results
+[INFO] 2026-05-19 00:13:05,737 logging 6992 8428543616 GET /api/v1/company/candidates/1/exam-results
+[INFO] 2026-05-19 00:13:05,885 logging 6992 8428543616 GET /api/v1/company/candidates/1/learning-record
+[INFO] 2026-05-19 00:13:06,034 logging 6992 8428543616 GET /api/v1/company/candidates/1/notes
+[WARNING] 2026-05-19 00:13:06,034 log 6992 8428543616 Forbidden: /api/v1/company/candidates/1/notes
+[INFO] 2026-05-19 00:13:06,034 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:06,037 logging 6992 8428543616 POST /api/v1/company/candidates/1/notes
+[INFO] 2026-05-19 00:13:06,038 logging 6992 8428543616 GET /api/v1/company/candidates/1/notes
+[INFO] 2026-05-19 00:13:06,191 logging 6992 8428543616 GET /api/v1/company/candidates/1/preview
+[INFO] 2026-05-19 00:13:06,343 logging 6992 8428543616 GET /api/v1/company/candidates/1/preview
+[INFO] 2026-05-19 00:13:06,492 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:06,495 logging 6992 8428543616 POST /api/v1/company/candidates/1/shortlist
+[INFO] 2026-05-19 00:13:06,496 logging 6992 8428543616 GET /api/v1/company/shortlist
+[INFO] 2026-05-19 00:13:06,497 logging 6992 8428543616 DELETE /api/v1/company/candidates/1/shortlist
+[INFO] 2026-05-19 00:13:06,648 logging 6992 8428543616 GET /api/v1/company/candidates
+[INFO] 2026-05-19 00:13:06,799 logging 6992 8428543616 GET /api/v1/company/candidates
+[INFO] 2026-05-19 00:13:06,947 logging 6992 8428543616 GET /api/v1/company/candidates/1/preview
+[WARNING] 2026-05-19 00:13:06,947 log 6992 8428543616 Bad Request: /api/v1/company/candidates/1/preview
+[INFO] 2026-05-19 00:13:07,022 logging 6992 8428543616 GET /api/v1/student/profile
+[WARNING] 2026-05-19 00:13:07,022 log 6992 8428543616 Forbidden: /api/v1/student/profile
+[INFO] 2026-05-19 00:13:07,175 logging 6992 8428543616 GET /api/v1/company/dashboard
+[INFO] 2026-05-19 00:13:07,343 logging 6992 8428543616 GET /api/v1/company/dashboard
+[INFO] 2026-05-19 00:13:07,493 logging 6992 8428543616 GET /api/v1/company/messages/contacts
+[INFO] 2026-05-19 00:13:07,643 logging 6992 8428543616 GET /api/v1/company/messages/contacts
+[INFO] 2026-05-19 00:13:07,793 logging 6992 8428543616 GET /api/v1/company/messages
+[INFO] 2026-05-19 00:13:07,867 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:07,889 logging 6992 8428543616 GET /api/v1/company/courses/1/preview
+[INFO] 2026-05-19 00:13:07,891 logging 6992 8428543616 GET /api/v1/company/courses/1/preview/lessons/1
+[INFO] 2026-05-19 00:13:07,893 logging 6992 8428543616 GET /api/v1/company/courses/1/preview/lessons/1/exam
+[INFO] 2026-05-19 00:13:07,895 logging 6992 8428543616 POST /api/v1/company/courses/1/preview/lessons/1/exam/submit
+[INFO] 2026-05-19 00:13:08,042 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:08,044 logging 6992 8428543616 GET /api/v1/company/courses/1/preview
+[WARNING] 2026-05-19 00:13:08,044 log 6992 8428543616 Not Found: /api/v1/company/courses/1/preview
+[INFO] 2026-05-19 00:13:08,118 logging 6992 8428543616 GET /api/v1/company/profile
+[INFO] 2026-05-19 00:13:08,192 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:08,194 logging 6992 8428543616 PUT /api/v1/company/profile
+[INFO] 2026-05-19 00:13:08,195 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:08,269 logging 6992 8428543616 POST /api/v1/auth/signup
+[INFO] 2026-05-19 00:13:08,270 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:08,270 logging 6992 8428543616 POST /api/v1/auth/signup
+[WARNING] 2026-05-19 00:13:08,270 log 6992 8428543616 Bad Request: /api/v1/auth/signup
+[INFO] 2026-05-19 00:13:08,346 logging 6992 8428543616 GET /api/v1/company/courses
+[INFO] 2026-05-19 00:13:08,420 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:08,422 logging 6992 8428543616 POST /api/v1/company/courses
+[INFO] 2026-05-19 00:13:08,424 logging 6992 8428543616 PUT /api/v1/company/courses/1
+[INFO] 2026-05-19 00:13:08,426 logging 6992 8428543616 DELETE /api/v1/company/courses/1
+[INFO] 2026-05-19 00:13:08,505 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:08,506 logging 6992 8428543616 POST /api/v1/company/youtube-transcript
+[INFO] 2026-05-19 00:13:08,580 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:08,583 logging 6992 8428543616 POST /api/v1/company/courses/1/lessons
+[INFO] 2026-05-19 00:13:08,584 logging 6992 8428543616 PUT /api/v1/company/lessons/1
+[INFO] 2026-05-19 00:13:08,586 logging 6992 8428543616 GET /api/v1/company/courses/1/lessons
+[INFO] 2026-05-19 00:13:08,587 logging 6992 8428543616 DELETE /api/v1/company/lessons/1
+[INFO] 2026-05-19 00:13:08,735 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:08,741 logging 6992 8428543616 GET /api/v1/company/courses/1/preview
+[INFO] 2026-05-19 00:13:08,743 logging 6992 8428543616 GET /api/v1/company/courses/1/preview/lessons/2
+[INFO] 2026-05-19 00:13:08,745 logging 6992 8428543616 GET /api/v1/company/courses/1/preview/lessons/1/exam
+[INFO] 2026-05-19 00:13:08,748 logging 6992 8428543616 POST /api/v1/company/courses/1/preview/lessons/1/exam/submit
+[INFO] 2026-05-19 00:13:08,750 logging 6992 8428543616 POST /api/v1/company/courses/1/preview/final-exam/submit
+[INFO] 2026-05-19 00:13:08,825 logging 6992 8428543616 GET /api/v1/admin/courses
+[WARNING] 2026-05-19 00:13:08,826 log 6992 8428543616 Forbidden: /api/v1/admin/courses
+[INFO] 2026-05-19 00:13:08,901 logging 6992 8428543616 GET /api/v1/admin/exams
+[WARNING] 2026-05-19 00:13:08,901 log 6992 8428543616 Forbidden: /api/v1/admin/exams
+[INFO] 2026-05-19 00:13:08,976 logging 6992 8428543616 GET /api/v1/student/courses
+[WARNING] 2026-05-19 00:13:08,976 log 6992 8428543616 Forbidden: /api/v1/student/courses
+[INFO] 2026-05-19 00:13:09,057 logging 6992 8428543616 GET /api/v1/student/jobs
+[WARNING] 2026-05-19 00:13:09,057 log 6992 8428543616 Forbidden: /api/v1/student/jobs
+[INFO] 2026-05-19 00:13:09,132 logging 6992 8428543616 GET /api/v1/student/messages
+[WARNING] 2026-05-19 00:13:09,132 log 6992 8428543616 Forbidden: /api/v1/student/messages
+[INFO] 2026-05-19 00:13:09,207 logging 6992 8428543616 GET /api/v1/student/skills
+[WARNING] 2026-05-19 00:13:09,207 log 6992 8428543616 Forbidden: /api/v1/student/skills
+[INFO] 2026-05-19 00:13:09,355 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:09,357 logging 6992 8428543616 PUT /api/v1/company/courses/1
+[WARNING] 2026-05-19 00:13:09,357 log 6992 8428543616 Forbidden: /api/v1/company/courses/1
+[INFO] 2026-05-19 00:13:09,431 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:09,432 logging 6992 8428543616 POST /api/v1/student/courses/1/enrollment
+[WARNING] 2026-05-19 00:13:09,432 log 6992 8428543616 Forbidden: /api/v1/student/courses/1/enrollment
+[INFO] 2026-05-19 00:13:09,579 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:09,581 logging 6992 8428543616 POST /api/v1/company/courses/1/lessons
+[WARNING] 2026-05-19 00:13:09,581 log 6992 8428543616 Forbidden: /api/v1/company/courses/1/lessons
+[INFO] 2026-05-19 00:13:09,582 logging 6992 8428543616 PUT /api/v1/company/lessons/1
+[WARNING] 2026-05-19 00:13:09,582 log 6992 8428543616 Forbidden: /api/v1/company/lessons/1
+[INFO] 2026-05-19 00:13:09,657 logging 6992 8428543616 GET /api/v1/student/exams/1
+[WARNING] 2026-05-19 00:13:09,657 log 6992 8428543616 Forbidden: /api/v1/student/exams/1
+[INFO] 2026-05-19 00:13:09,879 logging 6992 8428543616 GET /api/v1/company/vacancies
+[INFO] 2026-05-19 00:13:10,185 logging 6992 8428543616 GET /api/v1/company/vacancies/1/matches
+[INFO] 2026-05-19 00:13:10,192 logging 6992 8428543616 GET /api/v1/company/candidates
+[INFO] 2026-05-19 00:13:10,268 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:10,273 logging 6992 8428543616 POST /api/v1/company/vacancies
+[INFO] 2026-05-19 00:13:10,277 logging 6992 8428543616 PUT /api/v1/company/vacancies/1
+[INFO] 2026-05-19 00:13:10,279 logging 6992 8428543616 GET /api/v1/company/vacancies
+[INFO] 2026-05-19 00:13:10,353 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:10,354 logging 6992 8428543616 POST /api/v1/company/youtube-transcript
+[WARNING] 2026-05-19 00:13:10,355 log 6992 8428543616 Bad Request: /api/v1/company/youtube-transcript
+[INFO] 2026-05-19 00:13:10,429 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:10,430 logging 6992 8428543616 POST /api/v1/company/youtube-transcript
+[WARNING] 2026-05-19 00:13:10,430 log 6992 8428543616 Unprocessable Entity: /api/v1/company/youtube-transcript
+[INFO] 2026-05-19 00:13:10,577 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:10,586 logging 6992 8428543616 POST /api/v1/interviews/1/complete
+[INFO] 2026-05-19 00:13:10,665 logging 6992 8428543616 GET /api/v1/health
+[INFO] 2026-05-19 00:13:10,665 logging 6992 8428543616 GET /api/v1/health
+[INFO] 2026-05-19 00:13:10,819 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:10,825 logging 6992 8428543616 POST /api/v1/interviews/1/cancel
+[INFO] 2026-05-19 00:13:10,978 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:10,983 logging 6992 8428543616 POST /api/v1/interviews/1/reschedule
+[INFO] 2026-05-19 00:13:11,062 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:11,136 logging 6992 8428543616 POST /api/v1/auth/login
+[WARNING] 2026-05-19 00:13:11,136 log 6992 8428543616 Unauthorized: /api/v1/auth/login
+[INFO] 2026-05-19 00:13:11,209 logging 6992 8428543616 POST /api/v1/auth/login
+[WARNING] 2026-05-19 00:13:11,209 log 6992 8428543616 Unauthorized: /api/v1/auth/login
+[INFO] 2026-05-19 00:13:11,283 logging 6992 8428543616 POST /api/v1/auth/login
+[WARNING] 2026-05-19 00:13:11,283 log 6992 8428543616 Unauthorized: /api/v1/auth/login
+[INFO] 2026-05-19 00:13:11,356 logging 6992 8428543616 POST /api/v1/auth/login
+[WARNING] 2026-05-19 00:13:11,356 log 6992 8428543616 Unauthorized: /api/v1/auth/login
+[INFO] 2026-05-19 00:13:11,429 logging 6992 8428543616 POST /api/v1/auth/login
+[WARNING] 2026-05-19 00:13:11,429 log 6992 8428543616 Unauthorized: /api/v1/auth/login
+[INFO] 2026-05-19 00:13:11,429 logging 6992 8428543616 POST /api/v1/auth/login
+[WARNING] 2026-05-19 00:13:11,429 log 6992 8428543616 Too Many Requests: /api/v1/auth/login
+[INFO] 2026-05-19 00:13:11,505 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:11,578 logging 6992 8428543616 POST /api/v1/auth/login
+[WARNING] 2026-05-19 00:13:11,578 log 6992 8428543616 Forbidden: /api/v1/auth/login
+[INFO] 2026-05-19 00:13:11,651 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:11,651 logging 6992 8428543616 POST /api/v1/auth/login
+[WARNING] 2026-05-19 00:13:11,651 log 6992 8428543616 Bad Request: /api/v1/auth/login
+[INFO] 2026-05-19 00:13:11,725 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:11,798 logging 6992 8428543616 POST /api/v1/auth/login
+[WARNING] 2026-05-19 00:13:11,798 log 6992 8428543616 Unauthorized: /api/v1/auth/login
+[WARNING] 2026-05-19 00:13:11,873 log 6992 8428543616 Forbidden (CSRF cookie not set.): /api/v1/auth/logout
+[INFO] 2026-05-19 00:13:11,873 logging 6992 8428543616 POST /api/v1/auth/logout
+[INFO] 2026-05-19 00:13:11,947 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:11,949 logging 6992 8428543616 POST /api/v1/notifications/read-all
+[INFO] 2026-05-19 00:13:12,096 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:12,099 logging 6992 8428543616 POST /api/v1/company/candidates/1/interviews
+[WARNING] 2026-05-19 00:13:12,099 log 6992 8428543616 Bad Request: /api/v1/company/candidates/1/interviews
+[INFO] 2026-05-19 00:13:12,246 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:12,250 logging 6992 8428543616 PUT /api/v1/interviews/1/meeting-link
+[INFO] 2026-05-19 00:13:12,252 logging 6992 8428543616 PUT /api/v1/interviews/1/meeting-link
+[WARNING] 2026-05-19 00:13:12,252 log 6992 8428543616 Bad Request: /api/v1/interviews/1/meeting-link
+[INFO] 2026-05-19 00:13:12,399 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:12,401 logging 6992 8428543616 PUT /api/v1/interviews/1/meeting-link
+[WARNING] 2026-05-19 00:13:12,401 log 6992 8428543616 Bad Request: /api/v1/interviews/1/meeting-link
+[INFO] 2026-05-19 00:13:12,474 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:12,476 logging 6992 8428543616 GET /api/v1/notifications
+[INFO] 2026-05-19 00:13:12,477 logging 6992 8428543616 POST /api/v1/notifications/1/read
+[INFO] 2026-05-19 00:13:12,626 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:12,628 logging 6992 8428543616 POST /api/v1/interviews/1/complete
+[WARNING] 2026-05-19 00:13:12,628 log 6992 8428543616 Bad Request: /api/v1/interviews/1/complete
+[INFO] 2026-05-19 00:13:12,702 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:12,850 logging 6992 8428543616 POST /api/v1/auth/password/change
+[INFO] 2026-05-19 00:13:12,923 logging 6992 8428543616 GET /api/v1/ready
+[INFO] 2026-05-19 00:13:12,924 logging 6992 8428543616 GET /api/v1/health
+[INFO] 2026-05-19 00:13:12,925 logging 6992 8428543616 GET /api/v1/health
+[INFO] 2026-05-19 00:13:13,148 logging 6992 8428543616 GET /api/v1/access/student
+[INFO] 2026-05-19 00:13:13,148 logging 6992 8428543616 GET /api/v1/access/company
+[WARNING] 2026-05-19 00:13:13,148 log 6992 8428543616 Forbidden: /api/v1/access/company
+[INFO] 2026-05-19 00:13:13,150 logging 6992 8428543616 GET /api/v1/access/company
+[INFO] 2026-05-19 00:13:13,150 logging 6992 8428543616 GET /api/v1/access/admin
+[WARNING] 2026-05-19 00:13:13,150 log 6992 8428543616 Forbidden: /api/v1/access/admin
+[INFO] 2026-05-19 00:13:13,152 logging 6992 8428543616 GET /api/v1/access/admin
+[INFO] 2026-05-19 00:13:13,152 logging 6992 8428543616 GET /api/v1/auth/session
+[INFO] 2026-05-19 00:13:13,153 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:13,153 logging 6992 8428543616 POST /api/v1/auth/signup
+[WARNING] 2026-05-19 00:13:13,153 log 6992 8428543616 Bad Request: /api/v1/auth/signup
+[INFO] 2026-05-19 00:13:13,300 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:13,305 logging 6992 8428543616 POST /api/v1/interviews/1/availability
+[INFO] 2026-05-19 00:13:13,305 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:13,310 logging 6992 8428543616 POST /api/v1/interviews/1/availability
+[INFO] 2026-05-19 00:13:13,457 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:13,460 logging 6992 8428543616 POST /api/v1/student/applications
+[WARNING] 2026-05-19 00:13:13,460 log 6992 8428543616 Bad Request: /api/v1/student/applications
+[INFO] 2026-05-19 00:13:13,607 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:13,612 logging 6992 8428543616 POST /api/v1/student/applications
+[INFO] 2026-05-19 00:13:13,613 logging 6992 8428543616 GET /api/v1/student/applications
+[INFO] 2026-05-19 00:13:13,688 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:13,692 logging 6992 8428543616 POST /api/v1/student/messages/threads
+[INFO] 2026-05-19 00:13:13,840 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:13,844 logging 6992 8428543616 POST /api/v1/student/messages/threads
+[INFO] 2026-05-19 00:13:13,918 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:13,921 logging 6992 8428543616 POST /api/v1/student/profile/education
+[INFO] 2026-05-19 00:13:13,924 logging 6992 8428543616 PUT /api/v1/student/profile/education/1
+[INFO] 2026-05-19 00:13:13,926 logging 6992 8428543616 DELETE /api/v1/student/profile/education/1
+[INFO] 2026-05-19 00:13:14,000 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:14,002 logging 6992 8428543616 DELETE /api/v1/student/messages/threads/1
+[INFO] 2026-05-19 00:13:14,152 logging 6992 8428543616 GET /api/v1/student/interviews
+[INFO] 2026-05-19 00:13:14,154 logging 6992 8428543616 GET /api/v1/interviews/1
+[INFO] 2026-05-19 00:13:14,228 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:14,232 logging 6992 8428543616 GET /api/v1/student/exams/1
+[INFO] 2026-05-19 00:13:14,238 logging 6992 8428543616 POST /api/v1/student/exams/1/submit
+[INFO] 2026-05-19 00:13:14,312 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:14,315 logging 6992 8428543616 POST /api/v1/student/profile/certificates
+[INFO] 2026-05-19 00:13:14,318 logging 6992 8428543616 PUT /api/v1/student/profile/certificates/1
+[INFO] 2026-05-19 00:13:14,319 logging 6992 8428543616 DELETE /api/v1/student/profile/certificates/1
+[INFO] 2026-05-19 00:13:14,393 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:14,397 logging 6992 8428543616 POST /api/v1/student/profile/experience
+[INFO] 2026-05-19 00:13:14,399 logging 6992 8428543616 PUT /api/v1/student/profile/availability
+[INFO] 2026-05-19 00:13:14,546 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:14,550 logging 6992 8428543616 PUT /api/v1/student/messages/threads/1
+[INFO] 2026-05-19 00:13:14,552 logging 6992 8428543616 POST /api/v1/student/messages/threads/1/messages
+[INFO] 2026-05-19 00:13:14,627 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:14,630 logging 6992 8428543616 GET /api/v1/student/mock-exams/1
+[INFO] 2026-05-19 00:13:14,634 logging 6992 8428543616 POST /api/v1/student/mock-exams/1/submit
+[INFO] 2026-05-19 00:13:14,708 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:14,711 logging 6992 8428543616 POST /api/v1/student/practice-questions/1/attempt
+[INFO] 2026-05-19 00:13:14,785 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:14,795 logging 6992 8428543616 PUT /api/v1/student/courses/1/lessons/1/progress
+[INFO] 2026-05-19 00:13:14,803 logging 6992 8428543616 PUT /api/v1/student/courses/1/lessons/1/progress
+[INFO] 2026-05-19 00:13:14,811 logging 6992 8428543616 PUT /api/v1/student/courses/1/lessons/2/progress
+[INFO] 2026-05-19 00:13:14,961 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:14,966 logging 6992 8428543616 POST /api/v1/student/applications/1/withdraw
+[INFO] 2026-05-19 00:13:15,044 logging 6992 8428543616 GET /api/v1/company/profile
+[WARNING] 2026-05-19 00:13:15,044 log 6992 8428543616 Forbidden: /api/v1/company/profile
+[INFO] 2026-05-19 00:13:15,198 logging 6992 8428543616 GET /api/v1/student/courses/1
+[INFO] 2026-05-19 00:13:15,349 logging 6992 8428543616 GET /api/v1/student/courses/1
+[INFO] 2026-05-19 00:13:15,500 logging 6992 8428543616 GET /api/v1/student/courses/1
+[INFO] 2026-05-19 00:13:15,500 logging 6992 8428543616 GET /api/v1/student/courses/2
+[WARNING] 2026-05-19 00:13:15,500 log 6992 8428543616 Not Found: /api/v1/student/courses/2
+[INFO] 2026-05-19 00:13:15,574 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:15,581 logging 6992 8428543616 POST /api/v1/student/courses/1/enrollment
+[INFO] 2026-05-19 00:13:15,586 logging 6992 8428543616 POST /api/v1/student/courses/1/enrollment
+[INFO] 2026-05-19 00:13:15,735 logging 6992 8428543616 GET /api/v1/student/courses
+[INFO] 2026-05-19 00:13:15,809 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:15,812 logging 6992 8428543616 POST /api/v1/student/courses/1/review
+[INFO] 2026-05-19 00:13:15,814 logging 6992 8428543616 POST /api/v1/student/courses/1/review
+[INFO] 2026-05-19 00:13:15,888 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:15,890 logging 6992 8428543616 POST /api/v1/student/courses/1/review
+[WARNING] 2026-05-19 00:13:15,890 log 6992 8428543616 Forbidden: /api/v1/student/courses/1/review
+[INFO] 2026-05-19 00:13:16,040 logging 6992 8428543616 GET /api/v1/student/courses
+[INFO] 2026-05-19 00:13:16,119 logging 6992 8428543616 GET /api/v1/student/dashboard
+[INFO] 2026-05-19 00:13:16,197 logging 6992 8428543616 GET /api/v1/student/exam-results
+[INFO] 2026-05-19 00:13:16,274 logging 6992 8428543616 GET /api/v1/student/exams/1
+[WARNING] 2026-05-19 00:13:16,274 log 6992 8428543616 Forbidden: /api/v1/student/exams/1
+[INFO] 2026-05-19 00:13:16,525 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:16,531 logging 6992 8428543616 GET /api/v1/student/jobs
+[INFO] 2026-05-19 00:13:16,533 logging 6992 8428543616 POST /api/v1/student/jobs/1/bookmark
+[INFO] 2026-05-19 00:13:16,533 logging 6992 8428543616 POST /api/v1/student/jobs/3/bookmark
+[WARNING] 2026-05-19 00:13:16,534 log 6992 8428543616 Not Found: /api/v1/student/jobs/3/bookmark
+[INFO] 2026-05-19 00:13:16,538 logging 6992 8428543616 GET /api/v1/student/jobs
+[INFO] 2026-05-19 00:13:16,539 logging 6992 8428543616 DELETE /api/v1/student/jobs/1/bookmark
+[INFO] 2026-05-19 00:13:16,792 logging 6992 8428543616 GET /api/v1/student/jobs
+[INFO] 2026-05-19 00:13:16,946 logging 6992 8428543616 GET /api/v1/student/jobs
+[INFO] 2026-05-19 00:13:17,022 logging 6992 8428543616 GET /api/v1/student/learning-summary
+[INFO] 2026-05-19 00:13:17,101 logging 6992 8428543616 GET /api/v1/student/courses/1/lessons/1
+[INFO] 2026-05-19 00:13:17,260 logging 6992 8428543616 GET /api/v1/student/matches
+[INFO] 2026-05-19 00:13:17,410 logging 6992 8428543616 GET /api/v1/student/messages/contacts
+[INFO] 2026-05-19 00:13:17,560 logging 6992 8428543616 GET /api/v1/student/messages
+[INFO] 2026-05-19 00:13:17,636 logging 6992 8428543616 GET /api/v1/student/courses/1/lessons/1
+[WARNING] 2026-05-19 00:13:17,636 log 6992 8428543616 Forbidden: /api/v1/student/courses/1/lessons/1
+[INFO] 2026-05-19 00:13:17,718 logging 6992 8428543616 GET /api/v1/student/preparation-summary
+[INFO] 2026-05-19 00:13:17,794 logging 6992 8428543616 GET /api/v1/student/privacy-settings
+[INFO] 2026-05-19 00:13:17,867 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:17,870 logging 6992 8428543616 PUT /api/v1/student/privacy-settings
+[INFO] 2026-05-19 00:13:17,948 logging 6992 8428543616 GET /api/v1/student/profile
+[INFO] 2026-05-19 00:13:18,023 logging 6992 8428543616 GET /api/v1/student/profile
+[INFO] 2026-05-19 00:13:18,097 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:18,100 logging 6992 8428543616 PUT /api/v1/student/profile
+[INFO] 2026-05-19 00:13:18,174 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:18,177 logging 6992 8428543616 POST /api/v1/student/profile/resumes
+[INFO] 2026-05-19 00:13:18,178 logging 6992 8428543616 POST /api/v1/student/profile/resumes
+[INFO] 2026-05-19 00:13:18,326 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:18,330 logging 6992 8428543616 POST /api/v1/student/messages/threads
+[INFO] 2026-05-19 00:13:18,331 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:18,405 logging 6992 8428543616 POST /api/v1/auth/signup
+[INFO] 2026-05-19 00:13:18,406 logging 6992 8428543616 GET /api/v1/auth/session
+[INFO] 2026-05-19 00:13:18,480 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:18,482 logging 6992 8428543616 DELETE /api/v1/student/skills/1
+[INFO] 2026-05-19 00:13:18,557 logging 6992 8428543616 GET /api/v1/student/skills
+[INFO] 2026-05-19 00:13:18,630 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:18,633 logging 6992 8428543616 POST /api/v1/student/skills
+[INFO] 2026-05-19 00:13:18,707 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:18,709 logging 6992 8428543616 PUT /api/v1/student/skills/1
+[INFO] 2026-05-19 00:13:18,785 logging 6992 8428543616 GET /api/v1/auth/csrf
+[INFO] 2026-05-19 00:13:18,787 logging 6992 8428543616 POST /api/v1/student/skills
+[WARNING] 2026-05-19 00:13:18,787 log 6992 8428543616 Bad Request: /api/v1/student/skills
+[INFO] 2026-05-19 00:13:18,865 logging 6992 8428543616 GET /api/v1/admin/dashboard-data
+[INFO] 2026-05-19 00:13:19,013 logging 6992 8428543616 GET /api/v1/admin/dashboard-data
+[WARNING] 2026-05-19 00:13:19,013 log 6992 8428543616 Forbidden: /api/v1/admin/dashboard-data
+[INFO] 2026-05-19 00:13:19,985 logging 6992 8428543616 GET /api/v1/company/dashboard-data
+[INFO] 2026-05-19 00:13:20,059 logging 6992 8428543616 GET /api/v1/company/dashboard-data
+[WARNING] 2026-05-19 00:13:20,059 log 6992 8428543616 Unauthorized: /api/v1/company/dashboard-data
+[INFO] 2026-05-19 00:13:20,138 logging 6992 8428543616 GET /api/v1/company/dashboard-data/pipeline
+[INFO] 2026-05-19 00:13:20,215 logging 6992 8428543616 GET /api/v1/student/dashboard-data/applications
+[INFO] 2026-05-19 00:13:20,292 logging 6992 8428543616 GET /api/v1/student/dashboard-data
+[INFO] 2026-05-19 00:13:20,366 logging 6992 8428543616 GET /api/v1/student/dashboard-data
+[WARNING] 2026-05-19 00:13:20,366 log 6992 8428543616 Unauthorized: /api/v1/student/dashboard-data
+[INFO] 2026-05-19 00:13:20,443 logging 6992 8428543616 GET /api/v1/student/dashboard-data/learning
+[INFO] 2026-05-19 00:13:20,591 logging 6992 8428543616 GET /api/v1/notification-preferences
+[INFO] 2026-05-19 00:13:20,740 logging 6992 8428543616 POST /api/v1/notifications/read-all
+[INFO] 2026-05-19 00:13:20,889 logging 6992 8428543616 POST /api/v1/notifications/1/read
+[INFO] 2026-05-19 00:13:21,037 logging 6992 8428543616 GET /api/v1/notifications
+[INFO] 2026-05-19 00:13:21,184 logging 6992 8428543616 GET /api/v1/notifications
+[WARNING] 2026-05-19 00:13:21,185 log 6992 8428543616 Unauthorized: /api/v1/notifications
+[INFO] 2026-05-19 00:13:21,334 logging 6992 8428543616 PUT /api/v1/notification-preferences/update
+[WARNING] 2026-05-19 00:19:12,274 log 6882 6210531328 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:19:12,275 log 6882 6244184064 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:19:12,275 log 6882 6193704960 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:19:12,275 log 6882 6227357696 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:19:12,276 logging 6882 6210531328 POST /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:19:12,276 logging 6882 6244184064 POST /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:19:12,276 logging 6882 6193704960 POST /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:19:12,277 logging 6882 6227357696 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:19:12,278 log 6882 6261010432 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:19:12,278 basehttp 6882 6210531328 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:19:12,278 basehttp 6882 6193704960 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[INFO] 2026-05-19 00:19:12,278 logging 6882 6261010432 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:19:12,278 basehttp 6882 6244184064 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:19:12,278 basehttp 6882 6227357696 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:19:12,279 log 6882 6277836800 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:19:12,279 basehttp 6882 6261010432 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[INFO] 2026-05-19 00:19:12,280 logging 6882 6277836800 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:19:12,280 basehttp 6882 6277836800 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:19:12,292 log 6882 6193704960 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:19:12,293 log 6882 6210531328 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:19:12,293 logging 6882 6193704960 POST /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:19:12,293 logging 6882 6210531328 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:19:12,293 basehttp 6882 6193704960 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:19:12,293 basehttp 6882 6210531328 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:19:12,307 log 6882 6193704960 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:19:12,308 logging 6882 6193704960 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:19:12,308 log 6882 6210531328 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:19:12,308 logging 6882 6210531328 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:19:12,308 basehttp 6882 6193704960 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:19:12,308 basehttp 6882 6210531328 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:19:12,325 log 6882 6193704960 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:19:12,325 logging 6882 6193704960 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:19:12,325 log 6882 6210531328 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:19:12,325 logging 6882 6210531328 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:19:12,325 basehttp 6882 6210531328 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:19:12,325 basehttp 6882 6193704960 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:19:12,342 log 6882 6193704960 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:19:12,342 logging 6882 6193704960 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:19:12,342 log 6882 6210531328 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:19:12,342 basehttp 6882 6193704960 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[INFO] 2026-05-19 00:19:12,343 logging 6882 6210531328 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:19:12,343 basehttp 6882 6210531328 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:19:12,358 log 6882 6210531328 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:19:12,358 logging 6882 6210531328 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:19:12,358 basehttp 6882 6210531328 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:19:12,359 log 6882 6193704960 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:19:12,359 logging 6882 6193704960 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:19:12,359 basehttp 6882 6193704960 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:19:12,376 log 6882 6193704960 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:19:12,376 logging 6882 6193704960 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:19:12,376 basehttp 6882 6193704960 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[WARNING] 2026-05-19 00:19:12,377 log 6882 6210531328 Forbidden (CSRF token missing.): /api/v1/metrics/web-vitals
+[INFO] 2026-05-19 00:19:12,377 logging 6882 6210531328 POST /api/v1/metrics/web-vitals
+[WARNING] 2026-05-19 00:19:12,377 basehttp 6882 6210531328 "POST /api/v1/metrics/web-vitals HTTP/1.1" 403 154
+[INFO] 2026-05-19 00:22:29,421 logging 6882 6193704960 GET /api/v1/auth/session
+[INFO] 2026-05-19 00:22:29,421 basehttp 6882 6193704960 "GET /api/v1/auth/session HTTP/1.1" 200 266
+[INFO] 2026-05-19 00:22:29,423 logging 6882 6193704960 GET /api/v1/auth/session
+[INFO] 2026-05-19 00:22:29,423 basehttp 6882 6193704960 "GET /api/v1/auth/session HTTP/1.1" 200 266
+[INFO] 2026-05-19 00:22:29,455 logging 6882 6193704960 GET /api/v1/notifications
+[INFO] 2026-05-19 00:22:29,456 basehttp 6882 6193704960 "GET /api/v1/notifications HTTP/1.1" 200 4608
+[INFO] 2026-05-19 00:22:29,462 logging 6882 6210531328 GET /api/v1/student/messages
+[INFO] 2026-05-19 00:22:29,465 basehttp 6882 6210531328 "GET /api/v1/student/messages HTTP/1.1" 200 859944
+[INFO] 2026-05-19 00:22:29,468 logging 6882 6244184064 GET /api/v1/student/profile
+[INFO] 2026-05-19 00:22:29,468 logging 6882 6277836800 GET /api/v1/notifications
+[INFO] 2026-05-19 00:22:29,469 basehttp 6882 6244184064 "GET /api/v1/student/profile HTTP/1.1" 200 187299
+[INFO] 2026-05-19 00:22:29,469 basehttp 6882 6277836800 "GET /api/v1/notifications HTTP/1.1" 200 4608
+[INFO] 2026-05-19 00:22:29,481 logging 6882 6193704960 GET /api/v1/student/messages
+[INFO] 2026-05-19 00:22:29,485 basehttp 6882 6193704960 "GET /api/v1/student/messages HTTP/1.1" 200 859944
+[INFO] 2026-05-19 00:22:29,490 logging 6882 6294663168 GET /api/v1/student/profile
+[INFO] 2026-05-19 00:22:29,492 basehttp 6882 6294663168 "GET /api/v1/student/profile HTTP/1.1" 200 187299
+[INFO] 2026-05-19 00:22:29,503 logging 6882 6193704960 GET /api/v1/student/messages
+[INFO] 2026-05-19 00:22:29,504 basehttp 6882 6193704960 "GET /api/v1/student/messages HTTP/1.1" 200 859944
+[INFO] 2026-05-19 00:22:29,518 logging 6882 6210531328 GET /api/v1/student/messages
+[INFO] 2026-05-19 00:22:29,519 basehttp 6882 6210531328 "GET /api/v1/student/messages HTTP/1.1" 200 859944
+[INFO] 2026-05-19 00:22:29,558 logging 6882 6261010432 GET /api/v1/student/courses/14
+[INFO] 2026-05-19 00:22:29,559 basehttp 6882 6261010432 "GET /api/v1/student/courses/14 HTTP/1.1" 200 2630747
+[INFO] 2026-05-19 00:22:29,609 logging 6882 6227357696 GET /api/v1/student/matches
+[INFO] 2026-05-19 00:22:29,610 basehttp 6882 6227357696 "GET /api/v1/student/matches HTTP/1.1" 200 23156
+[INFO] 2026-05-19 00:22:29,630 logging 6882 6193704960 GET /api/v1/student/courses/14
+[INFO] 2026-05-19 00:22:29,632 basehttp 6882 6193704960 "GET /api/v1/student/courses/14 HTTP/1.1" 200 2630747
+[INFO] 2026-05-19 00:22:29,702 logging 6882 6210531328 GET /api/v1/student/matches
+[INFO] 2026-05-19 00:22:29,702 basehttp 6882 6210531328 "GET /api/v1/student/matches HTTP/1.1" 200 23156

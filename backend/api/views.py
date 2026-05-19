@@ -16,7 +16,6 @@ from api.auth_views import (
     login_view,
     logout_view,
     password_change_view,
-    refresh_view,
     serialize_user,
     session_view,
     signup_view,

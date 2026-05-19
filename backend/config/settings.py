@@ -74,11 +74,9 @@ MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "common.middleware.RequestIDMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
-    "common.middleware.BearerTokenMiddleware",
     "django.middleware.common.CommonMiddleware",
-    "common.middleware.ApiCsrfViewMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "common.middleware.APIAuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "services.logging.RequestLoggingMiddleware",
@@ -186,9 +184,6 @@ CSRF_COOKIE_SAMESITE = os.getenv(
 if IS_PRODUCTION:
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     USE_X_FORWARDED_HOST = True
-
-AUTH_ACCESS_TOKEN_LIFETIME_SECONDS = env_int("AUTH_ACCESS_TOKEN_LIFETIME_SECONDS", 60 * 15)
-AUTH_REFRESH_TOKEN_LIFETIME_SECONDS = env_int("AUTH_REFRESH_TOKEN_LIFETIME_SECONDS", 60 * 60 * 24 * 30)
 
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",

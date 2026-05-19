@@ -15,12 +15,6 @@ export interface SessionResponse {
   csrf_token: string
 }
 
-export interface AuthResponse extends AuthUser {
-  csrf_token: string
-  access_token: string
-  refresh_token: string
-}
-
 export interface AuthContextValue {
   status: 'loading' | 'authenticated' | 'anonymous'
   user: AuthUser | null

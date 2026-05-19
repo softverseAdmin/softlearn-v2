@@ -291,51 +291,6 @@ class ApiFoundationTests(TestCase):
         self.assertEqual(rate_limited_response.status_code, 429)
         self.assertEqual(rate_limited_response.json()["error"]["code"], "RATE_LIMITED")
 
-    def test_login_returns_jwt_tokens_without_csrf_cookie(self):
-        User.objects.create_user(
-            email="student@example.com",
-            password="SecurePass123!",
-            full_name="Student User",
-            role=User.Role.STUDENT,
-        )
-        client = Client(enforce_csrf_checks=True)
-        response = client.post(
-            "/api/v1/auth/login",
-            data=json.dumps({"email": "student@example.com", "password": "SecurePass123!", "role": "student"}),
-            content_type="application/json",
-        )
-
-        self.assertEqual(response.status_code, 200)
-        body = response.json()["data"]
-        self.assertIn("access_token", body)
-        self.assertIn("refresh_token", body)
-
-    def test_refresh_returns_new_access_token(self):
-        user = User.objects.create_user(
-            email="student@example.com",
-            password="SecurePass123!",
-            full_name="Student User",
-            role=User.Role.STUDENT,
-        )
-        login_response = self.client.post(
-            "/api/v1/auth/login",
-            data=json.dumps({"email": "student@example.com", "password": "SecurePass123!", "role": "student"}),
-            content_type="application/json",
-        )
-        refresh_token = login_response.json()["data"]["refresh_token"]
-
-        response = self.client.post(
-            "/api/v1/auth/refresh",
-            data=json.dumps({"refresh_token": refresh_token}),
-            content_type="application/json",
-        )
-
-        self.assertEqual(response.status_code, 200)
-        body = response.json()["data"]
-        self.assertEqual(body["user_id"], user.id)
-        self.assertIn("access_token", body)
-        self.assertIn("refresh_token", body)
-
     def test_logout_requires_csrf(self):
         user = User.objects.create_user(
             email="student@example.com",
@@ -349,36 +304,6 @@ class ApiFoundationTests(TestCase):
         response = client.post("/api/v1/auth/logout")
         self.assertEqual(response.status_code, 403)
         self.assertEqual(response.json()["error"]["code"], "CSRF_FAILED")
-
-    def test_bearer_token_authentication_skips_csrf_checks(self):
-        user = User.objects.create_user(
-            email="student@example.com",
-            password="SecurePass123!",
-            full_name="Student User",
-            role=User.Role.STUDENT,
-        )
-        login_response = self.client.post(
-            "/api/v1/auth/login",
-            data=json.dumps({"email": "student@example.com", "password": "SecurePass123!", "role": "student"}),
-            content_type="application/json",
-        )
-        access_token = login_response.json()["data"]["access_token"]
-
-        response = Client(enforce_csrf_checks=True).post(
-            "/api/v1/auth/password/change",
-            data=json.dumps(
-                {
-                    "current_password": "SecurePass123!",
-                    "new_password": "NewSecurePass456!",
-                }
-            ),
-            content_type="application/json",
-            HTTP_AUTHORIZATION=f"Bearer {access_token}",
-        )
-
-        self.assertEqual(response.status_code, 200)
-        user.refresh_from_db()
-        self.assertTrue(user.check_password("NewSecurePass456!"))
 
     def test_password_change_updates_password(self):
         user = User.objects.create_user(

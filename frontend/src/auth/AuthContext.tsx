@@ -1,16 +1,8 @@
 import { useCallback, useEffect, useMemo, useState, type PropsWithChildren } from 'react'
 
 import { AuthContext } from './context'
-import {
-  ApiError,
-  apiRequest,
-  clearAuthTokens,
-  ensureFreshAccessToken,
-  getStoredAccessToken,
-  hasStoredRefreshToken,
-  storeAuthTokens,
-} from '../lib/api'
-import type { AuthContextValue, AuthResponse, AuthUser, SessionResponse } from './types'
+import { ApiError, apiRequest } from '../lib/api'
+import type { AuthContextValue, AuthUser, SessionResponse } from './types'
 
 function getErrorMessage(error: unknown) {
   if (error instanceof ApiError) {
@@ -47,21 +39,9 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const refreshSession = useCallback(async () => {
     try {
       setGlobalError(null)
-      if (hasStoredRefreshToken() && !getStoredAccessToken()) {
-        await ensureFreshAccessToken()
-      }
-
-      let session = await apiRequest<SessionResponse>('/auth/session', { notifyOnError: false })
-      if (!session.authenticated && hasStoredRefreshToken()) {
-        await ensureFreshAccessToken()
-        session = await apiRequest<SessionResponse>('/auth/session', { notifyOnError: false })
-      }
+      const session = await apiRequest<SessionResponse>('/auth/session')
       applySession(session)
-      if (!session.authenticated) {
-        clearAuthTokens()
-      }
     } catch (error) {
-      clearAuthTokens()
       setUser(null)
       setStatus('anonymous')
       setGlobalError(getErrorMessage(error))
@@ -83,13 +63,12 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const login = useCallback(
     async (payload: { email: string; password: string; role: AuthUser['role'] }) => {
       const token = await ensureCsrfToken()
-      const response = await apiRequest<AuthResponse>('/auth/login', {
+      const response = await apiRequest<AuthUser & { csrf_token: string }>('/auth/login', {
         method: 'POST',
         body: payload,
         csrfToken: token,
       })
 
-      storeAuthTokens(response.access_token, response.refresh_token)
       setCsrfToken(response.csrf_token)
       setUser(response)
       setStatus('authenticated')
@@ -108,13 +87,12 @@ export function AuthProvider({ children }: PropsWithChildren) {
       company_name?: string
     }) => {
       const token = await ensureCsrfToken()
-      const response = await apiRequest<AuthResponse>('/auth/signup', {
+      const response = await apiRequest<AuthUser & { csrf_token: string }>('/auth/signup', {
         method: 'POST',
         body: payload,
         csrfToken: token,
       })
 
-      storeAuthTokens(response.access_token, response.refresh_token)
       setCsrfToken(response.csrf_token)
       setUser(response)
       setStatus('authenticated')
@@ -125,20 +103,15 @@ export function AuthProvider({ children }: PropsWithChildren) {
   )
 
   const logout = useCallback(async () => {
-    try {
-      const token = await ensureCsrfToken()
-      await apiRequest<{ message: string }>('/auth/logout', {
-        method: 'POST',
-        csrfToken: token,
-        notifyOnError: false,
-      })
-    } finally {
-      clearAuthTokens()
-      setUser(null)
-      setStatus('anonymous')
-      setGlobalError(null)
-      await fetchCsrfToken()
-    }
+    const token = await ensureCsrfToken()
+    await apiRequest<{ message: string }>('/auth/logout', {
+      method: 'POST',
+      csrfToken: token,
+    })
+    setUser(null)
+    setStatus('anonymous')
+    setGlobalError(null)
+    await fetchCsrfToken()
   }, [ensureCsrfToken, fetchCsrfToken])
 
   const value = useMemo<AuthContextValue>(
