@@ -1,7 +1,22 @@
 from __future__ import annotations
 
+from io import BytesIO
 from pathlib import Path
 from uuid import uuid4
+import warnings
+
+from django.core.exceptions import ValidationError
+from django.core.files.base import ContentFile
+from PIL import Image, ImageOps, UnidentifiedImageError
+
+
+IMAGE_UPLOAD_VARIANTS = {
+    "company_profile": {"max_width": 512, "max_height": 512, "quality": 82},
+    "company_cover": {"max_width": 1600, "max_height": 900, "quality": 80},
+    "student_profile": {"max_width": 512, "max_height": 512, "quality": 82},
+    "student_cover": {"max_width": 1600, "max_height": 900, "quality": 80},
+    "course_thumbnail": {"max_width": 1280, "max_height": 720, "quality": 80},
+}
 
 
 def build_media_upload_path(prefix: str, filename: str) -> str:
@@ -9,6 +24,38 @@ def build_media_upload_path(prefix: str, filename: str) -> str:
     if not extension:
         extension = ".bin"
     return f"{prefix}/{uuid4().hex}{extension}"
+
+
+def compress_uploaded_image(uploaded_file, *, variant: str) -> ContentFile:
+    config = IMAGE_UPLOAD_VARIANTS.get(variant)
+    if config is None:
+        raise ValueError(f"Unknown image upload variant: {variant}")
+
+    try:
+        uploaded_file.seek(0)
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", Image.DecompressionBombWarning)
+            with Image.open(uploaded_file) as opened_image:
+                image = ImageOps.exif_transpose(opened_image)
+                image.load()
+    except (OSError, UnidentifiedImageError, Image.DecompressionBombError, Image.DecompressionBombWarning) as exc:
+        raise ValidationError({"file": ["Upload a valid image file."]}) from exc
+
+    has_alpha = image.mode in {"RGBA", "LA"} or (image.mode == "P" and "transparency" in image.info)
+    output_image = image.convert("RGBA" if has_alpha else "RGB")
+    output_image.thumbnail((config["max_width"], config["max_height"]), Image.Resampling.LANCZOS)
+
+    buffer = BytesIO()
+    output_image.save(
+        buffer,
+        format="WEBP",
+        quality=config["quality"],
+        method=6,
+    )
+    buffer.seek(0)
+
+    base_name = Path(uploaded_file.name).stem or "upload"
+    return ContentFile(buffer.getvalue(), name=f"{base_name}.webp")
 
 
 def company_profile_image_upload_to(instance, filename: str) -> str:
@@ -56,4 +103,3 @@ def text_value_or_none(value: str | None) -> str | None:
         return None
     cleaned = value.strip()
     return cleaned or None
-

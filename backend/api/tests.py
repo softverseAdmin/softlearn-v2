@@ -1,4 +1,5 @@
 import json
+from io import BytesIO
 import tempfile
 from datetime import timedelta
 from unittest import mock
@@ -11,6 +12,7 @@ from django.test import Client, TestCase, override_settings
 from django.utils import timezone
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
+from PIL import Image
 
 from config.settings import validate_production_configuration
 from common.models import ApplicationLogEntry, ErrorReport
@@ -73,6 +75,19 @@ from users.models import (
 
 
 class ApiFoundationTests(TestCase):
+    def create_test_image_file(
+        self,
+        name: str,
+        *,
+        size: tuple[int, int] = (1200, 800),
+        color: tuple[int, int, int] = (24, 99, 182),
+        image_format: str = "PNG",
+        content_type: str = "image/png",
+    ) -> SimpleUploadedFile:
+        buffer = BytesIO()
+        Image.new("RGB", size, color).save(buffer, format=image_format)
+        return SimpleUploadedFile(name, buffer.getvalue(), content_type=content_type)
+
     def csrf_client(self) -> tuple[Client, str]:
         client = Client(enforce_csrf_checks=True)
         response = client.get("/api/v1/auth/csrf")
@@ -3626,12 +3641,12 @@ class ApiFoundationTests(TestCase):
 
         profile_image_response = client.post(
             "/api/v1/student/profile/images/profile",
-            data={"file": SimpleUploadedFile("profile.png", b"student-profile-image", content_type="image/png")},
+            data={"file": self.create_test_image_file("profile.png", size=(1200, 1200))},
             HTTP_X_CSRFTOKEN=csrf_token,
         )
         cover_image_response = client.post(
             "/api/v1/student/profile/images/cover",
-            data={"file": SimpleUploadedFile("cover.png", b"student-cover-image", content_type="image/png")},
+            data={"file": self.create_test_image_file("cover.png", size=(2400, 1350))},
             HTTP_X_CSRFTOKEN=csrf_token,
         )
         self.assertEqual(profile_image_response.status_code, 200)
@@ -3663,8 +3678,8 @@ class ApiFoundationTests(TestCase):
         self.assertEqual(profile.about_me, "Backend-focused student.")
         self.assertTrue(profile.profile_image_file.name)
         self.assertTrue(profile.cover_image_file.name)
-        self.assertIn(".png", response.json()["data"]["profile_image"])
-        self.assertIn(".png", response.json()["data"]["cover_image"])
+        self.assertIn(".webp", response.json()["data"]["profile_image"])
+        self.assertIn(".webp", response.json()["data"]["cover_image"])
         self.assertTrue(response.json()["data"]["profile_complete"])
 
     def test_student_profile_get_includes_extension_sections(self):
@@ -4024,12 +4039,12 @@ class ApiFoundationTests(TestCase):
 
         profile_image_response = client.post(
             "/api/v1/company/profile/images/profile",
-            data={"file": SimpleUploadedFile("company-profile.png", b"company-profile-image", content_type="image/png")},
+            data={"file": self.create_test_image_file("company-profile.png", size=(1400, 1400))},
             HTTP_X_CSRFTOKEN=csrf_token,
         )
         cover_image_response = client.post(
             "/api/v1/company/profile/images/cover",
-            data={"file": SimpleUploadedFile("company-cover.png", b"company-cover-image", content_type="image/png")},
+            data={"file": self.create_test_image_file("company-cover.png", size=(2800, 1575))},
             HTTP_X_CSRFTOKEN=csrf_token,
         )
         self.assertEqual(profile_image_response.status_code, 200)
@@ -4077,10 +4092,15 @@ class ApiFoundationTests(TestCase):
         self.assertEqual(company.headquarters_address, "〒1500042\n東京都渋谷区宇田川町3-5Spark SHIBUYA 10階")
         self.assertEqual(company.office_locations, "Primary\nSpark SHIBUYA 10F, 3-5 Udagawacho\nShibuya-ku, Tokyo 150-0042")
         self.assertEqual(company.company_points, ["副業可", "私服可", "自社サービス保有"])
-        self.assertIn(".png", response.json()["data"]["profile_image"])
-        self.assertIn(".png", response.json()["data"]["cover_image"])
+        self.assertIn(".webp", response.json()["data"]["profile_image"])
+        self.assertIn(".webp", response.json()["data"]["cover_image"])
         self.assertEqual(response.json()["data"]["tagline"], "IPの可能性を広げ、人々に衝撃と感動を")
         self.assertTrue(response.json()["data"]["profile_complete"])
+        with company.cover_image_file.open("rb") as stored_cover:
+            with Image.open(stored_cover) as compressed_cover:
+                self.assertEqual(compressed_cover.format, "WEBP")
+                self.assertLessEqual(compressed_cover.width, 1600)
+                self.assertLessEqual(compressed_cover.height, 900)
 
     def test_student_cannot_access_company_profile_endpoint(self):
         user = User.objects.create_user(
@@ -4951,11 +4971,11 @@ class ApiFoundationTests(TestCase):
 
         upload_response = client.post(
             f"/api/v1/company/courses/{course_id}/thumbnail",
-            data={"file": SimpleUploadedFile("course-thumb.png", b"course-thumb-image", content_type="image/png")},
+            data={"file": self.create_test_image_file("course-thumb.png", size=(1920, 1080))},
             HTTP_X_CSRFTOKEN=csrf_token,
         )
         self.assertEqual(upload_response.status_code, 200)
-        self.assertIn(".png", upload_response.json()["data"]["thumbnail_image"])
+        self.assertIn(".webp", upload_response.json()["data"]["thumbnail_image"])
 
         update_response = client.put(
             f"/api/v1/company/courses/{course_id}",
@@ -4978,7 +4998,7 @@ class ApiFoundationTests(TestCase):
         self.assertEqual(update_response.status_code, 200)
         update_thumbnail_response = client.post(
             f"/api/v1/company/courses/{course_id}/thumbnail",
-            data={"file": SimpleUploadedFile("course-thumb-updated.png", b"course-thumb-image-updated", content_type="image/png")},
+            data={"file": self.create_test_image_file("course-thumb-updated.png", size=(1600, 900), color=(180, 70, 50))},
             HTTP_X_CSRFTOKEN=csrf_token,
         )
         self.assertEqual(update_thumbnail_response.status_code, 200)
