@@ -1,20 +1,20 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate } from 'react-router-dom'
-import { Archive, BookOpen, ChevronRight, Clock3, Heart, Search, SlidersHorizontal, Star } from 'lucide-react'
+import { Archive, BookOpen, ChevronRight, Clock3, Heart, Search, SlidersHorizontal } from 'lucide-react'
 
-import { ApiError, apiRequest } from '../../lib/api'
-import type { AdminCourseRecord, AdminCoursesResponse } from '../admin/types'
+import type { CompanyCourseRecord, CompanyCoursesResponse } from '../../types'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
+import { apiRequest } from '@/lib/api'
 import { cn } from '@/lib/utils'
-import { getCourseMediaOverrideForCourse } from './courseMediaStorage'
-import { companyCoursePreviewFavoritesStorageKey } from './companyCoursePreviewState'
+import { companyCourseCatalogQueryOptions } from '../queries'
 
-const emptyCoursesResponse: AdminCoursesResponse = {
+const emptyCoursesResponse: CompanyCoursesResponse = {
   courses: [],
 }
 
@@ -42,8 +42,7 @@ function formatDifficultyLabel(value: string) {
   return value ? formatCategoryLabel(value) : 'General'
 }
 
-function getCourseMockMeta(course: AdminCourseRecord) {
-  const rating = (4.2 + ((course.course_id % 7) * 0.1)).toFixed(1)
+function getCourseDisplayMeta(course: CompanyCourseRecord) {
   const background = thumbnailBackgrounds[course.course_id % thumbnailBackgrounds.length]
   const sourceName = course.company_name?.trim() || course.created_by_name?.trim() || 'SoftLearn team'
   const sourceLabel = course.company_name?.trim() ? 'Course provider' : 'Course author'
@@ -51,7 +50,6 @@ function getCourseMockMeta(course: AdminCourseRecord) {
   return {
     sourceName,
     sourceLabel,
-    rating,
     background,
     initials: sourceName
       .split(' ')
@@ -61,8 +59,8 @@ function getCourseMockMeta(course: AdminCourseRecord) {
   }
 }
 
-function getCourseScore(course: AdminCourseRecord, favoriteCourseIds: number[]) {
-  return course.lesson_count * 10 + course.estimated_hours + course.learning_record_count * 3 + (favoriteCourseIds.includes(course.course_id) ? 100 : 0)
+function getCourseScore(course: CompanyCourseRecord) {
+  return course.lesson_count * 10 + course.estimated_hours + course.learning_record_count * 3 + (course.is_bookmarked ? 100 : 0)
 }
 
 function getStatusBadgeClassName(status: string) {
@@ -83,56 +81,52 @@ type CompanyCourseCatalogPageProps = {
 
 function CompanyCourseCatalogPageContent({ favoritesOnly = false, retiredOnly = false }: CompanyCourseCatalogPageProps) {
   const navigate = useNavigate()
-  const [data, setData] = useState<AdminCoursesResponse>(emptyCoursesResponse)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [category, setCategory] = useState('All Categories')
   const [level, setLevel] = useState('All Levels')
   const [sortBy, setSortBy] = useState('Recommended')
-  const [favoriteCourseIds, setFavoriteCourseIds] = useState<number[]>([])
-
-  useEffect(() => {
-    const storedFavorites = localStorage.getItem(companyCoursePreviewFavoritesStorageKey)
-    if (!storedFavorites) {
-      return
-    }
-
-    try {
-      const parsedFavorites = JSON.parse(storedFavorites) as number[]
-      setFavoriteCourseIds(Array.isArray(parsedFavorites) ? parsedFavorites : [])
-    } catch {
-      setFavoriteCourseIds([])
-    }
-  }, [])
-
-  useEffect(() => {
-    let active = true
-
-    async function loadCourses() {
-      try {
-        const response = await apiRequest<AdminCoursesResponse>('/company/courses')
-        if (active) {
-          setData(response)
-          setError(null)
-        }
-      } catch (loadError) {
-        if (active) {
-          setError(loadError instanceof ApiError ? loadError.message : 'Unable to load courses.')
-        }
-      } finally {
-        if (active) {
-          setLoading(false)
-        }
+  const [page, setPage] = useState(1)
+  const queryClient = useQueryClient()
+  const queryParams = useMemo(
+    () => ({
+      page: String(page),
+      page_size: '24',
+      ...(favoritesOnly ? { bookmarked: 'true' } : {}),
+      ...(retiredOnly ? { status: 'inactive' } : {}),
+    }),
+    [favoritesOnly, page, retiredOnly],
+  )
+  const coursesQuery = useQuery(companyCourseCatalogQueryOptions(queryParams))
+  const data = coursesQuery.data ?? emptyCoursesResponse
+  const error =
+    coursesQuery.error instanceof Error ? coursesQuery.error.message : coursesQuery.isError ? 'Unable to load courses.' : null
+  const bookmarkMutation = useMutation({
+    mutationFn: async ({ courseId, isBookmarked }: { courseId: number; isBookmarked: boolean }) => {
+      if (isBookmarked) {
+        await apiRequest(`/company/courses/${courseId}/bookmark`, { method: 'DELETE' })
+        return false
       }
-    }
 
-    void loadCourses()
+      await apiRequest(`/company/courses/${courseId}/bookmark`, { method: 'POST', body: {} })
+      return true
+    },
+    onSuccess: (isBookmarked, variables) => {
+      queryClient.setQueryData<CompanyCoursesResponse>(['company-courses', 'catalog', queryParams], (current) => {
+        if (!current) {
+          return current
+        }
 
-    return () => {
-      active = false
-    }
-  }, [])
+        return {
+          ...current,
+          courses: current.courses
+            .map((course) =>
+              course.course_id === variables.courseId ? { ...course, is_bookmarked: isBookmarked } : course,
+            )
+            .filter((course) => !(favoritesOnly && !course.is_bookmarked)),
+        }
+      })
+    },
+  })
 
   const visibleCourses = useMemo(
     () => data.courses.filter((course) => (retiredOnly ? course.status === 'inactive' : course.status !== 'inactive')),
@@ -155,7 +149,7 @@ function CompanyCourseCatalogPageContent({ favoritesOnly = false, retiredOnly = 
     const normalizedQuery = searchQuery.trim().toLowerCase()
 
     const filtered = visibleCourses.filter((course) => {
-      const matchesFavorites = !favoritesOnly || favoriteCourseIds.includes(course.course_id)
+      const matchesFavorites = !favoritesOnly || Boolean(course.is_bookmarked)
       const matchesQuery =
         !normalizedQuery ||
         [course.title, course.description, course.category, course.status]
@@ -182,20 +176,9 @@ function CompanyCourseCatalogPageContent({ favoritesOnly = false, retiredOnly = 
         return right.lesson_count - left.lesson_count || right.learning_record_count - left.learning_record_count
       }
 
-      return getCourseScore(right, favoriteCourseIds) - getCourseScore(left, favoriteCourseIds)
+      return getCourseScore(right) - getCourseScore(left)
     })
-  }, [category, favoriteCourseIds, favoritesOnly, level, searchQuery, sortBy, visibleCourses])
-
-  function toggleFavorite(courseId: number) {
-    setFavoriteCourseIds((currentFavorites) => {
-      const nextFavorites = currentFavorites.includes(courseId)
-        ? currentFavorites.filter((currentId) => currentId !== courseId)
-        : [...currentFavorites, courseId]
-
-      localStorage.setItem(companyCoursePreviewFavoritesStorageKey, JSON.stringify(nextFavorites))
-      return nextFavorites
-    })
-  }
+  }, [category, favoritesOnly, level, searchQuery, sortBy, visibleCourses])
 
   const pageTitle = retiredOnly ? 'Retired Courses' : favoritesOnly ? 'Saved Courses' : 'All Courses'
   const pageDescription = retiredOnly
@@ -419,7 +402,7 @@ function CompanyCourseCatalogPageContent({ favoritesOnly = false, retiredOnly = 
         })}
       </div>
 
-      {loading ? (
+      {coursesQuery.isLoading ? (
         <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
           {Array.from({ length: 8 }).map((_, index) => (
             <div key={index} className="flex min-h-[420px] flex-col overflow-hidden rounded-2xl border border-border bg-muted/20">
@@ -436,123 +419,145 @@ function CompanyCourseCatalogPageContent({ favoritesOnly = false, retiredOnly = 
           ))}
         </div>
       ) : filteredCourses.length > 0 ? (
-        <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
-          {filteredCourses.map((course) => {
-            const meta = getCourseMockMeta(course)
-            const mediaOverride = getCourseMediaOverrideForCourse(course.course_id, course.title)
-            const courseThumbnail = course.thumbnail_image || mediaOverride?.thumbnailImage || mediaOverride?.previewImage || ''
-            const isFavorite = favoriteCourseIds.includes(course.course_id)
+        <div className="space-y-4">
+          <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+            {filteredCourses.map((course) => {
+              const meta = getCourseDisplayMeta(course)
+              const courseThumbnail = course.thumbnail_image || ''
+              const isFavorite = Boolean(course.is_bookmarked)
 
-            return (
-              <article key={course.course_id} className="flex min-h-[460px] flex-col overflow-hidden rounded-2xl border border-border bg-muted/20">
-                <div className={cn('relative h-48 bg-gradient-to-br p-4 text-white', meta.background)}>
-                  {courseThumbnail ? (
-                    <>
+              return (
+                <article key={course.course_id} className="flex min-h-[460px] flex-col overflow-hidden rounded-2xl border border-border bg-muted/20">
+                  <div className={cn('relative h-48 bg-gradient-to-br p-4 text-white', meta.background)}>
+                    {courseThumbnail ? (
+                      <>
                         <img
                           src={courseThumbnail}
-                          alt={course.thumbnail_alt_text || mediaOverride?.thumbnailAltText || `${course.title} thumbnail`}
+                          alt={course.thumbnail_alt_text || `${course.title} thumbnail`}
                           className="absolute inset-0 h-full w-full object-cover"
                         />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-black/10" />
-                    </>
-                  ) : null}
-                  <div className="relative z-10 flex h-full flex-col justify-between">
-                    <div className="flex items-start justify-between gap-2">
-                      <Badge variant="secondary" className="w-fit rounded-full bg-white/15 text-white hover:bg-white/15">
-                        {formatCategoryLabel(course.category)}
-                      </Badge>
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => toggleFavorite(course.course_id)}
-                          aria-label={isFavorite ? 'Remove from saved courses' : 'Save course'}
-                          className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-white/10 transition hover:bg-white/20"
-                        >
-                          <Heart className={cn('h-4 w-4', isFavorite && 'fill-current text-emerald-300')} />
-                        </button>
-                        <Badge variant="secondary" className={cn('rounded-full', getStatusBadgeClassName(course.status))}>
-                          {formatCategoryLabel(course.status)}
-                        </Badge>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-white/30 bg-white/10">
-                        <BookOpen className="h-6 w-6" />
-                      </div>
-                      <p className="text-sm text-white/80">{course.lesson_count} lessons</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex flex-1 flex-col p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="space-y-1">
-                      <p className="block text-sm font-semibold text-foreground">{course.title}</p>
-                      <p className="text-xs text-muted-foreground">{formatCategoryLabel(course.category)}</p>
-                    </div>
-                  </div>
-
-                  <p
-                    className="mt-3 h-[4.5rem] overflow-hidden text-sm leading-6 text-muted-foreground"
-                    style={{
-                      display: '-webkit-box',
-                      WebkitBoxOrient: 'vertical',
-                      WebkitLineClamp: 3,
-                    }}
-                  >
-                    {course.description || 'Build practical skills with guided lessons and structured student progress.'}
-                  </p>
-
-                  <div className="mt-4 flex items-center gap-3">
-                    <Avatar size="default">
-                      <AvatarFallback>{meta.initials}</AvatarFallback>
-                    </Avatar>
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium text-foreground">{meta.sourceName}</p>
-                      <p className="text-xs text-muted-foreground">{meta.sourceLabel}</p>
-                    </div>
-                  </div>
-
-                  <div className="mt-4 flex flex-nowrap items-center gap-2 overflow-x-auto">
-                    <Badge variant="secondary" className="flex-none rounded-full whitespace-nowrap">
-                      <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-                      {meta.rating}
-                    </Badge>
-                    <Badge variant="secondary" className="flex-none rounded-full whitespace-nowrap">
-                      <Clock3 className="h-3.5 w-3.5" />
-                      {course.estimated_hours || 0} hrs
-                    </Badge>
-                    <Badge variant="secondary" className="flex-none rounded-full whitespace-nowrap">
-                      {formatDifficultyLabel(course.difficulty_level)}
-                    </Badge>
-                  </div>
-
-                  <div className="mt-4 text-xs text-muted-foreground">{course.learning_record_count} student learning records</div>
-
-                  <div className="mt-auto flex flex-wrap gap-2 pt-5">
-                    {!course.can_edit ? (
-                      <p className="w-full text-xs text-muted-foreground">
-                        Shared courses stay previewable, but only courses created by your company can be edited.
-                      </p>
-                    ) : null}
-                    <Button type="button" variant="outline" size="sm" onClick={() => navigate(`/company/courses/${course.course_id}/preview`)}>
-                      Preview
-                    </Button>
-                    {course.can_edit ? (
-                      <>
-                        <Button type="button" variant="outline" size="sm" onClick={() => navigate(`/company/courses/${course.course_id}/edit`)}>
-                          Edit
-                        </Button>
-                        <Button type="button" size="sm" onClick={() => navigate(`/company/courses/${course.course_id}/lessons`)}>
-                          Lessons
-                        </Button>
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-black/10" />
                       </>
                     ) : null}
+                    <div className="relative z-10 flex h-full flex-col justify-between">
+                      <div className="flex items-start justify-between gap-2">
+                        <Badge variant="secondary" className="w-fit rounded-full bg-white/15 text-white hover:bg-white/15">
+                          {formatCategoryLabel(course.category)}
+                        </Badge>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => bookmarkMutation.mutate({ courseId: course.course_id, isBookmarked: isFavorite })}
+                            aria-label={isFavorite ? 'Remove from saved courses' : 'Save course'}
+                            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-white/10 transition hover:bg-white/20"
+                          >
+                            <Heart className={cn('h-4 w-4', isFavorite && 'fill-current text-emerald-300')} />
+                          </button>
+                          <Badge variant="secondary" className={cn('rounded-full', getStatusBadgeClassName(course.status))}>
+                            {formatCategoryLabel(course.status)}
+                          </Badge>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-white/30 bg-white/10">
+                          <BookOpen className="h-6 w-6" />
+                        </div>
+                        <p className="text-sm text-white/80">{course.lesson_count} lessons</p>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </article>
-            )
-          })}
+
+                  <div className="flex flex-1 flex-col p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="space-y-1">
+                        <p className="block text-sm font-semibold text-foreground">{course.title}</p>
+                        <p className="text-xs text-muted-foreground">{formatCategoryLabel(course.category)}</p>
+                      </div>
+                    </div>
+
+                    <p
+                      className="mt-3 h-[4.5rem] overflow-hidden text-sm leading-6 text-muted-foreground"
+                      style={{
+                        display: '-webkit-box',
+                        WebkitBoxOrient: 'vertical',
+                        WebkitLineClamp: 3,
+                      }}
+                    >
+                      {course.description || 'Build practical skills with guided lessons and structured student progress.'}
+                    </p>
+
+                    <div className="mt-4 flex items-center gap-3">
+                      <Avatar size="default">
+                        <AvatarFallback>{meta.initials}</AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-foreground">{meta.sourceName}</p>
+                        <p className="text-xs text-muted-foreground">{meta.sourceLabel}</p>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 flex flex-nowrap items-center gap-2 overflow-x-auto">
+                      <Badge variant="secondary" className="flex-none rounded-full whitespace-nowrap">
+                        <Clock3 className="h-3.5 w-3.5" />
+                        {course.estimated_hours || 0} hrs
+                      </Badge>
+                      <Badge variant="secondary" className="flex-none rounded-full whitespace-nowrap">
+                        {formatDifficultyLabel(course.difficulty_level)}
+                      </Badge>
+                    </div>
+
+                    <div className="mt-4 text-xs text-muted-foreground">{course.learning_record_count} student learning records</div>
+
+                    <div className="mt-auto flex flex-wrap gap-2 pt-5">
+                      {!course.can_edit ? (
+                        <p className="w-full text-xs text-muted-foreground">
+                          Shared courses stay previewable, but only courses created by your company can be edited.
+                        </p>
+                      ) : null}
+                      <Button type="button" variant="outline" size="sm" onClick={() => navigate(`/company/courses/${course.course_id}/preview`)}>
+                        Preview
+                      </Button>
+                      {course.can_edit ? (
+                        <>
+                          <Button type="button" variant="outline" size="sm" onClick={() => navigate(`/company/courses/${course.course_id}/edit`)}>
+                            Edit
+                          </Button>
+                          <Button type="button" size="sm" onClick={() => navigate(`/company/courses/${course.course_id}/lessons`)}>
+                            Lessons
+                          </Button>
+                        </>
+                      ) : null}
+                    </div>
+                  </div>
+                </article>
+              )
+            })}
+          </div>
+          {data.pagination ? (
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-sm text-muted-foreground">
+                Page {data.pagination.page} of {Math.max(1, data.pagination.total_pages)}
+              </p>
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={!data.pagination.has_previous}
+                  onClick={() => setPage((current) => Math.max(1, current - 1))}
+                >
+                  Previous
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={!data.pagination.has_next}
+                  onClick={() => setPage((current) => current + 1)}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          ) : null}
         </div>
       ) : (
         <Card className="border-dashed">

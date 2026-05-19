@@ -34,16 +34,20 @@ ENV PATH=/root/.local/bin:$PATH \
 
 # Copy application code
 COPY backend/ .
+COPY docker/backend-web-entrypoint.sh /usr/local/bin/backend-web-entrypoint.sh
+COPY docker/backend-worker-entrypoint.sh /usr/local/bin/backend-worker-entrypoint.sh
+COPY docker/backend-release-entrypoint.sh /usr/local/bin/backend-release-entrypoint.sh
 
 # Create non-root user
 RUN useradd -m -u 1000 appuser && \
     mkdir -p /app/logs && \
+    chmod +x /usr/local/bin/backend-web-entrypoint.sh /usr/local/bin/backend-worker-entrypoint.sh /usr/local/bin/backend-release-entrypoint.sh && \
     chown -R appuser:appuser /app
 
 USER appuser
 
-# Run migrations and start server
-CMD ["sh", "-c", "python manage.py migrate && python manage.py collectstatic --noinput && gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 4"]
+# Start the web process only; release tasks run explicitly outside the steady-state container.
+CMD ["/usr/local/bin/backend-web-entrypoint.sh"]
 
 EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \

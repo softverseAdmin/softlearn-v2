@@ -76,6 +76,16 @@ export interface AdminCourseRecord {
 
 export interface AdminCoursesResponse {
   courses: AdminCourseRecord[]
+  pagination?: {
+    page: number
+    page_size: number
+    total_count: number
+    total_pages: number
+    has_previous: boolean
+    has_next: boolean
+  }
+  available_categories?: string[]
+  available_difficulty_levels?: string[]
 }
 
 export interface AdminLessonRecord {

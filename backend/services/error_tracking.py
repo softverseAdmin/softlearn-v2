@@ -56,40 +56,41 @@ class ErrorTracker:
         request_method: Optional[str] = None,
         request_path: Optional[str] = None,
         metadata: Optional[Dict[str, Any]] = None,
-    ) -> ErrorReport:
+    ) -> Optional[ErrorReport]:
         """Capture and track an exception"""
         
         error_type = type(exception).__name__
         error_message = str(exception)
         stack_trace = traceback.format_exc()
         
-        # Get or create error report
-        try:
-            error_report = ErrorReport.objects.get(
-                error_type=error_type,
-                error_message=error_message,
-                is_resolved=False,
-            )
-            error_report.increment()
-        except ErrorReport.DoesNotExist:
-            user = None
-            if user_id:
-                try:
-                    user = User.objects.get(id=user_id)
-                except User.DoesNotExist:
-                    pass
-            
-            error_report = ErrorReport.objects.create(
-                error_type=error_type,
-                error_message=error_message,
-                stack_trace=stack_trace,
-                request_id=request_id,
-                user=user,
-                request_method=request_method,
-                request_path=request_path,
-                environment=settings.ENVIRONMENT if hasattr(settings, 'ENVIRONMENT') else 'production',
-                metadata=metadata or {},
-            )
+        error_report = None
+        if getattr(settings, "PERSIST_ERROR_REPORTS", False):
+            try:
+                error_report = ErrorReport.objects.get(
+                    error_type=error_type,
+                    error_message=error_message,
+                    is_resolved=False,
+                )
+                error_report.increment()
+            except ErrorReport.DoesNotExist:
+                user = None
+                if user_id:
+                    try:
+                        user = User.objects.get(id=user_id)
+                    except User.DoesNotExist:
+                        pass
+
+                error_report = ErrorReport.objects.create(
+                    error_type=error_type,
+                    error_message=error_message,
+                    stack_trace=stack_trace,
+                    request_id=request_id,
+                    user=user,
+                    request_method=request_method,
+                    request_path=request_path,
+                    environment=settings.ENVIRONMENT if hasattr(settings, 'ENVIRONMENT') else 'production',
+                    metadata=metadata or {},
+                )
         
         # Also capture in Sentry if configured
         try:
@@ -116,6 +117,16 @@ class ErrorTracker:
     @staticmethod
     def get_error_statistics() -> Dict[str, Any]:
         """Get error statistics and patterns"""
+        if not getattr(settings, "PERSIST_ERROR_REPORTS", False):
+            return {
+                "storage_enabled": False,
+                "total_errors": 0,
+                "unresolved_errors": 0,
+                "errors_last_24h": 0,
+                "top_errors": [],
+                "most_affected_users": [],
+            }
+
         from django.db.models import Count, Q
         from django.utils import timezone
         from datetime import timedelta

@@ -1,22 +1,16 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   ChevronRight,
-  LoaderCircle,
   MessageSquareMore,
-  Paperclip,
-  Pin,
   Search,
   SendHorizontal,
   SlidersHorizontal,
-  Star,
-  Trash2,
 } from 'lucide-react'
 import { Link, useSearchParams } from 'react-router-dom'
 
 import { useAuth } from '@/auth/useAuth'
 import { useWorkspaceState } from '@/app/workspace/workspace-state'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { ConfirmationModal } from '@/components/ConfirmationModal'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -27,62 +21,28 @@ import { Textarea } from '@/components/ui/textarea'
 import { ApiError, apiRequest } from '@/lib/api'
 import { cn } from '@/lib/utils'
 
-import { messageFilters } from './messages/mockData'
+import { messageFilters } from '../mockData'
+import { getMessageError, mapConversationThread, upsertThread } from '../pageShared'
+import {
+  companyComposeContactsQueryOptions,
+  companyMessageInboxQueryOptions,
+  companyMessageQueryKeys,
+  companyMessageThreadQueryOptions,
+} from '../queries'
+import { ThreadList } from '../ThreadList'
+import { ThreadPanel } from '../ThreadPanel'
 import type {
-  CompanyMessagesResponse,
   ComposeContact,
-  ComposeContactsResponse,
   ConversationThread,
   ConversationThreadResponse,
   MessageFilter,
-  MessageRecord,
-} from './messages/types'
-import { formatMessageTime, formatRelativeTime, getInitials, sortThreads } from './messages/utils'
-
-function getErrorMessage(error: unknown) {
-  if (error instanceof ApiError) {
-    return error.message
-  }
-
-  return 'Unable to update messages right now.'
-}
-
-function mapMessageRecord(message: ConversationThreadResponse['messages'][number]): MessageRecord {
-  return {
-    id: message.id,
-    author: message.author,
-    sender: message.sender,
-    senderImage: message.sender_image,
-    body: message.body,
-    sentAt: message.sent_at,
-    status: message.status ?? undefined,
-  }
-}
-
-function mapConversationThread(thread: ConversationThreadResponse): ConversationThread {
-  return {
-    id: thread.id,
-    participantName: thread.participant_name,
-    companyName: thread.company_name,
-    roleLabel: thread.role_label,
-    category: thread.category,
-    isUnread: thread.is_unread,
-    isPinned: thread.is_pinned,
-    isStarred: thread.is_starred,
-    lastActivity: thread.last_activity,
-    preview: thread.preview,
-    participantImage: thread.participant_image,
-    messages: thread.messages.map(mapMessageRecord),
-  }
-}
-
-function upsertThread(currentThreads: ConversationThread[], nextThread: ConversationThread) {
-  return [nextThread, ...currentThreads.filter((thread) => thread.id !== nextThread.id)].sort(sortThreads)
-}
+} from '../types'
+import { sortThreads } from '../utils'
 
 export function CompanyMessagesPage() {
   const { csrfToken } = useAuth()
   const { setUnreadMessageCount } = useWorkspaceState()
+  const queryClient = useQueryClient()
   const [searchParams, setSearchParams] = useSearchParams()
   const [threads, setThreads] = useState<ConversationThread[]>([])
   const [composeContacts, setComposeContacts] = useState<ComposeContact[]>([])
@@ -102,14 +62,13 @@ export function CompanyMessagesPage() {
   const [selectedComposeCompany, setSelectedComposeCompany] = useState<string | null>(null)
   const [selectedComposeContact, setSelectedComposeContact] = useState<ComposeContact | null>(null)
   const [composeMessage, setComposeMessage] = useState('')
-  const [loading, setLoading] = useState(true)
-  const [loadingComposeContacts, setLoadingComposeContacts] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isCreatingThread, setIsCreatingThread] = useState(false)
   const [sendingThreadId, setSendingThreadId] = useState<number | null>(null)
   const [updatingThreadId, setUpdatingThreadId] = useState<number | null>(null)
   const [threadPendingDeletion, setThreadPendingDeletion] = useState<ConversationThread | null>(null)
   const [deletingThreadId, setDeletingThreadId] = useState<number | null>(null)
+  const inboxQuery = useQuery(companyMessageInboxQueryOptions())
   const filteredThreads = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase()
 
@@ -146,39 +105,20 @@ export function CompanyMessagesPage() {
   }, [searchParams])
 
   useEffect(() => {
-    let active = true
-
-    async function loadMessages() {
-      try {
-        const [messagesResponse, contactsResponse] = await Promise.all([
-          apiRequest<CompanyMessagesResponse>('/company/messages'),
-          apiRequest<ComposeContactsResponse>('/company/messages/contacts'),
-        ])
-        if (!active) {
-          return
-        }
-
-        const nextThreads = messagesResponse.threads.map(mapConversationThread).sort(sortThreads)
-        setThreads(nextThreads)
-        setComposeContacts(contactsResponse.contacts)
-      } catch (loadError) {
-        if (active) {
-          setError(loadError instanceof ApiError ? loadError.message : 'Unable to load messages.')
-        }
-      } finally {
-        if (active) {
-          setLoading(false)
-          setLoadingComposeContacts(false)
-        }
-      }
+    if (!inboxQuery.data) {
+      return
     }
 
-    void loadMessages()
+    setThreads([...inboxQuery.data.threads].sort(sortThreads))
+  }, [inboxQuery.data])
 
-    return () => {
-      active = false
+  useEffect(() => {
+    if (!inboxQuery.error) {
+      return
     }
-  }, [])
+
+    setError(inboxQuery.error instanceof ApiError ? inboxQuery.error.message : 'Unable to load messages.')
+  }, [inboxQuery.error])
 
   useEffect(() => {
     if (filteredThreads.length === 0) {
@@ -219,6 +159,63 @@ export function CompanyMessagesPage() {
   }, [])
 
   const activeThread = threads.find((thread) => thread.id === activeThreadId) ?? null
+  const shouldLoadActiveThread = activeThreadId !== null && activeThread !== null && activeThread.messages.length === 0
+  const activeThreadQuery = useQuery({
+    ...companyMessageThreadQueryOptions(activeThreadId ?? 0),
+    enabled: shouldLoadActiveThread,
+  })
+  const composeContactsQuery = useQuery({
+    ...companyComposeContactsQueryOptions(recipientQuery.trim()),
+    enabled: isComposeDialogOpen,
+  })
+  const loading = inboxQuery.isLoading
+  const loadingComposeContacts = composeContactsQuery.isFetching
+  const loadingActiveThreadId = activeThreadQuery.isFetching && activeThreadId !== null ? activeThreadId : null
+
+  const setCachedThreads = useCallback((nextThreads: ConversationThread[]) => {
+    queryClient.setQueryData(companyMessageQueryKeys.inbox, (currentData: { threads: ConversationThread[] } | undefined) =>
+      currentData
+        ? {
+            ...currentData,
+            threads: nextThreads,
+          }
+        : currentData,
+    )
+  }, [queryClient])
+
+  const commitThreads = useCallback((updater: (currentThreads: ConversationThread[]) => ConversationThread[]) => {
+    setThreads((currentThreads) => {
+      const nextThreads = updater(currentThreads)
+      setCachedThreads(nextThreads)
+      return nextThreads
+    })
+  }, [setCachedThreads])
+
+  const mergeThread = useCallback((nextThread: ConversationThread) => {
+    queryClient.setQueryData(companyMessageQueryKeys.thread(nextThread.id), nextThread)
+    commitThreads((currentThreads) => upsertThread(currentThreads, nextThread))
+  }, [commitThreads, queryClient])
+
+  const removeThread = useCallback((threadId: number) => {
+    queryClient.removeQueries({ queryKey: companyMessageQueryKeys.thread(threadId), exact: true })
+    commitThreads((currentThreads) => currentThreads.filter((thread) => thread.id !== threadId))
+  }, [commitThreads, queryClient])
+
+  useEffect(() => {
+    if (!activeThreadQuery.data) {
+      return
+    }
+
+    mergeThread(activeThreadQuery.data)
+  }, [activeThreadQuery.data, mergeThread])
+
+  useEffect(() => {
+    if (!activeThreadQuery.error) {
+      return
+    }
+
+    setError(activeThreadQuery.error instanceof ApiError ? activeThreadQuery.error.message : 'Unable to load the selected conversation.')
+  }, [activeThreadQuery.error])
 
   const inboxSummary = useMemo(
     () => ({
@@ -232,6 +229,22 @@ export function CompanyMessagesPage() {
   useEffect(() => {
     setUnreadMessageCount(inboxSummary.unread)
   }, [inboxSummary.unread, setUnreadMessageCount])
+
+  useEffect(() => {
+    if (!composeContactsQuery.data) {
+      return
+    }
+
+    setComposeContacts(composeContactsQuery.data)
+  }, [composeContactsQuery.data])
+
+  useEffect(() => {
+    if (!composeContactsQuery.error) {
+      return
+    }
+
+    setError(composeContactsQuery.error instanceof ApiError ? composeContactsQuery.error.message : 'Unable to load candidate contacts.')
+  }, [composeContactsQuery.error])
 
   const composeCompanies = useMemo(
     () =>
@@ -295,7 +308,7 @@ export function CompanyMessagesPage() {
   }
 
   async function markThreadAsRead(threadId: number) {
-    setThreads((currentThreads) =>
+    commitThreads((currentThreads) =>
       currentThreads.map((thread) => (thread.id === threadId ? { ...thread, isUnread: false } : thread)),
     )
 
@@ -305,9 +318,9 @@ export function CompanyMessagesPage() {
         body: { mark_as_read: true },
         csrfToken,
       })
-      setThreads((currentThreads) => upsertThread(currentThreads, mapConversationThread(response)))
+      mergeThread(mapConversationThread(response))
     } catch (saveError) {
-      setError(getErrorMessage(saveError))
+      setError(getMessageError(saveError))
     }
   }
 
@@ -348,9 +361,9 @@ export function CompanyMessagesPage() {
         body: { is_starred: !thread.isStarred },
         csrfToken,
       })
-      setThreads((currentThreads) => upsertThread(currentThreads, mapConversationThread(response)))
+      mergeThread(mapConversationThread(response))
     } catch (saveError) {
-      setError(getErrorMessage(saveError))
+      setError(getMessageError(saveError))
     } finally {
       setUpdatingThreadId(null)
     }
@@ -372,10 +385,10 @@ export function CompanyMessagesPage() {
         body: { body: trimmedMessage },
         csrfToken,
       })
-      setThreads((currentThreads) => upsertThread(currentThreads, mapConversationThread(response)))
+      mergeThread(mapConversationThread(response))
       setDraftMessage('')
     } catch (saveError) {
-      setError(getErrorMessage(saveError))
+      setError(getMessageError(saveError))
     } finally {
       setSendingThreadId(null)
     }
@@ -402,7 +415,7 @@ export function CompanyMessagesPage() {
         csrfToken,
       })
       const nextThread = mapConversationThread(response)
-      setThreads((currentThreads) => upsertThread(currentThreads, nextThread))
+      mergeThread(nextThread)
       setActiveThreadId(nextThread.id)
       setActiveFilter('all')
       setSearchQuery('')
@@ -410,7 +423,7 @@ export function CompanyMessagesPage() {
       setIsComposeDialogOpen(false)
       resetComposer()
     } catch (saveError) {
-      setError(getErrorMessage(saveError))
+      setError(getMessageError(saveError))
     } finally {
       setIsCreatingThread(false)
     }
@@ -429,191 +442,16 @@ export function CompanyMessagesPage() {
         method: 'DELETE',
         csrfToken,
       })
-      setThreads((currentThreads) => currentThreads.filter((thread) => thread.id !== threadPendingDeletion.id))
+      removeThread(threadPendingDeletion.id)
       setActiveThreadId((currentThreadId) => (currentThreadId === threadPendingDeletion.id ? null : currentThreadId))
       setIsMobileThreadDialogOpen(false)
       setDraftMessage('')
       setThreadPendingDeletion(null)
     } catch (deleteError) {
-      setError(getErrorMessage(deleteError))
+      setError(getMessageError(deleteError))
     } finally {
       setDeletingThreadId(null)
     }
-  }
-
-  function renderThreadList() {
-    if (loading) {
-      return (
-        <div className="flex min-h-[320px] flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-border/70 px-6 text-center">
-          <LoaderCircle className="h-8 w-8 animate-spin text-muted-foreground" />
-          <p className="text-sm text-muted-foreground">Loading conversations...</p>
-        </div>
-      )
-    }
-
-    if (filteredThreads.length === 0) {
-      return (
-        <div className="flex min-h-[320px] flex-col items-center justify-center rounded-xl border border-dashed border-border/70 px-6 text-center">
-          <MessageSquareMore className="h-10 w-10 text-muted-foreground/50" />
-          <h3 className="mt-4 text-lg font-semibold">No conversations found</h3>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Try a different search term or start a new thread from Compose.
-          </p>
-        </div>
-      )
-    }
-
-    return (
-      <div className="space-y-2">
-        {filteredThreads.map((thread) => {
-          const isActive = thread.id === activeThreadId
-
-          return (
-            <button
-              key={thread.id}
-              type="button"
-              onClick={() => handleSelectThread(thread.id)}
-              className={cn(
-                'w-full rounded-xl border px-4 py-3 text-left transition-colors',
-                isActive ? 'border-border bg-muted/60' : 'border-transparent hover:border-border/70 hover:bg-muted/40',
-              )}
-            >
-              <div className="flex items-start gap-3">
-                <Avatar>
-                  <AvatarImage src={thread.participantImage ?? undefined} alt={thread.participantName} />
-                  <AvatarFallback>{getInitials(thread.participantName)}</AvatarFallback>
-                </Avatar>
-
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <p className={cn('truncate text-sm', thread.isUnread ? 'font-semibold' : 'font-medium')}>
-                          {thread.participantName}
-                        </p>
-                        {thread.isPinned ? <Pin className="h-3.5 w-3.5 text-muted-foreground" /> : null}
-                      </div>
-                    </div>
-                    <span className="shrink-0 text-xs text-muted-foreground">{formatRelativeTime(thread.lastActivity)}</span>
-                  </div>
-
-                  <div className="mt-1 flex items-start justify-between gap-2">
-                    <p className="line-clamp-2 text-sm text-muted-foreground">{thread.preview}</p>
-                    {thread.isStarred ? <Star className="mt-0.5 h-3.5 w-3.5 fill-current text-amber-500" /> : null}
-                  </div>
-
-                  <div className="mt-2 flex items-center gap-2">
-                    {thread.isUnread ? <Badge className="rounded-full px-2 py-0.5 text-[11px]">Unread</Badge> : null}
-                    <span className="text-xs text-muted-foreground">
-                      {thread.companyName} · {thread.roleLabel}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </button>
-          )
-        })}
-      </div>
-    )
-  }
-
-  function renderThreadPanel(thread: ConversationThread) {
-    return (
-      <>
-        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border/60 px-5 py-4">
-          <div className="flex min-w-0 items-center gap-3">
-            <Avatar>
-              <AvatarImage src={thread.participantImage ?? undefined} alt={thread.participantName} />
-              <AvatarFallback>{getInitials(thread.participantName)}</AvatarFallback>
-            </Avatar>
-            <div className="min-w-0">
-              <h2 className="truncate text-base font-semibold">{thread.participantName}</h2>
-              <p className="truncate text-sm text-muted-foreground">
-                {thread.roleLabel} · {formatRelativeTime(thread.lastActivity)}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-sm"
-              aria-label="Delete conversation"
-              onClick={() => setThreadPendingDeletion(thread)}
-              disabled={deletingThreadId === thread.id}
-            >
-              <Trash2 />
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-sm"
-              aria-label="Star conversation"
-              onClick={() => void handleToggleStar(thread.id)}
-              disabled={updatingThreadId === thread.id}
-            >
-              <Star className={cn(thread.isStarred ? 'fill-current text-amber-500' : '')} />
-            </Button>
-          </div>
-        </div>
-
-        <div className="border-b border-border/60 px-5 py-2 text-xs text-muted-foreground">Conversation details</div>
-
-        <div className="space-y-4 px-5 py-5">
-          <div className="flex items-center justify-center">
-            <Badge variant="outline" className="rounded-full px-3 py-1">
-              Last activity {formatRelativeTime(thread.lastActivity)}
-            </Badge>
-          </div>
-
-          {thread.messages.map((message) => (
-            <div key={message.id} className="flex items-start gap-3">
-              <Avatar size="sm" className="mt-1">
-                <AvatarImage src={message.senderImage ?? undefined} alt={message.sender} />
-                <AvatarFallback>{getInitials(message.sender)}</AvatarFallback>
-              </Avatar>
-              <div className="max-w-[min(100%,42rem)]">
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <span className="font-medium text-foreground">{message.sender}</span>
-                  <span>{formatMessageTime(message.sentAt)}</span>
-                  {message.status ? <span>{message.status}</span> : null}
-                </div>
-                <div
-                  className={cn(
-                    'mt-2 rounded-2xl border px-4 py-3 text-sm leading-6',
-                    message.author === 'self' ? 'bg-muted' : 'bg-background',
-                  )}
-                >
-                  <p className="whitespace-pre-wrap">{message.body}</p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="border-t border-border/60 px-5 py-4">
-          <div className="space-y-3 rounded-2xl border border-border/60 bg-muted/30 p-4">
-            <Textarea
-              value={draftMessage}
-              onChange={(event) => setDraftMessage(event.target.value)}
-              placeholder={`Write a message to ${thread.participantName}`}
-              className="min-h-24 resize-none border-0 bg-transparent px-0 shadow-none focus-visible:ring-0"
-            />
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <Button type="button" variant="ghost" size="sm" className="text-muted-foreground">
-                <Paperclip />
-                Add attachment
-              </Button>
-              <Button type="button" onClick={() => void handleSendMessage()} disabled={!draftMessage.trim() || sendingThreadId === thread.id}>
-                <SendHorizontal />
-                {sendingThreadId === thread.id ? 'Sending...' : 'Send'}
-              </Button>
-            </div>
-          </div>
-        </div>
-      </>
-    )
   }
 
   return (
@@ -811,7 +649,20 @@ export function CompanyMessagesPage() {
         }}
       >
         <DialogContent className="max-h-[90vh] overflow-y-auto p-0 lg:hidden sm:max-w-2xl">
-          {activeThread ? renderThreadPanel(activeThread) : null}
+          {activeThread ? (
+            <ThreadPanel
+              thread={activeThread}
+              draftMessage={draftMessage}
+              loadingActiveThreadId={loadingActiveThreadId}
+              deletingThreadId={deletingThreadId}
+              updatingThreadId={updatingThreadId}
+              sendingThreadId={sendingThreadId}
+              onDraftChange={setDraftMessage}
+              onDelete={setThreadPendingDeletion}
+              onToggleStar={(threadId) => void handleToggleStar(threadId)}
+              onSend={() => void handleSendMessage()}
+            />
+          ) : null}
         </DialogContent>
       </Dialog>
 
@@ -940,12 +791,25 @@ export function CompanyMessagesPage() {
 
           <div className="grid lg:grid-cols-[360px_minmax(0,1fr)]">
             <div className="border-b border-border/60 lg:border-r lg:border-b-0">
-              <div className="p-2">{renderThreadList()}</div>
+              <div className="p-2">
+                <ThreadList loading={loading} threads={filteredThreads} activeThreadId={activeThreadId} onSelectThread={handleSelectThread} />
+              </div>
             </div>
 
             <div className="hidden flex-col bg-background lg:flex">
               {activeThread ? (
-                renderThreadPanel(activeThread)
+                <ThreadPanel
+                  thread={activeThread}
+                  draftMessage={draftMessage}
+                  loadingActiveThreadId={loadingActiveThreadId}
+                  deletingThreadId={deletingThreadId}
+                  updatingThreadId={updatingThreadId}
+                  sendingThreadId={sendingThreadId}
+                  onDraftChange={setDraftMessage}
+                  onDelete={setThreadPendingDeletion}
+                  onToggleStar={(threadId) => void handleToggleStar(threadId)}
+                  onSend={() => void handleSendMessage()}
+                />
               ) : (
                 <div className="flex flex-1 flex-col items-center justify-center px-6 text-center">
                   <MessageSquareMore className="h-12 w-12 text-muted-foreground/50" />

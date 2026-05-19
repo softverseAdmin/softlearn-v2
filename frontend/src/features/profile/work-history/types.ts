@@ -10,6 +10,7 @@ export interface WorkHistoryFile {
   uploadedAt: string
   sizeLabel: string
   sizeBytes: number
+  downloadUrl?: string | null
   isActive: boolean
 }
 

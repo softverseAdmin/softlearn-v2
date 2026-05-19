@@ -9,9 +9,14 @@ import {
 import { useAuth } from '@/auth/useAuth'
 import { ApiError, apiRequest } from '@/lib/api'
 import { PROFILE_IMAGES_UPDATED_EVENT, type StoredProfileImages } from '@/lib/profileImages'
-import type { CompanyMessagesResponse, StudentMessagesResponse } from '@/features/profile/messages/types'
-import type { StudentMatchesResponse } from '@/features/profile/types'
 import { WorkspaceStateContext, type WorkspaceStateValue } from './workspace-state'
+
+type WorkspaceSummaryResponse = {
+  notification_unread_count: number
+  unread_message_count: number
+  profile_avatar: string | null
+  match_count?: number
+}
 
 function readSeenMatchIds(userId: number) {
   if (typeof window === 'undefined') {
@@ -45,93 +50,57 @@ export function WorkspaceStateProvider({ children }: PropsWithChildren) {
   const [unreadMessageCount, setUnreadMessageCount] = useState(0)
   const [profileAvatar, setProfileAvatar] = useState<string | undefined>(undefined)
 
-  const refreshUnreadNotificationCount = useCallback(async () => {
+  const refreshWorkspaceSummary = useCallback(async () => {
     try {
       if (!user) {
         setUnreadNotificationCount(0)
+        setUnreadMessageCount(0)
+        setProfileAvatar(undefined)
         return
       }
+
+      const summary = await apiRequest<WorkspaceSummaryResponse>('/workspace/summary')
+      setUnreadMessageCount(summary.unread_message_count)
+      setProfileAvatar(summary.profile_avatar ?? undefined)
 
       if (user.role === 'student') {
-        const [notificationsResponse, studentMessagesResponse, studentMatchesResponse] = await Promise.all([
-          apiRequest<{ unread_count: number }>('/notifications'),
-          apiRequest<StudentMessagesResponse>('/student/messages'),
-          apiRequest<StudentMatchesResponse>('/student/matches'),
-        ])
         const seenMatchIds = readSeenMatchIds(user.user_id)
-        const unreadMatchCount = studentMatchesResponse.matches.filter(
-          (match) => !seenMatchIds.has(match.vacancy_id),
-        ).length
-        setUnreadNotificationCount(
-          notificationsResponse.unread_count + studentMessagesResponse.unread_count + unreadMatchCount,
-        )
+        const unseenMatchCount = Math.max((summary.match_count ?? 0) - seenMatchIds.size, 0)
+        setUnreadNotificationCount(summary.notification_unread_count + summary.unread_message_count + unseenMatchCount)
         return
       }
 
-      if (user.role === 'company') {
-        const [notificationsResponse, companyMessagesResponse] = await Promise.all([
-          apiRequest<{ unread_count: number }>('/notifications'),
-          apiRequest<CompanyMessagesResponse>('/company/messages'),
-        ])
-        setUnreadNotificationCount(
-          notificationsResponse.unread_count + companyMessagesResponse.unread_count,
-        )
-        return
-      }
-
-      const response = await apiRequest<{ unread_count: number }>('/notifications')
-      setUnreadNotificationCount(response.unread_count)
+      setUnreadNotificationCount(summary.notification_unread_count + summary.unread_message_count)
     } catch (error) {
       if (!(error instanceof ApiError)) {
-        console.error('Unable to refresh notification count', error)
+        console.error('Unable to refresh workspace summary', error)
       }
     }
   }, [user])
+
+  const refreshUnreadNotificationCount = useCallback(async () => {
+    await refreshWorkspaceSummary()
+  }, [refreshWorkspaceSummary])
 
   const refreshUnreadMessageCount = useCallback(async () => {
-    if (!user || (user.role !== 'student' && user.role !== 'company')) {
-      setUnreadMessageCount(0)
-      return
-    }
-
-    try {
-      const endpoint = user.role === 'student' ? '/student/messages' : '/company/messages'
-      const response = await apiRequest<{ unread_count: number }>(endpoint)
-      setUnreadMessageCount(response.unread_count)
-    } catch (error) {
-      if (!(error instanceof ApiError)) {
-        console.error('Unable to refresh message count', error)
-      }
-    }
-  }, [user])
+    await refreshWorkspaceSummary()
+  }, [refreshWorkspaceSummary])
 
   useEffect(() => {
     if (!user) {
       setUnreadNotificationCount(0)
       setUnreadMessageCount(0)
+      setProfileAvatar(undefined)
       return
     }
 
-    void refreshUnreadNotificationCount()
-    void refreshUnreadMessageCount()
-  }, [refreshUnreadMessageCount, refreshUnreadNotificationCount, user])
+    void refreshWorkspaceSummary()
+  }, [refreshWorkspaceSummary, user])
 
   useEffect(() => {
     if (!user || (user.role !== 'student' && user.role !== 'company')) {
       setProfileAvatar(undefined)
       return
-    }
-
-    const syncAvatar = async () => {
-      try {
-        const endpoint = user.role === 'student' ? '/student/profile' : '/company/profile'
-        const profile = await apiRequest<{ profile_image: string | null }>(endpoint)
-        setProfileAvatar(profile.profile_image ?? undefined)
-      } catch (error) {
-        if (!(error instanceof ApiError)) {
-          console.error('Unable to refresh profile avatar', error)
-        }
-      }
     }
 
     const handleProfileImagesUpdated = (event: Event) => {
@@ -143,7 +112,6 @@ export function WorkspaceStateProvider({ children }: PropsWithChildren) {
       setProfileAvatar(customEvent.detail.images?.profileImage ?? undefined)
     }
 
-    void syncAvatar()
     window.addEventListener(PROFILE_IMAGES_UPDATED_EVENT, handleProfileImagesUpdated)
 
     return () => {

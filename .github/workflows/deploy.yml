@@ -1,4 +1,4 @@
-name: Publish Deployment Images
+name: Deploy
 
 on:
   workflow_dispatch:
@@ -73,4 +73,78 @@ jobs:
             echo "- Backend latest: \`${IMAGE_PREFIX}-backend:${LATEST_TAG}\`"
             echo "- Frontend: \`${IMAGE_PREFIX}-frontend:${IMAGE_TAG}\`"
             echo "- Frontend latest: \`${IMAGE_PREFIX}-frontend:${LATEST_TAG}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  deploy-platform:
+    runs-on: ubuntu-latest
+    needs: publish-images
+    environment: ${{ github.event.inputs.environment }}
+
+    steps:
+      - name: Validate deploy hooks
+        env:
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+          VERCEL_DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
+          BACKEND_HEALTHCHECK_URL: ${{ secrets.BACKEND_HEALTHCHECK_URL }}
+          FRONTEND_HEALTHCHECK_URL: ${{ secrets.FRONTEND_HEALTHCHECK_URL }}
+        run: |
+          test -n "$RENDER_DEPLOY_HOOK_URL"
+          test -n "$VERCEL_DEPLOY_HOOK_URL"
+          test -n "$BACKEND_HEALTHCHECK_URL"
+          test -n "$FRONTEND_HEALTHCHECK_URL"
+
+      - name: Trigger Render backend deployment
+        env:
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+        run: |
+          curl --fail --silent --show-error --request POST "$RENDER_DEPLOY_HOOK_URL"
+
+      - name: Trigger Vercel frontend deployment
+        env:
+          VERCEL_DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
+        run: |
+          curl --fail --silent --show-error --request POST "$VERCEL_DEPLOY_HOOK_URL"
+
+      - name: Wait for platform health checks
+        env:
+          BACKEND_HEALTHCHECK_URL: ${{ secrets.BACKEND_HEALTHCHECK_URL }}
+          FRONTEND_HEALTHCHECK_URL: ${{ secrets.FRONTEND_HEALTHCHECK_URL }}
+        run: |
+          check_url() {
+            url="$1"
+            name="$2"
+            attempt=1
+            max_attempts=30
+
+            while [ "$attempt" -le "$max_attempts" ]; do
+              status_code="$(curl --output /tmp/healthcheck-body --silent --show-error --write-out "%{http_code}" "$url" || true)"
+              if [ "$status_code" = "200" ]; then
+                echo "$name healthy at $url"
+                return 0
+              fi
+
+              echo "Waiting for $name health check ($attempt/$max_attempts, status=${status_code:-unreachable})"
+              attempt=$((attempt + 1))
+              sleep 10
+            done
+
+            echo "$name health check failed for $url" >&2
+            [ -f /tmp/healthcheck-body ] && cat /tmp/healthcheck-body >&2
+            return 1
+          }
+
+          check_url "$BACKEND_HEALTHCHECK_URL" "backend"
+          check_url "$FRONTEND_HEALTHCHECK_URL" "frontend"
+
+      - name: Publish deployment summary
+        run: |
+          {
+            echo ""
+            echo "## Triggered deployments"
+            echo ""
+            echo "- Environment: \`${{ github.event.inputs.environment }}\`"
+            echo "- Render backend deploy hook: triggered"
+            echo "- Vercel frontend deploy hook: triggered"
+            echo "- Backend health check: passed"
+            echo "- Frontend health check: passed"
           } >> "$GITHUB_STEP_SUMMARY"

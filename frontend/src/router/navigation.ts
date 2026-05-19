@@ -5,6 +5,13 @@ export type NavigationItem = {
   to: string
 }
 
+export type ShellNavigationTargets = {
+  notificationsHref?: string
+  messagesHref?: string
+  profileHref?: string
+  settingsHref?: string
+}
+
 export const roleHomePaths: Record<UserRole, string> = {
   student: '/student',
   company: '/company',
@@ -38,6 +45,23 @@ export const navigationItemsByRole: Record<UserRole, NavigationItem[]> = {
     { label: 'Exams', to: '/admin/exams' },
     { label: 'Vacancies', to: '/admin/vacancies' },
   ],
+}
+
+export const shellNavigationTargetsByRole: Record<UserRole, ShellNavigationTargets> = {
+  student: {
+    notificationsHref: '/student/notifications',
+    messagesHref: '/student/messages',
+    profileHref: '/student/profile',
+    settingsHref: '/student/privacy',
+  },
+  company: {
+    notificationsHref: '/company/notifications',
+    messagesHref: '/company/messages',
+    profileHref: '/company/profile',
+  },
+  admin: {
+    notificationsHref: '/admin/notifications',
+  },
 }
 
 export function getHomePath(user: AuthUser | null) {

@@ -2,34 +2,36 @@ import { useEffect, useMemo, useState } from 'react'
 import { AlertCircle, HelpCircle, LoaderCircle } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 
-import { AIExtractedInsights } from './work-history/AIExtractedInsights'
-import { DocumentPreview } from './work-history/DocumentPreview'
-import { PageTabs } from './work-history/PageTabs'
-import { ProfileLinksCard } from './work-history/ProfileLinksCard'
-import { UploadCard } from './work-history/UploadCard'
-import { UploadedFileList } from './work-history/UploadedFileList'
-import { WorkHistorySidebar } from './work-history/WorkHistorySidebar'
-import { getWorkHistoryPageData } from './work-history/workHistoryService'
-import type { WorkHistoryFile, WorkHistoryLinks, WorkHistoryPageData, WorkHistoryTab } from './work-history/types'
+import { useAuth } from '@/auth/useAuth'
+import { AIExtractedInsights } from '../AIExtractedInsights'
+import { DocumentPreview } from '../DocumentPreview'
+import { PageTabs } from '../PageTabs'
+import { ProfileLinksCard } from '../ProfileLinksCard'
+import { UploadCard } from '../UploadCard'
+import { UploadedFileList } from '../UploadedFileList'
+import { WorkHistorySidebar } from '../WorkHistorySidebar'
+import { getWorkHistoryPageData, saveWorkHistoryLinks, uploadWorkHistoryFile } from '../workHistoryService'
+import type { WorkHistoryFile, WorkHistoryLinks, WorkHistoryPageData, WorkHistoryTab } from '../types'
 import {
   allowedExtensions,
-  appendUploadedFile,
-  createPreviewText,
   getLinkValidation,
   getWorkHistoryWorkspaceConfig,
   maxFileSizeBytes,
   updateLinksData,
   workHistorySectionIds,
-} from './work-history/shared'
+} from '../shared'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 
 export function StudentWorkHistoryPage() {
   const location = useLocation()
+  const { csrfToken } = useAuth()
   const [data, setData] = useState<WorkHistoryPageData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [uploadError, setUploadError] = useState<string | null>(null)
+  const [linksError, setLinksError] = useState<string | null>(null)
+  const [savingLinks, setSavingLinks] = useState(false)
   const [selectedFileId, setSelectedFileId] = useState<string | null>(null)
   const [zoomPercent, setZoomPercent] = useState(100)
   const [activeTab, setActiveTab] = useState<WorkHistoryTab>('upload-manage')
@@ -104,7 +106,7 @@ export function StudentWorkHistoryPage() {
     })
   }
 
-  function handleFilesSelected(files: FileList) {
+  async function handleFilesSelected(files: FileList) {
     const file = files[0]
 
     if (!file) {
@@ -125,29 +127,42 @@ export function StudentWorkHistoryPage() {
 
     setUploadError(null)
     setZoomPercent(100)
-    const nextFileId = `file-${Date.now()}`
-    setData((current) => {
-      if (!current) {
-        return current
-      }
 
-      return appendUploadedFile(current, file, nextFileId)
-    })
-    setSelectedFileId(nextFileId)
+    try {
+      const response = await uploadWorkHistoryFile(file, csrfToken)
+      setData(response)
+      setSelectedFileId(response.files.find((item) => item.isActive)?.id ?? response.files[0]?.id ?? null)
+    } catch {
+      setUploadError('Unable to save this file to your profile right now.')
+    }
   }
 
   function handleDownloadFile(file: WorkHistoryFile) {
-    if (!data) {
+    if (!file.downloadUrl) {
+      return
+    }
+    const anchor = document.createElement('a')
+    anchor.href = file.downloadUrl
+    anchor.download = file.fileName
+    anchor.click()
+  }
+
+  async function handleSaveLinks() {
+    if (!data || savingLinks) {
       return
     }
 
-    const blob = new Blob([createPreviewText(data)], { type: 'text/plain;charset=utf-8' })
-    const url = URL.createObjectURL(blob)
-    const anchor = document.createElement('a')
-    anchor.href = url
-    anchor.download = file.fileName
-    anchor.click()
-    URL.revokeObjectURL(url)
+    setSavingLinks(true)
+    setLinksError(null)
+
+    try {
+      const response = await saveWorkHistoryLinks(data.links, csrfToken)
+      setData(response)
+    } catch {
+      setLinksError('Unable to save your profile links right now.')
+    } finally {
+      setSavingLinks(false)
+    }
   }
 
   if (loading) {
@@ -230,9 +245,11 @@ export function StudentWorkHistoryPage() {
               links={data.links}
               validation={linkValidation}
               onChange={updateLinks}
+              onBlur={() => void handleSaveLinks()}
               title={workspaceConfig.linksTitle}
               description={workspaceConfig.linksDescription}
             />
+            {linksError ? <p className="text-sm text-red-600">{linksError}</p> : null}
           </div>
 
           <div className="space-y-6">

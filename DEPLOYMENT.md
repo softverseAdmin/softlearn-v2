@@ -60,6 +60,13 @@ docker-compose -f docker/docker-compose.yml exec backend python manage.py create
 # Admin Panel: http://localhost:8000/admin/
 ```
 
+`docker/docker-compose.yml` is intentionally **development-only**. It keeps bind mounts, `runserver`, and direct host port exposure for fast iteration. For production-like container runs, use `docker/docker-compose.prod.yml`, run the explicit release container first, then start the steady-state services:
+
+```bash
+docker compose -f docker/docker-compose.prod.yml --profile release run --rm backend-release
+docker compose -f docker/docker-compose.prod.yml up -d backend worker frontend
+```
+
 ### Without Docker
 
 #### 1. Start PostgreSQL
@@ -161,6 +168,10 @@ SENTRY_DSN=https://your-sentry-dsn@sentry.io/project-id
 # Email
 SENDGRID_API_KEY=your-sendgrid-api-key
 SENDGRID_FROM_EMAIL=noreply@softlearn.com
+FRONTEND_URL=https://softlearn-v2.vercel.app
+DJANGO_DEFAULT_FROM_EMAIL=noreply@softlearn.com
+# Optional: override the fallback backend if you are not using SendGrid
+# DJANGO_EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
 
 # Gemini exam generation (backend / Render)
 GEMINI_API_KEY=your-gemini-api-key
@@ -178,6 +189,11 @@ DJANGO_LOG_LEVEL=INFO
 DJANGO_LOG_AS_JSON=true
 DJANGO_ENABLE_FILE_LOGGING=false
 DJANGO_PERSIST_REQUEST_LOGS=false
+DJANGO_PERSIST_APP_DIAGNOSTIC_LOGS=false
+DJANGO_PERSIST_ERROR_REPORTS=false
+CELERY_BROKER_URL=redis://your-redis-service:6379/2
+CELERY_RESULT_BACKEND=redis://your-redis-service:6379/2
+MATCHING_ASYNC_REFRESH_ENABLED=true
 ```
 
 If your frontend is hosted on Vercel and the backend is hosted on Render, set the Gemini variables on **Render only**. Vercel only needs the backend API base URL such as `VITE_API_BASE_URL=https://your-render-service.onrender.com/api/v1`.
@@ -185,21 +201,51 @@ If your frontend is hosted on Vercel and the backend is hosted on Render, set th
 For Django session auth and CSRF to work across Vercel and Render, also make sure Render has:
 
 ```env
- ENVIRONMENT=production
- DJANGO_DEBUG=false
- DJANGO_SECRET_KEY=d+_=sdr77u=_^p+rb3_v_5i8*eak4y#fu24v2goyk35%j470qs
- DJANGO_ALLOWED_HOSTS=softlearn-v2.onrender.com
- DJANGO_CORS_ALLOWED_ORIGINS=https://softlearn-v2.vercel.app
- DJANGO_CSRF_TRUSTED_ORIGINS=https://softlearn-v2.vercel.app
- DJANGO_SESSION_COOKIE_SECURE=true
- DJANGO_CSRF_COOKIE_SECURE=true
- DJANGO_SESSION_COOKIE_SAMESITE=None
+ENVIRONMENT=production
+DJANGO_DEBUG=false
+DJANGO_SECRET_KEY=generate-a-long-random-secret-key-for-this-environment
+DJANGO_ALLOWED_HOSTS=softlearn-v2.onrender.com
+DJANGO_CORS_ALLOWED_ORIGINS=https://softlearn-v2.vercel.app
+DJANGO_CSRF_TRUSTED_ORIGINS=https://softlearn-v2.vercel.app
+DJANGO_SESSION_COOKIE_SECURE=true
+DJANGO_CSRF_COOKIE_SECURE=true
+DJANGO_SESSION_COOKIE_SAMESITE=None
 DJANGO_CSRF_COOKIE_SAMESITE=None
+DJANGO_ENABLE_REDIS_CACHE=true
+DJANGO_ENABLE_RATE_LIMITING=true
+DJANGO_TRUSTED_PROXY_IPS=your-reverse-proxy-ip
 ```
 
 The backend now defaults to secure cross-site cookies only in production and trusts the proxy HTTPS headers Render sends, while local development keeps localhost-friendly defaults.
 
-Render builds may run `collectstatic` before a Redis service is attached. The backend now tolerates that and falls back to local-memory cache unless `DJANGO_ENABLE_REDIS_CACHE=true` is explicitly set with a working `REDIS_URL`. For real production traffic, Redis is still the recommended cache backend.
+Production no longer silently falls back to `LocMemCache`. If `ENVIRONMENT=production` and Redis/shared cache is not configured, the backend now refuses to boot. That is deliberate: shared-state features should fail fast during deployment instead of degrading per process in live traffic.
+
+Match snapshot refreshes now have a real Celery path instead of staying purely synchronous inside request threads. That does not magically solve the whole matching architecture, but it does give you an honest async foundation for warming heavy match snapshots behind Redis-backed workers.
+
+Profile and company images are still stored as base64 data URLs in database text fields. That is acceptable for local demos, but it is not production-grade at scale: it inflates row size, backups, replication traffic, and response payloads. Move those assets to object storage plus file references before any serious production growth.
+
+The database schema also still carries structural debt that becomes expensive over time. Core business entities use JSON fields for company domains, preferred skills, vacancy posting details, and audit-style metadata, which weakens queryability and integrity compared with normalized relational tables. Core tables also still embed heavy text payloads such as lesson content/transcripts and image blobs; keep that in mind for database sizing, replication cost, and future extraction work.
+
+To reduce the immediate pain on hot paths, the backend now adds explicit composite indexes for the most common vacancy and application access patterns (`company + status`, `student + status`, `vacancy + status`, and `student + vacancy`). Those indexes help today, but they do not remove the longer-term need to split oversized payloads and overstuffed app boundaries.
+
+Database-backed request logs and error reports are now explicitly diagnostic and opt-in. Production observability should go to structured stdout, your platform log stream, and an external error tracker like Sentry; the primary app database should not be your default log warehouse.
+
+### Deployment pipeline
+
+`.github/workflows/deploy.yml` now performs a real environment deployment instead of stopping at image publication:
+
+1. Build and publish backend/frontend images to GHCR.
+2. Trigger the Render backend deploy hook.
+3. Trigger the Vercel frontend deploy hook.
+
+Configure these **GitHub environment secrets** for both `staging` and `production`:
+
+```text
+RENDER_DEPLOY_HOOK_URL
+VERCEL_DEPLOY_HOOK_URL
+```
+
+The workflow remains `workflow_dispatch`-driven so production rollout stays explicit.
 
 ### Security Configuration
 
@@ -230,8 +276,14 @@ cd backend
 # Run development server
 python manage.py runserver
 
-# Run with gunicorn (production)
-gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 4
+# Run explicit release tasks
+/usr/local/bin/backend-release-entrypoint.sh
+
+# Run the production web process
+/usr/local/bin/backend-web-entrypoint.sh
+
+# Run the async worker process
+/usr/local/bin/backend-worker-entrypoint.sh
 ```
 
 ### Frontend
@@ -329,22 +381,13 @@ python manage.py migrate app_name zero
 ### 2. Deployment Steps
 
 ```bash
-# 1. Pull latest code
-git pull origin main
-
-# 2. Install dependencies
-pip install -r requirements.txt
-npm install
-
-# 3. Collect static files
-cd backend
-python manage.py collectstatic --noinput
-
-# 4. Run migrations
-python manage.py migrate
-
-# 5. Start services
-# Use systemd, supervisord, or container orchestration
+# 1. Trigger the GitHub deploy workflow for the target environment.
+#
+# 2. Run release tasks explicitly before shifting traffic:
+docker compose -f docker/docker-compose.prod.yml --profile release run --rm backend-release
+#
+# 3. Start or refresh the steady-state processes:
+docker compose -f docker/docker-compose.prod.yml up -d backend worker frontend
 ```
 
 ### 3. Post-deployment Verification
@@ -370,6 +413,7 @@ docker logs -f <backend-container>
 - Production should prefer JSON logs on stdout with `DJANGO_LOG_AS_JSON=true`.
 - File logging is optional and should only be enabled when the platform does not already aggregate stdout/stderr.
 - Request logs are **not** persisted to the database by default; enabling `DJANGO_PERSIST_REQUEST_LOGS=true` is intended for short-lived debugging windows, not steady-state production traffic.
+- If `MATCHING_ASYNC_REFRESH_ENABLED=true`, monitor the Celery worker separately from the web process.
 
 ### Health endpoints
 
@@ -479,7 +523,7 @@ git push origin main --force
 python manage.py migrate app_name <migration_name>
 
 # Restore from backup
-pg_restore -d softlearn_db backup_file.dump
+DATABASE_URL=postgres://... ./scripts/restore-postgres.sh backups/softlearn-YYYYMMDDTHHMMSSZ.sql.gz
 ```
 
 ### Container Rollback

@@ -6,7 +6,6 @@ import { toast } from 'sonner'
 import { useAuth } from '../../auth/useAuth'
 import { ApiError, apiRequest } from '../../lib/api'
 import type { AdminCourseLessonsResponse, AdminCourseRecord, AdminCoursesResponse } from '../admin/types'
-import { clearCourseMediaOverride, getCourseMediaOverrideForCourse } from './courseMediaStorage'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { CoursePreviewHero, CoursePreviewSidebar } from './company-course-editor/EditorPreview'
@@ -46,6 +45,7 @@ export function CompanyCourseEditorPage({ mode }: CompanyCourseEditorPageProps) 
   const [status, setStatus] = useState('')
   const [thumbnailImage, setThumbnailImage] = useState('')
   const [thumbnailAltText, setThumbnailAltText] = useState('')
+  const [pendingThumbnailFile, setPendingThumbnailFile] = useState<File | null>(null)
   const [isReadingThumbnail, setIsReadingThumbnail] = useState(false)
   const [price, setPrice] = useState('')
   const [discountPrice, setDiscountPrice] = useState('')
@@ -160,8 +160,6 @@ export function CompanyCourseEditorPage({ mode }: CompanyCourseEditorPageProps) 
       return
     }
 
-    const savedMedia = getCourseMediaOverrideForCourse(selectedCourse.course_id, selectedCourse.title)
-
     setTitle(selectedCourse.title)
     setSlug(slugify(selectedCourse.title))
     setShortDescription(buildPreviewSummarySeed(selectedCourse.description))
@@ -170,8 +168,9 @@ export function CompanyCourseEditorPage({ mode }: CompanyCourseEditorPageProps) 
     setCourseLevel(selectedCourse.difficulty_level)
     setTotalDuration(String(selectedCourse.estimated_hours))
     setStatus(selectedCourse.status)
-    setThumbnailImage(selectedCourse.thumbnail_image || savedMedia?.thumbnailImage || savedMedia?.previewImage || '')
-    setThumbnailAltText(selectedCourse.thumbnail_alt_text || savedMedia?.thumbnailAltText || '')
+    setThumbnailImage(selectedCourse.thumbnail_image || '')
+    setThumbnailAltText(selectedCourse.thumbnail_alt_text || '')
+    setPendingThumbnailFile(null)
   }, [mode, selectedCourse])
 
   useEffect(() => {
@@ -216,6 +215,7 @@ export function CompanyCourseEditorPage({ mode }: CompanyCourseEditorPageProps) 
     event: ChangeEvent<HTMLInputElement>,
     setImage: (value: string) => void,
     setReadingState: (value: boolean) => void,
+    options?: { trackFile?: boolean },
   ) {
     const file = event.target.files?.[0]
     if (!file) {
@@ -226,6 +226,9 @@ export function CompanyCourseEditorPage({ mode }: CompanyCourseEditorPageProps) 
     try {
       const imageData = await readImageFile(file)
       setImage(imageData)
+      if (options?.trackFile) {
+        setPendingThumbnailFile(file)
+      }
       setError(null)
     } catch (readError) {
       const message = readError instanceof Error ? readError.message : 'Unable to read image file.'
@@ -259,7 +262,7 @@ export function CompanyCourseEditorPage({ mode }: CompanyCourseEditorPageProps) 
         category,
         difficulty_level: courseLevel,
         estimated_hours: Number.isNaN(normalizedDuration) ? 0 : Math.max(0, normalizedDuration),
-        thumbnail_image: thumbnailImage.trim(),
+        thumbnail_image: pendingThumbnailFile ? '' : thumbnailImage.trim(),
         thumbnail_alt_text: thumbnailAltText.trim(),
         status,
       }
@@ -279,7 +282,18 @@ export function CompanyCourseEditorPage({ mode }: CompanyCourseEditorPageProps) 
         })
       }
 
-      clearCourseMediaOverride(savedCourse.course_id, savedCourse.title)
+      if (pendingThumbnailFile) {
+        const formData = new FormData()
+        formData.set('file', pendingThumbnailFile)
+        const thumbnailUpdatedCourse = await apiRequest<AdminCourseRecord>(`/company/courses/${savedCourse.course_id}/thumbnail`, {
+          method: 'POST',
+          body: formData,
+          csrfToken,
+        })
+        savedCourse = thumbnailUpdatedCourse
+        setThumbnailImage(thumbnailUpdatedCourse.thumbnail_image || '')
+        setPendingThumbnailFile(null)
+      }
 
       toast.success(mode === 'edit' ? 'Course updated successfully.' : 'Course created successfully.')
       navigate(mode === 'edit' ? '/company/courses' : `/company/courses/${savedCourse.course_id}/lessons`)
@@ -429,7 +443,7 @@ export function CompanyCourseEditorPage({ mode }: CompanyCourseEditorPageProps) 
                       image={thumbnailImage}
                       alt={thumbnailAltText || 'Thumbnail preview'}
                       isLoading={isReadingThumbnail}
-                      onChange={(event) => void handleImageChange(event, setThumbnailImage, setIsReadingThumbnail)}
+                      onChange={(event) => void handleImageChange(event, setThumbnailImage, setIsReadingThumbnail, { trackFile: true })}
                       onRemove={() => setThumbnailImage('')}
                     />
 

@@ -23,7 +23,7 @@ import { useWorkspaceState } from '@/app/workspace/workspace-state'
 import { AppLayout } from '@/components/AppLayout'
 import { Button } from '@/components/ui/button'
 import type { NavItem } from '@/components/Sidebar'
-import { navigationItemsByRole } from '@/router/navigation'
+import { navigationItemsByRole, shellNavigationTargetsByRole } from '@/router/navigation'
 
 export function AppLayoutWrapper() {
   const { user, logout } = useAuth()
@@ -37,6 +37,7 @@ export function AppLayoutWrapper() {
   if (!user) return null
 
   const roleLabel = user.role.charAt(0).toUpperCase() + user.role.slice(1)
+  const shellTargets = shellNavigationTargetsByRole[user.role]
   const showStudentUpgradeCard = false
   const studentUpgradeCard = (
     <div className="rounded-2xl border border-blue-100 bg-gradient-to-br from-white via-blue-50 to-indigo-50 p-4 shadow-sm">
@@ -119,30 +120,15 @@ export function AppLayoutWrapper() {
         notificationCount: unreadNotificationCount,
         messageCount: unreadMessageCount,
         showThemeToggle: false,
-        notificationsHref:
-          user.role === 'student'
-            ? '/student/notifications'
-            : user.role === 'company'
-              ? '/company/notifications'
-              : '/admin/notifications',
-        messagesHref:
-          user.role === 'student'
-            ? '/student/messages'
-            : user.role === 'company'
-              ? '/company/messages'
-              : '/admin/notifications',
+        notificationsHref: shellTargets.notificationsHref,
+        messagesHref: shellTargets.messagesHref,
         userMenu: {
           name: user.name || 'User',
           email: user.email,
           avatar: profileAvatar,
           roleLabel,
-          profileHref:
-            user.role === 'student'
-              ? '/student/profile'
-              : user.role === 'company'
-                ? '/company/profile'
-                : undefined,
-          settingsHref: user.role === 'student' ? '/student/privacy' : undefined,
+          profileHref: shellTargets.profileHref,
+          settingsHref: shellTargets.settingsHref,
           onLogout: handleLogout,
         },
       }}

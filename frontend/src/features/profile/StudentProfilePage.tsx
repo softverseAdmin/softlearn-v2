@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ChangeEvent } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '../../auth/useAuth'
 import { Link } from 'react-router-dom'
 import { ApiError, apiRequest } from '../../lib/api'
@@ -47,17 +48,28 @@ import {
   type ExperienceDraft,
   type ExperienceSkillMap,
 } from './student-profile/shared'
+import {
+  type StudentProfileQueryData,
+  studentProfileQueryKeys,
+  studentProfileQueryOptions,
+} from './student-profile/queries'
 
 export function StudentProfilePage() {
   const { user, csrfToken, refreshSession } = useAuth()
+  const queryClient = useQueryClient()
   const displayName = user?.name?.trim() || 'Student Profile'
   const initials = getInitials(displayName)
   const profileInputRef = useRef<HTMLInputElement | null>(null)
   const coverInputRef = useRef<HTMLInputElement | null>(null)
+  const profileQuery = useQuery(studentProfileQueryOptions())
   const [profile, setProfile] = useState<StudentProfile>(emptyProfile)
   const [skillsData, setSkillsData] = useState<StudentSkillsResponse>(emptySkillsResponse)
   const [savedImages, setSavedImages] = useState<StoredProfileImages>({ profileImage: null, coverImage: null })
   const [draftImages, setDraftImages] = useState<StoredProfileImages>({ profileImage: null, coverImage: null })
+  const [pendingImageFiles, setPendingImageFiles] = useState<{ profileImage: File | null; coverImage: File | null }>({
+    profileImage: null,
+    coverImage: null,
+  })
   const [certificates, setCertificates] = useState<CertificateRecord[]>([])
   const [certificateDrafts, setCertificateDrafts] = useState<Record<number, CertificateRecord>>({})
   const [newCertificate, setNewCertificate] = useState<CertificateRecord>(emptyCertificate)
@@ -96,57 +108,54 @@ export function StudentProfilePage() {
   }, [displayName])
 
   useEffect(() => {
-    let active = true
-
-    async function loadProfile() {
-      try {
-        const [profileData, studentSkills] = await Promise.all([
-          apiRequest<StudentProfile>('/student/profile'),
-          apiRequest<StudentSkillsResponse>('/student/skills'),
-        ])
-        if (!active) {
-          return
-        }
-
-        setProfile(profileData)
-        setEducationDrafts(
-          Object.fromEntries(profileData.education_records.map((record) => [record.id, toEducationDraft(record)])),
-        )
-        setExperienceDrafts(
-          Object.fromEntries(profileData.experience_records.map((record) => [record.id, toExperienceDraft(record)])),
-        )
-        setNewEducation(emptyEducationDraft)
-        setNewExperience(emptyExperienceDraft)
-        setNameDraft(profileData.name || displayName)
-        setAboutMe(profileData.about_me || defaultAboutMe)
-        setAboutDraft(profileData.about_me || defaultAboutMe)
-        setIsAboutExpanded(false)
-        setSavedImages(toStoredProfileImages(profileData))
-        setDraftImages(toStoredProfileImages(profileData))
-        const nextEducationDetails = buildEducationDetailMap(profileData.education_records)
-        setEducationDetails(nextEducationDetails)
-        setEducationDetailDrafts(nextEducationDetails)
-        const nextExperienceSkills = buildExperienceSkillMap(profileData.experience_records)
-        setExperienceSkills(nextExperienceSkills)
-        setExperienceSkillDrafts(nextExperienceSkills)
-        const nextCertificates = buildCertificateRecords(profileData.certificates)
-        setCertificates(nextCertificates)
-        setCertificateDrafts(Object.fromEntries(nextCertificates.map((certificate) => [certificate.id, certificate])))
-        setSkillsData(studentSkills)
-        setSkillDraftIds(studentSkills.skills.map((skill) => skill.skill_id))
-      } catch (error) {
-        if (active) {
-          toast.error(error instanceof ApiError ? error.message : 'Unable to load profile details.')
-        }
-      }
+    if (!profileQuery.data?.profile) {
+      return
     }
 
-    void loadProfile()
+    const profileData = profileQuery.data.profile
 
-    return () => {
-      active = false
+    setProfile(profileData)
+    setEducationDrafts(
+      Object.fromEntries(profileData.education_records.map((record) => [record.id, toEducationDraft(record)])),
+    )
+    setExperienceDrafts(
+      Object.fromEntries(profileData.experience_records.map((record) => [record.id, toExperienceDraft(record)])),
+    )
+    setNewEducation(emptyEducationDraft)
+    setNewExperience(emptyExperienceDraft)
+    setNameDraft(profileData.name || displayName)
+    setAboutMe(profileData.about_me || defaultAboutMe)
+    setAboutDraft(profileData.about_me || defaultAboutMe)
+    setIsAboutExpanded(false)
+    setSavedImages(toStoredProfileImages(profileData))
+    setDraftImages(toStoredProfileImages(profileData))
+    const nextEducationDetails = buildEducationDetailMap(profileData.education_records)
+    setEducationDetails(nextEducationDetails)
+    setEducationDetailDrafts(nextEducationDetails)
+    const nextExperienceSkills = buildExperienceSkillMap(profileData.experience_records)
+    setExperienceSkills(nextExperienceSkills)
+    setExperienceSkillDrafts(nextExperienceSkills)
+    const nextCertificates = buildCertificateRecords(profileData.certificates)
+    setCertificates(nextCertificates)
+    setCertificateDrafts(Object.fromEntries(nextCertificates.map((certificate) => [certificate.id, certificate])))
+  }, [displayName, profileQuery.data?.profile])
+
+  useEffect(() => {
+    if (!profileQuery.data?.skills) {
+      return
     }
-  }, [displayName])
+
+    setSkillsData(profileQuery.data.skills)
+    setSkillDraftIds(profileQuery.data.skills.skills.map((skill) => skill.skill_id))
+  }, [profileQuery.data?.skills])
+
+  useEffect(() => {
+    if (!profileQuery.error) {
+      return
+    }
+
+    toast.error(profileQuery.error instanceof ApiError ? profileQuery.error.message : 'Unable to load profile details.')
+  }, [profileQuery.error])
 
   const hasUnsavedChanges =
     draftImages.profileImage !== savedImages.profileImage || draftImages.coverImage !== savedImages.coverImage
@@ -177,6 +186,10 @@ export function StudentProfilePage() {
       setDraftImages((current) => ({
         ...current,
         [field]: imageDataUrl,
+      }))
+      setPendingImageFiles((current) => ({
+        ...current,
+        [field]: file,
       }))
     } catch (uploadError) {
       toast.error(uploadError instanceof Error ? uploadError.message : 'Unable to load the selected image.')
@@ -210,6 +223,14 @@ export function StudentProfilePage() {
   }
 
   function syncProfile(updatedProfile: StudentProfile) {
+    queryClient.setQueryData<StudentProfileQueryData>(studentProfileQueryKeys.details, (currentData) =>
+      currentData
+        ? {
+            ...currentData,
+            profile: updatedProfile,
+          }
+        : currentData,
+    )
     setProfile(updatedProfile)
     setEducationDrafts(
       Object.fromEntries(updatedProfile.education_records.map((record) => [record.id, toEducationDraft(record)])),
@@ -232,22 +253,46 @@ export function StudentProfilePage() {
     )
   }
 
+  function syncSkills(updatedSkills: StudentSkillsResponse) {
+    queryClient.setQueryData<StudentProfileQueryData>(studentProfileQueryKeys.details, (currentData) =>
+      currentData
+        ? {
+            ...currentData,
+            skills: updatedSkills,
+          }
+        : currentData,
+    )
+    setSkillsData(updatedSkills)
+  }
+
   async function handleSaveImages() {
     setSaving(true)
 
     try {
-      const response = await apiRequest<StudentProfile>('/student/profile', {
-        method: 'PUT',
-        body: buildStudentProfilePayload({
-          profile_image: draftImages.profileImage ?? '',
-          cover_image: draftImages.coverImage ?? '',
-        }),
-        csrfToken,
-      })
+      let response = profile
+      if (pendingImageFiles.coverImage) {
+        const formData = new FormData()
+        formData.set('file', pendingImageFiles.coverImage)
+        response = await apiRequest<StudentProfile>('/student/profile/images/cover', {
+          method: 'POST',
+          body: formData,
+          csrfToken,
+        })
+      }
+      if (pendingImageFiles.profileImage) {
+        const formData = new FormData()
+        formData.set('file', pendingImageFiles.profileImage)
+        response = await apiRequest<StudentProfile>('/student/profile/images/profile', {
+          method: 'POST',
+          body: formData,
+          csrfToken,
+        })
+      }
       syncProfile(response)
       const nextImages = toStoredProfileImages(response)
       setSavedImages(nextImages)
       setDraftImages(nextImages)
+      setPendingImageFiles({ profileImage: null, coverImage: null })
       emitStoredProfileImages(user?.user_id, nextImages)
       toast.success('Profile images saved successfully.')
     } catch (error) {
@@ -465,7 +510,7 @@ export function StudentProfilePage() {
         })
       }
 
-      setSkillsData(updatedSkills)
+      syncSkills(updatedSkills)
       setSkillDraftIds(updatedSkills.skills.map((skill) => skill.skill_id))
       setIsSkillsDialogOpen(false)
       toast.success('Skills updated successfully.')

@@ -14,4 +14,19 @@ export interface NotificationItem {
 export interface NotificationsResponse {
   unread_count: number
   notifications: NotificationItem[]
+  pagination?: {
+    page: number
+    page_size: number
+    total_count: number
+    total_pages: number
+    has_previous: boolean
+    has_next: boolean
+  }
+}
+
+export interface NotificationFeedResponse {
+  role: 'student' | 'company' | 'admin'
+  notifications: NotificationsResponse
+  messages: import('../profile/messages/types').StudentMessagesResponse | import('../profile/messages/types').CompanyMessagesResponse | null
+  matches: import('../profile/types').StudentMatchesResponse | null
 }

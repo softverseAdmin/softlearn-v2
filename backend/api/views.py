@@ -3,10 +3,10 @@ import re
 
 from django.conf import settings
 from django.contrib.auth.password_validation import validate_password
-from django.core.exceptions import ValidationError
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.cache import cache
-from django.db import connections, transaction
-from django.db.models import Avg, Count, Q
+from django.db import IntegrityError, connections, transaction
+from django.db.models import Avg, Count, F, Q
 from django.utils import timezone
 from django.utils.dateparse import parse_date, parse_datetime
 from urllib.parse import urlparse
@@ -16,10 +16,50 @@ from api.auth_views import (
     login_view,
     logout_view,
     password_change_view,
+    password_reset_confirm_view,
+    password_reset_request_view,
     serialize_user,
     session_view,
     signup_view,
     validate_signup_payload,
+)
+from api.message_views import (
+    company_message_compose_contacts_view,
+    company_message_thread_detail_view,
+    company_message_thread_messages_view,
+    company_message_threads_queryset,
+    company_message_threads_view,
+    company_messages_view,
+    message_profile_image_for_user,
+    serialize_company_messages,
+    serialize_message_thread,
+    serialize_student_messages,
+    student_message_compose_contacts_view,
+    student_message_thread_detail_view,
+    student_message_thread_messages_view,
+    student_message_threads_queryset,
+    student_message_threads_view,
+    student_messages_view,
+)
+from api.student_profile_views import (
+    get_student_availability_profile,
+    get_student_profile,
+    serialize_student_availability_profile,
+    serialize_student_certificate,
+    serialize_student_education,
+    serialize_student_experience,
+    serialize_student_profile,
+    serialize_student_resume,
+    student_availability_view,
+    student_certificate_detail_view,
+    student_certificates_view,
+    student_education_detail_view,
+    student_education_view,
+    student_experience_detail_view,
+    student_experience_view,
+    student_profile_view,
+    student_resume_detail_view,
+    student_resumes_view,
 )
 from api.course_assessments import (
     active_course_assessment_questions,
@@ -100,10 +140,13 @@ from users.models import (
     VacancyLanguageRequirement,
     VacancySkillRequirement,
 )
+from users.media import file_url_or_none, text_value_or_none
 from users.notifications import emit_interview_event_notifications
 from services.security import SecurityManager
 
 logger = logging.getLogger(__name__)
+
+MATCH_RESULT_CACHE_TTL_SECONDS = 300
 
 
 def readiness_checks(request) -> tuple[dict, int]:
@@ -116,12 +159,11 @@ def readiness_checks(request) -> tuple[dict, int]:
             cursor.execute("SELECT 1")
             cursor.fetchone()
         checks["database"] = {"status": "ok"}
-    except Exception as exc:
-        checks["database"] = {"status": "error", "detail": str(exc)}
+    except Exception:
+        checks["database"] = {"status": "error"}
         overall_status = "error"
         status_code = 503
 
-    cache_backend = settings.CACHES["default"]["BACKEND"]
     if getattr(settings, "ENABLE_REDIS_CACHE", False):
         cache_key = f"readiness:{getattr(request, 'request_id', 'unknown')}"
         try:
@@ -130,27 +172,19 @@ def readiness_checks(request) -> tuple[dict, int]:
             cache.delete(cache_key)
             if cached_value != "ok":
                 raise RuntimeError("Cache round-trip failed.")
-            checks["cache"] = {"status": "ok", "backend": cache_backend}
-        except Exception as exc:
-            checks["cache"] = {"status": "error", "backend": cache_backend, "detail": str(exc)}
+            checks["cache"] = {"status": "ok"}
+        except Exception:
+            checks["cache"] = {"status": "error"}
             overall_status = "error"
             status_code = 503
     else:
-        checks["cache"] = {"status": "disabled", "backend": cache_backend}
+        checks["cache"] = {"status": "disabled"}
 
     return (
         {
             "status": overall_status,
             "request_id": request.request_id,
-            "environment": settings.ENVIRONMENT,
             "checks": checks,
-            "observability": {
-                "log_level": settings.LOG_LEVEL,
-                "structured_logging": settings.LOG_AS_JSON,
-                "file_logging": settings.ENABLE_FILE_LOGGING,
-                "persist_request_logs": settings.PERSIST_REQUEST_LOGS,
-                "sentry_configured": bool(settings.SENTRY_DSN),
-            },
         },
         status_code,
     )
@@ -166,115 +200,6 @@ def youtube_video_url_error(video_url: str) -> str | None:
     if parsed_video_url.scheme not in {"http", "https"} or hostname not in allowed_hosts:
         return "Video URL must be a valid YouTube link."
     return None
-
-def get_student_profile(user: User) -> StudentProfile:
-    profile, _ = StudentProfile.objects.get_or_create(user=user)
-    return profile
-
-
-def get_student_availability_profile(user: User) -> StudentAvailabilityProfile:
-    profile, _ = StudentAvailabilityProfile.objects.get_or_create(student=user)
-    return profile
-
-
-def serialize_student_education(record: StudentEducation) -> dict:
-    return {
-        "id": record.id,
-        "institution": record.institution,
-        "field_of_study": record.field_of_study,
-        "start_date": record.start_date.isoformat(),
-        "end_date": record.end_date.isoformat() if record.end_date else None,
-        "completion_status": record.completion_status,
-        "grade": record.grade,
-        "activities": record.activities,
-        "description": record.description,
-        "skill_ids": list(record.skills.order_by("id").values_list("id", flat=True)),
-    }
-
-
-def serialize_student_experience(record: StudentExperience) -> dict:
-    return {
-        "id": record.id,
-        "organization": record.organization,
-        "role_title": record.role_title,
-        "experience_type": record.experience_type,
-        "start_date": record.start_date.isoformat(),
-        "end_date": record.end_date.isoformat() if record.end_date else None,
-        "is_current": record.is_current,
-        "summary": record.summary,
-        "skill_ids": list(record.skills.order_by("id").values_list("id", flat=True)),
-    }
-
-
-def serialize_student_certificate(record: StudentCertificate) -> dict:
-    return {
-        "id": record.id,
-        "name": record.name,
-        "issuer": record.issuer,
-        "issue_date": record.issue_date.isoformat(),
-        "expiry_date": record.expiry_date.isoformat() if record.expiry_date else None,
-        "credential_id": record.credential_id,
-        "credential_url": record.credential_url,
-        "description": record.description,
-        "skill_ids": list(record.skills.order_by("id").values_list("id", flat=True)),
-    }
-
-
-def serialize_student_resume(record: StudentResume) -> dict:
-    return {
-        "id": record.id,
-        "display_name": record.display_name,
-        "file_name": record.file_name,
-        "source_type": record.source_type,
-        "is_active": record.is_active,
-        "created_at": record.created_at.isoformat(),
-        "updated_at": record.updated_at.isoformat(),
-    }
-
-
-def serialize_student_availability_profile(profile: StudentAvailabilityProfile) -> dict:
-    return {
-        "job_search_status": profile.job_search_status,
-        "earliest_start_date": profile.earliest_start_date.isoformat() if profile.earliest_start_date else None,
-        "interview_availability": profile.interview_availability,
-        "scheduling_notes": profile.scheduling_notes,
-        "availability_set": profile.availability_set,
-        "updated_at": profile.updated_at.isoformat(),
-    }
-
-
-def serialize_student_profile(user: User) -> dict:
-    profile = get_student_profile(user)
-    availability_profile = get_student_availability_profile(user)
-    education_records = list(StudentEducation.objects.filter(student=user).prefetch_related("skills"))
-    experience_records = list(StudentExperience.objects.filter(student=user).prefetch_related("skills"))
-    certificates = list(StudentCertificate.objects.filter(student=user).prefetch_related("skills"))
-    resumes = list(StudentResume.objects.filter(student=user))
-    return {
-        "student_id": user.id,
-        "name": user.full_name,
-        "desired_job_type": profile.desired_job_type,
-        "desired_work_location": profile.desired_work_location,
-        "japanese_level": profile.japanese_level,
-        "english_level": profile.english_level,
-        "about_me": profile.about_me,
-        "profile_image": profile.profile_image or None,
-        "cover_image": profile.cover_image or None,
-        "profile_complete": profile.profile_complete,
-        "education_records": [serialize_student_education(record) for record in education_records],
-        "experience_records": [serialize_student_experience(record) for record in experience_records],
-        "certificates": [serialize_student_certificate(record) for record in certificates],
-        "resumes": [serialize_student_resume(record) for record in resumes],
-        "availability": serialize_student_availability_profile(availability_profile),
-        "profile_extension_summary": {
-            "education_count": len(education_records),
-            "experience_count": len(experience_records),
-            "resume_count": len(resumes),
-            "has_active_resume": any(record.is_active for record in resumes),
-            "availability_set": availability_profile.availability_set,
-        },
-    }
-
 
 def serialize_skill(skill: Skill) -> dict:
     return {
@@ -316,8 +241,8 @@ def serialize_company_profile(user: User) -> dict:
         "company_id": company.id,
         "name": company.name,
         "description": company.description,
-        "profile_image": company.profile_image or None,
-        "cover_image": company.cover_image or None,
+        "profile_image": file_url_or_none(company.profile_image_file) or text_value_or_none(company.profile_image),
+        "cover_image": file_url_or_none(company.cover_image_file) or text_value_or_none(company.cover_image),
         "job_posting_id": company.job_posting_id,
         "founder_name": company.founder_name,
         "headquarters_address": company.headquarters_address,
@@ -794,310 +719,6 @@ def recent_notifications_for_user(user: User, *, limit: int = 5) -> list[dict]:
     return [serialize_notification(notification) for notification in notifications]
 
 
-def message_sender_display_name(message: Message, viewer: User) -> str:
-    if message.sender_id == viewer.id:
-        return "You"
-    if message.sender is not None and message.sender.full_name.strip():
-        return message.sender.full_name
-    return message.sender_name
-
-
-def message_thread_company_name(thread: MessageThread) -> str:
-    if thread.company_name.strip():
-        return thread.company_name
-    if thread.participant_user is not None and thread.participant_user.company is not None:
-        return thread.participant_user.company.name
-    return "External conversation"
-
-
-def message_thread_role_label(thread: MessageThread) -> str:
-    if thread.role_label.strip():
-        return thread.role_label
-    if thread.participant_user is not None:
-        return thread.participant_user.role.replace("_", " ").title()
-    return "Contact"
-
-
-def message_thread_participant_name(thread: MessageThread, viewer: User) -> str:
-    if viewer.role == User.Role.COMPANY:
-        if thread.student.full_name.strip():
-            return thread.student.full_name
-        return thread.student.email
-    return thread.participant_name
-
-
-def message_thread_secondary_label(thread: MessageThread, viewer: User) -> tuple[str, str]:
-    if viewer.role == User.Role.COMPANY:
-        return (thread.category.replace("_", " ").title(), "Student")
-    return (message_thread_company_name(thread), message_thread_role_label(thread))
-
-
-def message_profile_image_for_user(user: User | None) -> str | None:
-    if user is None:
-        return None
-    if user.role == User.Role.STUDENT:
-        try:
-            return user.student_profile.profile_image or None
-        except StudentProfile.DoesNotExist:
-            return None
-    if user.role == User.Role.COMPANY and user.company is not None:
-        return user.company.profile_image or None
-    return None
-
-
-def message_thread_participant_image(thread: MessageThread, viewer: User) -> str | None:
-    if viewer.role == User.Role.COMPANY:
-        return message_profile_image_for_user(thread.student)
-    return message_profile_image_for_user(thread.participant_user)
-
-
-def message_thread_is_unread(thread: MessageThread, viewer: User) -> bool:
-    if thread.last_message_at is None:
-        return False
-
-    if viewer.role == User.Role.COMPANY:
-        if thread.last_message_sender_id == viewer.id:
-            return False
-        return thread.company_last_read_at is None or thread.company_last_read_at < thread.last_message_at
-
-    if thread.last_message_sender_id == thread.student_id:
-        return False
-    return thread.last_read_at is None or thread.last_read_at < thread.last_message_at
-
-
-def serialize_message_record(message: Message, viewer: User) -> dict:
-    is_self = message.sender_id == viewer.id
-    return {
-        "id": message.id,
-        "author": "self" if is_self else "other",
-        "sender": message_sender_display_name(message, viewer),
-        "sender_image": message_profile_image_for_user(message.sender),
-        "body": message.body,
-        "sent_at": message.created_at.isoformat(),
-        "status": message.get_delivery_status_display() if is_self else None,
-    }
-
-
-def serialize_message_thread(thread: MessageThread, *, viewer: User, include_messages: bool = True) -> dict:
-    secondary_label, role_label = message_thread_secondary_label(thread, viewer)
-    data = {
-        "id": thread.id,
-        "participant_name": message_thread_participant_name(thread, viewer),
-        "company_name": secondary_label,
-        "role_label": role_label,
-        "category": thread.category,
-        "is_unread": message_thread_is_unread(thread, viewer),
-        "is_pinned": thread.is_pinned,
-        "is_starred": thread.is_starred,
-        "last_activity": thread.last_message_at.isoformat() if thread.last_message_at else thread.updated_at.isoformat(),
-        "preview": thread.last_message_preview,
-        "participant_image": message_thread_participant_image(thread, viewer),
-    }
-    if include_messages:
-        data["messages"] = [serialize_message_record(message, viewer) for message in thread.messages.all()]
-    return data
-
-
-def student_message_threads_queryset(user: User):
-    return (
-        MessageThread.objects.filter(student=user)
-        .select_related("student", "student__student_profile", "participant_user", "participant_user__company", "last_message_sender")
-        .prefetch_related("messages__sender", "messages__sender__company", "messages__sender__student_profile")
-        .order_by("-is_pinned", "-last_message_at", "-updated_at", "-id")
-    )
-
-
-def company_message_threads_queryset(user: User):
-    return (
-        MessageThread.objects.filter(participant_user=user)
-        .select_related("student", "student__student_profile", "participant_user", "participant_user__company", "last_message_sender")
-        .prefetch_related("messages__sender", "messages__sender__company", "messages__sender__student_profile")
-        .order_by("-is_pinned", "-last_message_at", "-updated_at", "-id")
-    )
-
-
-def serialize_student_messages(user: User) -> dict:
-    threads = list(student_message_threads_queryset(user))
-    return {
-        "student_id": user.id,
-        "thread_count": len(threads),
-        "unread_count": sum(1 for thread in threads if thread.is_unread),
-        "starred_count": sum(1 for thread in threads if thread.is_starred),
-        "threads": [serialize_message_thread(thread, viewer=user) for thread in threads],
-    }
-
-
-def serialize_company_messages(user: User) -> dict:
-    threads = list(company_message_threads_queryset(user))
-    return {
-        "company_id": user.company_id,
-        "thread_count": len(threads),
-        "unread_count": sum(1 for thread in threads if message_thread_is_unread(thread, user)),
-        "starred_count": sum(1 for thread in threads if thread.is_starred),
-        "threads": [serialize_message_thread(thread, viewer=user) for thread in threads],
-    }
-
-
-def compose_contact_role_label_for_user(user: User, member_roles: dict[int, str]) -> str:
-    member_role = member_roles.get(user.id)
-    if member_role:
-        return member_role.replace("_", " ").title()
-    return "Company contact"
-
-
-def serialize_message_compose_contact(
-    *,
-    participant_name: str,
-    company_name: str,
-    role_label: str,
-    participant_user_id: int | None = None,
-    source: str,
-) -> dict:
-    return {
-        "participant_name": participant_name,
-        "company_name": company_name,
-        "role_label": role_label,
-        "participant_user_id": participant_user_id,
-        "source": source,
-    }
-
-
-def serialize_student_message_compose_contacts(user: User) -> dict:
-    contacts_by_key: dict[str, dict] = {}
-    threads = list(
-        MessageThread.objects.filter(student=user)
-        .select_related("participant_user", "participant_user__company")
-        .order_by("-updated_at", "-id")
-    )
-
-    for thread in threads:
-        participant_user_id = thread.participant_user_id
-        key = f"user:{participant_user_id}" if participant_user_id else f"thread:{thread.participant_name}:{thread.company_name}:{thread.role_label}"
-        contacts_by_key[key] = serialize_message_compose_contact(
-            participant_name=thread.participant_name,
-            company_name=message_thread_company_name(thread),
-            role_label=message_thread_role_label(thread),
-            participant_user_id=participant_user_id,
-            source="thread",
-        )
-
-    application_company_ids = set(Application.objects.filter(student=user).values_list("company_id", flat=True))
-    interview_company_ids = set(Interview.objects.filter(student=user).values_list("company_id", flat=True))
-    company_ids = application_company_ids | interview_company_ids
-
-    if company_ids:
-        member_roles = {
-            member.user_id: member.role
-            for member in CompanyMember.objects.filter(company_id__in=company_ids).only("user_id", "role")
-        }
-        company_users = list(
-            User.objects.filter(role=User.Role.COMPANY, company_id__in=company_ids, is_active=True)
-            .select_related("company")
-            .order_by("full_name", "id")
-        )
-
-        for company_user in company_users:
-            if company_user.company is None:
-                continue
-            key = f"user:{company_user.id}"
-            contacts_by_key[key] = serialize_message_compose_contact(
-                participant_name=company_user.full_name,
-                company_name=company_user.company.name,
-                role_label=compose_contact_role_label_for_user(company_user, member_roles),
-                participant_user_id=company_user.id,
-                source="company_directory",
-            )
-
-    contacts = sorted(
-        contacts_by_key.values(),
-        key=lambda item: (item["participant_name"].lower(), item["company_name"].lower(), item["role_label"].lower()),
-    )
-    return {
-        "student_id": user.id,
-        "contact_count": len(contacts),
-        "contacts": contacts,
-    }
-
-
-def serialize_company_message_compose_contacts(user: User) -> dict:
-    company = user.company
-    if company is None:
-        raise ValidationError({"company": ["Company context is required for company users."]})
-
-    contacts_by_key: dict[str, dict] = {}
-
-    students = matchable_students_queryset().only("id", "full_name", "email")
-    for student in students:
-        key = f"student:{student.id}"
-        contacts_by_key[key] = serialize_message_compose_contact(
-            participant_name=student.full_name or student.email,
-            company_name="Student directory",
-            role_label="Student",
-            participant_user_id=student.id,
-            source="student_directory",
-        )
-
-    threads = list(
-        MessageThread.objects.filter(participant_user=user)
-        .select_related("student")
-        .order_by("-updated_at", "-id")
-    )
-
-    for thread in threads:
-        key = f"student:{thread.student_id}"
-        contacts_by_key[key] = serialize_message_compose_contact(
-            participant_name=thread.student.full_name or thread.student.email,
-            company_name=thread.category.replace("_", " ").title(),
-            role_label="Student",
-            participant_user_id=thread.student_id,
-            source="thread",
-        )
-
-    candidate_accesses = (
-        CandidateReviewAccess.objects.filter(company=company, is_active=True)
-        .select_related("student")
-        .order_by("-updated_at", "-id")
-    )
-    for access in candidate_accesses:
-        key = f"student:{access.student_id}"
-        contacts_by_key[key] = serialize_message_compose_contact(
-            participant_name=access.student.full_name or access.student.email,
-            company_name=access.source.replace("_", " ").title(),
-            role_label="Student",
-            participant_user_id=access.student_id,
-            source=access.source,
-        )
-
-    contacts = sorted(contacts_by_key.values(), key=lambda item: (item["participant_name"].lower(), item["source"], item["participant_user_id"] or 0))
-    return {
-        "company_id": company.id,
-        "contact_count": len(contacts),
-        "contacts": contacts,
-    }
-
-
-def refresh_message_thread_activity(thread: MessageThread, message: Message) -> None:
-    thread.last_message_preview = message.body[:255]
-    thread.last_message_at = message.created_at
-    thread.last_message_sender = message.sender
-
-    update_fields = [
-        "last_message_preview",
-        "last_message_at",
-        "last_message_sender",
-        "updated_at",
-    ]
-    if message.sender_id == thread.student_id:
-        thread.last_read_at = message.created_at
-        update_fields.append("last_read_at")
-    if message.sender_id == thread.participant_user_id:
-        thread.company_last_read_at = message.created_at
-        update_fields.append("company_last_read_at")
-
-    thread.full_clean()
-    thread.save(update_fields=update_fields)
-
-
 def roadmap_title_for_record(record: LearningRecord) -> str:
     category = learning_record_category(record)
     if category.strip():
@@ -1396,6 +1017,17 @@ def aggregate_match_result(student: User, vacancy: Vacancy) -> dict:
     }
 
 
+def cached_aggregate_match_result(student: User, vacancy: Vacancy) -> dict:
+    cache_key = f"match-result:{student.id}:{vacancy.id}"
+    cached_result = cache.get(cache_key)
+    if cached_result is not None:
+        return cached_result
+
+    match_result = aggregate_match_result(student, vacancy)
+    cache.set(cache_key, match_result, MATCH_RESULT_CACHE_TTL_SECONDS)
+    return match_result
+
+
 def build_student_dashboard_roadmap_nodes(
     *,
     learning_records: list[LearningRecord],
@@ -1561,7 +1193,7 @@ def serialize_admin_course(course: Course, *, viewer: User | None = None) -> dic
         "category": course.category,
         "difficulty_level": course.difficulty_level,
         "estimated_hours": course.estimated_hours,
-        "thumbnail_image": course.thumbnail_image or None,
+        "thumbnail_image": file_url_or_none(course.thumbnail_image_file) or text_value_or_none(course.thumbnail_image),
         "thumbnail_alt_text": course.thumbnail_alt_text or None,
         "status": course.status,
         "lesson_count": course.lessons.count(),
@@ -1702,7 +1334,7 @@ def serialize_student_course_summary(
         "category": course.category,
         "difficulty_level": course.difficulty_level,
         "estimated_hours": course.estimated_hours,
-        "thumbnail_image": course.thumbnail_image or None,
+        "thumbnail_image": file_url_or_none(course.thumbnail_image_file) or text_value_or_none(course.thumbnail_image),
         "thumbnail_alt_text": course.thumbnail_alt_text or None,
         "status": course.status,
         "lesson_count": lesson_count,
@@ -1710,7 +1342,11 @@ def serialize_student_course_summary(
         "average_rating": average_rating,
         "rating_count": rating_count,
         "company_name": course.company.name if course.company_id else None,
-        "company_profile_image": course.company.profile_image if course.company_id and course.company.profile_image else None,
+        "company_profile_image": (
+            file_url_or_none(course.company.profile_image_file) or text_value_or_none(course.company.profile_image)
+            if course.company_id
+            else None
+        ),
         "created_by_name": course.created_by.full_name if course.created_by_id else None,
         "is_enrolled": learning_record is not None,
         "enrollment_status": learning_record.status if learning_record is not None else None,
@@ -1734,7 +1370,7 @@ def serialize_company_course_summary(
         "category": course.category,
         "difficulty_level": course.difficulty_level,
         "estimated_hours": course.estimated_hours,
-        "thumbnail_image": course.thumbnail_image or None,
+        "thumbnail_image": file_url_or_none(course.thumbnail_image_file) or text_value_or_none(course.thumbnail_image),
         "thumbnail_alt_text": course.thumbnail_alt_text or None,
         "status": course.status,
         "lesson_count": lesson_count,
@@ -2401,7 +2037,8 @@ def serialize_vacancy(
         "vacancy_id": vacancy.id,
         "company_id": vacancy.company_id,
         "company_name": vacancy.company.name,
-        "company_profile_image": vacancy.company.profile_image or None,
+        "company_profile_image": file_url_or_none(vacancy.company.profile_image_file)
+        or text_value_or_none(vacancy.company.profile_image),
         "title": vacancy.title,
         "description": vacancy.description,
         "employment_type": vacancy.employment_type,
@@ -2450,7 +2087,11 @@ def serialize_company_candidate(access: CandidateReviewAccess) -> dict:
         "source": access.source,
         "student_id": access.student_id,
         "display_name": access.student.full_name if profile_visible else "Private candidate",
-        "profile_image": (student_profile.profile_image or None) if profile_visible else None,
+        "profile_image": (
+            file_url_or_none(student_profile.profile_image_file) or text_value_or_none(student_profile.profile_image)
+        )
+        if profile_visible
+        else None,
         "desired_job_type": student_profile.desired_job_type if profile_visible else "",
         "desired_work_location": student_profile.desired_work_location if profile_visible else "",
         "top_skills": top_skills if profile_visible else [],
@@ -2823,8 +2464,15 @@ def validate_company_profile_payload(payload: dict) -> dict:
         "company_features": str(payload.get("company_features", "")).strip(),
         "additional_company_info": str(payload.get("additional_company_info", "")).strip(),
     }
+    errors = {}
     if not cleaned["name"]:
-        raise ValidationError({"name": ["This field is required."]})
+        errors["name"] = ["This field is required."]
+    if cleaned["profile_image"].startswith("data:"):
+        errors["profile_image"] = ["Upload profile images through the media upload endpoint."]
+    if cleaned["cover_image"].startswith("data:"):
+        errors["cover_image"] = ["Upload cover images through the media upload endpoint."]
+    if errors:
+        raise ValidationError(errors)
     return cleaned
 
 
@@ -3040,7 +2688,17 @@ def validate_company_message_compose_contact_access(user: User, student_user: Us
         raise ValidationError({"company": ["Company context is required for company users."]})
 
     if student_user.role != User.Role.STUDENT or not student_user.is_active:
-        raise ValidationError({"participant_user_id": ["Selected student is not available for company messaging."]})
+        raise PermissionDenied("Selected student is not available for company messaging.")
+
+    has_active_candidate_access = CandidateReviewAccess.objects.filter(
+        company=company,
+        student=student_user,
+        is_active=True,
+        student__role=User.Role.STUDENT,
+        student__is_active=True,
+    ).exists()
+    if not has_active_candidate_access:
+        raise PermissionDenied("Company messaging is limited to students with an approved candidate access context.")
 
 
 def company_message_thread_role_label(user: User) -> str:
@@ -3249,6 +2907,8 @@ def validate_admin_course_payload(payload: dict) -> dict:
         errors["title"] = ["This field is required."]
     if not category:
         errors["category"] = ["This field is required."]
+    if thumbnail_image.startswith("data:"):
+        errors["thumbnail_image"] = ["Upload thumbnails through the course thumbnail upload endpoint."]
     if status not in Course.Status.values:
         errors["status"] = [f"Status must be one of: {', '.join(Course.Status.values)}."]
 
@@ -3972,6 +3632,10 @@ def visible_student_vacancies_queryset():
         .select_related("company", "created_by")
         .prefetch_related("skill_requirements__skill", "language_requirements")
     )
+
+
+def visible_student_vacancies_base_queryset():
+    return Vacancy.objects.filter(status=Vacancy.Status.ACTIVE, company__is_active=True)
 
 
 def matchable_students_queryset():
@@ -4715,10 +4379,14 @@ def sync_company_match_candidate_accesses(company: Company) -> None:
     stale_accesses.update(is_active=False, updated_at=timezone.now())
 
 
+def ensure_company_match_candidate_accesses_synced(company: Company) -> None:
+    sync_company_match_candidate_accesses(company)
+
+
 def ranked_matches_for_vacancy(vacancy: Vacancy) -> list[tuple[User, dict]]:
     matches: list[tuple[User, dict]] = []
     for student in matchable_students_queryset():
-        match_result = aggregate_match_result(student, vacancy)
+        match_result = cached_aggregate_match_result(student, vacancy)
         if match_result["score"] >= MATCH_RECOMMENDATION_THRESHOLD:
             matches.append((student, match_result))
 
@@ -4729,7 +4397,7 @@ def ranked_matches_for_vacancy(vacancy: Vacancy) -> list[tuple[User, dict]]:
 def ranked_matches_for_student(student: User) -> list[tuple[Vacancy, dict]]:
     matches: list[tuple[Vacancy, dict]] = []
     for vacancy in visible_student_vacancies_queryset().order_by("-updated_at", "-id"):
-        match_result = aggregate_match_result(student, vacancy)
+        match_result = cached_aggregate_match_result(student, vacancy)
         if match_result["score"] >= MATCH_RECOMMENDATION_THRESHOLD:
             matches.append((vacancy, match_result))
 
@@ -4783,8 +4451,8 @@ def validate_student_jobs_filters(request) -> dict:
 
 
 def build_student_jobs_response(user: User, filters: dict) -> dict:
-    visible_vacancies = list(visible_student_vacancies_queryset().order_by("-updated_at", "-id"))
-    filtered_queryset = visible_student_vacancies_queryset()
+    visible_queryset = visible_student_vacancies_base_queryset()
+    filtered_queryset = visible_queryset
 
     if filters["query"]:
         filtered_queryset = filtered_queryset.filter(
@@ -4805,39 +4473,43 @@ def build_student_jobs_response(user: User, filters: dict) -> dict:
     if filters["work_styles"]:
         filtered_queryset = filtered_queryset.filter(work_style__in=filters["work_styles"])
 
-    vacancies = list(filtered_queryset.distinct().order_by("-updated_at", "-id"))
+    filtered_vacancies = list(
+        filtered_queryset.distinct()
+        .select_related("company", "created_by")
+        .prefetch_related("skill_requirements__skill", "language_requirements")
+        .order_by("-updated_at", "-id")
+    )
+    filtered_vacancy_ids = [vacancy.id for vacancy in filtered_vacancies]
     bookmarked_vacancy_ids = set(
-        JobBookmark.objects.filter(student=user, vacancy_id__in=[vacancy.id for vacancy in vacancies]).values_list(
-            "vacancy_id",
-            flat=True,
-        )
+        JobBookmark.objects.filter(student=user, vacancy_id__in=filtered_vacancy_ids).values_list("vacancy_id", flat=True)
     )
     active_application_vacancy_ids = set(
-        Application.objects.filter(student=user, vacancy_id__in=[vacancy.id for vacancy in vacancies])
+        Application.objects.filter(student=user, vacancy_id__in=filtered_vacancy_ids)
         .exclude(status__in=[Application.Status.REJECTED, Application.Status.WITHDRAWN])
         .values_list("vacancy_id", flat=True)
     )
 
-    visible_skill_ids = {
-        requirement.skill_id
-        for vacancy in visible_vacancies
-        for requirement in vacancy.skill_requirements.all()
-    }
+    visible_skill_ids = list(
+        visible_queryset.filter(skill_requirements__isnull=False)
+        .values_list("skill_requirements__skill_id", flat=True)
+        .distinct()
+    )
     available_skills = list(Skill.objects.filter(id__in=visible_skill_ids).order_by("name"))
     available_languages = [
         serialize_choice_option(value, label)
         for value, label in VacancyLanguageRequirement.Language.choices
-        if any(
-            requirement.language == value
-            for vacancy in visible_vacancies
-            for requirement in vacancy.language_requirements.all()
-        )
+        if visible_queryset.filter(language_requirements__language=value).exists()
     ]
-    available_locations = sorted({vacancy.location for vacancy in visible_vacancies if vacancy.location})
+    available_locations = sorted(
+        location
+        for location in visible_queryset.exclude(location="").exclude(location__isnull=True)
+        .values_list("location", flat=True)
+        .distinct()
+    )
     available_work_styles = [
         serialize_choice_option(value, label)
         for value, label in Vacancy.WorkStyle.choices
-        if any(vacancy.work_style == value for vacancy in visible_vacancies)
+        if visible_queryset.filter(work_style=value).exists()
     ]
 
     return {
@@ -4847,7 +4519,7 @@ def build_student_jobs_response(user: User, filters: dict) -> dict:
                 bookmarked_vacancy_ids=bookmarked_vacancy_ids,
                 active_application_vacancy_ids=active_application_vacancy_ids,
             )
-            for vacancy in vacancies
+            for vacancy in filtered_vacancies
         ],
         "query": filters["query"],
         "filters": {
@@ -4856,13 +4528,29 @@ def build_student_jobs_response(user: User, filters: dict) -> dict:
             "locations": filters["locations"],
             "work_styles": filters["work_styles"],
         },
-        "result_count": len(vacancies),
+        "result_count": len(filtered_vacancies),
         "bookmark_count": JobBookmark.objects.filter(student=user).count(),
         "available_skills": [serialize_skill(skill) for skill in available_skills],
         "available_languages": available_languages,
         "available_locations": available_locations,
         "available_work_styles": available_work_styles,
     }
+
+
+def serialize_student_job_detail(user: User, vacancy: Vacancy) -> dict:
+    bookmarked_vacancy_ids = set(
+        JobBookmark.objects.filter(student=user, vacancy_id=vacancy.id).values_list("vacancy_id", flat=True)
+    )
+    active_application_vacancy_ids = set(
+        Application.objects.filter(student=user, vacancy_id=vacancy.id)
+        .exclude(status__in=[Application.Status.REJECTED, Application.Status.WITHDRAWN])
+        .values_list("vacancy_id", flat=True)
+    )
+    return serialize_vacancy(
+        vacancy,
+        bookmarked_vacancy_ids=bookmarked_vacancy_ids,
+        active_application_vacancy_ids=active_application_vacancy_ids,
+    )
 
 
 def get_or_create_application_candidate_access(application: Application) -> CandidateReviewAccess:
@@ -4954,294 +4642,25 @@ def readiness_view(request):
     return success_response(payload, status=status_code)
 
 
-@api_endpoint(["GET", "PUT"], authentication_required=True, roles=[User.Role.STUDENT])
-def student_profile_view(request):
-    if request.method == "GET":
-        return success_response(serialize_student_profile(request.user))
-
-    payload = validate_student_profile_payload(parse_json_body(request))
-    profile = get_student_profile(request.user)
-
-    request.user.full_name = payload["name"]
-    request.user.save(update_fields=["full_name"])
-    profile.desired_job_type = payload["desired_job_type"]
-    profile.desired_work_location = payload["desired_work_location"]
-    profile.japanese_level = payload["japanese_level"]
-    profile.english_level = payload["english_level"]
-    profile.about_me = payload["about_me"]
-    profile.profile_image = payload["profile_image"]
-    profile.cover_image = payload["cover_image"]
-    profile.save(
-        update_fields=[
-            "desired_job_type",
-            "desired_work_location",
-            "japanese_level",
-            "english_level",
-            "about_me",
-            "profile_image",
-            "cover_image",
-            "updated_at",
-        ]
-    )
-
-    return success_response(serialize_student_profile(request.user))
-
-
-@api_endpoint(["GET", "POST"], authentication_required=True, roles=[User.Role.STUDENT])
-def student_education_view(request):
-    if request.method == "GET":
-        return success_response(
-            {
-                "education_records": [
-                    serialize_student_education(record) for record in StudentEducation.objects.filter(student=request.user)
-                ],
-            }
-        )
-
-    payload = validate_student_education_payload(parse_json_body(request))
-    skill_ids = payload.pop("skill_ids")
-    with transaction.atomic():
-        record = StudentEducation(student=request.user, **payload)
-        record.full_clean()
-        record.save()
-        record.skills.set(skill_ids)
-    return success_response(serialize_student_profile(request.user), status=201)
-
-
-@api_endpoint(["PUT", "DELETE"], authentication_required=True, roles=[User.Role.STUDENT])
-def student_education_detail_view(request, education_id: int):
-    record = StudentEducation.objects.filter(student=request.user, pk=education_id).first()
-    if record is None:
-        return error_response(
-            request,
-            "NOT_FOUND",
-            "The requested education record was not found.",
-            details={"education_id": [str(education_id)]},
-            status=404,
-        )
-
-    if request.method == "DELETE":
-        record.delete()
-        return success_response(serialize_student_profile(request.user))
-
-    payload = validate_student_education_payload(parse_json_body(request))
-    skill_ids = payload.pop("skill_ids")
-    for field, value in payload.items():
-        setattr(record, field, value)
-    with transaction.atomic():
-        record.full_clean()
-        record.save(
-            update_fields=[
-                "institution",
-                "field_of_study",
-                "start_date",
-                "end_date",
-                "completion_status",
-                "grade",
-                "activities",
-                "description",
-                "updated_at",
-            ]
-        )
-        record.skills.set(skill_ids)
-    return success_response(serialize_student_profile(request.user))
-
-
-@api_endpoint(["GET", "POST"], authentication_required=True, roles=[User.Role.STUDENT])
-def student_experience_view(request):
-    if request.method == "GET":
-        return success_response(
-            {
-                "experience_records": [
-                    serialize_student_experience(record)
-                    for record in StudentExperience.objects.filter(student=request.user)
-                ],
-            }
-        )
-
-    payload = validate_student_experience_payload(parse_json_body(request))
-    skill_ids = payload.pop("skill_ids")
-    with transaction.atomic():
-        record = StudentExperience(student=request.user, **payload)
-        record.full_clean()
-        record.save()
-        record.skills.set(skill_ids)
-    return success_response(serialize_student_profile(request.user), status=201)
-
-
-@api_endpoint(["PUT", "DELETE"], authentication_required=True, roles=[User.Role.STUDENT])
-def student_experience_detail_view(request, experience_id: int):
-    record = StudentExperience.objects.filter(student=request.user, pk=experience_id).first()
-    if record is None:
-        return error_response(
-            request,
-            "NOT_FOUND",
-            "The requested experience record was not found.",
-            details={"experience_id": [str(experience_id)]},
-            status=404,
-        )
-
-    if request.method == "DELETE":
-        record.delete()
-        return success_response(serialize_student_profile(request.user))
-
-    payload = validate_student_experience_payload(parse_json_body(request))
-    skill_ids = payload.pop("skill_ids")
-    for field, value in payload.items():
-        setattr(record, field, value)
-    with transaction.atomic():
-        record.full_clean()
-        record.save(
-            update_fields=[
-                "organization",
-                "role_title",
-                "experience_type",
-                "start_date",
-                "end_date",
-                "is_current",
-                "summary",
-                "updated_at",
-            ]
-        )
-        record.skills.set(skill_ids)
-    return success_response(serialize_student_profile(request.user))
-
-
-@api_endpoint(["GET", "POST"], authentication_required=True, roles=[User.Role.STUDENT])
-def student_certificates_view(request):
-    if request.method == "GET":
-        return success_response(
-            {
-                "certificates": [
-                    serialize_student_certificate(record)
-                    for record in StudentCertificate.objects.filter(student=request.user).prefetch_related("skills")
-                ],
-            }
-        )
-
-    payload = validate_student_certificate_payload(parse_json_body(request))
-    skill_ids = payload.pop("skill_ids")
-    with transaction.atomic():
-        record = StudentCertificate(student=request.user, **payload)
-        record.full_clean()
-        record.save()
-        record.skills.set(skill_ids)
-    return success_response(serialize_student_profile(request.user), status=201)
-
-
-@api_endpoint(["PUT", "DELETE"], authentication_required=True, roles=[User.Role.STUDENT])
-def student_certificate_detail_view(request, certificate_id: int):
-    record = StudentCertificate.objects.filter(student=request.user, pk=certificate_id).first()
-    if record is None:
-        return error_response(
-            request,
-            "NOT_FOUND",
-            "The requested certificate record was not found.",
-            details={"certificate_id": [str(certificate_id)]},
-            status=404,
-        )
-
-    if request.method == "DELETE":
-        record.delete()
-        return success_response(serialize_student_profile(request.user))
-
-    payload = validate_student_certificate_payload(parse_json_body(request))
-    skill_ids = payload.pop("skill_ids")
-    for field, value in payload.items():
-        setattr(record, field, value)
-    with transaction.atomic():
-        record.full_clean()
-        record.save(
-            update_fields=[
-                "name",
-                "issuer",
-                "issue_date",
-                "expiry_date",
-                "credential_id",
-                "credential_url",
-                "description",
-                "updated_at",
-            ]
-        )
-        record.skills.set(skill_ids)
-    return success_response(serialize_student_profile(request.user))
-
-
-@api_endpoint(["GET", "POST"], authentication_required=True, roles=[User.Role.STUDENT])
-def student_resumes_view(request):
-    if request.method == "GET":
-        return success_response({"resumes": [serialize_student_resume(record) for record in StudentResume.objects.filter(student=request.user)]})
-
-    payload = validate_student_resume_payload(parse_json_body(request))
-    with transaction.atomic():
-        if payload["is_active"]:
-            StudentResume.objects.filter(student=request.user, is_active=True).update(is_active=False, updated_at=timezone.now())
-        record = StudentResume(student=request.user, **payload)
-        record.full_clean()
-        record.save()
-    return success_response(serialize_student_profile(request.user), status=201)
-
-
-@api_endpoint(["PUT", "DELETE"], authentication_required=True, roles=[User.Role.STUDENT])
-def student_resume_detail_view(request, resume_id: int):
-    record = StudentResume.objects.filter(student=request.user, pk=resume_id).first()
-    if record is None:
-        return error_response(
-            request,
-            "NOT_FOUND",
-            "The requested resume record was not found.",
-            details={"resume_id": [str(resume_id)]},
-            status=404,
-        )
-
-    if request.method == "DELETE":
-        record.delete()
-        return success_response(serialize_student_profile(request.user))
-
-    payload = validate_student_resume_payload(parse_json_body(request))
-    with transaction.atomic():
-        if payload["is_active"]:
-            StudentResume.objects.filter(student=request.user, is_active=True).exclude(pk=record.pk).update(
-                is_active=False,
-                updated_at=timezone.now(),
-            )
-        record.display_name = payload["display_name"]
-        record.file_name = payload["file_name"]
-        record.source_type = payload["source_type"]
-        record.is_active = payload["is_active"]
-        record.full_clean()
-        record.save(update_fields=["display_name", "file_name", "source_type", "is_active", "updated_at"])
-    return success_response(serialize_student_profile(request.user))
-
-
-@api_endpoint(["GET", "PUT"], authentication_required=True, roles=[User.Role.STUDENT])
-def student_availability_view(request):
-    profile = get_student_availability_profile(request.user)
-    if request.method == "GET":
-        return success_response({"availability": serialize_student_availability_profile(profile)})
-
-    payload = validate_student_availability_payload(parse_json_body(request))
-    profile.job_search_status = payload["job_search_status"]
-    profile.earliest_start_date = payload["earliest_start_date"]
-    profile.interview_availability = payload["interview_availability"]
-    profile.scheduling_notes = payload["scheduling_notes"]
-    profile.full_clean()
-    profile.save(
-        update_fields=[
-            "job_search_status",
-            "earliest_start_date",
-            "interview_availability",
-            "scheduling_notes",
-            "updated_at",
-        ]
-    )
-    return success_response(serialize_student_profile(request.user))
-
-
 @api_endpoint(["GET"], authentication_required=True, roles=[User.Role.STUDENT])
 def student_jobs_view(request):
     filters = validate_student_jobs_filters(request)
     return success_response(build_student_jobs_response(request.user, filters))
+
+
+@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.STUDENT])
+def student_job_detail_view(request, vacancy_id: int):
+    vacancy = get_visible_student_vacancy(vacancy_id)
+    if vacancy is None:
+        return error_response(
+            request,
+            "NOT_FOUND",
+            "The requested job was not found.",
+            details={"vacancy_id": [str(vacancy_id)]},
+            status=404,
+        )
+
+    return success_response(serialize_student_job_detail(request.user, vacancy))
 
 
 @api_endpoint(["GET"], authentication_required=True, roles=[User.Role.STUDENT])
@@ -6328,6 +5747,17 @@ def student_course_final_assessment_submit_view(request, course_id: int):
 
 @api_endpoint(["GET"], authentication_required=True, roles=[User.Role.STUDENT])
 def student_matches_view(request):
+    from services.matching_jobs import (
+        cache_student_matches_snapshot,
+        get_student_matches_snapshot,
+        queue_student_matches_snapshot_refresh,
+    )
+
+    cached_payload = get_student_matches_snapshot(request.user.id)
+    if cached_payload is not None:
+        queue_student_matches_snapshot_refresh(request.user.id)
+        return success_response(cached_payload)
+
     matches = ranked_matches_for_student(request.user)
     bookmarked_vacancy_ids = set(
         JobBookmark.objects.filter(student=request.user).values_list("vacancy_id", flat=True)
@@ -6338,22 +5768,22 @@ def student_matches_view(request):
         .values_list("vacancy_id", flat=True)
     )
 
-    return success_response(
-        {
-            "student_id": request.user.id,
-            "match_count": len(matches),
-            "matches": [
-                serialize_student_match_record(
-                    request.user,
-                    vacancy,
-                    match_result,
-                    bookmarked_vacancy_ids=bookmarked_vacancy_ids,
-                    active_application_vacancy_ids=active_application_vacancy_ids,
-                )
-                for vacancy, match_result in matches
-            ],
-        }
-    )
+    payload = {
+        "student_id": request.user.id,
+        "match_count": len(matches),
+        "matches": [
+            serialize_student_match_record(
+                request.user,
+                vacancy,
+                match_result,
+                bookmarked_vacancy_ids=bookmarked_vacancy_ids,
+                active_application_vacancy_ids=active_application_vacancy_ids,
+            )
+            for vacancy, match_result in matches
+        ],
+    }
+    cache_student_matches_snapshot(request.user.id, payload)
+    return success_response(payload)
 
 
 @api_endpoint(["POST", "DELETE"], authentication_required=True, roles=[User.Role.STUDENT])
@@ -6432,23 +5862,26 @@ def student_applications_view(request):
     if duplicate_application.exists():
         raise ValidationError({"vacancy_id": ["An active application already exists for this vacancy."]})
 
-    with transaction.atomic():
-        application = Application(
-            company=vacancy.company,
-            vacancy=vacancy,
-            student=request.user,
-            status=Application.Status.SUBMITTED,
-        )
-        application.full_clean()
-        application.save()
-        create_application_history(
-            application,
-            from_status="",
-            to_status=Application.Status.SUBMITTED,
-            actor=request.user,
-            note="Application submitted by student.",
-        )
-        get_or_create_application_candidate_access(application)
+    try:
+        with transaction.atomic():
+            application = Application(
+                company=vacancy.company,
+                vacancy=vacancy,
+                student=request.user,
+                status=Application.Status.SUBMITTED,
+            )
+            application.full_clean()
+            application.save()
+            create_application_history(
+                application,
+                from_status="",
+                to_status=Application.Status.SUBMITTED,
+                actor=request.user,
+                note="Application submitted by student.",
+            )
+            get_or_create_application_candidate_access(application)
+    except IntegrityError as exc:
+        raise ValidationError({"vacancy_id": ["An active application already exists for this vacancy."]}) from exc
 
     application = (
         Application.objects.filter(pk=application.pk)
@@ -6751,12 +6184,18 @@ def company_vacancies_view(request):
 
 @api_endpoint(["PUT", "DELETE"], authentication_required=True, roles=[User.Role.COMPANY])
 def company_vacancy_detail_view(request, vacancy_id: int):
+    from services.matching_jobs import (
+        invalidate_company_vacancy_matches_snapshot,
+        queue_company_vacancy_matches_snapshot_refresh,
+    )
+
     vacancy = get_company_vacancy(request.user, vacancy_id)
 
     if request.method == "DELETE":
         vacancy.status = Vacancy.Status.INACTIVE
         vacancy.full_clean()
         vacancy.save(update_fields=["status", "updated_at"])
+        invalidate_company_vacancy_matches_snapshot(vacancy.id)
         return success_response(serialize_vacancy(vacancy))
 
     payload = validate_vacancy_payload(parse_json_body(request))
@@ -6798,26 +6237,39 @@ def company_vacancy_detail_view(request, vacancy_id: int):
             vacancy,
             language_requirements=payload["language_requirements"],
         )
+    invalidate_company_vacancy_matches_snapshot(vacancy.id)
+    queue_company_vacancy_matches_snapshot_refresh(vacancy.id)
     return success_response(serialize_vacancy(vacancy))
 
 
 @api_endpoint(["GET"], authentication_required=True, roles=[User.Role.COMPANY])
 def company_vacancy_matches_view(request, vacancy_id: int):
-    vacancy = get_company_vacancy(request.user, vacancy_id)
-    sync_company_match_candidate_accesses(vacancy.company)
-    matches = ranked_matches_for_vacancy(vacancy)
-    return success_response(
-        {
-            "company_id": vacancy.company_id,
-            "vacancy_id": vacancy.id,
-            "vacancy_title": vacancy.title,
-            "match_count": len(matches),
-            "matches": [
-                serialize_company_vacancy_match_record(vacancy, student, match_result)
-                for student, match_result in matches
-            ],
-        }
+    from services.matching_jobs import (
+        cache_company_vacancy_matches_snapshot,
+        get_company_vacancy_matches_snapshot,
+        queue_company_vacancy_matches_snapshot_refresh,
     )
+
+    vacancy = get_company_vacancy(request.user, vacancy_id)
+    cached_payload = get_company_vacancy_matches_snapshot(vacancy.id)
+    if cached_payload is not None:
+        queue_company_vacancy_matches_snapshot_refresh(vacancy.id)
+        return success_response(cached_payload)
+
+    ensure_company_match_candidate_accesses_synced(vacancy.company)
+    matches = ranked_matches_for_vacancy(vacancy)
+    payload = {
+        "company_id": vacancy.company_id,
+        "vacancy_id": vacancy.id,
+        "vacancy_title": vacancy.title,
+        "match_count": len(matches),
+        "matches": [
+            serialize_company_vacancy_match_record(vacancy, student, match_result)
+            for student, match_result in matches
+        ],
+    }
+    cache_company_vacancy_matches_snapshot(vacancy.id, payload)
+    return success_response(payload)
 
 
 @api_endpoint(["GET", "POST"], authentication_required=True, roles=[User.Role.STUDENT])
@@ -6836,12 +6288,24 @@ def student_skills_view(request):
     )
     student_skill.full_clean()
     student_skill.save()
+    from services.matching_jobs import (
+        invalidate_student_matches_snapshot,
+        queue_student_matches_snapshot_refresh,
+    )
+
+    invalidate_student_matches_snapshot(request.user.id)
+    queue_student_matches_snapshot_refresh(request.user.id)
 
     return success_response(serialize_student_skills(request.user), status=201)
 
 
 @api_endpoint(["PUT", "DELETE"], authentication_required=True, roles=[User.Role.STUDENT])
 def student_skill_detail_view(request, student_skill_id: int):
+    from services.matching_jobs import (
+        invalidate_student_matches_snapshot,
+        queue_student_matches_snapshot_refresh,
+    )
+
     student_skill = (
         StudentSkill.objects.filter(student=request.user, pk=student_skill_id)
         .select_related("skill")
@@ -6858,6 +6322,8 @@ def student_skill_detail_view(request, student_skill_id: int):
 
     if request.method == "DELETE":
         student_skill.delete()
+        invalidate_student_matches_snapshot(request.user.id)
+        queue_student_matches_snapshot_refresh(request.user.id)
         return success_response(serialize_student_skills(request.user))
 
     payload = validate_student_skill_payload(parse_json_body(request))
@@ -6871,6 +6337,8 @@ def student_skill_detail_view(request, student_skill_id: int):
     student_skill.proficiency_level = payload["proficiency_level"]
     student_skill.full_clean()
     student_skill.save(update_fields=["skill", "proficiency_level", "updated_at"])
+    invalidate_student_matches_snapshot(request.user.id)
+    queue_student_matches_snapshot_refresh(request.user.id)
 
     return success_response(serialize_student_skills(request.user))
 
@@ -6899,234 +6367,6 @@ def student_privacy_settings_view(request):
     record_visibility_event(request.user, settings)
 
     return success_response(serialize_student_privacy_settings(request.user))
-
-
-@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.STUDENT])
-def student_messages_view(request):
-    return success_response(serialize_student_messages(request.user))
-
-
-@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.COMPANY])
-def company_messages_view(request):
-    return success_response(serialize_company_messages(request.user))
-
-
-@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.STUDENT])
-def student_message_compose_contacts_view(request):
-    return success_response(serialize_student_message_compose_contacts(request.user))
-
-
-@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.COMPANY])
-def company_message_compose_contacts_view(request):
-    return success_response(serialize_company_message_compose_contacts(request.user))
-
-
-@api_endpoint(["POST"], authentication_required=True, roles=[User.Role.STUDENT])
-def student_message_threads_view(request):
-    payload = validate_student_message_thread_payload(parse_json_body(request))
-    validate_student_message_compose_contact_access(request.user, payload["participant_user"])
-
-    with transaction.atomic():
-        thread = find_existing_message_thread(request.user, payload)
-        created = thread is None
-        if created:
-            thread = MessageThread(
-                student=request.user,
-                participant_user=payload["participant_user"],
-                participant_name=payload["participant_name"],
-                company_name=payload["company_name"],
-                role_label=payload["role_label"],
-                category=payload["category"],
-            )
-            thread.full_clean()
-            thread.save()
-
-        message = Message(
-            thread=thread,
-            sender=request.user,
-            sender_name=request.user.full_name,
-            body=payload["message"],
-            delivery_status=Message.DeliveryStatus.SENT,
-        )
-        message.full_clean()
-        message.save()
-        refresh_message_thread_activity(thread, message)
-
-    serialized_thread = student_message_threads_queryset(request.user).filter(pk=thread.id).first()
-    return success_response(serialize_message_thread(serialized_thread, viewer=request.user), status=201 if created else 200)
-
-
-@api_endpoint(["POST"], authentication_required=True, roles=[User.Role.COMPANY])
-def company_message_threads_view(request):
-    payload = validate_company_message_thread_payload(parse_json_body(request))
-    validate_company_message_compose_contact_access(request.user, payload["student_user"])
-
-    company = request.user.company
-    if company is None:
-        raise ValidationError({"company": ["Company context is required for company users."]})
-
-    with transaction.atomic():
-        thread = (
-            MessageThread.objects.filter(student=payload["student_user"], participant_user=request.user)
-            .order_by("-updated_at", "-id")
-            .first()
-        )
-        created = thread is None
-        if created:
-            thread = MessageThread(
-                student=payload["student_user"],
-                participant_user=request.user,
-                participant_name=request.user.full_name,
-                company_name=company.name,
-                role_label=company_message_thread_role_label(request.user),
-                category=payload["category"],
-            )
-            thread.full_clean()
-            thread.save()
-
-        message = Message(
-            thread=thread,
-            sender=request.user,
-            sender_name=request.user.full_name,
-            body=payload["message"],
-            delivery_status=Message.DeliveryStatus.SENT,
-        )
-        message.full_clean()
-        message.save()
-        refresh_message_thread_activity(thread, message)
-
-    serialized_thread = company_message_threads_queryset(request.user).filter(pk=thread.id).first()
-    return success_response(serialize_message_thread(serialized_thread, viewer=request.user), status=201 if created else 200)
-
-
-@api_endpoint(["PUT", "DELETE"], authentication_required=True, roles=[User.Role.STUDENT])
-def student_message_thread_detail_view(request, thread_id: int):
-    thread = MessageThread.objects.filter(student=request.user, pk=thread_id).first()
-    if thread is None:
-        return error_response(
-            request,
-            "NOT_FOUND",
-            "The requested message thread was not found.",
-            details={"thread_id": [str(thread_id)]},
-            status=404,
-        )
-
-    if request.method == "DELETE":
-        thread.delete()
-        return success_response({"thread_id": thread_id, "deleted": True})
-
-    payload = validate_student_message_thread_update_payload(parse_json_body(request))
-    update_fields = []
-
-    if "is_starred" in payload:
-        thread.is_starred = payload["is_starred"]
-        update_fields.append("is_starred")
-
-    if payload.get("mark_as_read"):
-        thread.last_read_at = timezone.now()
-        update_fields.append("last_read_at")
-
-    if update_fields:
-        thread.full_clean()
-        thread.save(update_fields=[*update_fields, "updated_at"])
-
-    serialized_thread = student_message_threads_queryset(request.user).filter(pk=thread.id).first()
-    return success_response(serialize_message_thread(serialized_thread, viewer=request.user))
-
-
-@api_endpoint(["PUT", "DELETE"], authentication_required=True, roles=[User.Role.COMPANY])
-def company_message_thread_detail_view(request, thread_id: int):
-    thread = MessageThread.objects.filter(participant_user=request.user, pk=thread_id).first()
-    if thread is None:
-        return error_response(
-            request,
-            "NOT_FOUND",
-            "The requested message thread was not found.",
-            details={"thread_id": [str(thread_id)]},
-            status=404,
-        )
-
-    if request.method == "DELETE":
-        thread.delete()
-        return success_response({"thread_id": thread_id, "deleted": True})
-
-    payload = validate_student_message_thread_update_payload(parse_json_body(request))
-    update_fields = []
-
-    if "is_starred" in payload:
-        thread.is_starred = payload["is_starred"]
-        update_fields.append("is_starred")
-
-    if payload.get("mark_as_read"):
-        thread.company_last_read_at = timezone.now()
-        update_fields.append("company_last_read_at")
-
-    if update_fields:
-        thread.full_clean()
-        thread.save(update_fields=[*update_fields, "updated_at"])
-
-    serialized_thread = company_message_threads_queryset(request.user).filter(pk=thread.id).first()
-    return success_response(serialize_message_thread(serialized_thread, viewer=request.user))
-
-
-@api_endpoint(["POST"], authentication_required=True, roles=[User.Role.STUDENT])
-def student_message_thread_messages_view(request, thread_id: int):
-    thread = MessageThread.objects.filter(student=request.user, pk=thread_id).first()
-    if thread is None:
-        return error_response(
-            request,
-            "NOT_FOUND",
-            "The requested message thread was not found.",
-            details={"thread_id": [str(thread_id)]},
-            status=404,
-        )
-
-    payload = validate_student_message_payload(parse_json_body(request))
-
-    with transaction.atomic():
-        message = Message(
-            thread=thread,
-            sender=request.user,
-            sender_name=request.user.full_name,
-            body=payload["body"],
-            delivery_status=Message.DeliveryStatus.SENT,
-        )
-        message.full_clean()
-        message.save()
-        refresh_message_thread_activity(thread, message)
-
-    serialized_thread = student_message_threads_queryset(request.user).filter(pk=thread.id).first()
-    return success_response(serialize_message_thread(serialized_thread, viewer=request.user))
-
-
-@api_endpoint(["POST"], authentication_required=True, roles=[User.Role.COMPANY])
-def company_message_thread_messages_view(request, thread_id: int):
-    thread = MessageThread.objects.filter(participant_user=request.user, pk=thread_id).first()
-    if thread is None:
-        return error_response(
-            request,
-            "NOT_FOUND",
-            "The requested message thread was not found.",
-            details={"thread_id": [str(thread_id)]},
-            status=404,
-        )
-
-    payload = validate_student_message_payload(parse_json_body(request))
-
-    with transaction.atomic():
-        message = Message(
-            thread=thread,
-            sender=request.user,
-            sender_name=request.user.full_name,
-            body=payload["body"],
-            delivery_status=Message.DeliveryStatus.SENT,
-        )
-        message.full_clean()
-        message.save()
-        refresh_message_thread_activity(thread, message)
-
-    serialized_thread = company_message_threads_queryset(request.user).filter(pk=thread.id).first()
-    return success_response(serialize_message_thread(serialized_thread, viewer=request.user))
 
 
 @api_endpoint(["GET"], authentication_required=True, roles=[User.Role.STUDENT])
@@ -7551,7 +6791,9 @@ def company_candidates_view(request):
     if company is None:
         raise ValidationError({"company": ["Company context is required for company users."]})
 
-    sync_company_match_candidate_accesses(company)
+    from api.matching_views import queue_company_match_refreshes
+
+    queue_company_match_refreshes(company)
     candidates = list(
         CandidateReviewAccess.objects.filter(company=company, is_active=True)
         .select_related("student", "company", "shortlist_entry", "shortlist_entry__created_by")
@@ -8163,7 +7405,9 @@ def company_dashboard_view(request):
     if company is None:
         raise ValidationError({"company": ["Company context is required for company users."]})
 
-    sync_company_match_candidate_accesses(company)
+    from api.matching_views import queue_company_match_refreshes
+
+    queue_company_match_refreshes(company)
     interviews = list(
         Interview.objects.filter(company=company)
         .select_related("student", "company", "candidate_access", "requested_by")
@@ -8989,6 +8233,52 @@ def notification_read_view(request, notification_id: int):
     return success_response(serialize_notification(notification))
 
 
+def serialize_workspace_summary(user: User) -> dict:
+    notification_unread_count = Notification.objects.filter(recipient=user, read_at__isnull=True).count()
+    summary = {
+        "notification_unread_count": notification_unread_count,
+        "unread_message_count": 0,
+        "profile_avatar": None,
+    }
+
+    if user.role == User.Role.STUDENT:
+        unread_message_count = (
+            MessageThread.objects.filter(student=user, last_message_at__isnull=False)
+            .exclude(last_message_sender=user)
+            .filter(Q(last_read_at__isnull=True) | Q(last_read_at__lt=F("last_message_at")))
+            .count()
+        )
+        match_count = len(ranked_matches_for_student(user))
+        summary.update(
+            {
+                "unread_message_count": unread_message_count,
+                "profile_avatar": message_profile_image_for_user(user),
+                "match_count": match_count,
+            }
+        )
+    elif user.role == User.Role.COMPANY:
+        unread_message_count = (
+            company_message_threads_queryset(user)
+            .filter(last_message_at__isnull=False)
+            .exclude(last_message_sender=user)
+            .filter(Q(company_last_read_at__isnull=True) | Q(company_last_read_at__lt=F("last_message_at")))
+            .count()
+        )
+        summary.update(
+            {
+                "unread_message_count": unread_message_count,
+                "profile_avatar": user.company.profile_image if user.company is not None else None,
+            }
+        )
+
+    return summary
+
+
+@api_endpoint(["GET"], authentication_required=True)
+def workspace_summary_view(request):
+    return success_response(serialize_workspace_summary(request.user))
+
+
 @api_endpoint(["GET"], authentication_required=True)
 def notification_preferences_view(request):
     """Get user's notification preferences."""
@@ -9441,15 +8731,30 @@ def admin_logs_view(request):
     """Get application logs with filtering options."""
     from common.models import ApplicationLogEntry
     from datetime import timedelta
-    
-    # Get filter parameters
+
     level = request.GET.get('level')
     service = request.GET.get('service')
     user_id = request.GET.get('user_id')
     request_id = request.GET.get('request_id')
     days = int(request.GET.get('days', 7))
-    
-    # Base queryset
+
+    storage_enabled = getattr(settings, "PERSIST_REQUEST_LOGS", False) or getattr(
+        settings, "PERSIST_APP_DIAGNOSTIC_LOGS", False
+    )
+    if not storage_enabled:
+        return success_response({
+            "logs": [],
+            "filters": {
+                "level": level,
+                "service": service,
+                "user_id": user_id,
+                "request_id": request_id,
+                "days": days,
+            },
+            "storage_enabled": False,
+            "message": "Database log persistence is disabled. Use runtime log aggregation instead of the primary app database.",
+        })
+
     logs = ApplicationLogEntry.objects.all()
     
     # Apply filters
@@ -9502,13 +8807,28 @@ def admin_errors_view(request):
     """Get error reports with filtering and statistics."""
     from common.models import ErrorReport
     from datetime import timedelta
-    
-    # Get filter parameters
+
     error_type = request.GET.get('error_type')
     is_resolved = request.GET.get('is_resolved')
     days = int(request.GET.get('days', 30))
-    
-    # Base queryset
+
+    if not getattr(settings, "PERSIST_ERROR_REPORTS", False):
+        return success_response({
+            "errors": [],
+            "statistics": {
+                "storage_enabled": False,
+                "total_errors": 0,
+                "unresolved_errors": 0,
+                "errors_last_24h": 0,
+            },
+            "filters": {
+                "error_type": error_type,
+                "is_resolved": is_resolved,
+                "days": days,
+            },
+            "message": "Database error persistence is disabled. Use Sentry or your external error pipeline for production observability.",
+        })
+
     errors = ErrorReport.objects.all()
     
     # Apply filters
@@ -9645,6 +8965,7 @@ def web_vitals_view(request):
                 "cls": payload.get("cls"),
                 "ttfb": payload.get("ttfb"),
             },
+            persist_db=False,
         )
 
     return success_response({"received": True}, status=202)
@@ -9668,7 +8989,6 @@ def frontend_logs_view(request):
     error_type = payload.get('error_type', 'UnknownError')
     error_message = payload.get('error_message', '')
     
-    # Log frontend error to database
     LogAggregationService.error(
         service='frontend',
         message=f"{error_type}: {error_message}",
@@ -9680,7 +9000,8 @@ def frontend_logs_view(request):
             'component_stack': payload.get('component_stack'),
             'timestamp': payload.get('timestamp'),
             'user_agent': request.META.get('HTTP_USER_AGENT'),
-        }
+        },
+        persist_db=False,
     )
     
     return success_response({"message": "Error logged successfully"})

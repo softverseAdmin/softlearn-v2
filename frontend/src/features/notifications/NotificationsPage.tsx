@@ -13,7 +13,7 @@ import { ApiError, apiRequest } from '@/lib/api'
 import { cn } from '@/lib/utils'
 import type { CompanyMessagesResponse, ConversationThreadResponse, StudentMessagesResponse } from '../profile/messages/types'
 import type { StudentMatchesResponse } from '../profile/types'
-import type { NotificationItem, NotificationsResponse } from './types'
+import type { NotificationFeedResponse, NotificationItem, NotificationsResponse } from './types'
 
 type NotificationFilter = 'all' | 'unread' | 'applications' | 'interviews' | 'messages' | 'jobs' | 'exams'
 type NotificationCategory = Exclude<NotificationFilter, 'all' | 'unread'>
@@ -343,40 +343,15 @@ export function NotificationsPage() {
 
     async function loadNotifications() {
       try {
-        if (role === 'student') {
-          const [notificationsResponse, studentMessagesResponse, studentMatchesResponse] = await Promise.all([
-            apiRequest<NotificationsResponse>('/notifications'),
-            apiRequest<StudentMessagesResponse>('/student/messages'),
-            apiRequest<StudentMatchesResponse>('/student/matches'),
-          ])
+        const feedResponse = await apiRequest<NotificationFeedResponse>('/notifications/feed')
 
-          if (!active) {
-            return
-          }
-
-          setNotificationsData(notificationsResponse)
-          setMessagesData(studentMessagesResponse)
-          setMatchesData(studentMatchesResponse)
-        } else if (role === 'company') {
-          const [notificationsResponse, companyMessagesResponse] = await Promise.all([
-            apiRequest<NotificationsResponse>('/notifications'),
-            apiRequest<CompanyMessagesResponse>('/company/messages'),
-          ])
-
-          if (!active) {
-            return
-          }
-
-          setNotificationsData(notificationsResponse)
-          setMessagesData(companyMessagesResponse)
-        } else {
-          const notificationsResponse = await apiRequest<NotificationsResponse>('/notifications')
-          if (!active) {
-            return
-          }
-
-          setNotificationsData(notificationsResponse)
+        if (!active) {
+          return
         }
+
+        setNotificationsData(feedResponse.notifications)
+        setMessagesData(feedResponse.messages ?? emptyMessagesResponse)
+        setMatchesData(feedResponse.matches ?? emptyMatchesResponse)
       } catch (loadError) {
         if (active) {
           setError(loadError instanceof ApiError ? loadError.message : 'Unable to load notifications.')

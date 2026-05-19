@@ -17,6 +17,16 @@
   --sl-success: #16a34a;
   --sl-warning: #f59e0b;
   --sl-danger: #dc2626;
+  --sl-marketing-auth-bg: radial-gradient(circle at top, #dbeafe 0%, #eef2ff 24%, #f8fafc 62%, #f8fafc 100%);
+  --sl-marketing-shell-bg: radial-gradient(circle at top, rgba(212, 227, 255, 0.82), rgba(255, 255, 255, 0.98) 24%, rgba(255, 255, 255, 1) 56%, rgba(243, 247, 255, 0.95) 100%);
+  --sl-marketing-border: #e8eef9;
+  --sl-marketing-text: #122059;
+  --sl-marketing-nav: #22315f;
+  --sl-marketing-brand: #2563ff;
+  --sl-marketing-brand-hover: #1d4ed8;
+  --sl-marketing-brand-soft: #eff6ff;
+  --sl-marketing-brand-shadow: rgba(37, 99, 255, 0.18);
+  --sl-marketing-brand-shadow-lg: rgba(37, 99, 255, 0.22);
   --safe-area-top: max(0px, env(safe-area-inset-top));
   --safe-area-right: max(0px, env(safe-area-inset-right));
   --safe-area-bottom: max(0px, env(safe-area-inset-bottom));
@@ -79,11 +89,6 @@ html.dark {
   --sl-warning: #fbbf24;
   --sl-danger: #f87171;
   color-scheme: dark;
-}
-
-/* Smooth transition for theme changes */
-html, body, a, button, input, select, textarea, .card, .sidebar, .shell-main {
-  transition: background-color 100ms ease-in-out, color 100ms ease-in-out, border-color 100ms ease-in-out;
 }
 
 /* Dark mode specific element styles */

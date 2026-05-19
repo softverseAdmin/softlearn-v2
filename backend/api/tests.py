@@ -2,11 +2,15 @@ import json
 from datetime import timedelta
 from unittest import mock
 
+from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ValidationError
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, TestCase, override_settings
 from django.utils import timezone
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
 
-from common.models import ApplicationLogEntry
+from common.models import ApplicationLogEntry, ErrorReport
 from users.models import (
     Application,
     ApplicationStatusHistory,
@@ -95,16 +99,192 @@ class ApiFoundationTests(TestCase):
         self.assertEqual(response.status_code, 200)
         body = response.json()["data"]
         self.assertEqual(body["status"], "ok")
-        self.assertEqual(body["environment"], "development")
         self.assertEqual(body["checks"]["database"]["status"], "ok")
         self.assertEqual(body["checks"]["cache"]["status"], "disabled")
-        self.assertIn("structured_logging", body["observability"])
-        self.assertIn("persist_request_logs", body["observability"])
+        self.assertNotIn("environment", body)
+        self.assertNotIn("observability", body)
+
+    @override_settings(TRUSTED_PROXY_IPS=["10.0.0.5"])
+    def test_login_uses_forwarded_ip_only_for_trusted_proxy(self):
+        User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        client, csrf_token = self.csrf_client()
+
+        response = client.post(
+            "/api/v1/auth/login",
+            data=json.dumps({"email": "student@example.com", "password": "wrong-password", "role": "student"}),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+            REMOTE_ADDR="10.0.0.5",
+            HTTP_X_FORWARDED_FOR="203.0.113.55, 10.0.0.5",
+        )
+
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.json()["error"]["details"]["remaining_attempts"], 4)
+
+    def test_login_ignores_forwarded_ip_from_untrusted_source(self):
+        User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        client, csrf_token = self.csrf_client()
+
+        first_response = client.post(
+            "/api/v1/auth/login",
+            data=json.dumps({"email": "student@example.com", "password": "wrong-password", "role": "student"}),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+            REMOTE_ADDR="198.51.100.10",
+            HTTP_X_FORWARDED_FOR="203.0.113.55",
+        )
+        second_response = client.post(
+            "/api/v1/auth/login",
+            data=json.dumps({"email": "student@example.com", "password": "wrong-password", "role": "student"}),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+            REMOTE_ADDR="198.51.100.10",
+            HTTP_X_FORWARDED_FOR="203.0.113.56",
+        )
+
+        self.assertEqual(first_response.status_code, 401)
+        self.assertEqual(second_response.status_code, 401)
+        self.assertEqual(second_response.json()["error"]["details"]["remaining_attempts"], 3)
 
     def test_request_logging_does_not_persist_by_default(self):
         self.client.get("/api/v1/health")
 
         self.assertEqual(ApplicationLogEntry.objects.count(), 0)
+
+    def test_workspace_summary_returns_student_counts_without_full_collections(self):
+        student = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        StudentProfile.objects.create(user=student, profile_image="https://example.com/student-avatar.png")
+        company = Company.objects.create(name="Softverse", is_active=True)
+        recruiter = User.objects.create_user(
+            email="recruiter@example.com",
+            password="SecurePass123!",
+            full_name="Recruiter User",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+        vacancy = Vacancy.objects.create(
+            company=company,
+            created_by=recruiter,
+            title="Backend Engineer",
+            description="Build APIs.",
+            employment_type="full_time",
+            experience_level="junior",
+            location="Tokyo",
+            status=Vacancy.Status.ACTIVE,
+        )
+        message_thread = MessageThread.objects.create(
+            student=student,
+            participant_user=recruiter,
+            participant_name=recruiter.full_name,
+            company_name=company.name,
+            role_label="Recruiter",
+            category=MessageThread.Category.APPLICATIONS,
+        )
+        last_message = Message.objects.create(
+            thread=message_thread,
+            sender=recruiter,
+            sender_name=recruiter.full_name,
+            body="Are you available this week?",
+        )
+        message_thread.last_message_preview = last_message.body
+        message_thread.last_message_at = last_message.created_at
+        message_thread.last_message_sender = recruiter
+        message_thread.save(update_fields=["last_message_preview", "last_message_at", "last_message_sender", "updated_at"])
+        Notification.objects.create(
+            recipient=student,
+            actor=recruiter,
+            notification_type=Notification.Type.APPLICATION_SUBMITTED,
+            title="Application update",
+            message="A recruiter contacted you.",
+            link="/student/messages",
+            entity_type="message_thread",
+            entity_id=message_thread.id,
+            event_key="message-thread-created",
+        )
+
+        client = Client()
+        client.force_login(student)
+        response = client.get("/api/v1/workspace/summary")
+
+        self.assertEqual(response.status_code, 200)
+        body = response.json()["data"]
+        self.assertEqual(body["notification_unread_count"], 1)
+        self.assertEqual(body["unread_message_count"], 1)
+        self.assertEqual(body["profile_avatar"], "https://example.com/student-avatar.png")
+        self.assertIn("match_count", body)
+
+    def test_notification_feed_returns_combined_student_payload(self):
+        student = User.objects.create_user(
+            email="student-feed@example.com",
+            password="SecurePass123!",
+            full_name="Student Feed",
+            role=User.Role.STUDENT,
+        )
+        StudentProfile.objects.create(user=student, profile_image="https://example.com/student-avatar.png")
+        company = Company.objects.create(name="Softverse", is_active=True)
+        recruiter = User.objects.create_user(
+            email="recruiter-feed@example.com",
+            password="SecurePass123!",
+            full_name="Recruiter Feed",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+        vacancy = Vacancy.objects.create(
+            company=company,
+            created_by=recruiter,
+            title="Platform Engineer",
+            description="Build systems.",
+            employment_type="full_time",
+            experience_level="junior",
+            location="Tokyo",
+            status=Vacancy.Status.ACTIVE,
+        )
+        MessageThread.objects.create(
+            student=student,
+            participant_user=recruiter,
+            participant_name=recruiter.full_name,
+            company_name=company.name,
+            role_label="Recruiter",
+            category=MessageThread.Category.APPLICATIONS,
+        )
+        Notification.objects.create(
+            recipient=student,
+            actor=recruiter,
+            notification_type=Notification.Type.APPLICATION_SUBMITTED,
+            title="Application update",
+            message="A recruiter contacted you.",
+            link="/student/messages",
+            entity_type="vacancy",
+            entity_id=vacancy.id,
+            event_key="student-feed-notification",
+        )
+
+        client = Client()
+        client.force_login(student)
+        response = client.get("/api/v1/notifications/feed")
+
+        self.assertEqual(response.status_code, 200)
+        body = response.json()["data"]
+        self.assertEqual(body["role"], User.Role.STUDENT)
+        self.assertEqual(body["notifications"]["unread_count"], 1)
+        self.assertEqual(body["messages"]["thread_count"], 1)
+        self.assertIsNotNone(body["matches"])
+        self.assertEqual(body["matches"]["student_id"], student.id)
 
     @override_settings(PERSIST_REQUEST_LOGS=True)
     def test_request_logging_can_be_persisted_when_enabled(self):
@@ -115,6 +295,42 @@ class ApiFoundationTests(TestCase):
         log_entry = ApplicationLogEntry.objects.get()
         self.assertEqual(log_entry.service, "api")
         self.assertEqual(log_entry.request_path, "/api/v1/health")
+
+    @override_settings(PERSIST_APP_DIAGNOSTIC_LOGS=True)
+    def test_frontend_observability_endpoints_do_not_persist_to_database(self):
+        self.client.post(
+            "/api/v1/metrics/web-vitals",
+            data=json.dumps({"name": "LCP", "value": 1200, "rating": "good"}),
+            content_type="application/json",
+        )
+        self.client.post(
+            "/api/v1/logs/frontend",
+            data=json.dumps({"error_type": "TypeError", "error_message": "boom"}),
+            content_type="application/json",
+        )
+
+        self.assertEqual(ApplicationLogEntry.objects.count(), 0)
+
+    def test_admin_log_and_error_endpoints_surface_disabled_db_storage(self):
+        admin = User.objects.create_user(
+            email="admin@example.com",
+            password="SecurePass123!",
+            full_name="Admin User",
+            role=User.Role.ADMIN,
+        )
+        client = Client()
+        client.force_login(admin)
+
+        logs_response = client.get("/api/v1/admin/logs/")
+        errors_response = client.get("/api/v1/admin/errors/")
+
+        self.assertEqual(logs_response.status_code, 200)
+        self.assertFalse(logs_response.json()["data"]["storage_enabled"])
+        self.assertEqual(logs_response.json()["data"]["logs"], [])
+        self.assertEqual(errors_response.status_code, 200)
+        self.assertFalse(errors_response.json()["data"]["statistics"]["storage_enabled"])
+        self.assertEqual(errors_response.json()["data"]["errors"], [])
+        self.assertEqual(ErrorReport.objects.count(), 0)
 
     def test_session_endpoint_returns_unauthenticated_payload(self):
         response = self.client.get("/api/v1/auth/session")
@@ -330,6 +546,144 @@ class ApiFoundationTests(TestCase):
         user.refresh_from_db()
         self.assertTrue(user.check_password("NewSecurePass456!"))
 
+    @mock.patch("api.auth_views.get_email_service")
+    def test_password_reset_request_sends_email_without_leaking_account_existence(self, get_email_service_mock):
+        user = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        get_email_service_mock.return_value.send_password_reset.return_value = True
+        client, csrf_token = self.csrf_client()
+
+        response = client.post(
+            "/api/v1/auth/password/reset",
+            data=json.dumps({"email": user.email}),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.json()["data"]["message"],
+            "If an account exists for that email, we have sent a password reset link.",
+        )
+        get_email_service_mock.return_value.send_password_reset.assert_called_once()
+        _, kwargs = get_email_service_mock.return_value.send_password_reset.call_args
+        self.assertEqual(kwargs["user_email"], user.email)
+        self.assertIn("/reset-password?uid=", kwargs["reset_url"])
+        self.assertIn("&token=", kwargs["reset_url"])
+
+    @mock.patch("api.auth_views.get_email_service")
+    def test_password_reset_request_returns_same_response_for_unknown_email(self, get_email_service_mock):
+        client, csrf_token = self.csrf_client()
+
+        response = client.post(
+            "/api/v1/auth/password/reset",
+            data=json.dumps({"email": "missing@example.com"}),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.json()["data"]["message"],
+            "If an account exists for that email, we have sent a password reset link.",
+        )
+        get_email_service_mock.return_value.send_password_reset.assert_not_called()
+
+    @mock.patch("api.auth_views.get_email_service")
+    def test_password_reset_request_rate_limits_repeated_attempts(self, get_email_service_mock):
+        user = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        get_email_service_mock.return_value.send_password_reset.return_value = True
+        client, csrf_token = self.csrf_client()
+
+        for _ in range(3):
+            response = client.post(
+                "/api/v1/auth/password/reset",
+                data=json.dumps({"email": user.email}),
+                content_type="application/json",
+                HTTP_X_CSRFTOKEN=csrf_token,
+                REMOTE_ADDR="203.0.113.44",
+            )
+            self.assertEqual(response.status_code, 200)
+
+        rate_limited_response = client.post(
+            "/api/v1/auth/password/reset",
+            data=json.dumps({"email": user.email}),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+            REMOTE_ADDR="203.0.113.44",
+        )
+
+        self.assertEqual(rate_limited_response.status_code, 429)
+        self.assertEqual(rate_limited_response.json()["error"]["code"], "RATE_LIMITED")
+        self.assertEqual(get_email_service_mock.return_value.send_password_reset.call_count, 3)
+
+    def test_password_reset_confirm_updates_password(self):
+        user = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        client, csrf_token = self.csrf_client()
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        token = default_token_generator.make_token(user)
+
+        response = client.post(
+            "/api/v1/auth/password/reset/confirm",
+            data=json.dumps(
+                {
+                    "uid": uid,
+                    "token": token,
+                    "new_password": "NewSecurePass456!",
+                }
+            ),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.json()["data"]["message"],
+            "Password reset successfully. You can now log in with your new password.",
+        )
+        user.refresh_from_db()
+        self.assertTrue(user.check_password("NewSecurePass456!"))
+
+    def test_password_reset_confirm_rejects_invalid_token(self):
+        user = User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        client, csrf_token = self.csrf_client()
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+
+        response = client.post(
+            "/api/v1/auth/password/reset/confirm",
+            data=json.dumps(
+                {
+                    "uid": uid,
+                    "token": "invalid-token",
+                    "new_password": "NewSecurePass456!",
+                }
+            ),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()["error"]["code"], "INVALID_TOKEN")
+
     def test_role_protected_endpoints_are_deny_by_default(self):
         student = User.objects.create_user(
             email="student@example.com",
@@ -487,8 +841,15 @@ class ApiFoundationTests(TestCase):
         self.assertEqual(body["starred_count"], 1)
         self.assertEqual(body["threads"][0]["participant_name"], "Recruiter User")
         self.assertEqual(body["threads"][0]["participant_image"], "https://example.com/company-avatar.png")
-        self.assertEqual(body["threads"][0]["messages"][0]["author"], "other")
-        self.assertEqual(body["threads"][0]["messages"][0]["sender_image"], "https://example.com/company-avatar.png")
+        self.assertNotIn("messages", body["threads"][0])
+
+        detail_response = client.get(f"/api/v1/student/messages/threads/{thread.id}")
+        self.assertEqual(detail_response.status_code, 200)
+        self.assertEqual(detail_response.json()["data"]["messages"][0]["author"], "other")
+        self.assertEqual(
+            detail_response.json()["data"]["messages"][0]["sender_image"],
+            "https://example.com/company-avatar.png",
+        )
 
     def test_student_can_create_thread_and_initial_message(self):
         student = User.objects.create_user(
@@ -825,6 +1186,12 @@ class ApiFoundationTests(TestCase):
             role=User.Role.COMPANY,
             company=company,
         )
+        CandidateReviewAccess.objects.create(
+            company=company,
+            student=student,
+            source=CandidateReviewAccess.Source.APPLICATION,
+            is_active=True,
+        )
         thread = MessageThread.objects.create(
             student=student,
             participant_user=company_user,
@@ -856,8 +1223,15 @@ class ApiFoundationTests(TestCase):
         self.assertEqual(body["starred_count"], 1)
         self.assertEqual(body["threads"][0]["participant_name"], "Student User")
         self.assertEqual(body["threads"][0]["participant_image"], "https://example.com/student-avatar.png")
-        self.assertEqual(body["threads"][0]["messages"][0]["author"], "other")
-        self.assertEqual(body["threads"][0]["messages"][0]["sender_image"], "https://example.com/student-avatar.png")
+        self.assertNotIn("messages", body["threads"][0])
+
+        detail_response = client.get(f"/api/v1/company/messages/threads/{thread.id}")
+        self.assertEqual(detail_response.status_code, 200)
+        self.assertEqual(detail_response.json()["data"]["messages"][0]["author"], "other")
+        self.assertEqual(
+            detail_response.json()["data"]["messages"][0]["sender_image"],
+            "https://example.com/student-avatar.png",
+        )
 
     def test_company_message_contacts_return_accessible_students(self):
         company = Company.objects.create(name="Softverse", is_active=True)
@@ -893,7 +1267,7 @@ class ApiFoundationTests(TestCase):
         self.assertEqual(body["contacts"][0]["participant_user_id"], student.id)
         self.assertEqual(body["contacts"][0]["source"], CandidateReviewAccess.Source.APPLICATION)
 
-    def test_company_message_contacts_include_students_without_candidate_access(self):
+    def test_company_message_contacts_exclude_students_without_candidate_access(self):
         company = Company.objects.create(name="Softverse", is_active=True)
         student = User.objects.create_user(
             email="student@example.com",
@@ -915,9 +1289,51 @@ class ApiFoundationTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         body = response.json()["data"]
+        self.assertEqual(body["contact_count"], 0)
+        self.assertEqual(body["contacts"], [])
+
+    def test_company_message_contacts_support_query_and_limit(self):
+        company = Company.objects.create(name="Softverse", is_active=True)
+        company_user = User.objects.create_user(
+            email="company@example.com",
+            password="SecurePass123!",
+            full_name="Company User",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+        alice = User.objects.create_user(
+            email="alice@example.com",
+            password="SecurePass123!",
+            full_name="Alice Student",
+            role=User.Role.STUDENT,
+        )
+        bob = User.objects.create_user(
+            email="bob@example.com",
+            password="SecurePass123!",
+            full_name="Bob Student",
+            role=User.Role.STUDENT,
+        )
+        CandidateReviewAccess.objects.create(
+            company=company,
+            student=alice,
+            source=CandidateReviewAccess.Source.APPLICATION,
+            is_active=True,
+        )
+        CandidateReviewAccess.objects.create(
+            company=company,
+            student=bob,
+            source=CandidateReviewAccess.Source.MATCH,
+            is_active=True,
+        )
+
+        client = Client()
+        client.force_login(company_user)
+        response = client.get("/api/v1/company/messages/contacts?q=alice&limit=1")
+
+        self.assertEqual(response.status_code, 200)
+        body = response.json()["data"]
         self.assertEqual(body["contact_count"], 1)
-        self.assertEqual(body["contacts"][0]["participant_name"], "Student User")
-        self.assertEqual(body["contacts"][0]["source"], "student_directory")
+        self.assertEqual(body["contacts"][0]["participant_name"], "Alice Student")
 
     def test_company_can_create_mark_read_and_reply_to_thread(self):
         company = Company.objects.create(name="Softverse", is_active=True)
@@ -1001,7 +1417,7 @@ class ApiFoundationTests(TestCase):
         self.assertEqual(reply_response.json()["data"]["messages"][-1]["status"], "Sent")
         self.assertEqual(reply_response.json()["data"]["messages"][-1]["sender_image"], "https://example.com/company-avatar.png")
 
-    def test_company_can_create_thread_with_student_directory_contact(self):
+    def test_company_cannot_create_thread_without_candidate_access(self):
         company = Company.objects.create(name="Softverse", is_active=True)
         student = User.objects.create_user(
             email="student@example.com",
@@ -1033,9 +1449,8 @@ class ApiFoundationTests(TestCase):
             HTTP_X_CSRFTOKEN=csrf_token,
         )
 
-        self.assertEqual(create_response.status_code, 201)
-        thread = MessageThread.objects.get(student=student, participant_user=company_user)
-        self.assertEqual(thread.last_message_preview, "Hello from the company inbox.")
+        self.assertEqual(create_response.status_code, 403)
+        self.assertEqual(MessageThread.objects.filter(student=student, participant_user=company_user).count(), 0)
 
     def test_student_dashboard_returns_summary_metrics(self):
         student = User.objects.create_user(
@@ -2082,6 +2497,10 @@ class ApiFoundationTests(TestCase):
         self.assertEqual(vacancies[0]["title"], "Backend Engineer")
         self.assertEqual(vacancies[0]["company_profile_image"], "https://example.com/softverse-logo.png")
 
+        detail_response = client.get(f"/api/v1/student/jobs/{vacancies[0]['vacancy_id']}")
+        self.assertEqual(detail_response.status_code, 200)
+        self.assertEqual(detail_response.json()["data"]["title"], "Backend Engineer")
+
     def test_company_user_cannot_access_student_job_list(self):
         company = Company.objects.create(name="Softverse")
         company_user = User.objects.create_user(
@@ -3083,6 +3502,19 @@ class ApiFoundationTests(TestCase):
         client, csrf_token = self.csrf_client()
         client.force_login(user)
 
+        profile_image_response = client.post(
+            "/api/v1/student/profile/images/profile",
+            data={"file": SimpleUploadedFile("profile.png", b"student-profile-image", content_type="image/png")},
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+        cover_image_response = client.post(
+            "/api/v1/student/profile/images/cover",
+            data={"file": SimpleUploadedFile("cover.png", b"student-cover-image", content_type="image/png")},
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+        self.assertEqual(profile_image_response.status_code, 200)
+        self.assertEqual(cover_image_response.status_code, 200)
+
         response = client.put(
             "/api/v1/student/profile",
             data=json.dumps(
@@ -3093,8 +3525,8 @@ class ApiFoundationTests(TestCase):
                     "japanese_level": "N3",
                     "english_level": "B2",
                     "about_me": "Backend-focused student.",
-                    "profile_image": "data:image/png;base64,profile",
-                    "cover_image": "data:image/png;base64,cover",
+                    "profile_image": "",
+                    "cover_image": "",
                 }
             ),
             content_type="application/json",
@@ -3107,8 +3539,10 @@ class ApiFoundationTests(TestCase):
         self.assertEqual(user.full_name, "Updated Student")
         self.assertEqual(profile.desired_job_type, "backend")
         self.assertEqual(profile.about_me, "Backend-focused student.")
-        self.assertEqual(profile.profile_image, "data:image/png;base64,profile")
-        self.assertEqual(profile.cover_image, "data:image/png;base64,cover")
+        self.assertTrue(profile.profile_image_file.name)
+        self.assertTrue(profile.cover_image_file.name)
+        self.assertIn(".png", response.json()["data"]["profile_image"])
+        self.assertIn(".png", response.json()["data"]["cover_image"])
         self.assertTrue(response.json()["data"]["profile_complete"])
 
     def test_student_profile_get_includes_extension_sections(self):
@@ -3466,14 +3900,27 @@ class ApiFoundationTests(TestCase):
         client, csrf_token = self.csrf_client()
         client.force_login(company_user)
 
+        profile_image_response = client.post(
+            "/api/v1/company/profile/images/profile",
+            data={"file": SimpleUploadedFile("company-profile.png", b"company-profile-image", content_type="image/png")},
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+        cover_image_response = client.post(
+            "/api/v1/company/profile/images/cover",
+            data={"file": SimpleUploadedFile("company-cover.png", b"company-cover-image", content_type="image/png")},
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+        self.assertEqual(profile_image_response.status_code, 200)
+        self.assertEqual(cover_image_response.status_code, 200)
+
         response = client.put(
             "/api/v1/company/profile",
             data=json.dumps(
                 {
                     "name": "Softverse Japan",
                     "description": "We hire students for entry-level software roles in Japan.",
-                    "profile_image": "data:image/png;base64,company-profile",
-                    "cover_image": "data:image/png;base64,company-cover",
+                    "profile_image": "",
+                    "cover_image": "",
                     "job_posting_id": "430351",
                     "founder_name": "Jane Founder",
                     "headquarters_address": "〒1500042\n東京都渋谷区宇田川町3-5Spark SHIBUYA 10階",
@@ -3501,15 +3948,15 @@ class ApiFoundationTests(TestCase):
         company.refresh_from_db()
         self.assertEqual(company.name, "Softverse Japan")
         self.assertEqual(company.description, "We hire students for entry-level software roles in Japan.")
-        self.assertEqual(company.profile_image, "data:image/png;base64,company-profile")
-        self.assertEqual(company.cover_image, "data:image/png;base64,company-cover")
+        self.assertTrue(company.profile_image_file.name)
+        self.assertTrue(company.cover_image_file.name)
         self.assertEqual(company.job_posting_id, "430351")
         self.assertEqual(company.founder_name, "Jane Founder")
         self.assertEqual(company.headquarters_address, "〒1500042\n東京都渋谷区宇田川町3-5Spark SHIBUYA 10階")
         self.assertEqual(company.office_locations, "Primary\nSpark SHIBUYA 10F, 3-5 Udagawacho\nShibuya-ku, Tokyo 150-0042")
         self.assertEqual(company.company_points, ["副業可", "私服可", "自社サービス保有"])
-        self.assertEqual(response.json()["data"]["profile_image"], "data:image/png;base64,company-profile")
-        self.assertEqual(response.json()["data"]["cover_image"], "data:image/png;base64,company-cover")
+        self.assertIn(".png", response.json()["data"]["profile_image"])
+        self.assertIn(".png", response.json()["data"]["cover_image"])
         self.assertEqual(response.json()["data"]["tagline"], "IPの可能性を広げ、人々に衝撃と感動を")
         self.assertTrue(response.json()["data"]["profile_complete"])
 
@@ -4363,7 +4810,7 @@ class ApiFoundationTests(TestCase):
                     "category": "security",
                     "difficulty_level": "beginner",
                     "estimated_hours": 6,
-                    "thumbnail_image": "data:image/png;base64,course-thumb",
+                    "thumbnail_image": "",
                     "thumbnail_alt_text": "Course thumbnail",
                     "status": "active",
                 }
@@ -4378,8 +4825,15 @@ class ApiFoundationTests(TestCase):
         self.assertEqual(create_response.json()["data"]["company_id"], company.id)
         self.assertEqual(create_response.json()["data"]["created_by_id"], company_user.id)
         self.assertTrue(create_response.json()["data"]["can_edit"])
-        self.assertEqual(create_response.json()["data"]["thumbnail_image"], "data:image/png;base64,course-thumb")
         self.assertEqual(create_response.json()["data"]["thumbnail_alt_text"], "Course thumbnail")
+
+        upload_response = client.post(
+            f"/api/v1/company/courses/{course_id}/thumbnail",
+            data={"file": SimpleUploadedFile("course-thumb.png", b"course-thumb-image", content_type="image/png")},
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+        self.assertEqual(upload_response.status_code, 200)
+        self.assertIn(".png", upload_response.json()["data"]["thumbnail_image"])
 
         update_response = client.put(
             f"/api/v1/company/courses/{course_id}",
@@ -4390,7 +4844,7 @@ class ApiFoundationTests(TestCase):
                     "category": "security",
                     "difficulty_level": "intermediate",
                     "estimated_hours": 8,
-                    "thumbnail_image": "data:image/png;base64,course-thumb-updated",
+                    "thumbnail_image": "",
                     "thumbnail_alt_text": "Updated course thumbnail",
                     "status": "draft",
                 }
@@ -4400,6 +4854,12 @@ class ApiFoundationTests(TestCase):
         )
 
         self.assertEqual(update_response.status_code, 200)
+        update_thumbnail_response = client.post(
+            f"/api/v1/company/courses/{course_id}/thumbnail",
+            data={"file": SimpleUploadedFile("course-thumb-updated.png", b"course-thumb-image-updated", content_type="image/png")},
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+        self.assertEqual(update_thumbnail_response.status_code, 200)
         retired_response = client.delete(
             f"/api/v1/company/courses/{course_id}",
             HTTP_X_CSRFTOKEN=csrf_token,
@@ -4409,7 +4869,8 @@ class ApiFoundationTests(TestCase):
         course = Course.objects.get(pk=course_id)
         self.assertEqual(course.title, "Company Auth Course Updated")
         self.assertEqual(course.difficulty_level, "intermediate")
-        self.assertEqual(course.thumbnail_image, "data:image/png;base64,course-thumb-updated")
+        self.assertEqual(course.thumbnail_image, "")
+        self.assertTrue(course.thumbnail_image_file.name)
         self.assertEqual(course.thumbnail_alt_text, "Updated course thumbnail")
         self.assertEqual(course.status, Course.Status.INACTIVE)
         self.assertEqual(course.company, company)
