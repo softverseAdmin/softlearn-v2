@@ -9,6 +9,7 @@ urlpatterns = [
     path("v1/auth/session", views.session_view, name="api-auth-session"),
     path("v1/auth/signup", views.signup_view, name="api-auth-signup"),
     path("v1/auth/login", views.login_view, name="api-auth-login"),
+    path("v1/auth/refresh", views.refresh_view, name="api-auth-refresh"),
     path("v1/auth/logout", views.logout_view, name="api-auth-logout"),
     path("v1/auth/password/change", views.password_change_view, name="api-auth-password-change"),
     path("v1/student/dashboard", views.student_dashboard_view, name="api-student-dashboard"),
