@@ -3,8 +3,9 @@ from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.middleware.csrf import get_token
-from django.views.decorators.csrf import ensure_csrf_cookie
+from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 
+from common.auth_tokens import issue_auth_tokens, user_from_token
 from common.decorators import api_endpoint
 from common.http import csrf_response_payload, error_response, parse_json_body, success_response
 from services.security import SecurityManager, client_ip_from_request
@@ -39,6 +40,14 @@ def validate_signup_payload(payload: dict) -> None:
         raise ValidationError(errors)
 
 
+def serialize_auth_response(request, user: User) -> dict:
+    return {
+        **serialize_user(user),
+        "csrf_token": get_token(request),
+        **issue_auth_tokens(user),
+    }
+
+
 @ensure_csrf_cookie
 @api_endpoint(["GET"])
 def csrf_view(request):
@@ -66,6 +75,7 @@ def session_view(request):
     )
 
 
+@csrf_exempt
 @api_endpoint(["POST"])
 def signup_view(request):
     payload = parse_json_body(request)
@@ -98,9 +108,10 @@ def signup_view(request):
             StudentProfile.objects.create(user=user)
 
     login(request, user)
-    return success_response({**serialize_user(user), "csrf_token": get_token(request)}, status=201)
+    return success_response(serialize_auth_response(request, user), status=201)
 
 
+@csrf_exempt
 @api_endpoint(["POST"])
 def login_view(request):
     payload = parse_json_body(request)
@@ -169,7 +180,33 @@ def login_view(request):
 
     SecurityManager.reset_login_rate_limit(client_ip, email)
     login(request, user)
-    return success_response({**serialize_user(user), "csrf_token": get_token(request)})
+    return success_response(serialize_auth_response(request, user))
+
+
+@csrf_exempt
+@api_endpoint(["POST"])
+def refresh_view(request):
+    payload = parse_json_body(request)
+    refresh_token = payload.get("refresh_token", "")
+    if not refresh_token:
+        return error_response(
+            request,
+            "VALIDATION_ERROR",
+            "The request data is invalid.",
+            details={"refresh_token": ["This field is required."]},
+            status=400,
+        )
+
+    user = user_from_token(refresh_token, expected_type="refresh")
+    if user is None:
+        return error_response(
+            request,
+            "INVALID_REFRESH_TOKEN",
+            "The refresh token is invalid or has expired.",
+            status=401,
+        )
+
+    return success_response(serialize_auth_response(request, user))
 
 
 @api_endpoint(["POST"], authentication_required=True)

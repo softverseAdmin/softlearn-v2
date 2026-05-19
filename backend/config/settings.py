@@ -43,6 +43,11 @@ ALLOWED_HOSTS = env_list("DJANGO_ALLOWED_HOSTS", ["127.0.0.1", "localhost"])
 ENVIRONMENT = (os.getenv("ENVIRONMENT", "development") or "development").strip().lower()
 TESTING = len(sys.argv) > 1 and sys.argv[1] == 'test'
 IS_PRODUCTION = ENVIRONMENT == "production"
+DEFAULT_FRONTEND_ORIGINS = (
+    ["https://softlearn-v2.vercel.app"]
+    if IS_PRODUCTION
+    else ["http://localhost:5173", "http://127.0.0.1:5173"]
+)
 
 if not DEBUG and SECRET_KEY == DEFAULT_SECRET_KEY:
     raise ImproperlyConfigured("DJANGO_SECRET_KEY must be set when DJANGO_DEBUG is false.")
@@ -69,9 +74,11 @@ MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "common.middleware.RequestIDMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "common.middleware.BearerTokenMiddleware",
     "django.middleware.common.CommonMiddleware",
-    "django.middleware.csrf.CsrfViewMiddleware",
+    "common.middleware.ApiCsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "common.middleware.APIAuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "services.logging.RequestLoggingMiddleware",
@@ -154,19 +161,19 @@ APPEND_SLASH = False
 
 CORS_ALLOWED_ORIGINS = env_list(
     "DJANGO_CORS_ALLOWED_ORIGINS",
-    ["http://localhost:5173", "http://127.0.0.1:5173"],
+    DEFAULT_FRONTEND_ORIGINS,
 )
 CORS_ALLOW_CREDENTIALS = True
 
 CSRF_TRUSTED_ORIGINS = env_list(
     "DJANGO_CSRF_TRUSTED_ORIGINS",
-    ["http://localhost:5173", "http://127.0.0.1:5173"],
+    DEFAULT_FRONTEND_ORIGINS,
 )
 CSRF_FAILURE_VIEW = "common.views.csrf_failure"
 
 SESSION_COOKIE_HTTPONLY = True
-SESSION_COOKIE_SECURE = env_bool("DJANGO_SESSION_COOKIE_SECURE", not DEBUG)
-CSRF_COOKIE_SECURE = env_bool("DJANGO_CSRF_COOKIE_SECURE", not DEBUG)
+SESSION_COOKIE_SECURE = env_bool("DJANGO_SESSION_COOKIE_SECURE", IS_PRODUCTION)
+CSRF_COOKIE_SECURE = env_bool("DJANGO_CSRF_COOKIE_SECURE", IS_PRODUCTION)
 SESSION_COOKIE_SAMESITE = os.getenv(
     "DJANGO_SESSION_COOKIE_SAMESITE",
     "None" if SESSION_COOKIE_SECURE else "Lax",
@@ -175,6 +182,13 @@ CSRF_COOKIE_SAMESITE = os.getenv(
     "DJANGO_CSRF_COOKIE_SAMESITE",
     "None" if CSRF_COOKIE_SECURE else "Lax",
 )
+
+if IS_PRODUCTION:
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    USE_X_FORWARDED_HOST = True
+
+AUTH_ACCESS_TOKEN_LIFETIME_SECONDS = env_int("AUTH_ACCESS_TOKEN_LIFETIME_SECONDS", 60 * 15)
+AUTH_REFRESH_TOKEN_LIFETIME_SECONDS = env_int("AUTH_REFRESH_TOKEN_LIFETIME_SECONDS", 60 * 60 * 24 * 30)
 
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
