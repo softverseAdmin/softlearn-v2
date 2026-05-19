@@ -2,8 +2,9 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AlertCircle, Calendar, CheckCircle2, ChevronRight, Clock3, Search, SlidersHorizontal, Video, XCircle } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { useQuery } from '@tanstack/react-query'
 
-import { ApiError, apiRequest } from '../../lib/api'
+import { apiRequest } from '../../lib/api'
 import { containerVariants, itemVariants } from '../../lib/animations'
 import type { InterviewListResponse } from './types'
 import { Badge } from '@/components/ui/badge'
@@ -71,39 +72,45 @@ function formatDateTimeRange(start: string | null, end: string | null) {
 }
 
 export function CompanyInterviewsPage() {
-  const [data, setData] = useState<InterviewListResponse>(emptyResponse)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useWorkspaceSearchQuery()
   const [status, setStatus] = useState('All Statuses')
   const [sortBy, setSortBy] = useState('Upcoming')
+  const [page, setPage] = useState(1)
+
+  const queryParams = useMemo(() => {
+    const params = new URLSearchParams({
+      page: String(page),
+      page_size: '12',
+      sort:
+        sortBy === 'Candidate A-Z'
+          ? 'candidate_az'
+          : sortBy === 'Status'
+            ? 'status'
+            : sortBy === 'Recently Updated'
+              ? 'recently_updated'
+              : 'upcoming',
+    })
+    if (searchQuery.trim()) params.set('q', searchQuery.trim())
+    if (status !== 'All Statuses') params.set('status', status)
+    return params.toString()
+  }, [page, searchQuery, sortBy, status])
+
+  const interviewsQuery = useQuery({
+    queryKey: ['company-interviews', queryParams],
+    queryFn: () => apiRequest<InterviewListResponse>(`/company/interviews?${queryParams}`),
+  })
+  const data = interviewsQuery.data ?? emptyResponse
+  const loading = interviewsQuery.isLoading
+  const error =
+    interviewsQuery.error instanceof Error
+      ? interviewsQuery.error.message
+      : interviewsQuery.isError
+        ? 'Unable to load company interviews.'
+        : null
 
   useEffect(() => {
-    let active = true
-
-    async function loadInterviews() {
-      try {
-        const response = await apiRequest<InterviewListResponse>('/company/interviews')
-        if (active) {
-          setData(response)
-          setError(null)
-        }
-      } catch (loadError) {
-        if (active) {
-          setError(loadError instanceof ApiError ? loadError.message : 'Unable to load company interviews.')
-        }
-      } finally {
-        if (active) {
-          setLoading(false)
-        }
-      }
-    }
-
-    void loadInterviews()
-    return () => {
-      active = false
-    }
-  }, [])
+    setPage(1)
+  }, [searchQuery, status, sortBy])
 
   const statusOptions = useMemo(() => {
     const values = Array.from(new Set(data.interviews.map((interview) => interview.status))).sort((left, right) =>
@@ -115,58 +122,13 @@ export function CompanyInterviewsPage() {
 
   const summary = useMemo(() => {
     return {
-      total: data.interviews.length,
-      upcoming: data.interviews.filter(
-        (interview) =>
-          !!interview.scheduled_start && !interview.completed_at && !interview.cancelled_at
-      ).length,
-      awaitingDecision: data.interviews.filter((interview) =>
-        ['requested', 'pending', 'rescheduled'].includes(interview.status.toLowerCase())
-      ).length,
-      completed: data.interviews.filter((interview) => interview.status.toLowerCase() === 'completed').length,
-      cancelled: data.interviews.filter((interview) => interview.status.toLowerCase() === 'cancelled').length,
+      total: data.summary?.total ?? 0,
+      upcoming: data.summary?.upcoming ?? 0,
+      awaitingDecision: data.summary?.awaiting_decision ?? 0,
+      completed: data.summary?.completed ?? 0,
+      cancelled: data.summary?.cancelled ?? 0,
     }
-  }, [data.interviews])
-
-  const filteredInterviews = useMemo(() => {
-    const normalizedQuery = searchQuery.trim().toLowerCase()
-
-    const filtered = data.interviews.filter((interview) => {
-      const matchesQuery =
-        !normalizedQuery ||
-        [interview.student_name, interview.purpose, interview.role_context, formatStatusLabel(interview.status)]
-          .join(' ')
-          .toLowerCase()
-          .includes(normalizedQuery)
-
-      const matchesStatus = status === 'All Statuses' || interview.status === status
-
-      return matchesQuery && matchesStatus
-    })
-
-    return filtered.sort((left, right) => {
-      if (sortBy === 'Candidate A-Z') {
-        return left.student_name.localeCompare(right.student_name)
-      }
-
-      if (sortBy === 'Status') {
-        return formatStatusLabel(left.status).localeCompare(formatStatusLabel(right.status))
-      }
-
-      if (sortBy === 'Recently Updated') {
-        return new Date(right.updated_at).getTime() - new Date(left.updated_at).getTime()
-      }
-
-      const leftTimestamp = left.scheduled_start ? new Date(left.scheduled_start).getTime() : Number.MAX_SAFE_INTEGER
-      const rightTimestamp = right.scheduled_start ? new Date(right.scheduled_start).getTime() : Number.MAX_SAFE_INTEGER
-
-      if (leftTimestamp === rightTimestamp) {
-        return new Date(right.updated_at).getTime() - new Date(left.updated_at).getTime()
-      }
-
-      return leftTimestamp - rightTimestamp
-    })
-  }, [data.interviews, searchQuery, sortBy, status])
+  }, [data.summary])
 
   if (loading) {
     return (
@@ -334,15 +296,15 @@ export function CompanyInterviewsPage() {
         </select>
       </div>
 
-      {!error && filteredInterviews.length === 0 ? (
+      {!error && data.interviews.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <Video className="h-12 w-12 text-muted-foreground/40" />
             <h3 className="mt-4 text-lg font-semibold">
-              {data.interviews.length === 0 ? 'No interviews yet' : 'No interviews match these filters'}
+              {summary.total === 0 ? 'No interviews yet' : 'No interviews match these filters'}
             </h3>
             <p className="mt-2 text-center text-sm text-muted-foreground">
-              {data.interviews.length === 0
+              {summary.total === 0
                 ? 'Create the first interview request from a candidate detail page.'
                 : 'Try a different search term or clear the status filter to see more conversations.'}
             </p>
@@ -350,14 +312,14 @@ export function CompanyInterviewsPage() {
         </Card>
       ) : null}
 
-      {filteredInterviews.length > 0 ? (
+      {data.interviews.length > 0 ? (
         <motion.div
           className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3"
           variants={containerVariants}
           initial="hidden"
           animate="visible"
         >
-          {filteredInterviews.map((interview) => {
+          {data.interviews.map((interview) => {
             const schedule = formatDateTimeRange(interview.scheduled_start, interview.scheduled_end)
 
             return (
@@ -431,6 +393,32 @@ export function CompanyInterviewsPage() {
             )
           })}
         </motion.div>
+      ) : null}
+
+      {data.pagination && data.pagination.total_pages > 1 ? (
+        <div className="flex items-center justify-center gap-2 pt-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setPage((current) => Math.max(1, current - 1))}
+            disabled={!data.pagination.has_previous}
+          >
+            Previous
+          </Button>
+          <span className="text-sm text-muted-foreground">
+            Page {data.pagination.page} of {data.pagination.total_pages}
+          </span>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setPage((current) => current + 1)}
+            disabled={!data.pagination.has_next}
+          >
+            Next
+          </Button>
+        </div>
       ) : null}
     </div>
   )

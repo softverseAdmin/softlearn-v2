@@ -3,6 +3,7 @@ from datetime import timedelta
 from unittest import mock
 
 from django.contrib.auth.tokens import default_token_generator
+from django.core.exceptions import ImproperlyConfigured
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, TestCase, override_settings
@@ -10,6 +11,7 @@ from django.utils import timezone
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 
+from config.settings import validate_production_configuration
 from common.models import ApplicationLogEntry, ErrorReport
 from users.models import (
     Application,
@@ -104,6 +106,22 @@ class ApiFoundationTests(TestCase):
         self.assertNotIn("environment", body)
         self.assertNotIn("observability", body)
 
+    def test_production_configuration_requires_postgres(self):
+        with self.assertRaises(ImproperlyConfigured):
+            validate_production_configuration(
+                postgres_db="",
+                email_backend="django.core.mail.backends.smtp.EmailBackend",
+                is_production=True,
+            )
+
+    def test_production_configuration_rejects_non_delivering_email_backend(self):
+        with self.assertRaises(ImproperlyConfigured):
+            validate_production_configuration(
+                postgres_db="softlearn",
+                email_backend="django.core.mail.backends.console.EmailBackend",
+                is_production=True,
+            )
+
     @override_settings(TRUSTED_PROXY_IPS=["10.0.0.5"])
     def test_login_uses_forwarded_ip_only_for_trusted_proxy(self):
         User.objects.create_user(
@@ -121,6 +139,28 @@ class ApiFoundationTests(TestCase):
             HTTP_X_CSRFTOKEN=csrf_token,
             REMOTE_ADDR="10.0.0.5",
             HTTP_X_FORWARDED_FOR="203.0.113.55, 10.0.0.5",
+        )
+
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.json()["error"]["details"]["remaining_attempts"], 4)
+
+    @override_settings(TRUSTED_PROXY_IPS=["172.18.0.0/16"])
+    def test_login_uses_forwarded_ip_for_trusted_proxy_cidr(self):
+        User.objects.create_user(
+            email="student-cidr@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        client, csrf_token = self.csrf_client()
+
+        response = client.post(
+            "/api/v1/auth/login",
+            data=json.dumps({"email": "student-cidr@example.com", "password": "wrong-password", "role": "student"}),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+            REMOTE_ADDR="172.18.0.9",
+            HTTP_X_FORWARDED_FOR="203.0.113.77, 172.18.0.9",
         )
 
         self.assertEqual(response.status_code, 401)
@@ -2648,6 +2688,74 @@ class ApiFoundationTests(TestCase):
 
         self.assertEqual(remove_response.status_code, 200)
         self.assertFalse(JobBookmark.objects.filter(student=student, vacancy=matching_vacancy).exists())
+
+    def test_student_jobs_support_bookmarked_sort_and_pagination(self):
+        company = Company.objects.create(name="Softverse", is_active=True)
+        company_user = User.objects.create_user(
+            email="company-sorted@example.com",
+            password="SecurePass123!",
+            full_name="Company User",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+        student = User.objects.create_user(
+            email="student-sorted@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        alpha = Vacancy.objects.create(
+            company=company,
+            created_by=company_user,
+            title="Alpha Engineer",
+            description="A role",
+            employment_type="full_time",
+            experience_level="junior",
+            location="Tokyo",
+            work_style=Vacancy.WorkStyle.HYBRID,
+            status=Vacancy.Status.ACTIVE,
+            max_salary=7000000,
+        )
+        zeta = Vacancy.objects.create(
+            company=company,
+            created_by=company_user,
+            title="Zeta Engineer",
+            description="Z role",
+            employment_type="full_time",
+            experience_level="junior",
+            location="Tokyo",
+            work_style=Vacancy.WorkStyle.HYBRID,
+            status=Vacancy.Status.ACTIVE,
+            max_salary=9000000,
+        )
+        beta = Vacancy.objects.create(
+            company=company,
+            created_by=company_user,
+            title="Beta Engineer",
+            description="B role",
+            employment_type="full_time",
+            experience_level="junior",
+            location="Tokyo",
+            work_style=Vacancy.WorkStyle.HYBRID,
+            status=Vacancy.Status.ACTIVE,
+            max_salary=8000000,
+        )
+        JobBookmark.objects.create(student=student, vacancy=alpha)
+        JobBookmark.objects.create(student=student, vacancy=zeta)
+
+        client = Client()
+        client.force_login(student)
+
+        response = client.get("/api/v1/student/jobs?bookmarked=true&sort=title_az&page=1&page_size=1")
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()["data"]
+        self.assertEqual(payload["result_count"], 2)
+        self.assertTrue(payload["bookmarked_only"])
+        self.assertEqual(payload["sort"], "title_az")
+        self.assertEqual(payload["pagination"]["total_pages"], 2)
+        self.assertEqual(len(payload["vacancies"]), 1)
+        self.assertEqual(payload["vacancies"][0]["vacancy_id"], alpha.id)
 
     def test_student_matches_rank_visible_jobs_deterministically(self):
         company = Company.objects.create(name="Softverse", is_active=True)
@@ -5888,6 +5996,7 @@ class ApiFoundationTests(TestCase):
         response = client.get("/api/v1/company/candidates")
 
         self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["data"]["pagination"]["total_count"], 1)
         candidate = response.json()["data"]["candidates"][0]
         self.assertEqual(candidate["display_name"], "Student User")
         self.assertEqual(candidate["profile_image"], "https://cdn.example.com/student-photo.png")
@@ -6230,6 +6339,7 @@ class ApiFoundationTests(TestCase):
         get_response = client.get(f"/api/v1/company/candidates/{candidate_access.id}/notes")
         self.assertEqual(get_response.status_code, 200)
         self.assertEqual(len(get_response.json()["data"]["notes"]), 1)
+        self.assertEqual(get_response.json()["data"]["pagination"]["total_count"], 1)
 
     def test_company_candidate_preview_includes_shortlist_and_notes(self):
         company = Company.objects.create(name="Softverse")
@@ -6332,6 +6442,7 @@ class ApiFoundationTests(TestCase):
         body = response.json()["data"]
         self.assertIsNotNone(body["shortlist"])
         self.assertEqual(len(body["notes"]), 1)
+        self.assertEqual(body["notes_pagination"]["total_count"], 1)
         self.assertEqual(body["visibility"], "visible")
         self.assertEqual(body["student"]["about_me"], profile.about_me)
         self.assertEqual(body["student"]["profile_image"], profile.profile_image)
@@ -6343,6 +6454,55 @@ class ApiFoundationTests(TestCase):
         self.assertTrue(body["student"]["availability"]["availability_set"])
         self.assertTrue(body["student"]["profile_extension_summary"]["has_active_resume"])
         self.assertEqual(body["student"]["skills"][0]["skill_name"], "Python")
+
+    def test_company_candidates_list_supports_server_side_pagination_and_filters(self):
+        company = Company.objects.create(name="Softverse")
+        visible_student = User.objects.create_user(
+            email="visible@example.com",
+            password="SecurePass123!",
+            full_name="Visible Student",
+            role=User.Role.STUDENT,
+        )
+        hidden_student = User.objects.create_user(
+            email="hidden@example.com",
+            password="SecurePass123!",
+            full_name="Hidden Student",
+            role=User.Role.STUDENT,
+        )
+        StudentProfile.objects.create(user=visible_student, desired_job_type="Backend Engineer", desired_work_location="Tokyo")
+        StudentProfile.objects.create(user=hidden_student, desired_job_type="Frontend Engineer", desired_work_location="Osaka")
+        StudentVisibilitySettings.objects.create(
+            student=visible_student,
+            share_profile_preview=True,
+            share_learning_record=True,
+            share_exam_results=False,
+        )
+        StudentVisibilitySettings.objects.create(
+            student=hidden_student,
+            share_profile_preview=False,
+            share_learning_record=True,
+            share_exam_results=False,
+        )
+        CandidateReviewAccess.objects.create(company=company, student=visible_student, source=CandidateReviewAccess.Source.APPLICATION)
+        CandidateReviewAccess.objects.create(company=company, student=hidden_student, source=CandidateReviewAccess.Source.MATCH)
+        company_user = User.objects.create_user(
+            email="company-filter@example.com",
+            password="SecurePass123!",
+            full_name="Company User",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+
+        client = Client()
+        client.force_login(company_user)
+        response = client.get("/api/v1/company/candidates?page=1&page_size=1&q=Visible&visibility=profile_visible&sort=candidate_az")
+
+        self.assertEqual(response.status_code, 200)
+        body = response.json()["data"]
+        self.assertEqual(body["candidate_count"], 1)
+        self.assertEqual(body["pagination"]["page_size"], 1)
+        self.assertEqual(len(body["candidates"]), 1)
+        self.assertEqual(body["candidates"][0]["display_name"], "Visible Student")
 
     def test_company_can_request_interview_from_shortlisted_candidate_context(self):
         company = Company.objects.create(name="Softverse")
@@ -6444,11 +6604,80 @@ class ApiFoundationTests(TestCase):
             ).count(),
             2,
         )
-        student_client = Client()
-        student_client.force_login(student)
-        student_list_response = student_client.get("/api/v1/student/interviews")
-        self.assertEqual(student_list_response.status_code, 200)
-        self.assertEqual(student_list_response.json()["data"]["interviews"][0]["scheduled_start"], scheduled_start.isoformat())
+
+    def test_company_interviews_support_filter_sort_and_pagination(self):
+        company = Company.objects.create(name="Softverse")
+        company_user = User.objects.create_user(
+            email="company-interviews@example.com",
+            password="SecurePass123!",
+            full_name="Company User",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+        alpha_student = User.objects.create_user(
+            email="alpha-student@example.com",
+            password="SecurePass123!",
+            full_name="Alpha Student",
+            role=User.Role.STUDENT,
+        )
+        beta_student = User.objects.create_user(
+            email="beta-student@example.com",
+            password="SecurePass123!",
+            full_name="Beta Student",
+            role=User.Role.STUDENT,
+        )
+        gamma_student = User.objects.create_user(
+            email="gamma-student@example.com",
+            password="SecurePass123!",
+            full_name="Gamma Student",
+            role=User.Role.STUDENT,
+        )
+        alpha_access = CandidateReviewAccess.objects.create(company=company, student=alpha_student, source=CandidateReviewAccess.Source.APPLICATION)
+        beta_access = CandidateReviewAccess.objects.create(company=company, student=beta_student, source=CandidateReviewAccess.Source.APPLICATION)
+        gamma_access = CandidateReviewAccess.objects.create(company=company, student=gamma_student, source=CandidateReviewAccess.Source.APPLICATION)
+        Interview.objects.create(
+            candidate_access=beta_access,
+            company=company,
+            student=beta_student,
+            requested_by=company_user,
+            purpose="System design",
+            role_context="Platform",
+            status=Interview.Status.CONFIRMED,
+            scheduled_start=timezone.now() + timedelta(days=2),
+            scheduled_end=timezone.now() + timedelta(days=2, hours=1),
+        )
+        Interview.objects.create(
+            candidate_access=gamma_access,
+            company=company,
+            student=gamma_student,
+            requested_by=company_user,
+            purpose="Take home review",
+            role_context="Frontend",
+            status=Interview.Status.CANCELLED,
+            cancelled_at=timezone.now(),
+        )
+        Interview.objects.create(
+            candidate_access=alpha_access,
+            company=company,
+            student=alpha_student,
+            requested_by=company_user,
+            purpose="Intro call",
+            role_context="Backend",
+            status=Interview.Status.REQUESTED,
+        )
+
+        client = Client()
+        client.force_login(company_user)
+
+        response = client.get("/api/v1/company/interviews?status=requested&sort=candidate_az&page=1&page_size=1&q=Alpha")
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()["data"]
+        self.assertEqual(payload["summary"]["total"], 1)
+        self.assertEqual(payload["summary"]["awaiting_decision"], 1)
+        self.assertEqual(payload["pagination"]["total_pages"], 1)
+        self.assertEqual(len(payload["interviews"]), 1)
+        self.assertEqual(payload["interviews"][0]["student_name"], "Alpha Student")
 
     def test_match_only_candidate_context_cannot_request_interview_without_shortlist(self):
         company = Company.objects.create(name="Softverse")

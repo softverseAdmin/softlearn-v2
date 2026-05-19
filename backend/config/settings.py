@@ -37,6 +37,35 @@ def env_int(name: str, default: int) -> int:
 
 
 DEFAULT_SECRET_KEY = "change-me-before-production"
+NON_DELIVERING_EMAIL_BACKENDS = {
+    "django.core.mail.backends.console.EmailBackend",
+    "django.core.mail.backends.dummy.EmailBackend",
+    "django.core.mail.backends.filebased.EmailBackend",
+    "django.core.mail.backends.locmem.EmailBackend",
+}
+
+
+def validate_production_configuration(
+    *,
+    postgres_db: str | None,
+    email_backend: str,
+    is_production: bool | None = None,
+) -> None:
+    if is_production is None:
+        is_production = IS_PRODUCTION
+
+    if not is_production:
+        return
+
+    if not postgres_db:
+        raise ImproperlyConfigured("POSTGRES_DB must be set when ENVIRONMENT is production.")
+
+    if email_backend in NON_DELIVERING_EMAIL_BACKENDS:
+        raise ImproperlyConfigured(
+            "DJANGO_EMAIL_BACKEND must point to a real delivery backend when ENVIRONMENT is production."
+        )
+
+
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", DEFAULT_SECRET_KEY)
 DEBUG = env_bool("DJANGO_DEBUG", env_bool("DEBUG", True))
 ALLOWED_HOSTS = env_list("DJANGO_ALLOWED_HOSTS", ["127.0.0.1", "localhost"])
@@ -195,6 +224,7 @@ EMAIL_BACKEND = os.getenv(
     "django.core.mail.backends.console.EmailBackend" if DEBUG else "django.core.mail.backends.dummy.EmailBackend",
 )
 FRONTEND_URL = os.getenv("FRONTEND_URL", DEFAULT_FRONTEND_ORIGINS[0])
+validate_production_configuration(postgres_db=postgres_db, email_backend=EMAIL_BACKEND)
 
 # Caching Configuration
 cache_location = os.getenv("REDIS_URL", "redis://127.0.0.1:6379/1")

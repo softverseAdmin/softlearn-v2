@@ -40,8 +40,6 @@ export function StudentMessagesPage() {
   const { setUnreadMessageCount } = useWorkspaceState()
   const queryClient = useQueryClient()
   const [searchParams, setSearchParams] = useSearchParams()
-  const [threads, setThreads] = useState<ConversationThread[]>([])
-  const [composeContacts, setComposeContacts] = useState<ComposeContact[]>([])
   const [activeThreadId, setActiveThreadId] = useState<number | null>(null)
   const [searchQuery, setSearchQuery] = useWorkspaceSearchQuery()
   const [activeFilter, setActiveFilter] = useState<MessageFilter>('all')
@@ -65,6 +63,8 @@ export function StudentMessagesPage() {
   const [threadPendingDeletion, setThreadPendingDeletion] = useState<ConversationThread | null>(null)
   const [deletingThreadId, setDeletingThreadId] = useState<number | null>(null)
   const inboxQuery = useQuery(studentMessageInboxQueryOptions())
+  const threads = useMemo(() => [...(inboxQuery.data?.threads ?? [])].sort(sortThreads), [inboxQuery.data?.threads])
+  const composeContacts = useMemo(() => inboxQuery.data?.composeContacts ?? [], [inboxQuery.data?.composeContacts])
   const filteredThreads = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase()
 
@@ -99,15 +99,6 @@ export function StudentMessagesPage() {
     const value = Number(searchParams.get('thread'))
     return Number.isInteger(value) && value > 0 ? value : null
   }, [searchParams])
-
-  useEffect(() => {
-    if (!inboxQuery.data) {
-      return
-    }
-
-    setThreads([...inboxQuery.data.threads].sort(sortThreads))
-    setComposeContacts(inboxQuery.data.composeContacts)
-  }, [inboxQuery.data])
 
   useEffect(() => {
     if (!inboxQuery.error) {
@@ -177,12 +168,8 @@ export function StudentMessagesPage() {
   }, [queryClient])
 
   const commitThreads = useCallback((updater: (currentThreads: ConversationThread[]) => ConversationThread[]) => {
-    setThreads((currentThreads) => {
-      const nextThreads = updater(currentThreads)
-      setCachedThreads(nextThreads)
-      return nextThreads
-    })
-  }, [setCachedThreads])
+    setCachedThreads(updater(threads))
+  }, [setCachedThreads, threads])
 
   const mergeThread = useCallback((nextThread: ConversationThread) => {
     queryClient.setQueryData(studentMessageQueryKeys.thread(nextThread.id), nextThread)
@@ -427,6 +414,7 @@ export function StudentMessagesPage() {
       setIsMobileThreadDialogOpen(false)
       setDraftMessage('')
       setThreadPendingDeletion(null)
+      await queryClient.invalidateQueries({ queryKey: studentMessageQueryKeys.inbox })
     } catch (deleteError) {
       setError(getMessageError(deleteError))
     } finally {

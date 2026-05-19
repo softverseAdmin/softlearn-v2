@@ -45,6 +45,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push backend image
+        id: build_backend
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -55,6 +56,7 @@ jobs:
             ${{ env.IMAGE_PREFIX }}-backend:${{ env.LATEST_TAG }}
 
       - name: Build and push frontend image
+        id: build_frontend
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -69,11 +71,13 @@ jobs:
           {
             echo "## Published deployment images"
             echo ""
-            echo "- Backend: \`${IMAGE_PREFIX}-backend:${IMAGE_TAG}\`"
-            echo "- Backend latest: \`${IMAGE_PREFIX}-backend:${LATEST_TAG}\`"
-            echo "- Frontend: \`${IMAGE_PREFIX}-frontend:${IMAGE_TAG}\`"
-            echo "- Frontend latest: \`${IMAGE_PREFIX}-frontend:${LATEST_TAG}\`"
-          } >> "$GITHUB_STEP_SUMMARY"
+             echo "- Backend: \`${IMAGE_PREFIX}-backend:${IMAGE_TAG}\`"
+             echo "- Backend latest: \`${IMAGE_PREFIX}-backend:${LATEST_TAG}\`"
+             echo "- Backend digest: \`${{ steps.build_backend.outputs.digest }}\`"
+             echo "- Frontend: \`${IMAGE_PREFIX}-frontend:${IMAGE_TAG}\`"
+             echo "- Frontend latest: \`${IMAGE_PREFIX}-frontend:${LATEST_TAG}\`"
+             echo "- Frontend digest: \`${{ steps.build_frontend.outputs.digest }}\`"
+           } >> "$GITHUB_STEP_SUMMARY"
 
   deploy-platform:
     runs-on: ubuntu-latest

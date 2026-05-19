@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { BriefcaseBusiness, ChevronRight, Clock3, MapPin, Search, ShieldCheck, SlidersHorizontal, Sparkles, UserRoundCheck } from 'lucide-react'
 
@@ -17,6 +17,13 @@ const emptyResponse: CompanyCandidatesResponse = {
   company_id: 0,
   candidate_count: 0,
   candidates: [],
+  summary: {
+    shortlisted: 0,
+    profile_visible: 0,
+    learning_visible: 0,
+    exam_visible: 0,
+    fully_visible: 0,
+  },
 }
 
 function formatLabel(value: string) {
@@ -67,13 +74,41 @@ export function CompanyCandidatesPage() {
   const [searchQuery, setSearchQuery] = useWorkspaceSearchQuery()
   const [visibilityFilter, setVisibilityFilter] = useState('All Candidates')
   const [sortBy, setSortBy] = useState('Recently Updated')
+  const [page, setPage] = useState(1)
 
   useEffect(() => {
     let active = true
 
     async function loadCandidates() {
       try {
-        const response = await apiRequest<CompanyCandidatesResponse>('/company/candidates')
+        const params = new URLSearchParams({
+          page: String(page),
+          page_size: '20',
+          sort:
+            sortBy === 'Candidate A-Z'
+              ? 'candidate_az'
+              : sortBy === 'Most Skills'
+                ? 'most_skills'
+                : sortBy === 'Most Notes'
+                  ? 'most_notes'
+                  : 'recently_updated',
+          visibility:
+            visibilityFilter === 'Shortlisted'
+              ? 'shortlisted'
+              : visibilityFilter === 'Profile Visible'
+                ? 'profile_visible'
+                : visibilityFilter === 'Learning Visible'
+                  ? 'learning_visible'
+                  : visibilityFilter === 'Exams Visible'
+                    ? 'exams_visible'
+                    : visibilityFilter === 'Fully Visible'
+                      ? 'fully_visible'
+                      : 'all',
+        })
+        if (searchQuery.trim()) {
+          params.set('q', searchQuery.trim())
+        }
+        const response = await apiRequest<CompanyCandidatesResponse>(`/company/candidates?${params.toString()}`)
         if (active) {
           setData(response)
           setError(null)
@@ -93,97 +128,11 @@ export function CompanyCandidatesPage() {
     return () => {
       active = false
     }
-  }, [])
+  }, [page, searchQuery, sortBy, visibilityFilter])
 
-  const summary = useMemo(() => {
-    return data.candidates.reduce(
-      (counts, candidate) => {
-        if (candidate.is_shortlisted) {
-          counts.shortlisted += 1
-        }
-
-        if (candidate.visibility.profile_preview === 'visible') {
-          counts.profileVisible += 1
-        }
-
-        if (candidate.visibility.learning_record === 'visible') {
-          counts.learningVisible += 1
-        }
-
-        if (candidate.visibility.exam_results === 'visible') {
-          counts.examVisible += 1
-        }
-
-        if (
-          candidate.visibility.profile_preview === 'visible' &&
-          candidate.visibility.learning_record === 'visible' &&
-          candidate.visibility.exam_results === 'visible'
-        ) {
-          counts.fullyVisible += 1
-        }
-
-        return counts
-      },
-      {
-        shortlisted: 0,
-        profileVisible: 0,
-        learningVisible: 0,
-        examVisible: 0,
-        fullyVisible: 0,
-      }
-    )
-  }, [data.candidates])
-
-  const filteredCandidates = useMemo(() => {
-    const normalizedQuery = searchQuery.trim().toLowerCase()
-
-    const filtered = data.candidates.filter((candidate) => {
-      const matchesQuery =
-        !normalizedQuery ||
-        [
-          candidate.display_name,
-          candidate.source,
-          candidate.desired_job_type,
-          candidate.desired_work_location,
-          ...candidate.top_skills,
-          ...candidate.strengths,
-        ]
-          .join(' ')
-          .toLowerCase()
-          .includes(normalizedQuery)
-
-      const isFullyVisible =
-        candidate.visibility.profile_preview === 'visible' &&
-        candidate.visibility.learning_record === 'visible' &&
-        candidate.visibility.exam_results === 'visible'
-
-      const matchesVisibility =
-        visibilityFilter === 'All Candidates' ||
-        (visibilityFilter === 'Shortlisted' && candidate.is_shortlisted) ||
-        (visibilityFilter === 'Profile Visible' && candidate.visibility.profile_preview === 'visible') ||
-        (visibilityFilter === 'Learning Visible' && candidate.visibility.learning_record === 'visible') ||
-        (visibilityFilter === 'Exams Visible' && candidate.visibility.exam_results === 'visible') ||
-        (visibilityFilter === 'Fully Visible' && isFullyVisible)
-
-      return matchesQuery && matchesVisibility
-    })
-
-    return filtered.sort((left, right) => {
-      if (sortBy === 'Candidate A-Z') {
-        return left.display_name.localeCompare(right.display_name)
-      }
-
-      if (sortBy === 'Most Skills') {
-        return right.top_skills.length - left.top_skills.length
-      }
-
-      if (sortBy === 'Most Notes') {
-        return right.notes_count - left.notes_count
-      }
-
-      return new Date(right.updated_at).getTime() - new Date(left.updated_at).getTime()
-    })
-  }, [data.candidates, searchQuery, sortBy, visibilityFilter])
+  useEffect(() => {
+    setPage(1)
+  }, [searchQuery, sortBy, visibilityFilter])
 
   if (loading) {
     return (
@@ -237,17 +186,17 @@ export function CompanyCandidatesPage() {
         </div>
         <div className="rounded-[26px] border border-border bg-background px-5 py-4">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Shortlisted</p>
-          <p className="mt-2 text-3xl font-bold text-foreground">{summary.shortlisted}</p>
+          <p className="mt-2 text-3xl font-bold text-foreground">{data.summary?.shortlisted ?? 0}</p>
           <p className="mt-1 text-sm text-muted-foreground">Candidates already promoted by your team</p>
         </div>
         <div className="rounded-[26px] border border-border bg-background px-5 py-4">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Full visibility</p>
-          <p className="mt-2 text-3xl font-bold text-foreground">{summary.fullyVisible}</p>
+          <p className="mt-2 text-3xl font-bold text-foreground">{data.summary?.fully_visible ?? 0}</p>
           <p className="mt-1 text-sm text-muted-foreground">Profile, learning, and exam access available</p>
         </div>
         <div className="rounded-[26px] border border-border bg-background px-5 py-4">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Exam access</p>
-          <p className="mt-2 text-3xl font-bold text-foreground">{summary.examVisible}</p>
+          <p className="mt-2 text-3xl font-bold text-foreground">{data.summary?.exam_visible ?? 0}</p>
           <p className="mt-1 text-sm text-muted-foreground">Candidate contexts with exam evidence visible</p>
         </div>
       </div>
@@ -341,7 +290,7 @@ export function CompanyCandidatesPage() {
         </select>
       </div>
 
-      {filteredCandidates.length === 0 ? (
+      {data.candidates.length === 0 ? (
         <Card className="rounded-[28px] border border-dashed border-border/80 bg-muted/20">
           <CardContent className="flex flex-col items-center justify-center px-6 py-12 text-center">
             <div className="rounded-full bg-background p-3 shadow-sm ring-1 ring-border">
@@ -356,7 +305,7 @@ export function CompanyCandidatesPage() {
       ) : null}
 
       <div className="grid gap-4 xl:grid-cols-2">
-        {filteredCandidates.map((candidate) => (
+        {data.candidates.map((candidate) => (
           <Card key={candidate.candidate_access_id} className="rounded-[28px] border border-border/70 shadow-sm">
             <CardHeader className="gap-4 border-b pb-4">
               <div className="flex flex-wrap items-start justify-between gap-3">
@@ -464,6 +413,32 @@ export function CompanyCandidatesPage() {
           </Card>
         ))}
       </div>
+
+      {data.pagination ? (
+        <div className="flex flex-col gap-3 rounded-[24px] border border-border/70 bg-background px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm text-muted-foreground">
+            Page {data.pagination.page} of {Math.max(1, data.pagination.total_pages)}
+          </p>
+          <div className="flex items-center gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setPage((current) => Math.max(1, current - 1))}
+              disabled={!data.pagination.has_previous}
+            >
+              Previous
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setPage((current) => current + 1)}
+              disabled={!data.pagination.has_next}
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      ) : null}
     </div>
   )
 }

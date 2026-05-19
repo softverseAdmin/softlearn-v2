@@ -1,5 +1,6 @@
 import hashlib
 import logging
+import ipaddress
 from typing import Dict, Any, Set
 from functools import wraps
 from datetime import datetime, timedelta
@@ -17,14 +18,36 @@ def client_ip_from_request(request) -> str:
     """Extract client IP from request."""
     remote_addr = (request.META.get('REMOTE_ADDR') or '').strip()
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-    trusted_proxies = set(getattr(settings, "TRUSTED_PROXY_IPS", []))
+    trusted_proxies = getattr(settings, "TRUSTED_PROXY_IPS", [])
 
-    if remote_addr and remote_addr in trusted_proxies and x_forwarded_for:
+    if remote_addr and is_trusted_proxy_ip(remote_addr, trusted_proxies) and x_forwarded_for:
         forwarded_ip = x_forwarded_for.split(',')[0].strip()
         if forwarded_ip:
             return forwarded_ip
 
     return remote_addr
+
+
+def is_trusted_proxy_ip(remote_addr: str, trusted_proxies: list[str]) -> bool:
+    try:
+        remote_ip = ipaddress.ip_address(remote_addr)
+    except ValueError:
+        return False
+
+    for candidate in trusted_proxies:
+        value = (candidate or "").strip()
+        if not value:
+            continue
+        try:
+            if "/" in value:
+                if remote_ip in ipaddress.ip_network(value, strict=False):
+                    return True
+            elif remote_ip == ipaddress.ip_address(value):
+                return True
+        except ValueError:
+            logger.warning("Ignoring invalid trusted proxy entry: %s", value)
+
+    return False
 
 
 class SecurityManager:

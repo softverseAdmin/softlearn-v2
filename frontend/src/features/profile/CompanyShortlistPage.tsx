@@ -14,13 +14,14 @@ export function CompanyShortlistPage() {
   const [data, setData] = useState<CompanyShortlistResponse>(emptyResponse)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [page, setPage] = useState(1)
 
   useEffect(() => {
     let active = true
 
     async function loadShortlist() {
       try {
-        const response = await apiRequest<CompanyShortlistResponse>('/company/shortlist')
+        const response = await apiRequest<CompanyShortlistResponse>(`/company/shortlist?page=${page}&page_size=20`)
         if (active) {
           setData(response)
         }
@@ -39,7 +40,7 @@ export function CompanyShortlistPage() {
     return () => {
       active = false
     }
-  }, [])
+  }, [page])
 
   if (loading) {
     return (
@@ -85,6 +86,34 @@ export function CompanyShortlistPage() {
           </article>
         ))}
       </div>
+
+      {data.pagination ? (
+        <div className="card">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="muted">
+              Page {data.pagination.page} of {Math.max(1, data.pagination.total_pages)}
+            </p>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                className="secondary-button inline-button"
+                onClick={() => setPage((current) => Math.max(1, current - 1))}
+                disabled={!data.pagination.has_previous}
+              >
+                Previous
+              </button>
+              <button
+                type="button"
+                className="secondary-button inline-button"
+                onClick={() => setPage((current) => current + 1)}
+                disabled={!data.pagination.has_next}
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </section>
   )
 }
