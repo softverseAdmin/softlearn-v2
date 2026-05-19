@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Bell, Mail, Moon, Sun, Search, LogOut } from 'lucide-react'
 import { useTheme } from '@/components/ui/theme-context'
@@ -15,6 +15,7 @@ import {
 
 export interface NavbarProps {
   searchPlaceholder?: string
+  searchValue?: string
   onSearch?: (query: string) => void
   showNotifications?: boolean
   notificationCount?: number
@@ -35,6 +36,7 @@ export interface NavbarProps {
 
 export function Navbar({
   searchPlaceholder = 'Search courses, lessons...',
+  searchValue = '',
   onSearch,
   showNotifications = true,
   notificationCount = 0,
@@ -44,20 +46,27 @@ export function Navbar({
   messagesHref,
   userMenu,
 }: NavbarProps) {
-  const [searchQuery, setSearchQuery] = useState('')
+  const [searchQuery, setSearchQuery] = useState(searchValue)
   const { theme, setTheme } = useTheme()
 
+  useEffect(() => {
+    setSearchQuery(searchValue)
+  }, [searchValue])
+
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const query = e.target.value
-    setSearchQuery(query)
-    onSearch?.(query)
+    setSearchQuery(e.target.value)
+  }
+
+  const handleSearchSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    onSearch?.(searchQuery)
   }
 
   return (
     <nav className="sticky top-0 z-10">
       <div className="flex min-h-18 items-center justify-end gap-2 border border-white/70 bg-white/88 px-4 py-3 shadow-[0_18px_50px_rgba(15,23,42,0.06)] backdrop-blur-xl md:gap-3 md:px-6">
         <div className="ml-auto min-w-0 flex-1 basis-0 sm:flex-[1.15] md:flex-[1.35] lg:flex-[1.55] xl:flex-[1.75]">
-          <div className="relative w-full">
+          <form className="relative w-full" onSubmit={handleSearchSubmit}>
             <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
@@ -71,9 +80,9 @@ export function Navbar({
               )}
             />
             <span className="absolute right-3 top-1/2 hidden -translate-y-1/2 rounded-xl border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-medium text-slate-400 lg:inline-flex">
-              Ctrl + K
+              Enter
             </span>
-          </div>
+          </form>
         </div>
 
         <div className="shrink-0 flex items-center gap-2 md:gap-3">

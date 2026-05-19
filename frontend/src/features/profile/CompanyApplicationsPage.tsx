@@ -17,6 +17,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { useWorkspaceSearchQuery } from '@/hooks/useWorkspaceSearchQuery'
 import { cn } from '@/lib/utils'
 
 const emptyApplicationsResponse: CompanyApplicationsResponse = {
@@ -60,7 +61,7 @@ export function CompanyApplicationsPage() {
   const [loading, setLoading] = useState(true)
   const [savingId, setSavingId] = useState<number | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [searchQuery, setSearchQuery] = useState('')
+  const [searchQuery, setSearchQuery] = useWorkspaceSearchQuery()
   const [status, setStatus] = useState('All Statuses')
   const [sortBy, setSortBy] = useState('Newest')
 

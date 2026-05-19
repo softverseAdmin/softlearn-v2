@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
+import { useWorkspaceSearchQuery } from '@/hooks/useWorkspaceSearchQuery'
 import { cn } from '@/lib/utils'
 
 const emptyResponse: CompanyCandidatesResponse = {
@@ -63,7 +64,7 @@ export function CompanyCandidatesPage() {
   const [data, setData] = useState<CompanyCandidatesResponse>(emptyResponse)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [searchQuery, setSearchQuery] = useState('')
+  const [searchQuery, setSearchQuery] = useWorkspaceSearchQuery()
   const [visibilityFilter, setVisibilityFilter] = useState('All Candidates')
   const [sortBy, setSortBy] = useState('Recently Updated')
 
