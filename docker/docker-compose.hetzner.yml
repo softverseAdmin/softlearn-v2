@@ -32,6 +32,8 @@ services:
     profiles: ["release"]
     env_file:
       - ../.env
+    volumes:
+      - ../media:/app/media
     environment:
       POSTGRES_HOST: postgres
       POSTGRES_PORT: "5432"
@@ -54,6 +56,8 @@ services:
     restart: unless-stopped
     env_file:
       - ../.env
+    volumes:
+      - ../media:/app/media
     environment:
       POSTGRES_HOST: postgres
       POSTGRES_PORT: "5432"
@@ -85,6 +89,8 @@ services:
     restart: unless-stopped
     env_file:
       - ../.env
+    volumes:
+      - ../media:/app/media
     environment:
       POSTGRES_HOST: postgres
       POSTGRES_PORT: "5432"
