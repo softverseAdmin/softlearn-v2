@@ -61,6 +61,14 @@ function getLessonStatus(state: CompanyCoursePreviewState, lessonId: number): Le
   return state.lessonStatuses[lessonId] ?? 'not_started'
 }
 
+function normalizeWorkspaceHref(href: string | null | undefined, workspacePrefix: string) {
+  if (!href) {
+    return null
+  }
+
+  return href.replace(/^\/company(?=\/|$)/, workspacePrefix)
+}
+
 function isLessonAccessible(state: CompanyCoursePreviewState, lessons: CourseLessonSummary[], lessonId: number) {
   if (!state.started) {
     return false
@@ -133,11 +141,14 @@ export function applyCompanyPreviewStateToCourseDetail(
 
   return {
     ...detail,
+    detail_href: `${workspacePrefix}/courses/${detail.course_id}/preview`,
     is_enrolled: state.started,
     enrollment_status: state.started ? (allLessonsComplete && state.finalExamResult?.passed ? 'completed' : 'in_progress') : null,
     progress_percent: progressPercent,
     next_step_label: state.started ? (allLessonsComplete && state.finalExamResult?.passed ? 'Review course' : 'Continue learning') : 'Start preview',
-    next_step_href: continueLesson?.detail_href ?? (state.started ? detail.next_step_href : null),
+    next_step_href:
+      continueLesson?.detail_href ??
+      (state.started ? normalizeWorkspaceHref(detail.next_step_href, workspacePrefix) : null),
     enrollment: {
       ...detail.enrollment,
       is_enrolled: state.started,
@@ -166,6 +177,7 @@ export function applyCompanyPreviewStateToLessonDetail(
 ): LessonDetailResponse {
   const currentLesson = courseDetail.lessons.find((lesson) => lesson.lesson_id === detail.lesson_id)
   const currentIndex = courseDetail.lessons.findIndex((lesson) => lesson.lesson_id === detail.lesson_id)
+  const previousLesson = currentIndex > 0 ? courseDetail.lessons[currentIndex - 1] : null
   const nextLesson = currentIndex >= 0 ? courseDetail.lessons[currentIndex + 1] : null
 
   return {
@@ -176,8 +188,9 @@ export function applyCompanyPreviewStateToLessonDetail(
       started_at: null,
       completed_at: null,
     },
-    previous_lesson_href: detail.previous_lesson_href,
-    next_lesson_href: nextLesson?.detail_href ?? null,
+    previous_lesson_href:
+      previousLesson?.detail_href ?? normalizeWorkspaceHref(detail.previous_lesson_href, workspacePrefix),
+    next_lesson_href: nextLesson?.detail_href ?? normalizeWorkspaceHref(detail.next_lesson_href, workspacePrefix),
     lesson_exam: withAssessmentState(
       detail.lesson_exam,
       state.lessonExamResults[detail.lesson_id] ?? null,
