@@ -109,6 +109,8 @@ def file_url_or_none(field_file) -> str | None:
     if not field_file:
         return None
     try:
+        if not field_file.name or not field_file.storage.exists(field_file.name):
+            return None
         url = field_file.url
     except (AttributeError, ValueError):
         return None

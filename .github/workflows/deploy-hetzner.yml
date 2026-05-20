@@ -186,7 +186,7 @@ jobs:
           HETZNER_PORT: ${{ secrets.HETZNER_PORT }}
           HETZNER_APP_DIR: ${{ env.HETZNER_APP_DIR }}
         run: |
-          ssh -p "$HETZNER_PORT" "${HETZNER_USER}@${HETZNER_HOST}" "mkdir -p '${HETZNER_APP_DIR}/docker/nginx'"
+          ssh -p "$HETZNER_PORT" "${HETZNER_USER}@${HETZNER_HOST}" "mkdir -p '${HETZNER_APP_DIR}/docker/nginx' '${HETZNER_APP_DIR}/media'"
           scp -P "$HETZNER_PORT" docker/docker-compose.hetzner.yml "${HETZNER_USER}@${HETZNER_HOST}:${HETZNER_APP_DIR}/docker/docker-compose.hetzner.yml"
           scp -P "$HETZNER_PORT" docker/nginx/softlearn.hetzner.conf "${HETZNER_USER}@${HETZNER_HOST}:${HETZNER_APP_DIR}/docker/nginx/softlearn.hetzner.conf"
 
@@ -208,6 +208,10 @@ jobs:
           cd "$HETZNER_APP_DIR"
           test -f .env
           export BACKEND_IMAGE FRONTEND_IMAGE
+
+          mkdir -p media
+          chown -R 1000:1000 media
+          chmod 755 media
 
           echo "$GHCR_READ_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
 

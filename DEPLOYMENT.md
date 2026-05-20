@@ -304,6 +304,8 @@ apt update
 apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
 mkdir -p /apps/softlearn/docker /apps/softlearn/media
+chown -R 1000:1000 /apps/softlearn/media
+chmod 755 /apps/softlearn/media
 ```
 
 Copy the nginx template into place:
@@ -376,6 +378,8 @@ The workflow will:
 6. verify `http://127.0.0.1:8080/healthz` and `http://127.0.0.1:8080/api/v1/ready`
 
 The deploy workflow now passes `--env-file .env` to every Hetzner `docker compose` command so required values such as `POSTGRES_DB`, `POSTGRES_USER`, and `POSTGRES_PASSWORD` are loaded explicitly from `/apps/softlearn/.env` during compose interpolation.
+
+The media directory must stay writable by the container `appuser` (`uid=1000`, `gid=1000`). If `/apps/softlearn/media` is left owned by `root`, profile and cover uploads will fail with 500 errors even though reads and health checks still pass.
 
 Branch behavior is now:
 
