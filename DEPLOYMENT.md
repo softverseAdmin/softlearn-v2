@@ -303,7 +303,7 @@ echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.
 apt update
 apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
-mkdir -p /apps/softlearn/docker
+mkdir -p /apps/softlearn/docker /apps/softlearn/media
 ```
 
 Copy the nginx template into place:
@@ -372,7 +372,7 @@ The workflow will:
 2. upload `docker/docker-compose.hetzner.yml` to `/apps/softlearn/docker/`
 3. pull the new images on the VPS
 4. run the release container for migrations
-5. start backend, worker, and frontend containers
+5. start backend, worker, and frontend containers with `/apps/softlearn/media` mounted at `/app/media`
 6. verify `http://127.0.0.1:8080/healthz` and `http://127.0.0.1:8080/api/v1/ready`
 
 The deploy workflow now passes `--env-file .env` to every Hetzner `docker compose` command so required values such as `POSTGRES_DB`, `POSTGRES_USER`, and `POSTGRES_PASSWORD` are loaded explicitly from `/apps/softlearn/.env` during compose interpolation.
