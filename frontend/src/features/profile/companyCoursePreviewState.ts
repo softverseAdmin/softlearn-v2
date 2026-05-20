@@ -13,7 +13,10 @@ export interface CompanyCoursePreviewState {
   finalExamResult: { score_percent: number; passed: boolean } | null
 }
 
-export const companyCoursePreviewFavoritesStorageKey = 'company-course-preview-favorites'
+export type CompanyCoursePreviewStorageScope = {
+  workspaceRole?: 'company' | 'teacher'
+  userId?: number | null
+}
 
 const emptyPreviewState: CompanyCoursePreviewState = {
   started: false,
@@ -22,16 +25,29 @@ const emptyPreviewState: CompanyCoursePreviewState = {
   finalExamResult: null,
 }
 
-function previewStorageKey(courseId: number) {
-  return `company-course-preview:${courseId}`
+function normalizePreviewStorageScope(scope?: CompanyCoursePreviewStorageScope) {
+  return {
+    workspaceRole: scope?.workspaceRole ?? 'company',
+    userId: scope?.userId ?? 'anonymous',
+  }
 }
 
-export function readCompanyCoursePreviewState(courseId: number) {
+function previewStorageKey(courseId: number, scope?: CompanyCoursePreviewStorageScope) {
+  const normalizedScope = normalizePreviewStorageScope(scope)
+  return `company-course-preview:${normalizedScope.workspaceRole}:${normalizedScope.userId}:${courseId}`
+}
+
+export function getCompanyCoursePreviewFavoritesStorageKey(scope?: CompanyCoursePreviewStorageScope) {
+  const normalizedScope = normalizePreviewStorageScope(scope)
+  return `company-course-preview-favorites:${normalizedScope.workspaceRole}:${normalizedScope.userId}`
+}
+
+export function readCompanyCoursePreviewState(courseId: number, scope?: CompanyCoursePreviewStorageScope) {
   if (!courseId || typeof window === 'undefined') {
     return emptyPreviewState
   }
 
-  const stored = window.localStorage.getItem(previewStorageKey(courseId))
+  const stored = window.localStorage.getItem(previewStorageKey(courseId, scope))
   if (!stored) {
     return emptyPreviewState
   }
@@ -49,12 +65,12 @@ export function readCompanyCoursePreviewState(courseId: number) {
   }
 }
 
-export function writeCompanyCoursePreviewState(courseId: number, state: CompanyCoursePreviewState) {
+export function writeCompanyCoursePreviewState(courseId: number, state: CompanyCoursePreviewState, scope?: CompanyCoursePreviewStorageScope) {
   if (!courseId || typeof window === 'undefined') {
     return
   }
 
-  window.localStorage.setItem(previewStorageKey(courseId), JSON.stringify(state))
+  window.localStorage.setItem(previewStorageKey(courseId, scope), JSON.stringify(state))
 }
 
 function getLessonStatus(state: CompanyCoursePreviewState, lessonId: number): LessonProgressState['status'] {

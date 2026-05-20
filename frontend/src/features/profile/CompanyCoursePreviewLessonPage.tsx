@@ -166,8 +166,12 @@ function getAssessmentRowClassName(assessment: CourseLessonSummary['assessment']
 export function CompanyCoursePreviewLessonPage({ workspaceRole = 'company' }: { workspaceRole?: 'company' | 'teacher' }) {
   const { courseId, lessonId } = useParams<{ courseId: string; lessonId: string }>()
   const navigate = useNavigate()
-  const { csrfToken } = useAuth()
+  const { csrfToken, user } = useAuth()
   const workspacePrefix = workspaceRole === 'teacher' ? '/teacher' : '/company'
+  const previewStorageScope = useMemo(
+    () => ({ workspaceRole, userId: user?.user_id ?? null }),
+    [user?.user_id, workspaceRole],
+  )
   const [data, setData] = useState<LessonDetailResponse>(emptyLesson)
   const [courseDetail, setCourseDetail] = useState<CourseDetailResponse>(emptyCourseDetail)
   const [loading, setLoading] = useState(true)
@@ -199,7 +203,7 @@ export function CompanyCoursePreviewLessonPage({ workspaceRole = 'company' }: { 
         apiRequest<CourseDetailResponse>(`${workspacePrefix}/courses/${courseId}/preview`),
       ])
 
-      const previewState = readCompanyCoursePreviewState(courseResponse.course_id)
+      const previewState = readCompanyCoursePreviewState(courseResponse.course_id, previewStorageScope)
       const derivedCourse = applyCompanyPreviewStateToCourseDetail(courseResponse, previewState, workspacePrefix)
       const targetLesson = derivedCourse.lessons.find((lesson) => lesson.lesson_id === Number(lessonId))
       if (!previewState.started || !targetLesson?.is_accessible) {
@@ -215,7 +219,7 @@ export function CompanyCoursePreviewLessonPage({ workspaceRole = 'company' }: { 
     } finally {
       setLoading(false)
     }
-  }, [courseId, lessonId, workspacePrefix])
+  }, [courseId, lessonId, previewStorageScope, workspacePrefix])
 
   useEffect(() => {
     void loadPageData()
@@ -264,8 +268,8 @@ export function CompanyCoursePreviewLessonPage({ workspaceRole = 'company' }: { 
     updater: (current: ReturnType<typeof readCompanyCoursePreviewState>) => ReturnType<typeof readCompanyCoursePreviewState>,
   ) {
     if (!courseDetail.course_id) return
-    const nextState = updater(readCompanyCoursePreviewState(courseDetail.course_id))
-    writeCompanyCoursePreviewState(courseDetail.course_id, nextState)
+    const nextState = updater(readCompanyCoursePreviewState(courseDetail.course_id, previewStorageScope))
+    writeCompanyCoursePreviewState(courseDetail.course_id, nextState, previewStorageScope)
   }
 
   async function updateProgress(status: 'in_progress' | 'completed') {

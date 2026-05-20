@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { BookOpen, Check, ChevronDown, ChevronRight, Clock3, Heart, Lock, PlayCircle, Star, Users } from 'lucide-react'
 
+import { useAuth } from '../../auth/useAuth'
 import { ApiError, apiRequest } from '../../lib/api'
 import type { CourseDetailResponse, CourseLessonSummary } from './types'
 import { LoadingState } from '@/components/LoadingIndicator'
@@ -10,7 +11,7 @@ import { cn, truncateText } from '@/lib/utils'
 import { getCourseMediaOverrideForCourse } from './courseMediaStorage'
 import {
   applyCompanyPreviewStateToCourseDetail,
-  companyCoursePreviewFavoritesStorageKey,
+  getCompanyCoursePreviewFavoritesStorageKey,
   readCompanyCoursePreviewState,
   writeCompanyCoursePreviewState,
 } from './companyCoursePreviewState'
@@ -201,10 +202,39 @@ function getLessonAssessmentLabel(lesson: CourseLessonSummary) {
   return `Lesson ${lesson.sequence_number}: Exam · ${lesson.assessment.question_count} questions`
 }
 
+function getYouTubeEmbedUrl(videoUrl: string | null | undefined) {
+  if (!videoUrl?.trim()) return null
+  try {
+    const parsed = new URL(videoUrl)
+    const hostname = parsed.hostname.toLowerCase()
+    if (hostname === 'youtu.be' || hostname === 'www.youtu.be') {
+      const videoId = parsed.pathname.replace('/', '').trim()
+      return videoId ? `https://www.youtube.com/embed/${videoId}` : null
+    }
+    if (hostname === 'youtube.com' || hostname === 'www.youtube.com' || hostname === 'm.youtube.com') {
+      if (parsed.pathname.startsWith('/embed/')) {
+        const videoId = parsed.pathname.split('/')[2]
+        return videoId ? `https://www.youtube.com/embed/${videoId}` : null
+      }
+      const videoId = parsed.searchParams.get('v')
+      return videoId ? `https://www.youtube.com/embed/${videoId}` : null
+    }
+  } catch {
+    return null
+  }
+  return null
+}
+
 export function CompanyCoursePreviewDetailPage({ workspaceRole = 'company' }: { workspaceRole?: 'company' | 'teacher' }) {
   const { courseId } = useParams<{ courseId: string }>()
   const navigate = useNavigate()
+  const { user } = useAuth()
   const workspacePrefix = workspaceRole === 'teacher' ? '/teacher' : '/company'
+  const previewStorageScope = useMemo(
+    () => ({ workspaceRole, userId: user?.user_id ?? null }),
+    [user?.user_id, workspaceRole],
+  )
+  const previewVideoRef = useRef<HTMLElement | null>(null)
   const [data, setData] = useState<CourseDetailResponse>(emptyDetail)
   const [loading, setLoading] = useState(true)
   const [starting, setStarting] = useState(false)
@@ -226,7 +256,7 @@ export function CompanyCoursePreviewDetailPage({ workspaceRole = 'company' }: { 
 
       try {
         const response = await apiRequest<CourseDetailResponse>(`${workspacePrefix}/courses/${courseId}/preview`)
-        const previewState = readCompanyCoursePreviewState(response.course_id)
+        const previewState = readCompanyCoursePreviewState(response.course_id, previewStorageScope)
         if (active) {
           setData(applyCompanyPreviewStateToCourseDetail(response, previewState, workspacePrefix))
           setError(null)
@@ -241,11 +271,11 @@ export function CompanyCoursePreviewDetailPage({ workspaceRole = 'company' }: { 
         }
       }
     },
-    [courseId, workspacePrefix],
+    [courseId, previewStorageScope, workspacePrefix],
   )
 
   useEffect(() => {
-    const storedFavorites = localStorage.getItem(companyCoursePreviewFavoritesStorageKey)
+    const storedFavorites = localStorage.getItem(getCompanyCoursePreviewFavoritesStorageKey(previewStorageScope))
     if (!storedFavorites) return
     try {
       const parsedFavorites = JSON.parse(storedFavorites) as number[]
@@ -253,7 +283,7 @@ export function CompanyCoursePreviewDetailPage({ workspaceRole = 'company' }: { 
     } catch {
       setFavoriteCourseIds([])
     }
-  }, [])
+  }, [previewStorageScope])
 
   useEffect(() => {
     let active = true
@@ -276,6 +306,8 @@ export function CompanyCoursePreviewDetailPage({ workspaceRole = 'company' }: { 
     () => (data.course_id ? getCourseMediaOverrideForCourse(data.course_id, data.title) : null),
     [data.course_id, data.title],
   )
+  const previewHeroImage = data.preview_thumbnail_image || mediaOverride?.previewImage || data.thumbnail_image || mediaOverride?.thumbnailImage || ''
+  const previewVideoEmbedUrl = useMemo(() => getYouTubeEmbedUrl(data.preview_video_url), [data.preview_video_url])
   const areAllLessonsOpen = data.lessons.length > 0 && openLessonIds.length === data.lessons.length
   const isWishlisted = favoriteCourseIds.includes(data.course_id)
 
@@ -300,7 +332,7 @@ export function CompanyCoursePreviewDetailPage({ workspaceRole = 'company' }: { 
       const nextFavorites = currentFavorites.includes(data.course_id)
         ? currentFavorites.filter((course) => course !== data.course_id)
         : [...currentFavorites, data.course_id]
-      localStorage.setItem(companyCoursePreviewFavoritesStorageKey, JSON.stringify(nextFavorites))
+      localStorage.setItem(getCompanyCoursePreviewFavoritesStorageKey(previewStorageScope), JSON.stringify(nextFavorites))
       return nextFavorites
     })
   }
@@ -320,12 +352,17 @@ export function CompanyCoursePreviewDetailPage({ workspaceRole = 'company' }: { 
   async function startPreview(targetHref?: string | null) {
     if (!data.course_id || data.lessons.length === 0) return
     setStarting(true)
-    const previewState = readCompanyCoursePreviewState(data.course_id)
+    const previewState = readCompanyCoursePreviewState(data.course_id, previewStorageScope)
     writeCompanyCoursePreviewState(data.course_id, {
       ...previewState,
       started: true,
-    })
+    }, previewStorageScope)
     await loadCourse(true, false)
+    if (previewVideoEmbedUrl && !previewState.started) {
+      previewVideoRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      setStarting(false)
+      return
+    }
     navigate(targetHref || `${workspacePrefix}/courses/${data.course_id}/preview/lessons/${data.lessons[0].lesson_id}`)
     setStarting(false)
   }
@@ -368,9 +405,9 @@ export function CompanyCoursePreviewDetailPage({ workspaceRole = 'company' }: { 
 
           <section className="mb-8 grid grid-cols-1 gap-8 lg:grid-cols-[320px_minmax(0,1fr)]">
             <div className="h-52 overflow-hidden rounded-xl bg-slate-950 shadow">
-              {data.thumbnail_image || mediaOverride?.thumbnailImage || mediaOverride?.previewImage ? (
+              {previewHeroImage ? (
                 <img
-                  src={data.thumbnail_image || mediaOverride?.thumbnailImage || mediaOverride?.previewImage || ''}
+                  src={previewHeroImage}
                   alt={data.thumbnail_alt_text || mediaOverride?.thumbnailAltText || `${data.title} cover`}
                   className="h-full w-full object-cover"
                 />
@@ -445,15 +482,62 @@ export function CompanyCoursePreviewDetailPage({ workspaceRole = 'company' }: { 
             </div>
           </section>
 
+          {previewVideoEmbedUrl ? (
+            <section ref={previewVideoRef} className={cn(cardClassName, 'mb-5')}>
+              <div className="mb-5 flex items-center justify-between gap-3">
+                <div>
+                  <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">Preview Video</h2>
+                  <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                    Watch the student-facing preview before starting the lesson flow.
+                  </p>
+                </div>
+                {!data.enrollment.is_enrolled ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="rounded-xl"
+                    onClick={() => goToHref(continueLesson?.detail_href || `${workspacePrefix}/courses/${data.course_id}/preview/lessons/${data.lessons[0].lesson_id}`)}
+                  >
+                    Go to first lesson
+                  </Button>
+                ) : null}
+              </div>
+              <div className="relative aspect-video overflow-hidden rounded-xl bg-slate-950 shadow-lg">
+                <iframe
+                  className="h-full w-full"
+                  src={previewVideoEmbedUrl}
+                  title={data.preview_title || data.title || 'Course preview video'}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  referrerPolicy="strict-origin-when-cross-origin"
+                  allowFullScreen
+                />
+              </div>
+            </section>
+          ) : null}
+
           <section className={cn(cardClassName, 'mb-5')}>
             <h2 className="mb-5 text-xl font-bold text-slate-900 dark:text-slate-100">Continue Learning</h2>
             <div className="flex flex-col gap-5 md:flex-row md:items-center">
-              <div className="flex h-20 w-36 items-center justify-center rounded-lg bg-slate-950 text-4xl text-cyan-400">⚛</div>
+              <div className="flex h-20 w-36 items-center justify-center overflow-hidden rounded-lg bg-slate-950 text-4xl text-cyan-400">
+                {previewHeroImage ? (
+                  <img
+                    src={previewHeroImage}
+                    alt={data.thumbnail_alt_text || mediaOverride?.thumbnailAltText || `${data.title} cover`}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  '⚛'
+                )}
+              </div>
               <div className="flex-1">
                 <h3 className="font-semibold text-slate-900 dark:text-slate-100">{continueLesson?.title || 'Start your first lesson'}</h3>
                 <p className="mt-1 text-sm text-blue-600 dark:text-blue-400">
                   {continueLesson ? `Lesson ${continueLesson.sequence_number}` : 'Course overview'} ・{' '}
-                  {data.enrollment.is_enrolled ? 'Ready to continue' : 'Start preview to unlock lessons'}
+                  {data.enrollment.is_enrolled
+                    ? 'Ready to continue'
+                    : previewVideoEmbedUrl
+                      ? 'Start preview to watch the intro video first'
+                      : 'Start preview to unlock lessons'}
                 </p>
                 <div className="mt-4 flex items-center gap-4">
                   <div className="h-1.5 max-w-sm flex-1 rounded-full bg-slate-200 dark:bg-slate-800">
