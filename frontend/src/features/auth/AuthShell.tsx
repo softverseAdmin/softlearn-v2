@@ -162,7 +162,7 @@ export function AuthShell({
                 <div className="mt-3 inline-flex rounded-2xl bg-blue-100 p-3 text-blue-700">
                   <ShieldCheck className="h-5 w-5" />
                 </div>
-                <p className="mt-2 text-sm text-slate-500">Role-based student, company, teacher, and admin entry</p>
+                <p className="mt-2 text-sm text-slate-500">Role-based student, company, and teacher entry</p>
               </div>
               <div className="rounded-[28px] border border-white/80 bg-white/90 px-5 py-4 shadow-sm">
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">Exam flow</p>
