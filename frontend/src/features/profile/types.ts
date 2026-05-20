@@ -355,6 +355,14 @@ export interface CourseCatalogRecord {
   estimated_hours: number
   thumbnail_image?: string | null
   thumbnail_alt_text?: string | null
+  preview_title?: string | null
+  preview_short_description?: string | null
+  preview_video_url?: string | null
+  preview_thumbnail_image?: string | null
+  preview_duration?: number | null
+  preview_access_type?: string | null
+  preview_order?: number | null
+  preview_status?: string | null
   status: string
   lesson_count: number
   learning_record_count: number
@@ -396,6 +404,14 @@ export interface CompanyCourseRecord {
   estimated_hours: number
   thumbnail_image?: string | null
   thumbnail_alt_text?: string | null
+  preview_title?: string | null
+  preview_short_description?: string | null
+  preview_video_url?: string | null
+  preview_thumbnail_image?: string | null
+  preview_duration?: number | null
+  preview_access_type?: string | null
+  preview_order?: number | null
+  preview_status?: string | null
   status: string
   lesson_count: number
   learning_record_count: number

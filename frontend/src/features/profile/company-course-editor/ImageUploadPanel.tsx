@@ -1,5 +1,6 @@
 import { X } from 'lucide-react'
 
+import { LoadingSpinner } from '@/components/LoadingIndicator'
 import { Button } from '@/components/ui/button'
 
 import type { ImageUploadPanelProps } from './shared'
@@ -39,7 +40,12 @@ export function ImageUploadPanel({ label, image, alt, isLoading, onChange, onRem
             onChange={onChange}
             className="block w-full text-sm text-muted-foreground file:mr-4 file:rounded-xl file:border-0 file:bg-primary file:px-4 file:py-2 file:text-sm file:font-medium file:text-primary-foreground hover:file:bg-primary/90"
           />
-          {isLoading ? <span className="text-xs text-muted-foreground">Loading preview…</span> : null}
+          {isLoading ? (
+            <span className="inline-flex items-center gap-2 text-xs text-muted-foreground">
+              <LoadingSpinner className="h-4 w-4" />
+              Loading preview...
+            </span>
+          ) : null}
         </div>
       </div>
     </div>

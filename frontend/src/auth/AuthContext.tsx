@@ -61,7 +61,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
   }, [csrfToken, fetchCsrfToken])
 
   const login = useCallback(
-    async (payload: { email: string; password: string; role: AuthUser['role'] }) => {
+    async (payload: { email: string; password: string; role?: AuthUser['role'] }) => {
       const token = await ensureCsrfToken()
       const response = await apiRequest<AuthUser & { csrf_token: string }>('/auth/login', {
         method: 'POST',
@@ -80,7 +80,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
   const signup = useCallback(
     async (payload: {
-      role: 'student' | 'company'
+      role: 'student' | 'company' | 'teacher'
       email: string
       password: string
       name: string

@@ -52,6 +52,12 @@ def serialize_workspace_summary(user: User) -> dict:
                 "profile_avatar": message_profile_image_for_user(user),
             }
         )
+    elif user.role == User.Role.TEACHER:
+        summary.update(
+            {
+                "profile_avatar": message_profile_image_for_user(user),
+            }
+        )
 
     return summary
 

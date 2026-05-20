@@ -1,5 +1,6 @@
 import { useFocusTrap } from '../hooks/useAccessibility'
 import type { ConfirmationModalProps } from './ConfirmationModal.types'
+import { LoadingSpinner } from './LoadingIndicator'
 
 /**
  * ConfirmationModal component for destructive actions
@@ -73,7 +74,7 @@ export function ConfirmationModal({
           >
             {isLoading ? (
               <span className="flex items-center gap-2">
-                <span className="animate-spin">⏳</span>
+                <LoadingSpinner className="h-4 w-4 text-white/30 fill-white" />
                 {confirmText}
               </span>
             ) : (

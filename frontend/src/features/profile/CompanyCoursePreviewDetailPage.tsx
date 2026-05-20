@@ -4,6 +4,7 @@ import { BookOpen, Check, ChevronDown, ChevronRight, Clock3, Heart, Lock, PlayCi
 
 import { ApiError, apiRequest } from '../../lib/api'
 import type { CourseDetailResponse, CourseLessonSummary } from './types'
+import { LoadingState } from '@/components/LoadingIndicator'
 import { Button } from '@/components/ui/button'
 import { cn, truncateText } from '@/lib/utils'
 import { getCourseMediaOverrideForCourse } from './courseMediaStorage'
@@ -200,9 +201,10 @@ function getLessonAssessmentLabel(lesson: CourseLessonSummary) {
   return `Lesson ${lesson.sequence_number}: Exam · ${lesson.assessment.question_count} questions`
 }
 
-export function CompanyCoursePreviewDetailPage() {
+export function CompanyCoursePreviewDetailPage({ workspaceRole = 'company' }: { workspaceRole?: 'company' | 'teacher' }) {
   const { courseId } = useParams<{ courseId: string }>()
   const navigate = useNavigate()
+  const workspacePrefix = workspaceRole === 'teacher' ? '/teacher' : '/company'
   const [data, setData] = useState<CourseDetailResponse>(emptyDetail)
   const [loading, setLoading] = useState(true)
   const [starting, setStarting] = useState(false)
@@ -223,10 +225,10 @@ export function CompanyCoursePreviewDetailPage() {
       }
 
       try {
-        const response = await apiRequest<CourseDetailResponse>(`/company/courses/${courseId}/preview`)
+        const response = await apiRequest<CourseDetailResponse>(`${workspacePrefix}/courses/${courseId}/preview`)
         const previewState = readCompanyCoursePreviewState(response.course_id)
         if (active) {
-          setData(applyCompanyPreviewStateToCourseDetail(response, previewState))
+          setData(applyCompanyPreviewStateToCourseDetail(response, previewState, workspacePrefix))
           setError(null)
         }
       } catch (loadError) {
@@ -239,7 +241,7 @@ export function CompanyCoursePreviewDetailPage() {
         }
       }
     },
-    [courseId],
+    [courseId, workspacePrefix],
   )
 
   useEffect(() => {
@@ -324,7 +326,7 @@ export function CompanyCoursePreviewDetailPage() {
       started: true,
     })
     await loadCourse(true, false)
-    navigate(targetHref || `/company/courses/${data.course_id}/preview/lessons/${data.lessons[0].lesson_id}`)
+    navigate(targetHref || `${workspacePrefix}/courses/${data.course_id}/preview/lessons/${data.lessons[0].lesson_id}`)
     setStarting(false)
   }
 
@@ -336,12 +338,7 @@ export function CompanyCoursePreviewDetailPage() {
     return (
       <div className="min-h-screen bg-slate-50 p-4 dark:bg-slate-950 lg:p-6">
         <div className={cardClassName}>
-          <div className="flex items-center justify-center py-20">
-            <div className="text-center">
-              <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600 dark:border-slate-800 dark:border-t-blue-400" />
-              <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">Loading course details...</p>
-            </div>
-          </div>
+          <LoadingState title="Loading course details" className="min-h-72 py-20" />
         </div>
       </div>
     )
@@ -351,11 +348,11 @@ export function CompanyCoursePreviewDetailPage() {
     <div className="min-h-screen bg-slate-50 p-4 dark:bg-slate-950 lg:p-6">
       <div className="space-y-6">
         <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-          <Link to="/company" className="transition-colors hover:text-foreground">
+          <Link to={workspacePrefix} className="transition-colors hover:text-foreground">
             Dashboard
           </Link>
           <ChevronRight className="h-4 w-4" />
-          <Link to="/company/courses" className="transition-colors hover:text-foreground">
+          <Link to={`${workspacePrefix}/courses`} className="transition-colors hover:text-foreground">
             Courses
           </Link>
           <ChevronRight className="h-4 w-4" />
@@ -426,7 +423,7 @@ export function CompanyCoursePreviewDetailPage() {
                   className="rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white shadow-sm hover:bg-blue-700 hover:text-white"
                   onClick={() =>
                     data.enrollment.is_enrolled
-                      ? goToHref(continueLesson?.detail_href || data.next_step_href || data.detail_href || '/company/courses')
+                      ? goToHref(continueLesson?.detail_href || data.next_step_href || data.detail_href || `${workspacePrefix}/courses`)
                       : void startPreview(continueLesson?.detail_href)
                   }
                   disabled={starting}
@@ -470,7 +467,7 @@ export function CompanyCoursePreviewDetailPage() {
                 className="rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white hover:bg-blue-700 hover:text-white"
                 onClick={() =>
                   data.enrollment.is_enrolled
-                    ? goToHref(continueLesson?.detail_href || data.next_step_href || data.detail_href || '/company/courses')
+                    ? goToHref(continueLesson?.detail_href || data.next_step_href || data.detail_href || `${workspacePrefix}/courses`)
                     : void startPreview(continueLesson?.detail_href)
                 }
                 disabled={starting}
@@ -552,7 +549,7 @@ export function CompanyCoursePreviewDetailPage() {
                             <Button
                               type="button"
                               className="rounded-xl bg-blue-600 text-white hover:bg-blue-700 hover:text-white"
-                              onClick={() => void startPreview(`/company/courses/${data.course_id}/preview/lessons/${lesson.lesson_id}`)}
+                              onClick={() => void startPreview(`${workspacePrefix}/courses/${data.course_id}/preview/lessons/${lesson.lesson_id}`)}
                               disabled={starting}
                             >
                               Start Preview

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { LoadingState } from '@/components/LoadingIndicator'
 import { ApiError, apiRequest } from '../../lib/api'
 import type { StudentPerformanceMetric } from './types'
 
@@ -69,7 +70,9 @@ export function PerformancePage() {
   if (loading) {
     return (
       <section className="page">
-        <div className="card">Loading performance metrics…</div>
+        <div className="card">
+          <LoadingState title="Loading performance metrics" className="min-h-40" />
+        </div>
       </section>
     )
   }

@@ -15,6 +15,7 @@ export type ShellNavigationTargets = {
 export const roleHomePaths: Record<UserRole, string> = {
   student: '/student',
   company: '/company',
+  teacher: '/teacher',
   admin: '/admin',
 }
 
@@ -35,6 +36,17 @@ export const navigationItemsByRole: Record<UserRole, NavigationItem[]> = {
     { label: 'Candidates', to: '/company/candidates' },
     { label: 'Interviews', to: '/company/interviews' },
     { label: 'Profile', to: '/company/profile' },
+    { label: 'Settings', to: '/company/privacy' },
+  ],
+  teacher: [
+    { label: 'Dashboard', to: '/teacher' },
+    { label: 'Courses', to: '/teacher/courses' },
+    { label: 'Progress', to: '/teacher/progress' },
+    { label: 'Exams', to: '/teacher/exams' },
+    { label: 'Students', to: '/teacher/students' },
+    { label: 'Notifications', to: '/teacher/notifications' },
+    { label: 'Profile', to: '/teacher/profile' },
+    { label: 'Settings', to: '/teacher/settings' },
   ],
   admin: [
     { label: 'Dashboard', to: '/admin' },
@@ -58,6 +70,12 @@ export const shellNavigationTargetsByRole: Record<UserRole, ShellNavigationTarge
     notificationsHref: '/company/notifications',
     messagesHref: '/company/messages',
     profileHref: '/company/profile',
+    settingsHref: '/company/privacy',
+  },
+  teacher: {
+    notificationsHref: '/teacher/notifications',
+    profileHref: '/teacher/profile',
+    settingsHref: '/teacher/settings',
   },
   admin: {
     notificationsHref: '/admin/notifications',

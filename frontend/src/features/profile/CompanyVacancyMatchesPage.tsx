@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 
+import { LoadingState } from '@/components/LoadingIndicator'
 import { ApiError, apiRequest } from '../../lib/api'
 import type { CompanyVacancyMatchesResponse } from './types'
 
@@ -53,7 +54,9 @@ export function CompanyVacancyMatchesPage() {
   if (loading) {
     return (
       <section className="page">
-        <div className="card">Loading matched students…</div>
+        <div className="card">
+          <LoadingState title="Loading matched students" className="min-h-40" />
+        </div>
       </section>
     )
   }

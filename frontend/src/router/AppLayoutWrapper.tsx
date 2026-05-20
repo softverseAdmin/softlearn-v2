@@ -75,9 +75,11 @@ export function AppLayoutWrapper() {
     if (href.endsWith('/learning')) return <GraduationCap className="h-5 w-5" />
     if (href.endsWith('/exams')) return <FileBadge2 className="h-5 w-5" />
     if (href.endsWith('/interviews')) return <Users className="h-5 w-5" />
+    if (href.endsWith('/progress')) return <BarChart3 className="h-5 w-5" />
     if (href.endsWith('/performance')) return <BarChart3 className="h-5 w-5" />
     if (href.endsWith('/users')) return <Users className="h-5 w-5" />
     if (href.endsWith('/companies')) return <Users className="h-5 w-5" />
+    if (href.endsWith('/students')) return <Users className="h-5 w-5" />
     if (href.endsWith('/resume')) return <FileText className="h-5 w-5" />
     if (href.endsWith('/documents')) return <Files className="h-5 w-5" />
     if (href.endsWith('/certificates')) return <BookMarked className="h-5 w-5" />
@@ -133,7 +135,9 @@ export function AppLayoutWrapper() {
         searchPlaceholder:
           user.role === 'student'
             ? 'Search for courses, jobs, skills and more...'
-            : `Search ${user.role} ${user.role === 'company' ? 'candidates' : 'users'}...`,
+            : user.role === 'company'
+              ? 'Search company candidates...'
+              : 'Search teacher workspace...',
         searchValue: currentSearchQuery,
         onSearch: handleSearch,
         showNotifications: true,

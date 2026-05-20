@@ -8,6 +8,7 @@ import type {
   PracticeQuestionsResponse,
   PreparationSummaryResponse,
 } from './types'
+import { LoadingState } from '@/components/LoadingIndicator'
 
 const emptySummary: PreparationSummaryResponse = {
   student_id: 0,
@@ -155,7 +156,13 @@ export function StudentPreparationPage() {
   }
 
   if (loading) {
-    return <section className="page"><div className="card">Loading preparation workspace…</div></section>
+    return (
+      <section className="page">
+        <div className="card">
+          <LoadingState title="Loading preparation workspace" className="min-h-40" />
+        </div>
+      </section>
+    )
   }
 
   return (
@@ -321,7 +328,7 @@ export function StudentPreparationPage() {
             </select>
           </label>
         </div>
-        {practiceLoading ? <p className="muted">Loading practice questions…</p> : null}
+        {practiceLoading ? <LoadingState title="Loading practice questions" className="min-h-24" /> : null}
         {!practiceLoading && practiceQuestions.questions.length === 0 ? <p className="muted">No practice questions match the selected filters.</p> : null}
         <div className="stack-list">
           {practiceQuestions.questions.map((question) => (

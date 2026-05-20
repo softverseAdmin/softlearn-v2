@@ -6,6 +6,7 @@ import { toast } from 'sonner'
 import { useAuth } from '../../auth/useAuth'
 import { ApiError, apiRequest } from '../../lib/api'
 import type { AdminCourseLessonsResponse, AdminLessonRecord } from '../admin/types'
+import { LoadingState } from '@/components/LoadingIndicator'
 import { MarkdownEditor } from '@/components/markdown/MarkdownEditor'
 import { Button } from '@/components/ui/button'
 import { cn, truncateText } from '@/lib/utils'
@@ -74,10 +75,13 @@ function statusBadgeClassName(status: string) {
   }
 }
 
-export function CompanyCourseLessonsPage() {
+export function CompanyCourseLessonsPage({ workspaceRole = 'company' }: { workspaceRole?: 'company' | 'teacher' }) {
   const { courseId } = useParams<{ courseId: string }>()
   const navigate = useNavigate()
   const { csrfToken } = useAuth()
+  const workspacePrefix = workspaceRole === 'teacher' ? '/teacher' : '/company'
+  const coursesPath = `${workspacePrefix}/courses`
+  const canPreviewCourse = Boolean(courseId)
   const [data, setData] = useState<AdminCourseLessonsResponse>(emptyLessonsResponse)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -141,7 +145,7 @@ export function CompanyCourseLessonsPage() {
       }
 
       try {
-        const response = await apiRequest<AdminCourseLessonsResponse>(`/company/courses/${courseId}/lessons`)
+        const response = await apiRequest<AdminCourseLessonsResponse>(`${workspacePrefix}/courses/${courseId}/lessons`)
         if (active) {
           setData(response)
           setError(null)
@@ -163,14 +167,14 @@ export function CompanyCourseLessonsPage() {
     return () => {
       active = false
     }
-  }, [courseId])
+  }, [courseId, workspacePrefix])
 
   async function refreshLessons() {
     if (!courseId) {
       return
     }
 
-    const response = await apiRequest<AdminCourseLessonsResponse>(`/company/courses/${courseId}/lessons`)
+    const response = await apiRequest<AdminCourseLessonsResponse>(`${workspacePrefix}/courses/${courseId}/lessons`)
     setData(response)
   }
 
@@ -195,14 +199,14 @@ export function CompanyCourseLessonsPage() {
       }
 
       if (selectedLesson) {
-        await apiRequest<AdminLessonRecord>(`/company/lessons/${selectedLesson.lesson_id}`, {
+        await apiRequest<AdminLessonRecord>(`${workspacePrefix}/lessons/${selectedLesson.lesson_id}`, {
           method: 'PUT',
           body,
           csrfToken,
         })
         toast.success('Lesson updated successfully.')
       } else {
-        await apiRequest<AdminLessonRecord>(`/company/courses/${courseId}/lessons`, {
+        await apiRequest<AdminLessonRecord>(`${workspacePrefix}/courses/${courseId}/lessons`, {
           method: 'POST',
           body,
           csrfToken,
@@ -236,7 +240,7 @@ export function CompanyCourseLessonsPage() {
     setError(null)
 
     try {
-      const response = await apiRequest<YouTubeTranscriptResponse>('/company/youtube-transcript', {
+      const response = await apiRequest<YouTubeTranscriptResponse>(`${workspacePrefix}/youtube-transcript`, {
         method: 'POST',
         body: {
           video_url: normalizedVideoUrl,
@@ -262,7 +266,7 @@ export function CompanyCourseLessonsPage() {
     setError(null)
 
     try {
-      await apiRequest<AdminLessonRecord>(`/company/lessons/${lessonId}`, {
+      await apiRequest<AdminLessonRecord>(`${workspacePrefix}/lessons/${lessonId}`, {
         method: 'DELETE',
         csrfToken,
       })
@@ -296,12 +300,7 @@ export function CompanyCourseLessonsPage() {
     return (
       <div className="min-h-screen bg-slate-50 p-4 dark:bg-slate-950 lg:p-6">
         <div className={editorCardClassName}>
-          <div className="flex items-center justify-center py-20">
-            <div className="text-center">
-              <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600 dark:border-slate-800 dark:border-t-blue-400" />
-              <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">Loading lesson studio...</p>
-            </div>
-          </div>
+          <LoadingState title="Loading lesson studio" className="min-h-72 py-20" />
         </div>
       </div>
     )
@@ -312,11 +311,11 @@ export function CompanyCourseLessonsPage() {
       <div className="min-h-screen bg-slate-50 p-4 dark:bg-slate-950 lg:p-6">
         <div className="space-y-6">
           <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-            <Link to="/company" className="transition-colors hover:text-foreground">
+            <Link to={workspacePrefix} className="transition-colors hover:text-foreground">
               Dashboard
             </Link>
             <ChevronRight className="h-4 w-4" />
-            <Link to="/company/courses" className="transition-colors hover:text-foreground">
+            <Link to={coursesPath} className="transition-colors hover:text-foreground">
               Courses
             </Link>
             <ChevronRight className="h-4 w-4" />
@@ -326,10 +325,10 @@ export function CompanyCourseLessonsPage() {
           <div className="rounded-[28px] border border-red-200 bg-red-50 px-6 py-6 dark:border-red-900 dark:bg-red-950">
             <h1 className="text-2xl font-bold text-red-900 dark:text-red-100">Lesson editing is not available</h1>
             <p className="mt-2 text-sm text-red-800 dark:text-red-200">
-              Only courses created by your company can be edited or managed from this workspace.
+              Only courses you created can be edited or managed from this workspace.
             </p>
             <div className="mt-5">
-              <Link to="/company/courses" className="inline-flex items-center text-sm font-medium text-red-900 underline dark:text-red-100">
+              <Link to={coursesPath} className="inline-flex items-center text-sm font-medium text-red-900 underline dark:text-red-100">
                 Back to courses
               </Link>
             </div>
@@ -343,11 +342,11 @@ export function CompanyCourseLessonsPage() {
     <div className="min-h-screen bg-slate-50 p-4 dark:bg-slate-950 lg:p-6">
       <div className="space-y-6">
         <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-          <Link to="/company" className="transition-colors hover:text-foreground">
+          <Link to={workspacePrefix} className="transition-colors hover:text-foreground">
             Dashboard
           </Link>
           <ChevronRight className="h-4 w-4" />
-          <Link to="/company/courses" className="transition-colors hover:text-foreground">
+          <Link to={coursesPath} className="transition-colors hover:text-foreground">
             Courses
           </Link>
           <ChevronRight className="h-4 w-4" />
@@ -440,18 +439,20 @@ export function CompanyCourseLessonsPage() {
                   type="button"
                   variant="outline"
                   className="rounded-xl border-slate-200 px-6 py-3 font-semibold text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900"
-                  onClick={() => navigate(`/company/courses/${data.course.course_id}/edit`)}
+                  onClick={() => navigate(`${workspacePrefix}/courses/${data.course.course_id}/edit`)}
                 >
                   Edit course
                 </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="rounded-xl border-slate-200 px-6 py-3 font-semibold text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900"
-                  onClick={() => navigate(`/company/courses/${data.course.course_id}/preview`)}
-                >
-                  Preview course
-                </Button>
+                {canPreviewCourse ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="rounded-xl border-slate-200 px-6 py-3 font-semibold text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900"
+                    onClick={() => navigate(`${workspacePrefix}/courses/${data.course.course_id}/preview`)}
+                  >
+                    Preview course
+                  </Button>
+                ) : null}
               </div>
             </div>
           </section>

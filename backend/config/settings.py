@@ -9,7 +9,19 @@ from dotenv import load_dotenv
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-load_dotenv(BASE_DIR.parent / ".env", override=False)
+
+
+def load_environment_files() -> None:
+    env_root = BASE_DIR.parent
+    load_dotenv(env_root / ".env", override=False)
+    load_dotenv(env_root / ".env.local", override=True)
+
+    environment = (os.getenv("ENVIRONMENT", "development") or "development").strip().lower()
+    load_dotenv(env_root / f".env.{environment}", override=True)
+    load_dotenv(env_root / f".env.{environment}.local", override=True)
+
+
+load_environment_files()
 
 
 def env_bool(name: str, default: bool) -> bool:

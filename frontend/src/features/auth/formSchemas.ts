@@ -1,17 +1,17 @@
 import { z } from 'zod'
 
-const loginRoles = ['student', 'company', 'admin'] as const
-const signupRoles = ['student', 'company'] as const
+const loginRoles = ['student', 'company', 'teacher'] as const
+const signupRoles = ['student', 'company', 'teacher'] as const
 
 export const loginFormSchema = z.object({
-  role: z.enum(loginRoles, { error: 'Choose the workspace you want to enter.' }),
+  role: z.enum(loginRoles).optional(),
   email: z.string().trim().email('Enter a valid email address.'),
   password: z.string().trim().min(1, 'Password is required.'),
 })
 
 export const signupFormSchema = z
   .object({
-    role: z.enum(signupRoles, { error: 'Choose whether this account is for a student or company.' }),
+    role: z.enum(signupRoles, { error: 'Choose whether this account is for a student, company, or teacher.' }),
     companyName: z.string(),
     name: z.string().trim().min(1, 'Name is required.'),
     email: z.string().trim().email('Enter a valid email address.'),

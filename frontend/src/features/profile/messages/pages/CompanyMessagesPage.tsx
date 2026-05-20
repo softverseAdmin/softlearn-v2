@@ -11,6 +11,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 
 import { useAuth } from '@/auth/useAuth'
 import { useWorkspaceState } from '@/app/workspace/workspace-state'
+import { LoadingSpinner } from '@/components/LoadingIndicator'
 import { Button } from '@/components/ui/button'
 import { ConfirmationModal } from '@/components/ConfirmationModal'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -794,7 +795,11 @@ export function CompanyMessagesPage() {
                 />
               ) : (
                 <div className="flex flex-1 flex-col items-center justify-center px-6 text-center">
-                  <MessageSquareMore className="h-12 w-12 text-muted-foreground/50" />
+                  {loading ? (
+                    <LoadingSpinner className="h-12 w-12" />
+                  ) : (
+                    <MessageSquareMore className="h-12 w-12 text-muted-foreground/50" />
+                  )}
                   <h2 className="mt-4 text-xl font-semibold">{loading ? 'Loading conversations' : 'Select a conversation'}</h2>
                   <p className="mt-2 max-w-md text-sm text-muted-foreground">
                     {loading

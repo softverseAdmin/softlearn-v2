@@ -36,7 +36,7 @@ export function Sidebar({ items, logo, bottomContent, collapsible = true, onNavi
   }
 
   const isActive = (href: string) => {
-    if (href === '/student' || href === '/company' || href === '/admin') {
+    if (href === '/student' || href === '/company' || href === '/teacher' || href === '/admin') {
       return location.pathname === href
     }
 

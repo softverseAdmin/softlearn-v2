@@ -7,7 +7,7 @@ import {
 } from 'react'
 
 import { useAuth } from '@/auth/useAuth'
-import { ApiError, apiRequest } from '@/lib/api'
+import { ApiError, apiRequest, resolveApiAssetUrl } from '@/lib/api'
 import { PROFILE_IMAGES_UPDATED_EVENT, type StoredProfileImages } from '@/lib/profileImages'
 import { WorkspaceStateContext, type WorkspaceStateValue } from './workspace-state'
 
@@ -61,7 +61,7 @@ export function WorkspaceStateProvider({ children }: PropsWithChildren) {
 
       const summary = await apiRequest<WorkspaceSummaryResponse>('/workspace/summary')
       setUnreadMessageCount(summary.unread_message_count)
-      setProfileAvatar(summary.profile_avatar ?? undefined)
+      setProfileAvatar(resolveApiAssetUrl(summary.profile_avatar) ?? undefined)
 
       if (user.role === 'student') {
         const seenMatchIds = readSeenMatchIds(user.user_id)
@@ -98,7 +98,7 @@ export function WorkspaceStateProvider({ children }: PropsWithChildren) {
   }, [refreshWorkspaceSummary, user])
 
   useEffect(() => {
-    if (!user || (user.role !== 'student' && user.role !== 'company')) {
+    if (!user || (user.role !== 'student' && user.role !== 'company' && user.role !== 'teacher')) {
       setProfileAvatar(undefined)
       return
     }
@@ -109,7 +109,7 @@ export function WorkspaceStateProvider({ children }: PropsWithChildren) {
         return
       }
 
-      setProfileAvatar(customEvent.detail.images?.profileImage ?? undefined)
+      setProfileAvatar(resolveApiAssetUrl(customEvent.detail.images?.profileImage) ?? undefined)
     }
 
     window.addEventListener(PROFILE_IMAGES_UPDATED_EVENT, handleProfileImagesUpdated)

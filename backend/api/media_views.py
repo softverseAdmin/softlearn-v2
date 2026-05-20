@@ -106,6 +106,38 @@ def company_profile_image_upload_view(request, image_kind: str):
     return success_response(serialize_company_profile(request.user))
 
 
+@api_endpoint(["POST", "DELETE"], authentication_required=True, roles=[User.Role.TEACHER])
+def teacher_profile_image_upload_view(request, image_kind: str):
+    from api.views import get_teacher_profile_record, serialize_teacher_profile
+
+    profile = get_teacher_profile_record(request.user)
+    field_map = {
+        "profile": ("profile_image_file", "profile_image", "teacher_profile"),
+        "cover": ("cover_image_file", "cover_image", "teacher_cover"),
+    }
+    field_names = field_map.get(image_kind)
+    if field_names is None:
+        return error_response(
+            request,
+            "NOT_FOUND",
+            "The requested image target was not found.",
+            details={"image_kind": [image_kind]},
+            status=404,
+        )
+
+    file_field_name, text_field_name, image_variant = field_names
+    if request.method == "DELETE":
+        _clear_field_file(profile, field_name=file_field_name, clear_text_field=text_field_name)
+        profile.save(update_fields=[file_field_name, text_field_name, "updated_at"])
+        return success_response(serialize_teacher_profile(request.user))
+
+    uploaded_file = _validate_uploaded_image(request)
+    processed_file = compress_uploaded_image(uploaded_file, variant=image_variant)
+    _replace_field_file(profile, field_name=file_field_name, uploaded_file=processed_file, clear_text_field=text_field_name)
+    profile.save(update_fields=[file_field_name, text_field_name, "updated_at"])
+    return success_response(serialize_teacher_profile(request.user))
+
+
 @api_endpoint(["POST", "DELETE"], authentication_required=True, roles=[User.Role.COMPANY])
 def company_course_thumbnail_upload_view(request, course_id: int):
     from api.views import company_can_edit_course
@@ -133,3 +165,98 @@ def company_course_thumbnail_upload_view(request, course_id: int):
     _replace_field_file(course, field_name="thumbnail_image_file", uploaded_file=processed_file, clear_text_field="thumbnail_image")
     course.save(update_fields=["thumbnail_image_file", "thumbnail_image", "updated_at"])
     return success_response(serialize_company_course_record(course, viewer=request.user))
+
+
+@api_endpoint(["POST", "DELETE"], authentication_required=True, roles=[User.Role.TEACHER])
+def teacher_course_thumbnail_upload_view(request, course_id: int):
+    from api.views import serialize_admin_course, teacher_can_edit_course
+
+    course = Course.objects.select_related("company", "created_by").filter(pk=course_id).first()
+    if course is None:
+        return error_response(
+            request,
+            "NOT_FOUND",
+            "The requested course was not found.",
+            details={"course_id": [str(course_id)]},
+            status=404,
+        )
+    if not teacher_can_edit_course(request.user, course):
+        raise PermissionDenied("You can only edit courses you created.")
+
+    if request.method == "DELETE":
+        _clear_field_file(course, field_name="thumbnail_image_file", clear_text_field="thumbnail_image")
+        course.save(update_fields=["thumbnail_image_file", "thumbnail_image", "updated_at"])
+        return success_response(serialize_admin_course(course, viewer=request.user))
+
+    uploaded_file = _validate_uploaded_image(request)
+    processed_file = compress_uploaded_image(uploaded_file, variant="course_thumbnail")
+    _replace_field_file(course, field_name="thumbnail_image_file", uploaded_file=processed_file, clear_text_field="thumbnail_image")
+    course.save(update_fields=["thumbnail_image_file", "thumbnail_image", "updated_at"])
+    return success_response(serialize_admin_course(course, viewer=request.user))
+
+
+@api_endpoint(["POST", "DELETE"], authentication_required=True, roles=[User.Role.COMPANY])
+def company_course_preview_thumbnail_upload_view(request, course_id: int):
+    from api.views import company_can_edit_course
+    from api.jobs_views import serialize_company_course_record
+
+    course = Course.objects.select_related("company", "created_by").filter(pk=course_id).first()
+    if course is None:
+        return error_response(
+            request,
+            "NOT_FOUND",
+            "The requested course was not found.",
+            details={"course_id": [str(course_id)]},
+            status=404,
+        )
+    if not company_can_edit_course(request.user, course):
+        raise PermissionDenied("You can only edit courses created by your company.")
+
+    if request.method == "DELETE":
+        _clear_field_file(course, field_name="preview_thumbnail_image_file", clear_text_field="preview_thumbnail_image")
+        course.save(update_fields=["preview_thumbnail_image_file", "preview_thumbnail_image", "updated_at"])
+        return success_response(serialize_company_course_record(course, viewer=request.user))
+
+    uploaded_file = _validate_uploaded_image(request)
+    processed_file = compress_uploaded_image(uploaded_file, variant="course_thumbnail")
+    _replace_field_file(
+        course,
+        field_name="preview_thumbnail_image_file",
+        uploaded_file=processed_file,
+        clear_text_field="preview_thumbnail_image",
+    )
+    course.save(update_fields=["preview_thumbnail_image_file", "preview_thumbnail_image", "updated_at"])
+    return success_response(serialize_company_course_record(course, viewer=request.user))
+
+
+@api_endpoint(["POST", "DELETE"], authentication_required=True, roles=[User.Role.TEACHER])
+def teacher_course_preview_thumbnail_upload_view(request, course_id: int):
+    from api.views import serialize_admin_course, teacher_can_edit_course
+
+    course = Course.objects.select_related("company", "created_by").filter(pk=course_id).first()
+    if course is None:
+        return error_response(
+            request,
+            "NOT_FOUND",
+            "The requested course was not found.",
+            details={"course_id": [str(course_id)]},
+            status=404,
+        )
+    if not teacher_can_edit_course(request.user, course):
+        raise PermissionDenied("You can only edit courses you created.")
+
+    if request.method == "DELETE":
+        _clear_field_file(course, field_name="preview_thumbnail_image_file", clear_text_field="preview_thumbnail_image")
+        course.save(update_fields=["preview_thumbnail_image_file", "preview_thumbnail_image", "updated_at"])
+        return success_response(serialize_admin_course(course, viewer=request.user))
+
+    uploaded_file = _validate_uploaded_image(request)
+    processed_file = compress_uploaded_image(uploaded_file, variant="course_thumbnail")
+    _replace_field_file(
+        course,
+        field_name="preview_thumbnail_image_file",
+        uploaded_file=processed_file,
+        clear_text_field="preview_thumbnail_image",
+    )
+    course.save(update_fields=["preview_thumbnail_image_file", "preview_thumbnail_image", "updated_at"])
+    return success_response(serialize_admin_course(course, viewer=request.user))

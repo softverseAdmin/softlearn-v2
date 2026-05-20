@@ -17,6 +17,10 @@ export default defineConfig({
         target: process.env.VITE_BACKEND_ORIGIN ?? 'http://127.0.0.1:8000',
         changeOrigin: true,
       },
+      '/media': {
+        target: process.env.VITE_BACKEND_ORIGIN ?? 'http://127.0.0.1:8000',
+        changeOrigin: true,
+      },
     },
     // Disable caching in dev server
     middlewareMode: false,

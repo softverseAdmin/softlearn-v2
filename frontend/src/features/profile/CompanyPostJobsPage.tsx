@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import { useAuth } from '@/auth/useAuth'
+import { LoadingState } from '@/components/LoadingIndicator'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -274,7 +275,11 @@ export function CompanyPostJobsPage() {
   }
 
   if (loading) {
-    return <div className="space-y-6 px-4 py-6 md:px-6 lg:px-8">Loading job posts...</div>
+    return (
+      <div className="space-y-6 px-4 py-6 md:px-6 lg:px-8">
+        <LoadingState title="Loading job posts" className="min-h-40" />
+      </div>
+    )
   }
 
   return (

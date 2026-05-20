@@ -4,7 +4,13 @@ from users.models import User
 
 
 class SignupRequestForm(forms.Form):
-    role = forms.ChoiceField(choices=[(User.Role.STUDENT, "Student"), (User.Role.COMPANY, "Company")])
+    role = forms.ChoiceField(
+        choices=[
+            (User.Role.STUDENT, "Student"),
+            (User.Role.COMPANY, "Company"),
+            (User.Role.TEACHER, "Teacher"),
+        ]
+    )
     email = forms.EmailField()
     password = forms.CharField()
     name = forms.CharField()
@@ -31,8 +37,10 @@ class LoginRequestForm(forms.Form):
         choices=[
             (User.Role.STUDENT, "Student"),
             (User.Role.COMPANY, "Company"),
+            (User.Role.TEACHER, "Teacher"),
             (User.Role.ADMIN, "Admin"),
-        ]
+        ],
+        required=False,
     )
     email = forms.EmailField()
     password = forms.CharField()

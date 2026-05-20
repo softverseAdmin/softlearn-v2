@@ -13,6 +13,7 @@ import type {
   LessonDetailResponse,
   LessonProgressUpdateResponse,
 } from './types'
+import { LoadingState } from '@/components/LoadingIndicator'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -423,10 +424,7 @@ export function StudentLessonPage() {
       <div className="space-y-6 px-4 py-6 md:space-y-8 md:px-6 lg:px-8">
         <Card>
           <CardContent className="flex items-center justify-center py-12">
-            <div className="text-center">
-              <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-muted border-t-primary" />
-              <p className="mt-4 text-sm text-muted-foreground">Loading lesson…</p>
-            </div>
+            <LoadingState title="Loading lesson" />
           </CardContent>
         </Card>
       </div>
@@ -749,7 +747,7 @@ export function StudentLessonPage() {
 
           <div className="min-h-0 flex-1 space-y-6 overflow-y-auto px-4 py-5 sm:px-6">
             {assessmentLoading ? (
-              <div className="py-10 text-center text-sm text-muted-foreground">Loading exam…</div>
+              <LoadingState title="Loading exam" className="py-10" />
             ) : assessmentError ? (
               <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">{assessmentError}</div>
             ) : (

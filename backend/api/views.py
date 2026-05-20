@@ -131,6 +131,7 @@ from users.models import (
     StudentProfile,
     StudentResume,
     StudentSkill,
+    TeacherProfile,
     StudyPlan,
     StudyPlanItem,
     StudentCertificate,
@@ -201,6 +202,48 @@ def youtube_video_url_error(video_url: str) -> str | None:
     if parsed_video_url.scheme not in {"http", "https"} or hostname not in allowed_hosts:
         return "Video URL must be a valid YouTube link."
     return None
+
+
+def http_url_error(value: str, *, field_label: str, allow_relative_path: bool = False) -> str | None:
+    if not value:
+        return None
+    if allow_relative_path and value.startswith("/"):
+        return None
+
+    parsed_value = urlparse(value)
+    if parsed_value.scheme not in {"http", "https"} or not parsed_value.netloc:
+        return f"{field_label} must be a valid URL."
+    return None
+
+
+def serialize_course_preview_fields(course: Course) -> dict:
+    return {
+        "preview_title": text_value_or_none(course.preview_title),
+        "preview_short_description": text_value_or_none(course.preview_short_description),
+        "preview_video_url": text_value_or_none(course.preview_video_url),
+        "preview_thumbnail_image": (
+            file_url_or_none(course.preview_thumbnail_image_file) or text_value_or_none(course.preview_thumbnail_image)
+        ),
+        "preview_duration": course.preview_duration_minutes,
+        "preview_access_type": text_value_or_none(course.preview_access_type),
+        "preview_order": course.preview_order,
+        "preview_status": text_value_or_none(course.preview_status),
+    }
+
+
+def sync_course_media_fields(course: Course, payload: dict) -> None:
+    thumbnail_image = payload["thumbnail_image"]
+    preview_thumbnail_image = payload["preview_thumbnail_image"]
+
+    if thumbnail_image and not thumbnail_image.startswith("/"):
+        if course.thumbnail_image_file:
+            course.thumbnail_image_file.delete(save=False)
+        course.thumbnail_image_file = ""
+
+    if preview_thumbnail_image and not preview_thumbnail_image.startswith("/"):
+        if course.preview_thumbnail_image_file:
+            course.preview_thumbnail_image_file.delete(save=False)
+        course.preview_thumbnail_image_file = ""
 
 def serialize_skill(skill: Skill) -> dict:
     return {
@@ -1173,13 +1216,25 @@ def company_can_edit_course(user: User, course: Course) -> bool:
     return course.company_id == user.company_id
 
 
+def teacher_can_edit_course(user: User, course: Course) -> bool:
+    if user.role != User.Role.TEACHER:
+        return False
+    return course.company_id is None and course.created_by_id == user.id
+
+
+def course_can_edit_course(user: User | None, course: Course) -> bool:
+    if user is None:
+        return False
+    return company_can_edit_course(user, course) or teacher_can_edit_course(user, course)
+
+
 def get_company_preview_course(user: User, course_id: int) -> Course | None:
     course = get_admin_course(course_id)
     if course is None:
         return None
     if course.status == Course.Status.INACTIVE:
         return None
-    if company_can_edit_course(user, course):
+    if course_can_edit_course(user, course):
         return course
     if course.status == Course.Status.ACTIVE:
         return course
@@ -1203,9 +1258,10 @@ def serialize_admin_course(course: Course, *, viewer: User | None = None) -> dic
         "company_name": course.company.name if course.company_id else None,
         "created_by_id": course.created_by_id,
         "created_by_name": course.created_by.full_name if course.created_by_id else None,
-        "can_edit": company_can_edit_course(viewer, course) if viewer is not None else False,
+        "can_edit": course_can_edit_course(viewer, course),
         "created_at": course.created_at.isoformat(),
         "updated_at": course.updated_at.isoformat(),
+        **serialize_course_preview_fields(course),
     }
 
 
@@ -1356,6 +1412,7 @@ def serialize_student_course_summary(
         "detail_href": f"/student/courses/{course.id}",
         "next_step_label": next_step_label or "View details",
         "next_step_href": next_step_href or f"/student/courses/{course.id}",
+        **serialize_course_preview_fields(course),
     }
 
 
@@ -1382,6 +1439,7 @@ def serialize_company_course_summary(
         "detail_href": "/company/courses",
         "next_step_label": "View course",
         "next_step_href": "/company/courses",
+        **serialize_course_preview_fields(course),
     }
 
 
@@ -2895,18 +2953,45 @@ def validate_admin_course_payload(payload: dict) -> dict:
     difficulty_level = str(payload.get("difficulty_level", "")).strip()
     thumbnail_image = str(payload.get("thumbnail_image", "")).strip()
     thumbnail_alt_text = str(payload.get("thumbnail_alt_text", "")).strip()
+    preview_title = str(payload.get("preview_title", "")).strip()
+    preview_short_description = str(payload.get("preview_short_description", "")).strip()
+    preview_video_url = str(payload.get("preview_video_url", "")).strip()
+    preview_thumbnail_image = str(payload.get("preview_thumbnail_image", "")).strip()
+    preview_access_type = str(payload.get("preview_access_type", "")).strip().lower()
+    preview_status = str(payload.get("preview_status", "")).strip().lower()
+    preview_thumbnail_upload_pending = bool(payload.get("preview_thumbnail_upload_pending", False))
     status = str(payload.get("status", Course.Status.DRAFT)).strip().lower()
     raw_estimated_hours = payload.get("estimated_hours", 0)
+    raw_preview_duration = payload.get("preview_duration")
+    raw_preview_order = payload.get("preview_order")
 
     errors = {}
     if not title:
         errors["title"] = ["This field is required."]
     if not category:
         errors["category"] = ["This field is required."]
+    if not preview_title:
+        errors["preview_title"] = ["This field is required."]
+    if not preview_short_description:
+        errors["preview_short_description"] = ["This field is required."]
+    if not preview_video_url:
+        errors["preview_video_url"] = ["This field is required."]
+    if not preview_thumbnail_image and not preview_thumbnail_upload_pending:
+        errors["preview_thumbnail_image"] = ["Provide a preview image URL or upload a preview image."]
     if thumbnail_image.startswith("data:"):
         errors["thumbnail_image"] = ["Upload thumbnails through the course thumbnail upload endpoint."]
+    if preview_thumbnail_image.startswith("data:"):
+        errors["preview_thumbnail_image"] = ["Upload preview images through the course preview image upload endpoint."]
     if status not in Course.Status.values:
         errors["status"] = [f"Status must be one of: {', '.join(Course.Status.values)}."]
+    if preview_access_type not in Course.PreviewAccessType.values:
+        errors["preview_access_type"] = [f"Preview access type must be one of: {', '.join(Course.PreviewAccessType.values)}."]
+    if preview_status not in Course.PreviewStatus.values:
+        errors["preview_status"] = [f"Preview status must be one of: {', '.join(Course.PreviewStatus.values)}."]
+    if len(preview_short_description) > 500:
+        errors["preview_short_description"] = ["Preview short description must be 500 characters or fewer."]
+    if len(thumbnail_alt_text) > 255:
+        errors["thumbnail_alt_text"] = ["Thumbnail alt text must be 255 characters or fewer."]
 
     try:
         estimated_hours = int(raw_estimated_hours)
@@ -2916,6 +3001,36 @@ def validate_admin_course_payload(payload: dict) -> dict:
     else:
         if estimated_hours < 0:
             errors["estimated_hours"] = ["Estimated hours must be zero or greater."]
+
+    try:
+        preview_duration = int(raw_preview_duration)
+    except (TypeError, ValueError):
+        preview_duration = 0
+        errors["preview_duration"] = ["Preview duration must be a valid integer."]
+    else:
+        if preview_duration <= 0:
+            errors["preview_duration"] = ["Preview duration must be greater than zero."]
+
+    try:
+        preview_order = int(raw_preview_order)
+    except (TypeError, ValueError):
+        preview_order = 0
+        errors["preview_order"] = ["Preview order must be a valid integer."]
+    else:
+        if preview_order <= 0:
+            errors["preview_order"] = ["Preview order must be greater than zero."]
+
+    preview_video_url_error = http_url_error(preview_video_url, field_label="Preview video URL")
+    if preview_video_url_error:
+        errors["preview_video_url"] = [preview_video_url_error]
+
+    preview_thumbnail_image_error = http_url_error(
+        preview_thumbnail_image,
+        field_label="Preview image URL",
+        allow_relative_path=True,
+    )
+    if preview_thumbnail_image_error:
+        errors["preview_thumbnail_image"] = [preview_thumbnail_image_error]
 
     if errors:
         raise ValidationError(errors)
@@ -2928,6 +3043,14 @@ def validate_admin_course_payload(payload: dict) -> dict:
         "estimated_hours": estimated_hours,
         "thumbnail_image": thumbnail_image,
         "thumbnail_alt_text": thumbnail_alt_text,
+        "preview_title": preview_title,
+        "preview_short_description": preview_short_description,
+        "preview_video_url": preview_video_url,
+        "preview_thumbnail_image": preview_thumbnail_image,
+        "preview_duration": preview_duration,
+        "preview_access_type": preview_access_type,
+        "preview_order": preview_order,
+        "preview_status": preview_status,
         "status": status,
     }
 
@@ -5100,6 +5223,200 @@ def company_course_preview_final_assessment_detail_view(request, course_id: int)
 
 @api_endpoint(["POST"], authentication_required=True, roles=[User.Role.COMPANY])
 def company_course_preview_final_assessment_submit_view(request, course_id: int):
+    course = get_company_preview_course(request.user, course_id)
+    if course is None:
+        return error_response(request, "NOT_FOUND", "The requested course was not found.", details={"course_id": [str(course_id)]}, status=404)
+
+    lessons = company_preview_course_lessons(course)
+    _, final_assessment = ensure_company_preview_course_assessment_map(course, lessons=lessons)
+    if final_assessment is None:
+        return error_response(request, "NOT_FOUND", "No final exam is configured for this course.", details={"course_id": [str(course_id)]}, status=404)
+
+    generated_questions = get_cached_generated_course_assessment_questions(final_assessment, user=request.user)
+    payload = validate_course_assessment_submission_payload(
+        parse_json_body(request),
+        assessment=final_assessment,
+        generated_questions=generated_questions or None,
+    )
+    score_percent, passed, _, _ = score_course_assessment_submission_details(
+        final_assessment,
+        payload["answers_by_question_id"],
+        generated_questions=generated_questions or None,
+    )
+    if generated_questions:
+        clear_cached_generated_course_assessment_questions(final_assessment, user=request.user)
+    message = (
+        "Final exam passed. Course completed."
+        if passed
+        else f"Final exam submitted. Score {score_percent}%. Reach {final_assessment.passing_score_percent}% to complete the course."
+    )
+    return success_response(
+        {
+            "message": message,
+            "assessment_id": final_assessment.id,
+            "attempt_id": 0,
+            "attempt_number": 1,
+            "score_percent": score_percent,
+            "passed": passed,
+            "passing_score_percent": final_assessment.passing_score_percent,
+            "course_completed": passed,
+        },
+        status=201,
+    )
+
+
+@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.TEACHER])
+def teacher_course_preview_detail_view(request, course_id: int):
+    course = get_company_preview_course(request.user, course_id)
+    if course is None:
+        return error_response(
+            request,
+            "NOT_FOUND",
+            "The requested course was not found.",
+            details={"course_id": [str(course_id)]},
+            status=404,
+        )
+
+    lessons = company_preview_course_lessons(course)
+    ensure_company_preview_course_assessment_map(course, lessons=lessons)
+    return success_response(serialize_company_preview_course_detail(course, lessons=lessons))
+
+
+@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.TEACHER])
+def teacher_course_preview_lesson_detail_view(request, course_id: int, lesson_id: int):
+    course = get_company_preview_course(request.user, course_id)
+    if course is None:
+        return error_response(
+            request,
+            "NOT_FOUND",
+            "The requested course was not found.",
+            details={"course_id": [str(course_id)]},
+            status=404,
+        )
+
+    lessons = company_preview_course_lessons(course)
+    lesson = next((item for item in lessons if item.id == lesson_id), None)
+    if lesson is None:
+        return error_response(
+            request,
+            "NOT_FOUND",
+            "The requested lesson is not available.",
+            details={"lesson_id": [str(lesson_id)]},
+            status=404,
+        )
+
+    assessment_by_lesson_id, final_assessment = ensure_company_preview_course_assessment_map(course, lessons=lessons)
+    return success_response(
+        serialize_company_preview_lesson_detail(
+            lesson,
+            lessons=lessons,
+            lesson_exam=assessment_by_lesson_id.get(lesson.id),
+            final_exam=final_assessment,
+        )
+    )
+
+
+@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.TEACHER])
+def teacher_course_preview_lesson_assessment_detail_view(request, course_id: int, lesson_id: int):
+    course = get_company_preview_course(request.user, course_id)
+    if course is None:
+        return error_response(request, "NOT_FOUND", "The requested course was not found.", details={"course_id": [str(course_id)]}, status=404)
+
+    lessons = company_preview_course_lessons(course)
+    lesson = next((item for item in lessons if item.id == lesson_id), None)
+    if lesson is None:
+        return error_response(request, "NOT_FOUND", "The requested lesson is not available.", details={"lesson_id": [str(lesson_id)]}, status=404)
+
+    assessment_by_lesson_id, _ = ensure_company_preview_course_assessment_map(course, lessons=lessons)
+    assessment = assessment_by_lesson_id.get(lesson.id)
+    if assessment is None:
+        return error_response(request, "NOT_FOUND", "No lesson exam is configured for this lesson.", details={"lesson_id": [str(lesson_id)]}, status=404)
+
+    response_payload = serialize_company_preview_assessment_detail(assessment, user=request.user)
+    if not response_payload["questions"]:
+        return error_response(
+            request,
+            "ASSESSMENT_UNAVAILABLE",
+            course_assessment_unavailable_message(assessment, user=request.user),
+            details={"lesson_id": [str(lesson_id)]},
+            status=503,
+        )
+    return success_response(response_payload)
+
+
+@api_endpoint(["POST"], authentication_required=True, roles=[User.Role.TEACHER])
+def teacher_course_preview_lesson_assessment_submit_view(request, course_id: int, lesson_id: int):
+    course = get_company_preview_course(request.user, course_id)
+    if course is None:
+        return error_response(request, "NOT_FOUND", "The requested course was not found.", details={"course_id": [str(course_id)]}, status=404)
+
+    lessons = company_preview_course_lessons(course)
+    lesson = next((item for item in lessons if item.id == lesson_id), None)
+    if lesson is None:
+        return error_response(request, "NOT_FOUND", "The requested lesson is not available.", details={"lesson_id": [str(lesson_id)]}, status=404)
+
+    assessment_by_lesson_id, _ = ensure_company_preview_course_assessment_map(course, lessons=lessons)
+    assessment = assessment_by_lesson_id.get(lesson.id)
+    if assessment is None:
+        return error_response(request, "NOT_FOUND", "No lesson exam is configured for this lesson.", details={"lesson_id": [str(lesson_id)]}, status=404)
+
+    generated_questions = get_cached_generated_course_assessment_questions(assessment, user=request.user)
+    payload = validate_course_assessment_submission_payload(
+        parse_json_body(request),
+        assessment=assessment,
+        generated_questions=generated_questions or None,
+    )
+    score_percent, passed, _, _ = score_course_assessment_submission_details(
+        assessment,
+        payload["answers_by_question_id"],
+        generated_questions=generated_questions or None,
+    )
+    if generated_questions:
+        clear_cached_generated_course_assessment_questions(assessment, user=request.user)
+    message = (
+        "Lesson exam passed. The next lesson is now unlocked."
+        if passed
+        else f"Lesson exam submitted. Score {score_percent}%. Reach {assessment.passing_score_percent}% to unlock the next lesson."
+    )
+    return success_response(
+        {
+            "message": message,
+            "assessment_id": assessment.id,
+            "attempt_id": 0,
+            "attempt_number": 1,
+            "score_percent": score_percent,
+            "passed": passed,
+            "passing_score_percent": assessment.passing_score_percent,
+        },
+        status=201,
+    )
+
+
+@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.TEACHER])
+def teacher_course_preview_final_assessment_detail_view(request, course_id: int):
+    course = get_company_preview_course(request.user, course_id)
+    if course is None:
+        return error_response(request, "NOT_FOUND", "The requested course was not found.", details={"course_id": [str(course_id)]}, status=404)
+
+    lessons = company_preview_course_lessons(course)
+    _, final_assessment = ensure_company_preview_course_assessment_map(course, lessons=lessons)
+    if final_assessment is None:
+        return error_response(request, "NOT_FOUND", "No final exam is configured for this course.", details={"course_id": [str(course_id)]}, status=404)
+
+    response_payload = serialize_company_preview_assessment_detail(final_assessment, user=request.user)
+    if not response_payload["questions"]:
+        return error_response(
+            request,
+            "ASSESSMENT_UNAVAILABLE",
+            course_assessment_unavailable_message(final_assessment, user=request.user),
+            details={"course_id": [str(course_id)]},
+            status=503,
+        )
+    return success_response(response_payload)
+
+
+@api_endpoint(["POST"], authentication_required=True, roles=[User.Role.TEACHER])
+def teacher_course_preview_final_assessment_submit_view(request, course_id: int):
     course = get_company_preview_course(request.user, course_id)
     if course is None:
         return error_response(request, "NOT_FOUND", "The requested course was not found.", details={"course_id": [str(course_id)]}, status=404)
@@ -7619,6 +7936,674 @@ def company_dashboard_view(request):
                 "shortlisted_candidates": shortlist_count,
                 "active_jobs": len(active_jobs),
                 "hires": len(completed_interviews),
+            },
+        }
+    )
+
+
+def teacher_courses_queryset(user: User):
+    return Course.objects.filter(created_by=user, company__isnull=True)
+
+
+def teacher_related_learning_records_queryset(user: User):
+    return LearningRecord.objects.filter(course__created_by=user, course__company__isnull=True)
+
+
+def teacher_related_students_queryset(user: User):
+    return (
+        User.objects.filter(
+            role=User.Role.STUDENT,
+            learning_records__course__created_by=user,
+            learning_records__course__company__isnull=True,
+        )
+        .distinct()
+        .order_by("-date_joined", "-id")
+    )
+
+
+def teacher_related_exams_queryset(user: User):
+    related_students = teacher_related_students_queryset(user)
+    return (
+        Exam.objects.filter(
+            Q(results__student__in=related_students)
+            | Q(attempts__student__in=related_students)
+            | Q(practice_attempts__student__in=related_students)
+            | Q(mock_attempts__student__in=related_students)
+            | Q(study_plans__student__user__in=related_students)
+        )
+        .prefetch_related("results")
+        .distinct()
+        .order_by("-updated_at", "-id")
+    )
+
+
+def get_teacher_profile_record(user: User) -> TeacherProfile:
+    profile, _ = TeacherProfile.objects.get_or_create(user=user)
+    return profile
+
+
+def validate_teacher_profile_payload(payload: dict) -> dict:
+    if not isinstance(payload, dict):
+        raise ValidationError("Invalid payload format.")
+
+    full_name = str(payload.get("full_name", "")).strip()
+    overview = str(payload.get("overview", "")).strip()
+    errors = {}
+
+    if not full_name:
+        errors["full_name"] = ["This field is required."]
+    elif len(full_name) > 255:
+        errors["full_name"] = ["Ensure this field has no more than 255 characters."]
+
+    if len(overview) > 5000:
+        errors["overview"] = ["Ensure this field has no more than 5000 characters."]
+
+    if errors:
+        raise ValidationError(errors)
+
+    return {
+        "full_name": full_name,
+        "overview": overview,
+    }
+
+
+@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.TEACHER])
+def teacher_dashboard_view(request):
+    related_students = teacher_related_students_queryset(request.user)
+    total_courses = teacher_courses_queryset(request.user).count()
+    total_exams = teacher_related_exams_queryset(request.user).count()
+    total_lessons = Lesson.objects.filter(course__created_by=request.user, course__company__isnull=True).count()
+    active_learning_records = teacher_related_learning_records_queryset(request.user).filter(
+        status=LearningRecord.Status.IN_PROGRESS
+    ).count()
+
+    return success_response(
+        {
+            "teacher_name": request.user.full_name,
+            "header_message": "Review the courses, learners, and assessment activity connected to your teaching workspace.",
+            "summary_cards": [
+                {
+                    "id": "related-students",
+                    "label": "Related students",
+                    "value": related_students.filter(is_active=True).count(),
+                    "description": "Learners currently linked to at least one of your courses.",
+                },
+                {
+                    "id": "courses",
+                    "label": "Courses",
+                    "value": total_courses,
+                    "description": "Courses you created in the teacher workspace.",
+                },
+                {
+                    "id": "exams",
+                    "label": "Exams",
+                    "value": total_exams,
+                    "description": "Exam records connected to your related learners.",
+                },
+                {
+                    "id": "lessons",
+                    "label": "Lessons",
+                    "value": total_lessons,
+                    "description": "Lesson entries currently drafted or published in your courses.",
+                },
+            ],
+            "focus_items": [
+                {
+                    "id": "learning-coverage",
+                    "title": "Monitor learning coverage",
+                    "description": f"{active_learning_records} learning records are currently in progress inside your course set.",
+                },
+                {
+                    "id": "student-support",
+                    "title": "Support learner momentum",
+                    "description": "Keep an eye on learners attached to your courses so you can spot stalled progress early.",
+                },
+                {
+                    "id": "assessment-readiness",
+                    "title": "Keep assessments aligned",
+                    "description": "Use related exam activity to see where your teaching tracks may need more preparation support.",
+                },
+            ],
+        }
+    )
+
+
+def serialize_teacher_student(student: User) -> dict:
+    try:
+        profile = student.student_profile
+    except StudentProfile.DoesNotExist:
+        profile = None
+
+    return {
+        "student_id": student.id,
+        "full_name": student.full_name,
+        "email": student.email,
+        "desired_job_type": profile.desired_job_type if profile is not None else "",
+        "desired_work_location": profile.desired_work_location if profile is not None else "",
+        "japanese_level": profile.japanese_level if profile is not None else "",
+        "english_level": profile.english_level if profile is not None else "",
+        "profile_complete": profile.profile_complete if profile is not None else False,
+        "skill_count": getattr(student, "skill_count", 0),
+        "resume_count": getattr(student, "resume_count", 0),
+        "experience_count": getattr(student, "experience_count", 0),
+        "education_count": getattr(student, "education_count", 0),
+        "date_joined": student.date_joined.isoformat(),
+    }
+
+
+def serialize_teacher_progress_record(
+    learning_record: LearningRecord,
+    *,
+    assessment_cache: dict[int, tuple[dict[int, CourseAssessment], CourseAssessment | None]],
+) -> dict:
+    course = learning_record.course
+    if course is None:
+        raise ValidationError({"course": ["Teacher progress records require an attached course."]})
+
+    course_lessons = [
+        lesson
+        for lesson in course.lessons.all()
+        if lesson.status != Lesson.Status.INACTIVE
+    ]
+    lesson_progress_entries = [
+        progress
+        for progress in learning_record.lesson_progress.all()
+        if progress.lesson.status != Lesson.Status.INACTIVE
+    ]
+    completed_lesson_ids = {
+        progress.lesson_id
+        for progress in lesson_progress_entries
+        if progress.status == LessonProgress.Status.COMPLETED
+    }
+    in_progress_entry = next(
+        (
+            progress
+            for progress in lesson_progress_entries
+            if progress.status == LessonProgress.Status.IN_PROGRESS
+        ),
+        None,
+    )
+    next_lesson = next(
+        (lesson for lesson in course_lessons if lesson.id not in completed_lesson_ids),
+        None,
+    )
+    current_lesson = in_progress_entry.lesson if in_progress_entry is not None else next_lesson
+
+    if course.id not in assessment_cache:
+        assessment_cache[course.id] = build_course_assessment_map(course)
+    lesson_assessments_by_lesson_id, final_assessment = assessment_cache[course.id]
+
+    passed_lesson_assessment_count = 0
+    for lesson in course_lessons:
+        assessment = lesson_assessments_by_lesson_id.get(lesson.id)
+        if assessment is None:
+            continue
+        latest_attempt = latest_course_assessment_attempt(learning_record.student, assessment)
+        if latest_attempt is not None and latest_attempt.passed:
+            passed_lesson_assessment_count += 1
+
+    final_attempt = None
+    if final_assessment is not None:
+        final_attempt = latest_course_assessment_attempt(learning_record.student, final_assessment)
+
+    total_lessons = len(course_lessons)
+    completed_lessons = len(completed_lesson_ids)
+    in_progress_lessons = sum(
+        1
+        for progress in lesson_progress_entries
+        if progress.status == LessonProgress.Status.IN_PROGRESS
+    )
+
+    return {
+        "learning_record_id": learning_record.id,
+        "student_id": learning_record.student_id,
+        "student_name": learning_record.student.full_name,
+        "student_email": learning_record.student.email,
+        "course_id": course.id,
+        "course_title": learning_record.course_title,
+        "course_category": learning_record.category,
+        "course_status": course.status,
+        "learning_status": learning_record.status,
+        "progress_percent": learning_record.progress_percent,
+        "completed_lessons": completed_lessons,
+        "total_lessons": total_lessons,
+        "in_progress_lessons": in_progress_lessons,
+        "lesson_exam_passed_count": passed_lesson_assessment_count,
+        "current_lesson_title": current_lesson.title if current_lesson is not None else None,
+        "last_activity_at": learning_record.updated_at.isoformat(),
+        "final_exam": (
+            {
+                "assessment_id": final_assessment.id,
+                "title": final_assessment.title,
+                "latest_score": final_attempt.score_percent if final_attempt is not None else None,
+                "passed": final_attempt.passed if final_attempt is not None else False,
+                "attempt_count": CourseAssessmentAttempt.objects.filter(
+                    student=learning_record.student,
+                    assessment=final_assessment,
+                ).count(),
+            }
+            if final_assessment is not None
+            else None
+        ),
+    }
+
+
+def serialize_teacher_profile(user: User) -> dict:
+    profile = get_teacher_profile_record(user)
+    active_students = teacher_related_students_queryset(user).filter(is_active=True).count()
+    total_courses = teacher_courses_queryset(user).count()
+    total_exams = teacher_related_exams_queryset(user).count()
+    total_lessons = Lesson.objects.filter(course__created_by=user, course__company__isnull=True).count()
+    active_learning_records = teacher_related_learning_records_queryset(user).filter(
+        status=LearningRecord.Status.IN_PROGRESS
+    ).count()
+    default_overview = "Keep learner progress, your course coverage, and related assessment activity visible from one workspace."
+
+    return {
+        "user_id": user.id,
+        "full_name": user.full_name,
+        "email": user.email,
+        "role_label": "Teacher",
+        "joined_at": user.date_joined.isoformat(),
+        "overview": profile.overview or default_overview,
+        "profile_image": file_url_or_none(profile.profile_image_file) or text_value_or_none(profile.profile_image),
+        "cover_image": file_url_or_none(profile.cover_image_file) or text_value_or_none(profile.cover_image),
+        "stats": {
+            "related_students": active_students,
+            "courses": total_courses,
+            "exams": total_exams,
+            "lessons": total_lessons,
+            "active_learning_records": active_learning_records,
+        },
+        "workspace_focus": [
+            {
+                "label": "Learner coverage",
+                "value": f"{active_learning_records} active learning records",
+            },
+            {
+                "label": "Course footprint",
+                "value": f"{total_courses} teacher-owned courses",
+            },
+            {
+                "label": "Assessment readiness",
+                "value": f"{total_exams} related exams with learner activity",
+            },
+        ],
+        "workspace_access": [
+            "Your courses and lessons",
+            "Related exam activity",
+            "Linked student readiness",
+            "Protected teaching workspace access",
+        ],
+    }
+
+
+@api_endpoint(["GET", "PUT"], authentication_required=True, roles=[User.Role.TEACHER])
+def teacher_profile_view(request):
+    if request.method == "PUT":
+        payload = validate_teacher_profile_payload(parse_json_body(request))
+        profile = get_teacher_profile_record(request.user)
+        request.user.full_name = payload["full_name"]
+        request.user.full_clean()
+        request.user.save(update_fields=["full_name", "updated_at"])
+        profile.overview = payload["overview"]
+        profile.full_clean()
+        profile.save(update_fields=["overview", "updated_at"])
+
+    return success_response(serialize_teacher_profile(request.user))
+
+
+@api_endpoint(["GET", "POST"], authentication_required=True, roles=[User.Role.TEACHER])
+def teacher_courses_view(request):
+    if request.method == "GET":
+        queryset = (
+            Course.objects.select_related("company", "created_by")
+            .prefetch_related("lessons", "learning_records")
+            .filter(created_by=request.user, company__isnull=True)
+            .order_by("-updated_at", "-id")
+        )
+        courses = list(queryset)
+
+        return success_response(
+            {
+                "courses": [serialize_admin_course(course, viewer=request.user) for course in courses],
+                "summary": {
+                    "total": len(courses),
+                    "active": sum(1 for course in courses if course.status == Course.Status.ACTIVE),
+                    "draft": sum(1 for course in courses if course.status == Course.Status.DRAFT),
+                    "inactive": sum(1 for course in courses if course.status == Course.Status.INACTIVE),
+                },
+            }
+        )
+
+    payload = validate_admin_course_payload(parse_json_body(request))
+    course = Course(
+        title=payload["title"],
+        description=payload["description"],
+        category=payload["category"],
+        difficulty_level=payload["difficulty_level"],
+        estimated_hours=payload["estimated_hours"],
+        thumbnail_image=payload["thumbnail_image"],
+        thumbnail_alt_text=payload["thumbnail_alt_text"],
+        preview_title=payload["preview_title"],
+        preview_short_description=payload["preview_short_description"],
+        preview_video_url=payload["preview_video_url"],
+        preview_thumbnail_image=payload["preview_thumbnail_image"],
+        preview_duration_minutes=payload["preview_duration"],
+        preview_access_type=payload["preview_access_type"],
+        preview_order=payload["preview_order"],
+        preview_status=payload["preview_status"],
+        status=payload["status"],
+        created_by=request.user,
+    )
+    sync_course_media_fields(course, payload)
+    course.full_clean()
+    course.save()
+    course = get_admin_course(course.id)
+    return success_response(serialize_admin_course(course, viewer=request.user), status=201)
+
+
+@api_endpoint(["GET", "PUT", "DELETE"], authentication_required=True, roles=[User.Role.TEACHER])
+def teacher_course_detail_view(request, course_id: int):
+    course = get_admin_course(course_id)
+    if course is None:
+        return error_response(
+            request,
+            "NOT_FOUND",
+            "The requested course was not found.",
+            details={"course_id": [str(course_id)]},
+            status=404,
+        )
+
+    if not teacher_can_edit_course(request.user, course):
+        return error_response(
+            request,
+            "FORBIDDEN",
+            "You can only edit courses you created.",
+            details={"course_id": [str(course_id)]},
+            status=403,
+        )
+
+    if request.method == "GET":
+        return success_response(serialize_admin_course(course, viewer=request.user))
+
+    if request.method == "DELETE":
+        course.status = Course.Status.INACTIVE
+        course.full_clean()
+        course.save(update_fields=["status", "updated_at"])
+        course = get_admin_course(course.id)
+        return success_response(serialize_admin_course(course, viewer=request.user))
+
+    payload = validate_admin_course_payload(parse_json_body(request))
+    course.title = payload["title"]
+    course.description = payload["description"]
+    course.category = payload["category"]
+    course.difficulty_level = payload["difficulty_level"]
+    course.estimated_hours = payload["estimated_hours"]
+    course.thumbnail_image = payload["thumbnail_image"]
+    course.thumbnail_alt_text = payload["thumbnail_alt_text"]
+    course.preview_title = payload["preview_title"]
+    course.preview_short_description = payload["preview_short_description"]
+    course.preview_video_url = payload["preview_video_url"]
+    course.preview_thumbnail_image = payload["preview_thumbnail_image"]
+    course.preview_duration_minutes = payload["preview_duration"]
+    course.preview_access_type = payload["preview_access_type"]
+    course.preview_order = payload["preview_order"]
+    course.preview_status = payload["preview_status"]
+    course.status = payload["status"]
+    sync_course_media_fields(course, payload)
+    course.full_clean()
+    course.save(
+        update_fields=[
+            "title",
+            "description",
+            "category",
+            "difficulty_level",
+            "estimated_hours",
+            "thumbnail_image",
+            "thumbnail_image_file",
+            "thumbnail_alt_text",
+            "preview_title",
+            "preview_short_description",
+            "preview_video_url",
+            "preview_thumbnail_image",
+            "preview_thumbnail_image_file",
+            "preview_duration_minutes",
+            "preview_access_type",
+            "preview_order",
+            "preview_status",
+            "status",
+            "updated_at",
+        ]
+    )
+    course = get_admin_course(course.id)
+    return success_response(serialize_admin_course(course, viewer=request.user))
+
+
+@api_endpoint(["GET", "POST"], authentication_required=True, roles=[User.Role.TEACHER])
+def teacher_course_lessons_view(request, course_id: int):
+    course = get_admin_course(course_id)
+    if course is None:
+        return error_response(
+            request,
+            "NOT_FOUND",
+            "The requested course was not found.",
+            details={"course_id": [str(course_id)]},
+            status=404,
+        )
+
+    if not teacher_can_edit_course(request.user, course):
+        return error_response(
+            request,
+            "FORBIDDEN",
+            "You can only manage lessons for courses you created.",
+            details={"course_id": [str(course_id)]},
+            status=403,
+        )
+
+    if request.method == "GET":
+        lessons = list(
+            Lesson.objects.filter(course=course)
+            .select_related("course")
+            .order_by("sequence_number", "id")
+        )
+        return success_response(
+            {
+                "course": serialize_admin_course(course, viewer=request.user),
+                "lessons": [serialize_admin_lesson(lesson) for lesson in lessons],
+            }
+        )
+
+    payload = validate_admin_lesson_payload(parse_json_body(request))
+    lesson = Lesson(
+        course=course,
+        title=payload["title"],
+        summary=payload["summary"],
+        content=payload["content"],
+        transcript=payload["transcript"],
+        video_url=payload["video_url"],
+        sequence_number=payload["sequence_number"],
+        status=payload["status"],
+    )
+    lesson.full_clean()
+    lesson.save()
+    publish_course_if_has_active_lessons(course)
+    lesson = get_admin_lesson(lesson.id)
+    return success_response(serialize_admin_lesson(lesson), status=201)
+
+
+@api_endpoint(["POST"], authentication_required=True, roles=[User.Role.TEACHER])
+def teacher_youtube_transcript_view(request):
+    from services.youtube_transcript import YouTubeTranscriptService, YouTubeTranscriptServiceError
+
+    payload = parse_json_body(request)
+    video_url = str(payload.get("video_url", "")).strip()
+    errors = {}
+
+    if not video_url:
+        errors["video_url"] = ["This field is required."]
+    else:
+        video_url_error = youtube_video_url_error(video_url)
+        if video_url_error:
+            errors["video_url"] = [video_url_error]
+
+    if errors:
+        raise ValidationError(errors)
+
+    try:
+        transcript_text = YouTubeTranscriptService().fetch_transcript_text(video_url)
+    except YouTubeTranscriptServiceError as exc:
+        return error_response(
+            request,
+            "TRANSCRIPT_UNAVAILABLE",
+            str(exc),
+            details={"video_url": [video_url]},
+            status=422,
+        )
+
+    return success_response({"transcript": transcript_text})
+
+
+@api_endpoint(["PUT", "DELETE"], authentication_required=True, roles=[User.Role.TEACHER])
+def teacher_lesson_detail_view(request, lesson_id: int):
+    lesson = get_admin_lesson(lesson_id)
+    if lesson is None:
+        return error_response(
+            request,
+            "NOT_FOUND",
+            "The requested lesson was not found.",
+            details={"lesson_id": [str(lesson_id)]},
+            status=404,
+        )
+
+    if not teacher_can_edit_course(request.user, lesson.course):
+        return error_response(
+            request,
+            "FORBIDDEN",
+            "You can only manage lessons for courses you created.",
+            details={"lesson_id": [str(lesson_id)]},
+            status=403,
+        )
+
+    if request.method == "DELETE":
+        lesson.status = Lesson.Status.INACTIVE
+        lesson.full_clean()
+        lesson.save(update_fields=["status", "updated_at"])
+        lesson = get_admin_lesson(lesson.id)
+        return success_response(serialize_admin_lesson(lesson))
+
+    payload = validate_admin_lesson_payload(parse_json_body(request))
+    lesson.title = payload["title"]
+    lesson.summary = payload["summary"]
+    lesson.content = payload["content"]
+    lesson.transcript = payload["transcript"]
+    lesson.video_url = payload["video_url"]
+    lesson.sequence_number = payload["sequence_number"]
+    lesson.status = payload["status"]
+    lesson.full_clean()
+    lesson.save(
+        update_fields=[
+            "title",
+            "summary",
+            "content",
+            "transcript",
+            "video_url",
+            "sequence_number",
+            "status",
+            "updated_at",
+        ]
+    )
+    publish_course_if_has_active_lessons(lesson.course)
+    lesson = get_admin_lesson(lesson.id)
+    return success_response(serialize_admin_lesson(lesson))
+
+
+@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.TEACHER])
+def teacher_exams_view(request):
+    related_student_ids = list(teacher_related_students_queryset(request.user).values_list("id", flat=True))
+    exams = list(teacher_related_exams_queryset(request.user))
+
+    return success_response(
+        {
+            "exams": [
+                {
+                    **serialize_admin_exam(exam),
+                    "result_count": exam.results.filter(student_id__in=related_student_ids).count(),
+                }
+                for exam in exams
+            ],
+            "summary": {
+                "total": len(exams),
+                "active": sum(1 for exam in exams if exam.status == Exam.Status.ACTIVE),
+                "draft": sum(1 for exam in exams if exam.status == Exam.Status.DRAFT),
+                "inactive": sum(1 for exam in exams if exam.status == Exam.Status.INACTIVE),
+            },
+        }
+    )
+
+
+@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.TEACHER])
+def teacher_students_view(request):
+    students = list(
+        teacher_related_students_queryset(request.user)
+        .select_related("student_profile")
+        .annotate(
+            skill_count=Count("student_skills", distinct=True),
+            resume_count=Count("resume_records", distinct=True),
+            experience_count=Count("experience_records", distinct=True),
+            education_count=Count("education_records", distinct=True),
+        )
+        .order_by("-date_joined", "-id")
+    )
+
+    serialized_students = [serialize_teacher_student(student) for student in students]
+
+    return success_response(
+        {
+            "students": serialized_students,
+            "summary": {
+                "total": len(serialized_students),
+                "profile_complete": sum(1 for student in serialized_students if student["profile_complete"]),
+                "with_resumes": sum(1 for student in serialized_students if student["resume_count"] > 0),
+                "with_experience": sum(1 for student in serialized_students if student["experience_count"] > 0),
+            },
+        }
+    )
+
+
+@api_endpoint(["GET"], authentication_required=True, roles=[User.Role.TEACHER])
+def teacher_progress_view(request):
+    learning_records = list(
+        teacher_related_learning_records_queryset(request.user)
+        .select_related("student", "course")
+        .prefetch_related("course__lessons", "lesson_progress__lesson")
+        .order_by("-updated_at", "-id")
+    )
+    assessment_cache: dict[int, tuple[dict[int, CourseAssessment], CourseAssessment | None]] = {}
+    serialized_records = [
+        serialize_teacher_progress_record(learning_record, assessment_cache=assessment_cache)
+        for learning_record in learning_records
+    ]
+    related_student_ids = {record["student_id"] for record in serialized_records}
+    average_progress_percent = (
+        round(sum(record["progress_percent"] for record in serialized_records) / len(serialized_records))
+        if serialized_records
+        else 0
+    )
+
+    return success_response(
+        {
+            "records": serialized_records,
+            "summary": {
+                "students": len(related_student_ids),
+                "learning_records": len(serialized_records),
+                "in_progress": sum(
+                    1 for record in serialized_records if record["learning_status"] == LearningRecord.Status.IN_PROGRESS
+                ),
+                "completed": sum(
+                    1 for record in serialized_records if record["learning_status"] == LearningRecord.Status.COMPLETED
+                ),
+                "average_progress_percent": average_progress_percent,
             },
         }
     )

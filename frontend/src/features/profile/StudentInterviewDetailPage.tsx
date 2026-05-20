@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useParams } from 'react-router-dom'
 
+import { LoadingState } from '@/components/LoadingIndicator'
 import { useAuth } from '../../auth/useAuth'
 import { ApiError, apiRequest } from '../../lib/api'
 import type { InterviewDetail } from './types'
@@ -333,7 +334,13 @@ export function StudentInterviewDetailPage() {
   }
 
   if (loading) {
-    return <section className="page"><div className="card">Loading interview…</div></section>
+    return (
+      <section className="page">
+        <div className="card">
+          <LoadingState title="Loading interview" className="min-h-40" />
+        </div>
+      </section>
+    )
   }
 
   return (

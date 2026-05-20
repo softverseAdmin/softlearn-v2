@@ -147,7 +147,7 @@ def _company_courses_queryset(request):
 
 @api_endpoint(["GET", "POST"], authentication_required=True, roles=[User.Role.COMPANY])
 def company_courses_view(request):
-    from api.views import get_admin_course, validate_admin_course_payload
+    from api.views import get_admin_course, sync_course_media_fields, validate_admin_course_payload
 
     if request.method == "GET":
         page, page_size = parse_pagination_params(request)
@@ -182,10 +182,19 @@ def company_courses_view(request):
         estimated_hours=payload["estimated_hours"],
         thumbnail_image=payload["thumbnail_image"],
         thumbnail_alt_text=payload["thumbnail_alt_text"],
+        preview_title=payload["preview_title"],
+        preview_short_description=payload["preview_short_description"],
+        preview_video_url=payload["preview_video_url"],
+        preview_thumbnail_image=payload["preview_thumbnail_image"],
+        preview_duration_minutes=payload["preview_duration"],
+        preview_access_type=payload["preview_access_type"],
+        preview_order=payload["preview_order"],
+        preview_status=payload["preview_status"],
         status=payload["status"],
         company=request.user.company,
         created_by=request.user,
     )
+    sync_course_media_fields(course, payload)
     course.full_clean()
     course.save()
     course = get_admin_course(course.id)
@@ -194,7 +203,7 @@ def company_courses_view(request):
 
 @api_endpoint(["GET", "PUT", "DELETE"], authentication_required=True, roles=[User.Role.COMPANY])
 def company_course_detail_view(request, course_id: int):
-    from api.views import company_can_edit_course, get_admin_course, validate_admin_course_payload
+    from api.views import company_can_edit_course, get_admin_course, sync_course_media_fields, validate_admin_course_payload
 
     course = get_admin_course(course_id)
     if course is None:
@@ -233,7 +242,16 @@ def company_course_detail_view(request, course_id: int):
     course.estimated_hours = payload["estimated_hours"]
     course.thumbnail_image = payload["thumbnail_image"]
     course.thumbnail_alt_text = payload["thumbnail_alt_text"]
+    course.preview_title = payload["preview_title"]
+    course.preview_short_description = payload["preview_short_description"]
+    course.preview_video_url = payload["preview_video_url"]
+    course.preview_thumbnail_image = payload["preview_thumbnail_image"]
+    course.preview_duration_minutes = payload["preview_duration"]
+    course.preview_access_type = payload["preview_access_type"]
+    course.preview_order = payload["preview_order"]
+    course.preview_status = payload["preview_status"]
     course.status = payload["status"]
+    sync_course_media_fields(course, payload)
     course.full_clean()
     course.save(
         update_fields=[
@@ -243,7 +261,17 @@ def company_course_detail_view(request, course_id: int):
             "difficulty_level",
             "estimated_hours",
             "thumbnail_image",
+            "thumbnail_image_file",
             "thumbnail_alt_text",
+            "preview_title",
+            "preview_short_description",
+            "preview_video_url",
+            "preview_thumbnail_image",
+            "preview_thumbnail_image_file",
+            "preview_duration_minutes",
+            "preview_access_type",
+            "preview_order",
+            "preview_status",
             "status",
             "updated_at",
         ]
