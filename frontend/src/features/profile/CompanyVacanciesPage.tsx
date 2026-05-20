@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 
+import { LoadingState } from '@/components/LoadingIndicator'
 import { useAuth } from '../../auth/useAuth'
 import { ApiError } from '../../lib/api'
 import { emptyCompanyVacanciesResponse, fetchCompanyVacancies, retireCompanyVacancy, saveCompanyVacancy } from './companyVacanciesApi'
@@ -232,7 +233,13 @@ export function CompanyVacanciesPage() {
   }
 
   if (loading) {
-    return <section className="page"><div className="card">Loading vacancies…</div></section>
+    return (
+      <section className="page">
+        <div className="card">
+          <LoadingState title="Loading vacancies" className="min-h-40" />
+        </div>
+      </section>
+    )
   }
 
   return (

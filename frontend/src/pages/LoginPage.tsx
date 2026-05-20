@@ -10,6 +10,8 @@ import { type LoginFormValues, loginFormSchema } from '../features/auth/formSche
 import { ApiError } from '../lib/api'
 import { getHomePath } from '../router/navigation'
 
+type LoginRole = Extract<UserRole, 'student' | 'company' | 'teacher'>
+
 function InputIcon({ children }: { children: ReactNode }) {
   return <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">{children}</span>
 }
@@ -21,11 +23,11 @@ function RoleOption({
   children,
   onClick,
 }: {
-  role: UserRole
+  role: LoginRole
   selected: boolean
   label: string
   children: ReactNode
-  onClick: (role: UserRole) => void
+  onClick: (role: LoginRole) => void
 }) {
   return (
     <button
@@ -61,11 +63,11 @@ export function LoginPage() {
     formState: { errors },
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginFormSchema),
-    defaultValues: {
-      role: 'student',
-      email: '',
-      password: '',
-    },
+      defaultValues: {
+        role: undefined,
+        email: '',
+        password: '',
+      },
   })
 
   const selectedRole = watch('role')
@@ -82,7 +84,7 @@ export function LoginPage() {
       const user = await login({
         email: values.email.trim(),
         password: values.password,
-        role: values.role,
+        ...(values.role ? { role: values.role } : {}),
       })
       navigate(redirectTarget ?? getHomePath(user), { replace: true })
     } catch (submitError) {
@@ -96,13 +98,13 @@ export function LoginPage() {
     <AuthShell
       eyebrow="Welcome back"
       title="Log in to continue learning"
-      description="Pick up your roadmap, validate your next skill, or review your hiring pipeline from the right workspace."
+      description="Choose the right workspace for student, company, or teacher access. Admins can sign in directly without selecting an account type."
       fullViewport
       mode="login"
     >
       <form className="space-y-3.5 sm:space-y-4" onSubmit={handleSubmit(onSubmit)} noValidate>
         <fieldset className="space-y-2">
-          <legend className="text-sm font-medium text-[var(--sl-text)]">Select account type</legend>
+          <legend className="text-sm font-medium text-[var(--sl-text)]">Select account type if needed</legend>
           <div className="grid grid-cols-3 rounded-2xl border border-[var(--sl-border)] bg-[#f8fafc] p-1.5">
             <RoleOption
               role="student"
@@ -133,9 +135,9 @@ export function LoginPage() {
               </svg>
             </RoleOption>
             <RoleOption
-              role="admin"
-              selected={selectedRole === 'admin'}
-              label="Admin"
+              role="teacher"
+              selected={selectedRole === 'teacher'}
+              label="Teacher"
               onClick={(role) => {
                 setValue('role', role, { shouldDirty: true, shouldValidate: true })
                 clearErrors('role')
@@ -143,10 +145,11 @@ export function LoginPage() {
               }}
             >
               <svg aria-hidden="true" className="h-4 w-4" viewBox="0 0 20 20" fill="none">
-                <path d="M10 3.75 5.5 5.5v3.5c0 3.2 1.95 5.96 4.5 7.25 2.55-1.3 4.5-4.05 4.5-7.25V5.5L10 3.75Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+                <path d="M4.5 15.25h11M6.5 15.25V7.75l3.5-2 3.5 2v7.5M8 10.5h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </RoleOption>
           </div>
+          <p className="text-xs text-[var(--sl-muted)]">Admins can leave this blank and log in directly with email and password.</p>
           {errors.role ? (
             <p className="text-sm text-red-600" role="alert">
               {errors.role.message}

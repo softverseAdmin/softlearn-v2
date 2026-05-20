@@ -1,4 +1,4 @@
-export type UserRole = 'student' | 'company' | 'admin'
+export type UserRole = 'student' | 'company' | 'teacher' | 'admin'
 
 export interface AuthUser {
   user_id: number
@@ -20,9 +20,9 @@ export interface AuthContextValue {
   user: AuthUser | null
   csrfToken: string | null
   globalError: string | null
-  login: (payload: { email: string; password: string; role: UserRole }) => Promise<AuthUser>
+  login: (payload: { email: string; password: string; role?: UserRole }) => Promise<AuthUser>
   signup: (payload: {
-    role: Extract<UserRole, 'student' | 'company'>
+    role: Extract<UserRole, 'student' | 'company' | 'teacher'>
     email: string
     password: string
     name: string

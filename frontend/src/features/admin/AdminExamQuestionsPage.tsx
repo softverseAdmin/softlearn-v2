@@ -9,6 +9,7 @@ import type {
   AdminExamQuestionsResponse,
   AdminQuestionOptionsResponse,
 } from './types'
+import { LoadingState } from '@/components/LoadingIndicator'
 
 const emptyExamQuestions: AdminExamQuestionsResponse = {
   exam: {
@@ -318,7 +319,13 @@ export function AdminExamQuestionsPage() {
   }
 
   if (loading) {
-    return <section className="page"><div className="card">Loading exam questions…</div></section>
+    return (
+      <section className="page">
+        <div className="card">
+          <LoadingState title="Loading exam questions" className="min-h-48 py-8" />
+        </div>
+      </section>
+    )
   }
 
   return (

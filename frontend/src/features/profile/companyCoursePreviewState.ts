@@ -100,6 +100,7 @@ function withAssessmentState(
 export function applyCompanyPreviewStateToCourseDetail(
   detail: CourseDetailResponse,
   state: CompanyCoursePreviewState,
+  workspacePrefix = '/company',
 ): CourseDetailResponse {
   const lessonCount = detail.lessons.length
   const completedLessonCount = detail.lessons.filter(
@@ -111,12 +112,12 @@ export function applyCompanyPreviewStateToCourseDetail(
 
   const lessons = detail.lessons.map((lesson) => {
     const accessible = isLessonAccessible(state, detail.lessons, lesson.lesson_id)
-    return {
-      ...lesson,
-      status: state.started ? getLessonStatus(state, lesson.lesson_id) : null,
-      is_accessible: accessible,
-      detail_href: accessible ? `/company/courses/${detail.course_id}/preview/lessons/${lesson.lesson_id}` : null,
-      assessment: withAssessmentState(
+      return {
+        ...lesson,
+        status: state.started ? getLessonStatus(state, lesson.lesson_id) : null,
+        is_accessible: accessible,
+        detail_href: accessible ? `${workspacePrefix}/courses/${detail.course_id}/preview/lessons/${lesson.lesson_id}` : null,
+        assessment: withAssessmentState(
         lesson.assessment,
         state.lessonExamResults[lesson.lesson_id] ?? null,
         getLessonStatus(state, lesson.lesson_id) === 'completed',
@@ -161,6 +162,7 @@ export function applyCompanyPreviewStateToLessonDetail(
   detail: LessonDetailResponse,
   courseDetail: CourseDetailResponse,
   state: CompanyCoursePreviewState,
+  workspacePrefix = '/company',
 ): LessonDetailResponse {
   const currentLesson = courseDetail.lessons.find((lesson) => lesson.lesson_id === detail.lesson_id)
   const currentIndex = courseDetail.lessons.findIndex((lesson) => lesson.lesson_id === detail.lesson_id)
@@ -168,7 +170,7 @@ export function applyCompanyPreviewStateToLessonDetail(
 
   return {
     ...detail,
-    course_href: `/company/courses/${detail.course_id}/preview`,
+    course_href: `${workspacePrefix}/courses/${detail.course_id}/preview`,
     progress: {
       status: state.started ? getLessonStatus(state, detail.lesson_id) : 'not_started',
       started_at: null,

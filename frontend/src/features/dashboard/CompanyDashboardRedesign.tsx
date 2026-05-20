@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { BriefcaseBusiness, CalendarDays, CheckCircle2, Search, UserRoundCheck } from 'lucide-react'
 
+import { LoadingState } from '@/components/LoadingIndicator'
 import { Card, CardContent } from '@/components/ui/card'
 
 import type { CompanyDashboardResponse } from './types'
@@ -104,7 +105,7 @@ export function CompanyDashboardRedesign({ loading, error, data }: CompanyDashbo
         <Card className="border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950">
           <CardContent className="pt-6">
             <div className="space-y-1">
-              <p className="font-semibold text-red-900 dark:text-red-100">Unable to load dashboard</p>
+              <p className="font-semibold text-red-900 dark:text-red-100">Dashboard temporarily unavailable</p>
               <p className="text-sm text-red-800 dark:text-red-200">{error}</p>
             </div>
           </CardContent>
@@ -113,7 +114,9 @@ export function CompanyDashboardRedesign({ loading, error, data }: CompanyDashbo
 
       {loading ? (
         <Card>
-          <CardContent className="pt-6 text-sm text-muted-foreground">Loading your hiring workspace…</CardContent>
+          <CardContent className="pt-6">
+            <LoadingState title="Loading your hiring workspace" className="min-h-28" />
+          </CardContent>
         </Card>
       ) : null}
 

@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
-import { AlertCircle, HelpCircle, LoaderCircle } from 'lucide-react'
+import { AlertCircle, HelpCircle } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 
 import { useAuth } from '@/auth/useAuth'
+import { LoadingState } from '@/components/LoadingIndicator'
 import { AIExtractedInsights } from '../AIExtractedInsights'
 import { DocumentPreview } from '../DocumentPreview'
 import { PageTabs } from '../PageTabs'
@@ -168,9 +169,8 @@ export function StudentWorkHistoryPage() {
   if (loading) {
     return (
       <div className="flex min-h-full items-center justify-center bg-[#f5f7fb] px-6 py-10">
-        <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-5 py-4 text-sm text-slate-600 shadow-sm">
-          <LoaderCircle className="h-5 w-5 animate-spin text-primary" />
-          Loading work history workspace...
+        <div className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
+          <LoadingState title="Loading work history workspace" className="min-h-28 text-slate-600" />
         </div>
       </div>
     )

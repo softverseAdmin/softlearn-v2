@@ -115,7 +115,13 @@ export function CompanyCandidatesPage() {
         }
       } catch (loadError) {
         if (active) {
-          setError(loadError instanceof ApiError ? loadError.message : 'Unable to load candidate review queue.')
+          setError(
+            loadError instanceof ApiError && loadError.status >= 500
+              ? 'Candidate review data is temporarily unavailable. Please try again in a moment.'
+              : loadError instanceof ApiError
+                ? loadError.message
+                : 'Unable to load candidate review queue.',
+          )
         }
       } finally {
         if (active) {

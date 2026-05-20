@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { useAuth } from '../../auth/useAuth'
 import { ApiError, apiRequest } from '../../lib/api'
 import type { AdminVacanciesResponse, AdminVacancyRecord } from './types'
+import { LoadingState } from '@/components/LoadingIndicator'
 
 const emptyVacanciesResponse: AdminVacanciesResponse = {
   vacancies: [],
@@ -267,7 +268,13 @@ export function AdminVacanciesPage() {
   }
 
   if (loading) {
-    return <section className="page"><div className="card">Loading vacancies…</div></section>
+    return (
+      <section className="page">
+        <div className="card">
+          <LoadingState title="Loading vacancies" className="min-h-48 py-8" />
+        </div>
+      </section>
+    )
   }
 
   const canSave = Boolean(companyId && createdById)

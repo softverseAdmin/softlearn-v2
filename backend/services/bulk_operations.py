@@ -134,7 +134,7 @@ class CSVImporter:
                         continue
                     
                     # Validate role
-                    if role not in [User.Role.STUDENT, User.Role.COMPANY, User.Role.ADMIN]:
+                    if role not in [User.Role.STUDENT, User.Role.COMPANY, User.Role.TEACHER, User.Role.ADMIN]:
                         result["errors"].append(f"Row {row_num}: Invalid role '{role}'")
                         result["skipped"] += 1
                         continue

@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
 
 import { CompanyDashboardRedesign } from '../features/dashboard/CompanyDashboardRedesign'
-import type { AdminDashboardResponse, CompanyDashboardResponse } from '../features/dashboard/types'
+import { TeacherDashboard } from '../features/dashboard/TeacherDashboard'
+import type { AdminDashboardResponse, CompanyDashboardResponse, TeacherDashboardResponse } from '../features/dashboard/types'
 import { StudentDashboard } from '../features/dashboard/StudentDashboard'
 import { useAuth } from '../auth/useAuth'
+import { LoadingState } from '../components/LoadingIndicator'
 import { ApiError, apiRequest } from '../lib/api'
 
 const contentByRole = {
@@ -14,6 +16,10 @@ const contentByRole = {
   company: {
     title: 'Company dashboard',
     description: 'Review hiring activity, candidate flow, interviews, and notification signals for your company.',
+  },
+  teacher: {
+    title: 'Teacher dashboard',
+    description: 'Review teaching coverage, student activity, and platform learning signals from one protected workspace.',
   },
   admin: {
     title: 'Admin dashboard',
@@ -30,13 +36,19 @@ function dashboardPathByRole(role: DashboardPageProps['role']) {
 }
 
 function isCompanyDashboardResponse(
-  value: CompanyDashboardResponse | AdminDashboardResponse | null
+  value: CompanyDashboardResponse | TeacherDashboardResponse | AdminDashboardResponse | null
 ): value is CompanyDashboardResponse {
   return Boolean(value && 'analytics' in value)
 }
 
+function isTeacherDashboardResponse(
+  value: CompanyDashboardResponse | TeacherDashboardResponse | AdminDashboardResponse | null
+): value is TeacherDashboardResponse {
+  return Boolean(value && 'summary_cards' in value)
+}
+
 function isAdminDashboardResponse(
-  value: CompanyDashboardResponse | AdminDashboardResponse | null
+  value: CompanyDashboardResponse | TeacherDashboardResponse | AdminDashboardResponse | null
 ): value is AdminDashboardResponse {
   return Boolean(value && 'system_stats' in value)
 }
@@ -46,7 +58,7 @@ export function DashboardPage({ role }: DashboardPageProps) {
   const content = contentByRole[role]
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [data, setData] = useState<CompanyDashboardResponse | AdminDashboardResponse | null>(null)
+  const [data, setData] = useState<CompanyDashboardResponse | TeacherDashboardResponse | AdminDashboardResponse | null>(null)
 
   useEffect(() => {
     let active = true
@@ -66,16 +78,25 @@ export function DashboardPage({ role }: DashboardPageProps) {
           return
         }
 
-        const response = role === 'company'
-          ? await apiRequest<CompanyDashboardResponse>(dashboardPathByRole(role))
-          : await apiRequest<AdminDashboardResponse>(dashboardPathByRole(role))
+        const response =
+          role === 'company'
+            ? await apiRequest<CompanyDashboardResponse>(dashboardPathByRole(role))
+            : role === 'teacher'
+              ? await apiRequest<TeacherDashboardResponse>(dashboardPathByRole(role))
+              : await apiRequest<AdminDashboardResponse>(dashboardPathByRole(role))
 
         if (active) {
           setData(response)
         }
       } catch (loadError) {
         if (active) {
-          setError(loadError instanceof ApiError ? loadError.message : 'Unable to load dashboard.')
+          setError(
+            loadError instanceof ApiError && loadError.status >= 500
+              ? 'Dashboard data is temporarily unavailable. Please try again in a moment.'
+              : loadError instanceof ApiError
+                ? loadError.message
+                : 'Unable to load dashboard.',
+          )
         }
       } finally {
         if (active) {
@@ -162,6 +183,16 @@ export function DashboardPage({ role }: DashboardPageProps) {
     )
   }
 
+  if (role === 'teacher') {
+    return (
+      <TeacherDashboard
+        loading={loading}
+        error={error}
+        data={isTeacherDashboardResponse(data) ? data : null}
+      />
+    )
+  }
+
   return (
     <section className="page">
       <div className="page-header">
@@ -177,7 +208,11 @@ export function DashboardPage({ role }: DashboardPageProps) {
         </div>
       </div>
       {error ? <div className="card form-error">{error}</div> : null}
-      {loading ? <div className="card">Loading dashboard…</div> : null}
+      {loading ? (
+        <div className="card">
+          <LoadingState title="Loading dashboard" className="min-h-40" />
+        </div>
+      ) : null}
       {!loading && !error && isAdminDashboardResponse(data) ? renderAdminDashboard(data) : null}
     </section>
   )

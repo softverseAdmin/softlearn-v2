@@ -11,21 +11,10 @@ export const fieldClassName =
 export const textAreaClassName =
   'w-full rounded-none border border-input bg-background px-4 py-3 text-sm text-foreground outline-none transition focus-visible:ring-2 focus-visible:ring-ring/50'
 export const editorCardClassName = 'rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950'
-export const supportedTechnologies = [
-  'HTML',
-  'CSS',
-  'JavaScript',
-  'TypeScript',
-  'React',
-  'Next.js',
-  'Tailwind CSS',
-  'Git',
-  'Testing',
-  'AI Tools',
-]
 
 export type CompanyCourseEditorPageProps = {
   mode: 'create' | 'edit'
+  workspaceRole?: 'company' | 'teacher'
 }
 
 export type LessonDraft = {
@@ -73,14 +62,6 @@ export function createLessonDraftFromRecord(lesson: AdminLessonRecord): LessonDr
   }
 }
 
-export function slugify(value: string) {
-  return value
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-}
-
 export function readImageFile(file: File) {
   return new Promise<string>((resolve, reject) => {
     const reader = new FileReader()
@@ -125,24 +106,6 @@ export function formatDuration(hours: number) {
 
 export function formatCompactNumber(value: number) {
   return new Intl.NumberFormat('en-US').format(value)
-}
-
-export function buildPreviewSummarySeed(value: string) {
-  const normalized = value.replace(/\s+/g, ' ').trim()
-  if (!normalized) {
-    return ''
-  }
-
-  if (normalized.length <= 160) {
-    return normalized
-  }
-
-  const firstSentence = normalized.match(/^(.{1,160}?[.!?])(\s|$)/)?.[1]?.trim()
-  if (firstSentence) {
-    return firstSentence
-  }
-
-  return `${normalized.slice(0, 157).trimEnd()}...`
 }
 
 export function dedupeText(items: Array<string | null | undefined>) {

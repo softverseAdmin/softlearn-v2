@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '../../auth/useAuth'
 import { ApiError, apiRequest } from '../../lib/api'
 import type { AdminExamRecord, AdminExamsResponse } from './types'
+import { LoadingState } from '@/components/LoadingIndicator'
 
 const emptyExamsResponse: AdminExamsResponse = {
   exams: [],
@@ -153,7 +154,13 @@ export function AdminExamsPage() {
   }
 
   if (loading) {
-    return <section className="page"><div className="card">Loading exams…</div></section>
+    return (
+      <section className="page">
+        <div className="card">
+          <LoadingState title="Loading exams" className="min-h-48 py-8" />
+        </div>
+      </section>
+    )
   }
 
   return (

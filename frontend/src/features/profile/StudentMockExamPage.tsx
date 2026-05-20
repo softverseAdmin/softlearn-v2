@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
+import { LoadingState } from '@/components/LoadingIndicator'
 import { useAuth } from '../../auth/useAuth'
 import { ApiError, apiRequest } from '../../lib/api'
 import type { StudentMockExamDetailResponse, StudentMockExamSubmitResponse } from './types'
@@ -91,7 +92,13 @@ export function StudentMockExamPage() {
   }
 
   if (loading) {
-    return <section className="page"><div className="card">Loading mock exam…</div></section>
+    return (
+      <section className="page">
+        <div className="card">
+          <LoadingState title="Loading mock exam" className="min-h-40" />
+        </div>
+      </section>
+    )
   }
 
   return (

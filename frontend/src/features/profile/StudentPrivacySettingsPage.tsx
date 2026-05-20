@@ -4,8 +4,10 @@ import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import { useAuth } from '../../auth/useAuth'
+import { AccountSecurityCard } from '@/components/AccountSecurityCard'
 import { ApiError, apiRequest } from '../../lib/api'
 import type { StudentPrivacySettings } from './types'
+import { LoadingState } from '@/components/LoadingIndicator'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -156,10 +158,7 @@ export function StudentPrivacySettingsPage() {
 
         <Card>
           <CardContent className="flex items-center justify-center py-12">
-            <div className="text-center">
-              <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-muted border-t-primary" />
-              <p className="mt-4 text-sm text-muted-foreground">Loading privacy settings…</p>
-            </div>
+            <LoadingState title="Loading privacy settings" />
           </CardContent>
         </Card>
       </div>
@@ -245,6 +244,13 @@ export function StudentPrivacySettingsPage() {
         </Card>
 
         <div className="space-y-6">
+          <AccountSecurityCard
+            csrfToken={csrfToken}
+            title="Account security"
+            description="Keep your student account protected with the same session-based password flow used across the platform."
+            helperText="Changing your password signs future sensitive actions with the updated credential while preserving the same CSRF-protected session flow."
+          />
+
           <Card>
             <CardHeader className="border-b">
               <CardTitle className="flex items-center gap-2">

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '../../auth/useAuth'
 import { ApiError, apiRequest } from '../../lib/api'
 import type { StudyPlan, StudyPlanItem } from './types'
+import { LoadingState } from '@/components/LoadingIndicator'
 
 interface StudyPlanResponse {
   plan: StudyPlan
@@ -77,7 +78,9 @@ export function StudyPlanPage() {
   if (loading) {
     return (
       <section className="page">
-        <div className="card">Loading study plan…</div>
+        <div className="card">
+          <LoadingState title="Loading study plan" className="min-h-40" />
+        </div>
       </section>
     )
   }

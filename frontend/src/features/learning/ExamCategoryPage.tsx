@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 
+import { LoadingState } from '@/components/LoadingIndicator'
 import { ApiError, apiRequest } from '../../lib/api'
 import type { ExamCategory, Exam } from './types'
 
@@ -43,7 +44,9 @@ export function ExamCategoryPage() {
   if (loading) {
     return (
       <section className="page">
-        <div className="card">Loading categories…</div>
+        <div className="card">
+          <LoadingState title="Loading categories" className="min-h-40" />
+        </div>
       </section>
     )
   }

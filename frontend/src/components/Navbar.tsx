@@ -117,34 +117,36 @@ export function Navbar({
             </Button>
           )}
 
-          <Button
-            asChild={Boolean(messagesHref)}
-            type="button"
-            variant="ghost"
-            size="icon-lg"
-            className="relative rounded-2xl border border-slate-200 bg-slate-50 text-slate-600 hover:border-primary/20 hover:bg-primary/5 hover:text-primary"
-            aria-label="Messages"
-          >
-            {messagesHref ? (
-              <Link to={messagesHref}>
-                <Mail className="h-5 w-5" />
-                {messageCount > 0 && (
-                  <span className="absolute top-0 right-0 inline-flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-xs font-bold text-white">
-                    {messageCount > 9 ? '9+' : messageCount}
-                  </span>
-                )}
-              </Link>
-            ) : (
-              <>
-                <Mail className="h-5 w-5" />
-                {messageCount > 0 && (
-                  <span className="absolute top-0 right-0 inline-flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-xs font-bold text-white">
-                    {messageCount > 9 ? '9+' : messageCount}
-                  </span>
-                )}
-              </>
-            )}
-          </Button>
+          {messagesHref || messageCount > 0 ? (
+            <Button
+              asChild={Boolean(messagesHref)}
+              type="button"
+              variant="ghost"
+              size="icon-lg"
+              className="relative rounded-2xl border border-slate-200 bg-slate-50 text-slate-600 hover:border-primary/20 hover:bg-primary/5 hover:text-primary"
+              aria-label="Messages"
+            >
+              {messagesHref ? (
+                <Link to={messagesHref}>
+                  <Mail className="h-5 w-5" />
+                  {messageCount > 0 && (
+                    <span className="absolute top-0 right-0 inline-flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-xs font-bold text-white">
+                      {messageCount > 9 ? '9+' : messageCount}
+                    </span>
+                  )}
+                </Link>
+              ) : (
+                <>
+                  <Mail className="h-5 w-5" />
+                  {messageCount > 0 && (
+                    <span className="absolute top-0 right-0 inline-flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-xs font-bold text-white">
+                      {messageCount > 9 ? '9+' : messageCount}
+                    </span>
+                  )}
+                </>
+              )}
+            </Button>
+          ) : null}
 
           {showThemeToggle ? (
             <DropdownMenu>
