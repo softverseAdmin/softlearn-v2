@@ -95,13 +95,13 @@ export function LoginPage() {
   }
 
   return (
-    <AuthShell
-      eyebrow="Welcome back"
-      title="Log in to continue learning"
-      description="Choose the right workspace for student, company, or teacher access. Admins can sign in directly without selecting an account type."
-      fullViewport
-      mode="login"
-    >
+      <AuthShell
+        eyebrow="Welcome back"
+        title="Log in to continue learning"
+        description="Choose the right workspace for student, company, or teacher access."
+        fullViewport
+        mode="login"
+      >
       <form className="space-y-3.5 sm:space-y-4" onSubmit={handleSubmit(onSubmit)} noValidate>
         <fieldset className="space-y-2">
           <legend className="text-sm font-medium text-[var(--sl-text)]">Select account type if needed</legend>
@@ -149,7 +149,6 @@ export function LoginPage() {
               </svg>
             </RoleOption>
           </div>
-          <p className="text-xs text-[var(--sl-muted)]">Admins can leave this blank and log in directly with email and password.</p>
           {errors.role ? (
             <p className="text-sm text-red-600" role="alert">
               {errors.role.message}
