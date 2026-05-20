@@ -26,6 +26,7 @@ const CompanyCoursePreviewLessonPage = loadableNamed(
 )
 const CompanyCourseLessonsPage = loadableNamed(() => import('@/features/profile/CompanyCourseLessonsPage'), 'CompanyCourseLessonsPage')
 const CompanyPostJobsPage = loadableNamed(() => import('@/features/profile/CompanyPostJobsPage'), 'CompanyPostJobsPage')
+const CompanyPrivacyPage = loadableNamed(() => import('@/features/profile/CompanyPrivacyPage'), 'CompanyPrivacyPage')
 const CompanyProfilePage = loadableNamed(() => import('@/features/profile/CompanyProfilePage'), 'CompanyProfilePage')
 const CompanyCandidatesPage = loadableNamed(() => import('@/features/profile/CompanyCandidatesPage'), 'CompanyCandidatesPage')
 const CompanyCandidateDetailPage = loadableNamed(
@@ -63,6 +64,7 @@ export function renderCompanyRoutes() {
       />
       <Route path="/company/courses/:courseId/lessons" element={<CompanyCourseLessonsPage />} />
       <Route path="/company/jobs" element={<CompanyPostJobsPage />} />
+      <Route path="/company/privacy" element={<CompanyPrivacyPage />} />
       <Route path="/company/profile" element={<CompanyProfilePage />} />
       <Route path="/company/candidates" element={<CompanyCandidatesPage />} />
       <Route path="/company/candidates/:candidateAccessId" element={<CompanyCandidateDetailPage />} />

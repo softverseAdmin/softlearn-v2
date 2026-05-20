@@ -115,6 +115,22 @@ export interface CompanyDashboardResponse {
   }
 }
 
+export interface TeacherDashboardResponse {
+  teacher_name: string
+  header_message: string
+  summary_cards: Array<{
+    id: string
+    label: string
+    value: number
+    description: string
+  }>
+  focus_items: Array<{
+    id: string
+    title: string
+    description: string
+  }>
+}
+
 export interface AdminDashboardResponse {
   header_message: string
   system_stats: {

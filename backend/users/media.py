@@ -15,6 +15,8 @@ IMAGE_UPLOAD_VARIANTS = {
     "company_cover": {"max_width": 1600, "max_height": 900, "quality": 80},
     "student_profile": {"max_width": 512, "max_height": 512, "quality": 82},
     "student_cover": {"max_width": 1600, "max_height": 900, "quality": 80},
+    "teacher_profile": {"max_width": 512, "max_height": 512, "quality": 82},
+    "teacher_cover": {"max_width": 1600, "max_height": 900, "quality": 80},
     "course_thumbnail": {"max_width": 1280, "max_height": 720, "quality": 80},
 }
 
@@ -78,9 +80,24 @@ def student_cover_image_upload_to(instance, filename: str) -> str:
     return build_media_upload_path(f"students/{student_id}/cover-images", filename)
 
 
+def teacher_profile_image_upload_to(instance, filename: str) -> str:
+    teacher_id = getattr(instance, "user_id", None) or "pending"
+    return build_media_upload_path(f"teachers/{teacher_id}/profile-images", filename)
+
+
+def teacher_cover_image_upload_to(instance, filename: str) -> str:
+    teacher_id = getattr(instance, "user_id", None) or "pending"
+    return build_media_upload_path(f"teachers/{teacher_id}/cover-images", filename)
+
+
 def course_thumbnail_upload_to(instance, filename: str) -> str:
     course_id = getattr(instance, "pk", None) or "pending"
     return build_media_upload_path(f"courses/{course_id}/thumbnails", filename)
+
+
+def course_preview_thumbnail_upload_to(instance, filename: str) -> str:
+    course_id = getattr(instance, "pk", None) or "pending"
+    return build_media_upload_path(f"courses/{course_id}/preview-thumbnails", filename)
 
 
 def student_resume_upload_to(instance, filename: str) -> str:

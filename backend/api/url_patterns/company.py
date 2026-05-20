@@ -7,7 +7,11 @@ from api.jobs_views import (
     company_courses_view,
 )
 from api.matching_views import company_vacancy_matches_view
-from api.media_views import company_course_thumbnail_upload_view, company_profile_image_upload_view
+from api.media_views import (
+    company_course_preview_thumbnail_upload_view,
+    company_course_thumbnail_upload_view,
+    company_profile_image_upload_view,
+)
 from api.message_views import (
     company_message_compose_contact_detail_view,
     company_message_compose_contacts_view,
@@ -23,6 +27,11 @@ urlpatterns = [
     path("courses/<int:course_id>", company_course_detail_view, name="api-company-course-detail"),
     path("courses/<int:course_id>/bookmark", company_course_bookmark_view, name="api-company-course-bookmark"),
     path("courses/<int:course_id>/thumbnail", company_course_thumbnail_upload_view, name="api-company-course-thumbnail"),
+    path(
+        "courses/<int:course_id>/preview-thumbnail",
+        company_course_preview_thumbnail_upload_view,
+        name="api-company-course-preview-thumbnail",
+    ),
     path("courses/<int:course_id>/preview", views.company_course_preview_detail_view, name="api-company-course-preview-detail"),
     path("courses/<int:course_id>/preview/lessons/<int:lesson_id>", views.company_course_preview_lesson_detail_view, name="api-company-course-preview-lesson-detail"),
     path("courses/<int:course_id>/preview/lessons/<int:lesson_id>/exam", views.company_course_preview_lesson_assessment_detail_view, name="api-company-course-preview-lesson-assessment-detail"),

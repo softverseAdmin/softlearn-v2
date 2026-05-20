@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { BarChart3, BookOpen, CheckCircle2, Clock3, Send } from 'lucide-react'
 
+import { LoadingState } from '@/components/LoadingIndicator'
 import { ApiError, apiRequest } from '@/lib/api'
 import { Card, CardContent } from '@/components/ui/card'
 
@@ -169,7 +170,9 @@ export function StudentDashboard({ userName }: StudentDashboardProps) {
 
       {loading ? (
         <Card>
-          <CardContent className="pt-6 text-sm text-muted-foreground">Loading dashboard cards for {userName}…</CardContent>
+          <CardContent className="pt-6">
+            <LoadingState title={`Loading dashboard cards for ${userName}`} className="min-h-28" />
+          </CardContent>
         </Card>
       ) : null}
 

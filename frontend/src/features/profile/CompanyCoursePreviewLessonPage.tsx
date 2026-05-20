@@ -12,6 +12,7 @@ import type {
   CourseLessonSummary,
   LessonDetailResponse,
 } from './types'
+import { LoadingState } from '@/components/LoadingIndicator'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -162,10 +163,11 @@ function getAssessmentRowClassName(assessment: CourseLessonSummary['assessment']
   return 'flex items-center justify-between rounded-xl px-4 py-3 text-slate-400'
 }
 
-export function CompanyCoursePreviewLessonPage() {
+export function CompanyCoursePreviewLessonPage({ workspaceRole = 'company' }: { workspaceRole?: 'company' | 'teacher' }) {
   const { courseId, lessonId } = useParams<{ courseId: string; lessonId: string }>()
   const navigate = useNavigate()
   const { csrfToken } = useAuth()
+  const workspacePrefix = workspaceRole === 'teacher' ? '/teacher' : '/company'
   const [data, setData] = useState<LessonDetailResponse>(emptyLesson)
   const [courseDetail, setCourseDetail] = useState<CourseDetailResponse>(emptyCourseDetail)
   const [loading, setLoading] = useState(true)
@@ -191,14 +193,14 @@ export function CompanyCoursePreviewLessonPage() {
       return
     }
 
-    try {
-      const [lessonResponse, courseResponse] = await Promise.all([
-        apiRequest<LessonDetailResponse>(`/company/courses/${courseId}/preview/lessons/${lessonId}`),
-        apiRequest<CourseDetailResponse>(`/company/courses/${courseId}/preview`),
+      try {
+        const [lessonResponse, courseResponse] = await Promise.all([
+        apiRequest<LessonDetailResponse>(`${workspacePrefix}/courses/${courseId}/preview/lessons/${lessonId}`),
+        apiRequest<CourseDetailResponse>(`${workspacePrefix}/courses/${courseId}/preview`),
       ])
 
       const previewState = readCompanyCoursePreviewState(courseResponse.course_id)
-      const derivedCourse = applyCompanyPreviewStateToCourseDetail(courseResponse, previewState)
+      const derivedCourse = applyCompanyPreviewStateToCourseDetail(courseResponse, previewState, workspacePrefix)
       const targetLesson = derivedCourse.lessons.find((lesson) => lesson.lesson_id === Number(lessonId))
       if (!previewState.started || !targetLesson?.is_accessible) {
         setLoadError('Start the preview and pass the required lesson exam to unlock this lesson.')
@@ -207,13 +209,13 @@ export function CompanyCoursePreviewLessonPage() {
       }
 
       setCourseDetail(derivedCourse)
-      setData(applyCompanyPreviewStateToLessonDetail(lessonResponse, derivedCourse, previewState))
+      setData(applyCompanyPreviewStateToLessonDetail(lessonResponse, derivedCourse, previewState, workspacePrefix))
     } catch (error) {
       setLoadError(error instanceof ApiError ? error.message : 'Unable to load lesson.')
     } finally {
       setLoading(false)
     }
-  }, [courseId, lessonId])
+  }, [courseId, lessonId, workspacePrefix])
 
   useEffect(() => {
     void loadPageData()
@@ -302,8 +304,8 @@ export function CompanyCoursePreviewLessonPage() {
 
     const endpoint =
       type === 'lesson'
-        ? `/company/courses/${courseId}/preview/lessons/${lessonId}/exam`
-        : `/company/courses/${courseId}/preview/final-exam`
+        ? `${workspacePrefix}/courses/${courseId}/preview/lessons/${lessonId}/exam`
+        : `${workspacePrefix}/courses/${courseId}/preview/final-exam`
 
     try {
       const response = await apiRequest<CourseAssessmentDetailResponse>(endpoint)
@@ -334,8 +336,8 @@ export function CompanyCoursePreviewLessonPage() {
 
     const endpoint =
       assessmentType === 'lesson'
-        ? `/company/courses/${courseId}/preview/lessons/${lessonId}/exam/submit`
-        : `/company/courses/${courseId}/preview/final-exam/submit`
+        ? `${workspacePrefix}/courses/${courseId}/preview/lessons/${lessonId}/exam/submit`
+        : `${workspacePrefix}/courses/${courseId}/preview/final-exam/submit`
 
     try {
       const response = await apiRequest<CourseAssessmentSubmitResponse>(endpoint, {
@@ -417,10 +419,7 @@ export function CompanyCoursePreviewLessonPage() {
       <div className="space-y-6 px-4 py-6 md:space-y-8 md:px-6 lg:px-8">
         <Card>
           <CardContent className="flex items-center justify-center py-12">
-            <div className="text-center">
-              <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-muted border-t-primary" />
-              <p className="mt-4 text-sm text-muted-foreground">Loading lesson…</p>
-            </div>
+            <LoadingState title="Loading lesson" />
           </CardContent>
         </Card>
       </div>
@@ -430,15 +429,15 @@ export function CompanyCoursePreviewLessonPage() {
   return (
     <div ref={pageContainerRef} className="space-y-6 bg-slate-50 px-4 py-6 md:space-y-8 md:px-6 lg:px-8">
       <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-        <Link to="/company" className="transition-colors hover:text-foreground">
+        <Link to={workspacePrefix} className="transition-colors hover:text-foreground">
           Dashboard
         </Link>
         <ChevronRight className="h-4 w-4" />
-        <Link to="/company/courses" className="transition-colors hover:text-foreground">
+        <Link to={`${workspacePrefix}/courses`} className="transition-colors hover:text-foreground">
           Courses
         </Link>
         <ChevronRight className="h-4 w-4" />
-        <Link to={data.course_href || `/company/courses/${data.course_id}/preview`} className="transition-colors hover:text-foreground">
+        <Link to={data.course_href || `${workspacePrefix}/courses/${data.course_id}/preview`} className="transition-colors hover:text-foreground">
           {data.course_title || 'Course'}
         </Link>
         <ChevronRight className="h-4 w-4" />
@@ -475,14 +474,14 @@ export function CompanyCoursePreviewLessonPage() {
                     <Button
                       variant="outline"
                       className="rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-                      onClick={() => navigate(data.previous_lesson_href || data.course_href || `/company/courses/${data.course_id}/preview`)}
+                      onClick={() => navigate(data.previous_lesson_href || data.course_href || `${workspacePrefix}/courses/${data.course_id}/preview`)}
                     >
                         <ChevronLeft className="h-4 w-4" />
                         {data.previous_lesson_href ? 'Previous' : 'Course'}
                     </Button>
                     <Button
                       className="rounded-xl px-6 !text-white hover:!text-white"
-                      onClick={() => navigate(data.next_lesson_href || data.course_href || `/company/courses/${data.course_id}/preview`)}
+                      onClick={() => navigate(data.next_lesson_href || data.course_href || `${workspacePrefix}/courses/${data.course_id}/preview`)}
                     >
                         <span className="text-white">{data.next_lesson_href ? 'Next' : 'Back to course'}</span>
                         <ChevronRight className="h-4 w-4 text-white" />
@@ -529,14 +528,14 @@ export function CompanyCoursePreviewLessonPage() {
                 <Button
                   variant="outline"
                   className="rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-                  onClick={() => navigate(data.previous_lesson_href || data.course_href || `/company/courses/${data.course_id}/preview`)}
+                  onClick={() => navigate(data.previous_lesson_href || data.course_href || `${workspacePrefix}/courses/${data.course_id}/preview`)}
                 >
                   <ChevronLeft className="h-4 w-4" />
                   {data.previous_lesson_href ? 'Previous' : 'Course'}
                 </Button>
                 <Button
                   className="rounded-xl px-6 !text-white hover:!text-white"
-                  onClick={() => navigate(data.next_lesson_href || data.course_href || `/company/courses/${data.course_id}/preview`)}
+                  onClick={() => navigate(data.next_lesson_href || data.course_href || `${workspacePrefix}/courses/${data.course_id}/preview`)}
                 >
                   <span className="text-white">{data.next_lesson_href ? 'Next' : 'Back to course'}</span>
                   <ChevronRight className="h-4 w-4 text-white" />
@@ -605,7 +604,7 @@ export function CompanyCoursePreviewLessonPage() {
                                   <span className="shrink-0 text-right">Locked</span>
                                 </div>
                               ) : (
-                                <Link to={lesson.detail_href || data.course_href || `/company/courses/${data.course_id}/preview`} className="flex items-start justify-between gap-3 rounded-xl px-4 py-3 text-slate-700 transition hover:bg-slate-50">
+                                <Link to={lesson.detail_href || data.course_href || `${workspacePrefix}/courses/${data.course_id}/preview`} className="flex items-start justify-between gap-3 rounded-xl px-4 py-3 text-slate-700 transition hover:bg-slate-50">
                                   <span className="min-w-0 flex-1 break-words">
                                     {lesson.sequence_number}. {lesson.title}
                                   </span>
@@ -712,7 +711,7 @@ export function CompanyCoursePreviewLessonPage() {
 
           <div className="min-h-0 flex-1 space-y-6 overflow-y-auto px-4 py-5 sm:px-6">
             {assessmentLoading ? (
-              <div className="py-10 text-center text-sm text-muted-foreground">Loading exam…</div>
+              <LoadingState title="Loading exam" className="py-10" />
             ) : assessmentError ? (
               <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">{assessmentError}</div>
             ) : (

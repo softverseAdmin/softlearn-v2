@@ -10,10 +10,13 @@ from users.managers import UserManager
 from users.media import (
     company_cover_image_upload_to,
     company_profile_image_upload_to,
+    course_preview_thumbnail_upload_to,
     course_thumbnail_upload_to,
     student_cover_image_upload_to,
     student_profile_image_upload_to,
     student_resume_upload_to,
+    teacher_cover_image_upload_to,
+    teacher_profile_image_upload_to,
 )
 
 
@@ -329,6 +332,28 @@ class StudentProfile(models.Model):
         return f"StudentProfile<{self.user.email}>"
 
 
+class TeacherProfile(models.Model):
+    user = models.OneToOneField("User", on_delete=models.CASCADE, related_name="teacher_profile")
+    overview = models.TextField(blank=True, default="")
+    profile_image = models.TextField(blank=True, default="")
+    cover_image = models.TextField(blank=True, default="")
+    profile_image_file = models.FileField(upload_to=teacher_profile_image_upload_to, blank=True, default="")
+    cover_image_file = models.FileField(upload_to=teacher_cover_image_upload_to, blank=True, default="")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["user_id"]
+
+    def clean(self) -> None:
+        super().clean()
+        if self.user.role != User.Role.TEACHER:
+            raise ValidationError({"user": ["Teacher profiles may only belong to teacher users."]})
+
+    def __str__(self) -> str:
+        return f"TeacherProfile<{self.user.email}>"
+
+
 class StudentEducation(models.Model):
     class CompletionStatus(models.TextChoices):
         IN_PROGRESS = "in_progress", "In progress"
@@ -534,6 +559,14 @@ class Skill(models.Model):
 
 
 class Course(models.Model):
+    class PreviewAccessType(models.TextChoices):
+        FREE_PREVIEW = "free_preview", "Free Preview"
+        ENROLLED_ONLY = "enrolled_only", "Enrolled Only"
+
+    class PreviewStatus(models.TextChoices):
+        DRAFT = "draft", "Draft"
+        PUBLISHED = "published", "Published"
+
     class Status(models.TextChoices):
         DRAFT = "draft", "Draft"
         ACTIVE = "active", "Active"
@@ -550,6 +583,23 @@ class Course(models.Model):
     thumbnail_image = models.TextField(blank=True, default="")
     thumbnail_image_file = models.FileField(upload_to=course_thumbnail_upload_to, blank=True, default="")
     thumbnail_alt_text = models.CharField(max_length=255, blank=True, default="")
+    preview_title = models.CharField(max_length=255, blank=True, default="")
+    preview_short_description = models.TextField(blank=True, default="")
+    preview_video_url = models.URLField(blank=True, default="")
+    preview_thumbnail_image = models.TextField(blank=True, default="")
+    preview_thumbnail_image_file = models.FileField(upload_to=course_preview_thumbnail_upload_to, blank=True, default="")
+    preview_duration_minutes = models.PositiveSmallIntegerField(
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(1)],
+    )
+    preview_access_type = models.CharField(max_length=32, blank=True, default="", choices=PreviewAccessType.choices)
+    preview_order = models.PositiveSmallIntegerField(
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(1)],
+    )
+    preview_status = models.CharField(max_length=20, blank=True, default="", choices=PreviewStatus.choices)
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.DRAFT)
     company = models.ForeignKey(
         Company,
@@ -575,7 +625,13 @@ class Course(models.Model):
         super().clean()
         if self.company_id is None and self.created_by_id is None:
             return
-        if self.company_id is None or self.created_by_id is None:
+        if self.company_id is None:
+            if self.created_by_id is None:
+                return
+            if self.created_by.role != User.Role.TEACHER:
+                raise ValidationError({"created_by": ["Teacher-owned courses must be created by a teacher user."]})
+            return
+        if self.created_by_id is None:
             raise ValidationError({"company": ["Company-owned courses must include both company and creator."]})
         if self.created_by.role != User.Role.COMPANY:
             raise ValidationError({"created_by": ["Course creator must be a company user."]})
@@ -817,6 +873,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     class Role(models.TextChoices):
         STUDENT = "student", "Student"
         COMPANY = "company", "Company"
+        TEACHER = "teacher", "Teacher"
         ADMIN = "admin", "Admin"
 
     email = models.EmailField(unique=True)
@@ -849,7 +906,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         if self.role == self.Role.COMPANY and not self.company_id:
             raise ValidationError({"company": ["Company users must have an associated company."]})
 
-        if self.role in {self.Role.STUDENT, self.Role.ADMIN} and self.company_id:
+        if self.role in {self.Role.STUDENT, self.Role.TEACHER, self.Role.ADMIN} and self.company_id:
             raise ValidationError({"company": ["Only company users can have an associated company."]})
 
     def __str__(self) -> str:

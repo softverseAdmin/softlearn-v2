@@ -1,5 +1,11 @@
+import logging
+
+from kombu.exceptions import OperationalError as KombuOperationalError
+from redis.exceptions import RedisError
 from django.conf import settings
 from django.core.cache import cache
+
+logger = logging.getLogger(__name__)
 
 
 def student_matches_snapshot_cache_key(student_id: int) -> str:
@@ -42,16 +48,38 @@ def invalidate_company_vacancy_matches_snapshot(vacancy_id: int) -> None:
     cache.delete(company_vacancy_matches_snapshot_cache_key(vacancy_id))
 
 
+def _queue_snapshot_refresh(task, object_id: int, *, refresh_kind: str) -> None:
+    try:
+        task.delay(object_id)
+    except (KombuOperationalError, RedisError, OSError) as exc:
+        logger.warning(
+            "Skipping %s snapshot refresh because the async broker is unavailable.",
+            refresh_kind,
+            extra={
+                "refresh_kind": refresh_kind,
+                "object_id": object_id,
+                "error": str(exc),
+            },
+        )
+
+
 def queue_student_matches_snapshot_refresh(student_id: int) -> None:
     from api.tasks import refresh_student_matches_snapshot
 
     if getattr(settings, "MATCHING_ASYNC_REFRESH_ENABLED", False):
-        refresh_student_matches_snapshot.delay(student_id)
+        _queue_snapshot_refresh(
+            refresh_student_matches_snapshot,
+            student_id,
+            refresh_kind="student-match",
+        )
 
 
 def queue_company_vacancy_matches_snapshot_refresh(vacancy_id: int) -> None:
     from api.tasks import refresh_company_vacancy_matches_snapshot
 
     if getattr(settings, "MATCHING_ASYNC_REFRESH_ENABLED", False):
-        refresh_company_vacancy_matches_snapshot.delay(vacancy_id)
-
+        _queue_snapshot_refresh(
+            refresh_company_vacancy_matches_snapshot,
+            vacancy_id,
+            refresh_kind="company-vacancy-match",
+        )

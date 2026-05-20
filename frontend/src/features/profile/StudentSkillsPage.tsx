@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { useAuth } from '../../auth/useAuth'
 import { ApiError, apiRequest } from '../../lib/api'
 import type { StudentSkill, StudentSkillsResponse } from './types'
+import { LoadingState } from '@/components/LoadingIndicator'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -165,10 +166,7 @@ export function StudentSkillsPage() {
       <div className="space-y-6 md:space-y-8">
         <Card>
           <CardContent className="flex items-center justify-center py-12">
-            <div className="text-center">
-              <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-muted border-t-primary" />
-              <p className="mt-4 text-sm text-muted-foreground">Loading your skills…</p>
-            </div>
+            <LoadingState title="Loading your skills" />
           </CardContent>
         </Card>
       </div>

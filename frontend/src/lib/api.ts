@@ -62,6 +62,46 @@ export function buildApiUrl(path: string) {
   return `${baseUrl}/${normalizedPath}`
 }
 
+function getBackendOrigin() {
+  const explicitOrigin = import.meta.env.VITE_BACKEND_ORIGIN
+  if (typeof explicitOrigin === 'string' && explicitOrigin.trim()) {
+    return explicitOrigin.replace(/\/+$/, '')
+  }
+
+  const baseUrl = getApiBaseUrl().trim()
+  if (/^https?:\/\//i.test(baseUrl)) {
+    return new URL(baseUrl).origin
+  }
+
+  if (typeof window !== 'undefined') {
+    return window.location.origin
+  }
+
+  return ''
+}
+
+export function resolveApiAssetUrl(value: string | null | undefined) {
+  if (!value) {
+    return null
+  }
+
+  const trimmed = value.trim()
+  if (!trimmed) {
+    return null
+  }
+
+  if (/^(?:data:|blob:|https?:\/\/)/i.test(trimmed)) {
+    return trimmed
+  }
+
+  const backendOrigin = getBackendOrigin()
+  if (!backendOrigin) {
+    return trimmed
+  }
+
+  return `${backendOrigin}${trimmed.startsWith('/') ? trimmed : `/${trimmed}`}`
+}
+
 function isSafeMethod(method: string) {
   return ['GET', 'HEAD', 'OPTIONS'].includes(method.toUpperCase())
 }
@@ -130,7 +170,7 @@ function getFallbackErrorMessage(response: Response, payload: unknown) {
   }
 
   if (response.status >= 500) {
-    return 'The server returned an unexpected error.'
+    return 'Please try again in a moment.'
   }
 
   if (response.status === 404) {
@@ -203,11 +243,15 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}) 
   const error = getApiErrorPayload(payload)
 
   if (!response.ok || error) {
-    const fallbackMessage = error?.message ?? getFallbackErrorMessage(response, payload)
+    const fallbackMessage = getFallbackErrorMessage(response, payload)
+    const shouldMaskServerMessage = response.status >= 500
+    const errorMessage = shouldMaskServerMessage ? fallbackMessage : error?.message ?? fallbackMessage
     const validationDetailMessage =
-      error?.code === 'VALIDATION_ERROR' ? getFirstErrorDetailMessage(error?.details) : null
+      !shouldMaskServerMessage && error?.code === 'VALIDATION_ERROR'
+        ? getFirstErrorDetailMessage(error?.details)
+        : null
 
-    const apiError = new ApiError(validationDetailMessage ?? fallbackMessage, {
+    const apiError = new ApiError(validationDetailMessage ?? errorMessage, {
       code: error?.code,
       details: error?.details,
       requestId: error?.request_id ?? requestId,

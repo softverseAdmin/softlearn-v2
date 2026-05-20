@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Bell, BriefcaseBusiness, ChevronRight, FileBadge2, LoaderCircle, Mail, Search, SlidersHorizontal, Sparkles, Workflow } from 'lucide-react'
+import { Bell, BriefcaseBusiness, ChevronRight, FileBadge2, Mail, Search, SlidersHorizontal, Sparkles, Workflow } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 
 import { useAuth } from '@/auth/useAuth'
+import type { UserRole } from '@/auth/types'
 import { useWorkspaceState } from '@/app/workspace/workspace-state'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { LoadingState } from '@/components/LoadingIndicator'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
@@ -177,7 +179,7 @@ function getCategoryLabel(category: NotificationCategory) {
   }
 }
 
-function getNotificationDestination(notification: NotificationItem, role: 'student' | 'company' | 'admin') {
+function getNotificationDestination(notification: NotificationItem, role: UserRole) {
   if (notification.link.trim()) {
     return notification.link
   }
@@ -229,6 +231,10 @@ function getNotificationDestination(notification: NotificationItem, role: 'stude
     }
   }
 
+  if (role === 'teacher') {
+    return '/teacher'
+  }
+
   return null
 }
 
@@ -249,7 +255,7 @@ function getCategoryIcon(category: NotificationCategory) {
 
 function mapBackendNotificationToFeedItem(
   notification: NotificationItem,
-  role: 'student' | 'company' | 'admin',
+  role: UserRole,
 ): NotificationFeedItem {
   return {
     key: `notification-${notification.id}`,
@@ -272,7 +278,7 @@ function mapBackendNotificationToFeedItem(
 
 function mapMessageThreadToFeedItem(
   thread: ConversationThreadResponse,
-  role: 'student' | 'company' | 'admin',
+  role: UserRole,
 ): NotificationFeedItem {
   const destination = role === 'company' ? `/company/messages?thread=${thread.id}` : `/student/messages?thread=${thread.id}`
   return {
@@ -582,7 +588,10 @@ export function NotificationsPage() {
   return (
     <div className="space-y-6 px-4 py-6 md:px-6 lg:px-8">
       <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-        <Link to={role === 'student' ? '/student' : role === 'company' ? '/company' : '/admin'} className="transition-colors hover:text-foreground">
+        <Link
+          to={role === 'student' ? '/student' : role === 'company' ? '/company' : role === 'teacher' ? '/teacher' : '/admin'}
+          className="transition-colors hover:text-foreground"
+        >
           Dashboard
         </Link>
         <ChevronRight className="h-4 w-4" />
@@ -597,6 +606,8 @@ export function NotificationsPage() {
             ? 'Review updates in the same workspace pattern as messages. New message alerts open your inbox, and matched-job alerts open the related job page.'
             : role === 'company'
               ? 'Review candidate messages, applications, interviews, and system updates from one protected workspace.'
+              : role === 'teacher'
+                ? 'Review platform updates that support teaching activity from one protected workspace.'
               : 'Review recent application, interview, and system updates from one protected workspace.'}
         </p>
       </div>
@@ -689,13 +700,11 @@ export function NotificationsPage() {
 
           <div className="divide-y divide-border/60">
             {loading ? (
-              <div className="flex min-h-72 flex-col items-center justify-center gap-3 px-6 py-12 text-center">
-                <LoaderCircle className="h-8 w-8 animate-spin text-muted-foreground" />
-                <div>
-                  <p className="font-medium">Loading notifications</p>
-                  <p className="text-sm text-muted-foreground">Recent updates are syncing into the notification center.</p>
-                </div>
-              </div>
+              <LoadingState
+                title="Loading notifications"
+                description="Recent updates are syncing into the notification center."
+                className="min-h-72 px-6 py-12"
+              />
             ) : null}
 
             {!loading && filteredNotifications.length === 0 ? (

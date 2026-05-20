@@ -25,7 +25,7 @@ export interface NotificationsResponse {
 }
 
 export interface NotificationFeedResponse {
-  role: 'student' | 'company' | 'admin'
+  role: 'student' | 'company' | 'teacher' | 'admin'
   notifications: NotificationsResponse
   messages: import('../profile/messages/types').StudentMessagesResponse | import('../profile/messages/types').CompanyMessagesResponse | null
   matches: import('../profile/types').StudentMatchesResponse | null

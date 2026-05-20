@@ -7,6 +7,7 @@ import { renderAdminRoutes } from './routes/adminRoutes'
 import { renderCompanyRoutes } from './routes/companyRoutes'
 import { renderPublicRoutes } from './routes/publicRoutes'
 import { renderStudentRoutes } from './routes/studentRoutes'
+import { renderTeacherRoutes } from './routes/teacherRoutes'
 import { loadableNamed } from './loadable'
 
 const NotFoundPage = loadableNamed(() => import('../pages/NotFoundPage'), 'NotFoundPage')
@@ -31,6 +32,10 @@ export function AppRouter() {
 
           <Route element={<RoleGuard role="company" />}>
             {renderCompanyRoutes()}
+          </Route>
+
+          <Route element={<RoleGuard role="teacher" />}>
+            {renderTeacherRoutes()}
           </Route>
 
           <Route element={<RoleGuard role="admin" />}>

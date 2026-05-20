@@ -20,7 +20,7 @@ from common.decorators import api_endpoint
 from common.http import csrf_response_payload, error_response, parse_json_form, success_response
 from services.email import get_email_service
 from services.security import SecurityManager, client_ip_from_request
-from users.models import Company, StudentProfile, User
+from users.models import Company, StudentProfile, TeacherProfile, User
 
 
 def serialize_user(user: User) -> dict:
@@ -103,6 +103,8 @@ def signup_view(request):
         )
         if payload["role"] == User.Role.STUDENT:
             StudentProfile.objects.create(user=user)
+        if payload["role"] == User.Role.TEACHER:
+            TeacherProfile.objects.create(user=user)
 
     login(request, user)
     return success_response({**serialize_user(user), "csrf_token": get_token(request)}, status=201)
@@ -113,7 +115,7 @@ def login_view(request):
     form = parse_json_form(request, LoginRequestForm)
     email = form.cleaned_data["email"]
     password = form.cleaned_data["password"]
-    role = form.cleaned_data["role"]
+    role = form.cleaned_data.get("role") or None
     client_ip = client_ip_from_request(request)
 
     if SecurityManager.login_is_rate_limited(client_ip, email):
@@ -142,15 +144,25 @@ def login_view(request):
             status=401,
         )
 
-    if user.role != role:
-        SecurityManager.record_login_failure(client_ip, email)
+    if role is None and user.role != User.Role.ADMIN:
         return error_response(
             request,
-            "ROLE_MISMATCH",
-            f"This account belongs to the {user.role} workspace. Select the correct account type and try again.",
-            details={"role": [f"This account belongs to the {user.role} workspace."]},
-            status=403,
+            "ROLE_REQUIRED",
+            "Select your account type and try again.",
+            details={"role": ["Select your account type and try again."]},
+            status=400,
         )
+
+    if user.role != role:
+        if role is not None:
+            SecurityManager.record_login_failure(client_ip, email)
+            return error_response(
+                request,
+                "ROLE_MISMATCH",
+                f"This account belongs to the {user.role} workspace. Select the correct account type and try again.",
+                details={"role": [f"This account belongs to the {user.role} workspace."]},
+                status=403,
+            )
 
     SecurityManager.reset_login_rate_limit(client_ip, email)
     login(request, user)

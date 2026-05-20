@@ -13,6 +13,7 @@ from users.models import (
     Message,
     MessageThread,
     StudentProfile,
+    TeacherProfile,
     User,
 )
 from users.media import file_url_or_none, text_value_or_none
@@ -85,6 +86,13 @@ def message_profile_image_for_user(user: User | None) -> str | None:
             return None
     if user.role == User.Role.COMPANY and user.company is not None:
         return file_url_or_none(user.company.profile_image_file) or text_value_or_none(user.company.profile_image)
+    if user.role == User.Role.TEACHER:
+        try:
+            return file_url_or_none(user.teacher_profile.profile_image_file) or text_value_or_none(
+                user.teacher_profile.profile_image
+            )
+        except TeacherProfile.DoesNotExist:
+            return None
     return None
 
 

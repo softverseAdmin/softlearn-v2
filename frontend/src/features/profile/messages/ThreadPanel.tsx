@@ -1,5 +1,6 @@
-import { LoaderCircle, Paperclip, SendHorizontal, Star, Trash2 } from 'lucide-react'
+import { Paperclip, SendHorizontal, Star, Trash2 } from 'lucide-react'
 
+import { LoadingSpinner } from '@/components/LoadingIndicator'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -78,8 +79,8 @@ export function ThreadPanel({
 
         {loadingActiveThreadId === thread.id && thread.messages.length === 0 ? (
           <div className="flex items-center justify-center gap-2 py-8 text-sm text-muted-foreground">
-            <LoaderCircle className="h-4 w-4 animate-spin" />
-            Loading conversation...
+            <LoadingSpinner className="h-4 w-4" />
+            Loading conversation
           </div>
         ) : null}
 

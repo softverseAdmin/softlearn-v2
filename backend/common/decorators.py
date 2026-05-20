@@ -1,3 +1,4 @@
+import logging
 from collections.abc import Callable, Iterable
 from functools import wraps
 
@@ -5,6 +6,8 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.http import HttpRequest, HttpResponse
 
 from common.http import error_response, validation_error_details
+
+logger = logging.getLogger(__name__)
 
 
 def api_endpoint(
@@ -63,6 +66,34 @@ def api_endpoint(
                     "PERMISSION_DENIED",
                     str(exc) or "You do not have permission to perform this action.",
                     status=403,
+                )
+            except Exception as exc:
+                try:
+                    from services.error_tracking import ErrorTracker
+
+                    user_id = request.user.id if request.user.is_authenticated else None
+                    ErrorTracker.capture_exception(
+                        exc,
+                        request_id=getattr(request, "request_id", None),
+                        user_id=user_id,
+                        request_method=request.method,
+                        request_path=request.path,
+                    )
+                except Exception:
+                    logger.exception(
+                        "Failed to capture unexpected API exception.",
+                        extra={
+                            "request_id": getattr(request, "request_id", None),
+                            "request_method": request.method,
+                            "request_path": request.path,
+                        },
+                    )
+
+                return error_response(
+                    request,
+                    "INTERNAL_SERVER_ERROR",
+                    "Unable to complete this request right now.",
+                    status=500,
                 )
 
         return wrapped

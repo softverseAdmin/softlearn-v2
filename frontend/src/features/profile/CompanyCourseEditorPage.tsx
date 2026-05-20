@@ -1,17 +1,17 @@
 import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ArrowRight, ChevronRight } from 'lucide-react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import { useAuth } from '../../auth/useAuth'
 import { ApiError, apiRequest } from '../../lib/api'
 import type { AdminCourseLessonsResponse, AdminCourseRecord, AdminCoursesResponse } from '../admin/types'
+import { LoadingState } from '@/components/LoadingIndicator'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { CoursePreviewHero, CoursePreviewSidebar } from './company-course-editor/EditorPreview'
 import { ImageUploadPanel } from './company-course-editor/ImageUploadPanel'
 import {
-  buildPreviewSummarySeed,
   createLessonDraftFromRecord,
   dedupeText,
   editorCardClassName,
@@ -19,49 +19,300 @@ import {
   fieldClassName,
   formatLabel,
   readImageFile,
-  slugify,
-  supportedTechnologies,
   textAreaClassName,
 } from './company-course-editor/shared'
 import type { CompanyCourseEditorPageProps, LessonDraft } from './company-course-editor/shared'
 
-export function CompanyCourseEditorPage({ mode }: CompanyCourseEditorPageProps) {
+type EditorFieldName =
+  | 'title'
+  | 'fullDescription'
+  | 'category'
+  | 'courseLevel'
+  | 'totalDuration'
+  | 'status'
+  | 'thumbnailAltText'
+  | 'previewTitle'
+  | 'previewShortDescription'
+  | 'previewVideoUrl'
+  | 'previewThumbnailImage'
+  | 'previewDuration'
+  | 'previewAccessType'
+  | 'previewOrder'
+  | 'previewStatus'
+
+type EditorFieldErrors = Partial<Record<EditorFieldName, string>>
+
+const courseStatusOptions = [
+  { value: 'draft', label: 'Draft' },
+  { value: 'active', label: 'Published' },
+  { value: 'inactive', label: 'Inactive' },
+] as const
+
+const courseLevelOptions = [
+  { value: '', label: 'Select level' },
+  { value: 'beginner', label: 'Beginner' },
+  { value: 'intermediate', label: 'Intermediate' },
+  { value: 'advanced', label: 'Advanced' },
+  { value: 'beginner to advanced', label: 'Beginner to Advanced' },
+] as const
+
+const previewAccessTypeOptions = [
+  { value: 'free_preview', label: 'Free preview' },
+  { value: 'enrolled_only', label: 'Enrolled only' },
+] as const
+
+const previewStatusOptions = [
+  { value: 'draft', label: 'Draft' },
+  { value: 'published', label: 'Published' },
+] as const
+
+function getInputClassName(hasError: boolean) {
+  return cn(fieldClassName, hasError && 'border-red-500 focus-visible:ring-red-500/30')
+}
+
+function getTextAreaClassName(hasError: boolean) {
+  return cn(textAreaClassName, hasError && 'border-red-500 focus-visible:ring-red-500/30')
+}
+
+function getFirstDetailMessage(value: unknown) {
+  if (typeof value === 'string' && value.trim()) {
+    return value
+  }
+
+  if (Array.isArray(value)) {
+    const firstMessage = value.find((item): item is string => typeof item === 'string' && item.trim().length > 0)
+    if (firstMessage) {
+      return firstMessage
+    }
+  }
+
+  return null
+}
+
+function extractFieldErrors(details: unknown): EditorFieldErrors {
+  if (!details || typeof details !== 'object') {
+    return {}
+  }
+
+  const nextFieldErrors: EditorFieldErrors = {}
+  for (const [key, value] of Object.entries(details as Record<string, unknown>)) {
+    const message = getFirstDetailMessage(value)
+    if (!message) {
+      continue
+    }
+
+    if (
+      key === 'title' ||
+      key === 'description' ||
+      key === 'category' ||
+      key === 'difficulty_level' ||
+      key === 'estimated_hours' ||
+      key === 'status' ||
+      key === 'thumbnail_alt_text' ||
+      key === 'preview_title' ||
+      key === 'preview_short_description' ||
+      key === 'preview_video_url' ||
+      key === 'preview_thumbnail_image' ||
+      key === 'preview_duration' ||
+      key === 'preview_access_type' ||
+      key === 'preview_order' ||
+      key === 'preview_status'
+    ) {
+      const mappedKey: EditorFieldName =
+        key === 'description'
+          ? 'fullDescription'
+          : key === 'difficulty_level'
+            ? 'courseLevel'
+            : key === 'estimated_hours'
+              ? 'totalDuration'
+              : key === 'thumbnail_alt_text'
+                ? 'thumbnailAltText'
+                : key === 'preview_title'
+                  ? 'previewTitle'
+                  : key === 'preview_short_description'
+                    ? 'previewShortDescription'
+                    : key === 'preview_video_url'
+                      ? 'previewVideoUrl'
+                      : key === 'preview_thumbnail_image'
+                        ? 'previewThumbnailImage'
+                        : key === 'preview_duration'
+                          ? 'previewDuration'
+                          : key === 'preview_access_type'
+                            ? 'previewAccessType'
+                            : key === 'preview_order'
+                              ? 'previewOrder'
+                              : key === 'preview_status'
+                                ? 'previewStatus'
+                                : (key as EditorFieldName)
+
+      nextFieldErrors[mappedKey] = message
+    }
+  }
+
+  return nextFieldErrors
+}
+
+function isValidUrl(value: string) {
+  try {
+    const parsed = new URL(value)
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:'
+  } catch {
+    return false
+  }
+}
+
+function isValidImageReference(value: string) {
+  if (!value.trim()) {
+    return false
+  }
+
+  return value.startsWith('/') || isValidUrl(value)
+}
+
+function parseOptionalInteger(value: string) {
+  if (!value.trim()) {
+    return null
+  }
+
+  const parsed = Number.parseInt(value, 10)
+  return Number.isNaN(parsed) ? null : parsed
+}
+
+function validateForm(values: {
+  title: string
+  fullDescription: string
+  category: string
+  courseLevel: string
+  totalDuration: string
+  status: string
+  thumbnailAltText: string
+  previewTitle: string
+  previewShortDescription: string
+  previewVideoUrl: string
+  previewThumbnailImage: string
+  hasPendingPreviewThumbnailFile: boolean
+  previewDuration: string
+  previewAccessType: string
+  previewOrder: string
+  previewStatus: string
+}) {
+  const nextFieldErrors: EditorFieldErrors = {}
+
+  if (!values.title.trim()) {
+    nextFieldErrors.title = 'Course title is required.'
+  }
+  if (values.title.trim().length > 255) {
+    nextFieldErrors.title = 'Course title must be 255 characters or fewer.'
+  }
+  if (values.fullDescription.trim().length > 0 && values.fullDescription.trim().length < 20) {
+    nextFieldErrors.fullDescription = 'Course description should be at least 20 characters when provided.'
+  }
+  if (!values.category.trim()) {
+    nextFieldErrors.category = 'Course category is required.'
+  }
+  if (!courseStatusOptions.some((option) => option.value === values.status)) {
+    nextFieldErrors.status = 'Select a valid course status.'
+  }
+
+  const totalDurationValue = parseOptionalInteger(values.totalDuration)
+  if (totalDurationValue === null || totalDurationValue < 0) {
+    nextFieldErrors.totalDuration = 'Total duration must be zero or greater.'
+  }
+
+  if (values.thumbnailAltText.trim().length > 255) {
+    nextFieldErrors.thumbnailAltText = 'Alt text must be 255 characters or fewer.'
+  }
+
+  if (!values.previewTitle.trim()) {
+    nextFieldErrors.previewTitle = 'Preview title is required.'
+  }
+  if (!values.previewShortDescription.trim()) {
+    nextFieldErrors.previewShortDescription = 'Preview short description is required.'
+  } else if (values.previewShortDescription.trim().length > 500) {
+    nextFieldErrors.previewShortDescription = 'Preview short description must be 500 characters or fewer.'
+  }
+
+  if (!values.previewVideoUrl.trim()) {
+    nextFieldErrors.previewVideoUrl = 'Preview video URL is required.'
+  } else if (!isValidUrl(values.previewVideoUrl.trim())) {
+    nextFieldErrors.previewVideoUrl = 'Preview video URL must be a valid URL.'
+  }
+
+  if (!values.hasPendingPreviewThumbnailFile && !isValidImageReference(values.previewThumbnailImage.trim())) {
+    nextFieldErrors.previewThumbnailImage = 'Provide a preview image URL or upload a preview image.'
+  }
+
+  const previewDurationValue = parseOptionalInteger(values.previewDuration)
+  if (previewDurationValue === null || previewDurationValue <= 0) {
+    nextFieldErrors.previewDuration = 'Preview duration must be greater than zero.'
+  }
+
+  if (!previewAccessTypeOptions.some((option) => option.value === values.previewAccessType)) {
+    nextFieldErrors.previewAccessType = 'Select a valid preview access type.'
+  }
+
+  const previewOrderValue = parseOptionalInteger(values.previewOrder)
+  if (previewOrderValue === null || previewOrderValue <= 0) {
+    nextFieldErrors.previewOrder = 'Preview order must be greater than zero.'
+  }
+
+  if (!previewStatusOptions.some((option) => option.value === values.previewStatus)) {
+    nextFieldErrors.previewStatus = 'Select a valid preview status.'
+  }
+
+  return nextFieldErrors
+}
+
+function FieldError({ error, id }: { error?: string; id: string }) {
+  if (!error) {
+    return null
+  }
+
+  return (
+    <p id={id} className="text-sm text-red-600" role="alert">
+      {error}
+    </p>
+  )
+}
+
+export function CompanyCourseEditorPage({ mode, workspaceRole = 'company' }: CompanyCourseEditorPageProps) {
   const { courseId } = useParams<{ courseId: string }>()
   const navigate = useNavigate()
   const { csrfToken } = useAuth()
+  const workspacePrefix = workspaceRole === 'teacher' ? '/teacher' : '/company'
+  const coursesPath = `${workspacePrefix}/courses`
+  const lessonsPath = courseId ? `${workspacePrefix}/courses/${courseId}/lessons` : null
+
   const [data, setData] = useState<AdminCoursesResponse>(emptyCoursesResponse)
   const [loading, setLoading] = useState(mode === 'edit')
   const [loadingLessons, setLoadingLessons] = useState(mode === 'edit')
   const [saving, setSaving] = useState(false)
   const [title, setTitle] = useState('')
-  const [slug, setSlug] = useState('')
-  const [slugTouched, setSlugTouched] = useState(false)
-  const [shortDescription, setShortDescription] = useState('')
   const [fullDescription, setFullDescription] = useState('')
   const [category, setCategory] = useState('')
   const [courseLevel, setCourseLevel] = useState('')
-  const [language, setLanguage] = useState('English')
-  const [courseType, setCourseType] = useState<'free' | 'premium'>('free')
-  const [status, setStatus] = useState('')
+  const [status, setStatus] = useState('draft')
   const [thumbnailImage, setThumbnailImage] = useState('')
   const [thumbnailAltText, setThumbnailAltText] = useState('')
   const [pendingThumbnailFile, setPendingThumbnailFile] = useState<File | null>(null)
   const [isReadingThumbnail, setIsReadingThumbnail] = useState(false)
-  const [price, setPrice] = useState('')
-  const [discountPrice, setDiscountPrice] = useState('')
-  const [isFreeCourse, setIsFreeCourse] = useState(true)
-  const [subscriptionRequired, setSubscriptionRequired] = useState(false)
-  const [totalDuration, setTotalDuration] = useState('')
-  const [certificateAvailable, setCertificateAvailable] = useState(false)
-  const [interviewPrepIncluded, setInterviewPrepIncluded] = useState(false)
-  const [capstoneProjectIncluded, setCapstoneProjectIncluded] = useState(false)
-  const [selectedTechnologies, setSelectedTechnologies] = useState<string[]>([])
+  const [shouldClearThumbnailUpload, setShouldClearThumbnailUpload] = useState(false)
+  const [totalDuration, setTotalDuration] = useState('0')
+  const [previewTitle, setPreviewTitle] = useState('')
+  const [previewShortDescription, setPreviewShortDescription] = useState('')
+  const [previewVideoUrl, setPreviewVideoUrl] = useState('')
+  const [previewThumbnailImage, setPreviewThumbnailImage] = useState('')
+  const [pendingPreviewThumbnailFile, setPendingPreviewThumbnailFile] = useState<File | null>(null)
+  const [isReadingPreviewThumbnail, setIsReadingPreviewThumbnail] = useState(false)
+  const [shouldClearPreviewThumbnailUpload, setShouldClearPreviewThumbnailUpload] = useState(false)
+  const [previewDuration, setPreviewDuration] = useState('')
+  const [previewAccessType, setPreviewAccessType] = useState<'free_preview' | 'enrolled_only'>('free_preview')
+  const [previewOrder, setPreviewOrder] = useState('1')
+  const [previewStatus, setPreviewStatus] = useState<'draft' | 'published'>('draft')
   const [lessons, setLessons] = useState<LessonDraft[]>([])
-  const [projectTitle, setProjectTitle] = useState('')
-  const [projectDescription, setProjectDescription] = useState('')
-  const [starterCodeUrl, setStarterCodeUrl] = useState('')
-  const [submissionRequired, setSubmissionRequired] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [fieldErrors, setFieldErrors] = useState<EditorFieldErrors>({})
+
   const selectedCourse = useMemo(() => {
     if (mode !== 'edit' || !courseId) {
       return null
@@ -69,40 +320,18 @@ export function CompanyCourseEditorPage({ mode }: CompanyCourseEditorPageProps) 
 
     return data.courses.find((course) => String(course.course_id) === courseId) ?? null
   }, [courseId, data.courses, mode])
+
   const canEditSelectedCourse = mode !== 'edit' || Boolean(selectedCourse?.can_edit)
-  const previewTitle = title.trim() || (mode === 'edit' ? selectedCourse?.title ?? 'Course title' : 'New course concept')
-  const previewDescription =
-    shortDescription.trim() ||
-    fullDescription.trim() ||
-    'Shape the learner-facing story here so the catalog card and course detail page feel production-ready from day one.'
-  const normalizedDuration = Number.parseInt(totalDuration, 10)
-  const estimatedHours = Number.isNaN(normalizedDuration) ? 0 : Math.max(0, normalizedDuration)
   const learnerCount = selectedCourse?.learning_record_count ?? 0
+  const previewDurationValue = parseOptionalInteger(previewDuration)
   const courseTags = useMemo(
     () =>
       dedupeText([
-        category ? formatLabel(category) : null,
-        courseLevel ? formatLabel(courseLevel) : null,
-        language || null,
-        courseType === 'premium' ? 'Premium' : 'Free',
-        certificateAvailable ? 'Certificate' : null,
-      ]).slice(0, 5),
-    [category, certificateAvailable, courseLevel, courseType, language],
-  )
-  const learningHighlights = useMemo(
-    () =>
-      dedupeText([
-        shortDescription || null,
-        ...selectedTechnologies.slice(0, 3).map((technology) => `Build confidence with ${technology}.`),
-        ...lessons
-          .map((module) => module.title.trim())
-          .filter(Boolean)
-          .slice(0, 2)
-          .map((lessonTitle) => `Progress through ${lessonTitle}.`),
-        capstoneProjectIncluded || projectTitle.trim() ? 'Finish with a capstone-style project.' : null,
-        interviewPrepIncluded ? 'Include interview-focused practice and takeaways.' : null,
-      ]).slice(0, 6),
-    [capstoneProjectIncluded, interviewPrepIncluded, lessons, projectTitle, selectedTechnologies, shortDescription],
+        category.trim() ? formatLabel(category) : null,
+        courseLevel.trim() ? formatLabel(courseLevel) : null,
+        previewAccessType ? formatLabel(previewAccessType) : null,
+      ]).slice(0, 4),
+    [category, courseLevel, previewAccessType],
   )
   const populatedLessonCount = lessons.filter(
     (lesson) =>
@@ -115,14 +344,6 @@ export function CompanyCourseEditorPage({ mode }: CompanyCourseEditorPageProps) 
   const lessonsWithTranscriptCount = lessons.filter((lesson) => lesson.transcript.trim()).length
 
   useEffect(() => {
-    if (slugTouched) {
-      return
-    }
-
-    setSlug(slugify(title))
-  }, [slugTouched, title])
-
-  useEffect(() => {
     if (mode !== 'edit') {
       return
     }
@@ -131,17 +352,21 @@ export function CompanyCourseEditorPage({ mode }: CompanyCourseEditorPageProps) 
 
     async function loadCourses() {
       try {
-        const response = await apiRequest<AdminCoursesResponse>('/company/courses')
-        if (active) {
-          setData(response)
-          setError(null)
+        const response = await apiRequest<AdminCoursesResponse>(`${workspacePrefix}/courses`)
+        if (!active) {
+          return
         }
+
+        setData(response)
+        setError(null)
       } catch (loadError) {
-        if (active) {
-          const message = loadError instanceof ApiError ? loadError.message : 'Unable to load course.'
-          setError(message)
-          toast.error(message)
+        if (!active) {
+          return
         }
+
+        const message = loadError instanceof ApiError ? loadError.message : 'Unable to load course.'
+        setError(message)
+        toast.error(message)
       } finally {
         if (active) {
           setLoading(false)
@@ -153,7 +378,7 @@ export function CompanyCourseEditorPage({ mode }: CompanyCourseEditorPageProps) 
     return () => {
       active = false
     }
-  }, [mode])
+  }, [mode, workspacePrefix])
 
   useEffect(() => {
     if (mode !== 'edit' || !selectedCourse) {
@@ -161,16 +386,26 @@ export function CompanyCourseEditorPage({ mode }: CompanyCourseEditorPageProps) 
     }
 
     setTitle(selectedCourse.title)
-    setSlug(slugify(selectedCourse.title))
-    setShortDescription(buildPreviewSummarySeed(selectedCourse.description))
     setFullDescription(selectedCourse.description)
     setCategory(selectedCourse.category)
     setCourseLevel(selectedCourse.difficulty_level)
-    setTotalDuration(String(selectedCourse.estimated_hours))
-    setStatus(selectedCourse.status)
+    setStatus(selectedCourse.status || 'draft')
+    setTotalDuration(String(selectedCourse.estimated_hours ?? 0))
     setThumbnailImage(selectedCourse.thumbnail_image || '')
     setThumbnailAltText(selectedCourse.thumbnail_alt_text || '')
     setPendingThumbnailFile(null)
+    setShouldClearThumbnailUpload(false)
+    setPreviewTitle(selectedCourse.preview_title || '')
+    setPreviewShortDescription(selectedCourse.preview_short_description || '')
+    setPreviewVideoUrl(selectedCourse.preview_video_url || '')
+    setPreviewThumbnailImage(selectedCourse.preview_thumbnail_image || '')
+    setPendingPreviewThumbnailFile(null)
+    setShouldClearPreviewThumbnailUpload(false)
+    setPreviewDuration(String(selectedCourse.preview_duration ?? ''))
+    setPreviewAccessType((selectedCourse.preview_access_type as 'free_preview' | 'enrolled_only') || 'free_preview')
+    setPreviewOrder(String(selectedCourse.preview_order ?? 1))
+    setPreviewStatus((selectedCourse.preview_status as 'draft' | 'published') || 'draft')
+    setFieldErrors({})
   }, [mode, selectedCourse])
 
   useEffect(() => {
@@ -183,7 +418,7 @@ export function CompanyCourseEditorPage({ mode }: CompanyCourseEditorPageProps) 
 
     async function loadLessons() {
       try {
-        const response = await apiRequest<AdminCourseLessonsResponse>(`/company/courses/${courseId}/lessons`)
+        const response = await apiRequest<AdminCourseLessonsResponse>(`${workspacePrefix}/courses/${courseId}/lessons`)
         if (!active) {
           return
         }
@@ -209,95 +444,181 @@ export function CompanyCourseEditorPage({ mode }: CompanyCourseEditorPageProps) 
     return () => {
       active = false
     }
-  }, [courseId, mode])
+  }, [courseId, mode, workspacePrefix])
 
   async function handleImageChange(
     event: ChangeEvent<HTMLInputElement>,
-    setImage: (value: string) => void,
-    setReadingState: (value: boolean) => void,
-    options?: { trackFile?: boolean },
+    options: {
+      setImage: (value: string) => void
+      setFile: (value: File | null) => void
+      setReadingState: (value: boolean) => void
+      clearFlag: (value: boolean) => void
+      errorField: EditorFieldName
+    },
   ) {
     const file = event.target.files?.[0]
     if (!file) {
       return
     }
 
-    setReadingState(true)
+    options.setReadingState(true)
     try {
       const imageData = await readImageFile(file)
-      setImage(imageData)
-      if (options?.trackFile) {
-        setPendingThumbnailFile(file)
-      }
+      options.setImage(imageData)
+      options.setFile(file)
+      options.clearFlag(false)
       setError(null)
+      setFieldErrors((current) => ({ ...current, [options.errorField]: undefined }))
     } catch (readError) {
       const message = readError instanceof Error ? readError.message : 'Unable to read image file.'
       setError(message)
       toast.error(message)
       event.target.value = ''
     } finally {
-      setReadingState(false)
+      options.setReadingState(false)
     }
   }
 
-  function toggleTechnology(technology: string) {
-    setSelectedTechnologies((current) =>
-      current.includes(technology)
-        ? current.filter((item) => item !== technology)
-        : [...current, technology]
-    )
+  function updateField<K extends EditorFieldName>(field: K, setter: (value: string) => void) {
+    return (value: string) => {
+      setter(value)
+      setError(null)
+      setFieldErrors((current) => ({ ...current, [field]: undefined }))
+    }
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+
+    const nextFieldErrors = validateForm({
+      title,
+      fullDescription,
+      category,
+      courseLevel,
+      totalDuration,
+      status,
+      thumbnailAltText,
+      previewTitle,
+      previewShortDescription,
+      previewVideoUrl,
+      previewThumbnailImage,
+      hasPendingPreviewThumbnailFile: Boolean(pendingPreviewThumbnailFile),
+      previewDuration,
+      previewAccessType,
+      previewOrder,
+      previewStatus,
+    })
+
+    if (Object.keys(nextFieldErrors).length > 0) {
+      setFieldErrors(nextFieldErrors)
+      setError('Please review the highlighted fields and try again.')
+      return
+    }
+
     setSaving(true)
     setError(null)
+    setFieldErrors({})
 
-    const normalizedDuration = Number.parseInt(totalDuration, 10)
+    const totalDurationValue = parseOptionalInteger(totalDuration) ?? 0
+    const previewDurationValue = parseOptionalInteger(previewDuration) ?? 0
+    const previewOrderValue = parseOptionalInteger(previewOrder) ?? 1
 
     try {
       const body = {
-        title,
-        description: fullDescription.trim() || shortDescription.trim(),
-        category,
-        difficulty_level: courseLevel,
-        estimated_hours: Number.isNaN(normalizedDuration) ? 0 : Math.max(0, normalizedDuration),
+        title: title.trim(),
+        description: fullDescription.trim(),
+        category: category.trim(),
+        difficulty_level: courseLevel.trim(),
+        estimated_hours: totalDurationValue,
         thumbnail_image: pendingThumbnailFile ? '' : thumbnailImage.trim(),
         thumbnail_alt_text: thumbnailAltText.trim(),
+        preview_title: previewTitle.trim(),
+        preview_short_description: previewShortDescription.trim(),
+        preview_video_url: previewVideoUrl.trim(),
+        preview_thumbnail_image: pendingPreviewThumbnailFile ? '' : previewThumbnailImage.trim(),
+        preview_thumbnail_upload_pending: Boolean(pendingPreviewThumbnailFile),
+        preview_duration: previewDurationValue,
+        preview_access_type: previewAccessType,
+        preview_order: previewOrderValue,
+        preview_status: previewStatus,
         status,
       }
 
       let savedCourse: AdminCourseRecord
       if (mode === 'edit' && courseId) {
-        savedCourse = await apiRequest<AdminCourseRecord>(`/company/courses/${courseId}`, {
+        savedCourse = await apiRequest<AdminCourseRecord>(`${workspacePrefix}/courses/${courseId}`, {
           method: 'PUT',
           body,
           csrfToken,
+          notifyOnError: false,
         })
       } else {
-        savedCourse = await apiRequest<AdminCourseRecord>('/company/courses', {
+        savedCourse = await apiRequest<AdminCourseRecord>(`${workspacePrefix}/courses`, {
           method: 'POST',
           body,
           csrfToken,
+          notifyOnError: false,
+        })
+      }
+
+      if (mode === 'edit' && courseId && shouldClearThumbnailUpload && !pendingThumbnailFile && !thumbnailImage.trim()) {
+        savedCourse = await apiRequest<AdminCourseRecord>(`${workspacePrefix}/courses/${courseId}/thumbnail`, {
+          method: 'DELETE',
+          csrfToken,
+          notifyOnError: false,
+        })
+      }
+
+      if (
+        mode === 'edit' &&
+        courseId &&
+        shouldClearPreviewThumbnailUpload &&
+        !pendingPreviewThumbnailFile &&
+        !previewThumbnailImage.trim()
+      ) {
+        savedCourse = await apiRequest<AdminCourseRecord>(`${workspacePrefix}/courses/${courseId}/preview-thumbnail`, {
+          method: 'DELETE',
+          csrfToken,
+          notifyOnError: false,
         })
       }
 
       if (pendingThumbnailFile) {
         const formData = new FormData()
         formData.set('file', pendingThumbnailFile)
-        const thumbnailUpdatedCourse = await apiRequest<AdminCourseRecord>(`/company/courses/${savedCourse.course_id}/thumbnail`, {
+        savedCourse = await apiRequest<AdminCourseRecord>(`${workspacePrefix}/courses/${savedCourse.course_id}/thumbnail`, {
           method: 'POST',
           body: formData,
           csrfToken,
+          notifyOnError: false,
         })
-        savedCourse = thumbnailUpdatedCourse
-        setThumbnailImage(thumbnailUpdatedCourse.thumbnail_image || '')
+        setThumbnailImage(savedCourse.thumbnail_image || '')
         setPendingThumbnailFile(null)
+        setShouldClearThumbnailUpload(false)
+      }
+
+      if (pendingPreviewThumbnailFile) {
+        const formData = new FormData()
+        formData.set('file', pendingPreviewThumbnailFile)
+        savedCourse = await apiRequest<AdminCourseRecord>(`${workspacePrefix}/courses/${savedCourse.course_id}/preview-thumbnail`, {
+          method: 'POST',
+          body: formData,
+          csrfToken,
+          notifyOnError: false,
+        })
+        setPreviewThumbnailImage(savedCourse.preview_thumbnail_image || '')
+        setPendingPreviewThumbnailFile(null)
+        setShouldClearPreviewThumbnailUpload(false)
       }
 
       toast.success(mode === 'edit' ? 'Course updated successfully.' : 'Course created successfully.')
-      navigate(mode === 'edit' ? '/company/courses' : `/company/courses/${savedCourse.course_id}/lessons`)
+      navigate(mode === 'edit' ? coursesPath : `${workspacePrefix}/courses/${savedCourse.course_id}/lessons`)
     } catch (saveError) {
+      const apiFieldErrors = saveError instanceof ApiError ? extractFieldErrors(saveError.details) : {}
+      if (Object.keys(apiFieldErrors).length > 0) {
+        setFieldErrors(apiFieldErrors)
+      }
+
       const message =
         saveError instanceof ApiError
           ? saveError.message
@@ -305,7 +626,9 @@ export function CompanyCourseEditorPage({ mode }: CompanyCourseEditorPageProps) 
             ? saveError.message
             : 'Unable to save course.'
       setError(message)
-      toast.error(message)
+      if (!(saveError instanceof ApiError && saveError.notified)) {
+        toast.error(message)
+      }
     } finally {
       setSaving(false)
     }
@@ -320,16 +643,19 @@ export function CompanyCourseEditorPage({ mode }: CompanyCourseEditorPageProps) 
     setError(null)
 
     try {
-      await apiRequest<AdminCourseRecord>(`/company/courses/${courseId}`, {
+      await apiRequest<AdminCourseRecord>(`${workspacePrefix}/courses/${courseId}`, {
         method: 'DELETE',
         csrfToken,
+        notifyOnError: false,
       })
       toast.success('Course retired successfully.')
-      navigate('/company/courses')
+      navigate(coursesPath)
     } catch (saveError) {
       const message = saveError instanceof ApiError ? saveError.message : 'Unable to retire course.'
       setError(message)
-      toast.error(message)
+      if (!(saveError instanceof ApiError && saveError.notified)) {
+        toast.error(message)
+      }
     } finally {
       setSaving(false)
     }
@@ -339,12 +665,7 @@ export function CompanyCourseEditorPage({ mode }: CompanyCourseEditorPageProps) 
     return (
       <div className="min-h-screen bg-slate-50 p-4 dark:bg-slate-950 lg:p-6">
         <div className={editorCardClassName}>
-          <div className="flex items-center justify-center py-20">
-            <div className="text-center">
-              <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600 dark:border-slate-800 dark:border-t-blue-400" />
-              <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">Loading course editor...</p>
-            </div>
-          </div>
+          <LoadingState title="Loading course editor" className="min-h-72 py-20" />
         </div>
       </div>
     )
@@ -364,11 +685,11 @@ export function CompanyCourseEditorPage({ mode }: CompanyCourseEditorPageProps) 
     return (
       <div className="space-y-6 px-4 py-6 md:px-6 lg:px-8">
         <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-          <Link to="/company" className="transition-colors hover:text-foreground">
+          <Link to={workspacePrefix} className="transition-colors hover:text-foreground">
             Dashboard
           </Link>
           <ChevronRight className="h-4 w-4" />
-          <Link to="/company/courses" className="transition-colors hover:text-foreground">
+          <Link to={coursesPath} className="transition-colors hover:text-foreground">
             Courses
           </Link>
           <ChevronRight className="h-4 w-4" />
@@ -378,10 +699,10 @@ export function CompanyCourseEditorPage({ mode }: CompanyCourseEditorPageProps) 
         <div className="rounded-[28px] border border-red-200 bg-red-50 px-6 py-6 dark:border-red-900 dark:bg-red-950">
           <h1 className="text-2xl font-bold text-red-900 dark:text-red-100">Course editing is not available</h1>
           <p className="mt-2 text-sm text-red-800 dark:text-red-200">
-            Only courses created by your company can be edited or managed from this workspace.
+            Only courses you created can be edited or managed from this workspace.
           </p>
           <div className="mt-5">
-            <Link to="/company/courses" className="inline-flex items-center text-sm font-medium text-red-900 underline dark:text-red-100">
+            <Link to={coursesPath} className="inline-flex items-center text-sm font-medium text-red-900 underline dark:text-red-100">
               Back to courses
             </Link>
           </div>
@@ -394,18 +715,18 @@ export function CompanyCourseEditorPage({ mode }: CompanyCourseEditorPageProps) 
     <div className="min-h-screen bg-slate-50 p-4 dark:bg-slate-950 lg:p-6">
       <div className="space-y-6">
         <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-          <Link to="/company" className="transition-colors hover:text-foreground">
+          <Link to={workspacePrefix} className="transition-colors hover:text-foreground">
             Dashboard
           </Link>
           <ChevronRight className="h-4 w-4" />
-          <Link to="/company/courses" className="transition-colors hover:text-foreground">
+          <Link to={coursesPath} className="transition-colors hover:text-foreground">
             Courses
           </Link>
           <ChevronRight className="h-4 w-4" />
           <span className="font-medium text-foreground">{mode === 'edit' ? 'Edit course' : 'Create course'}</span>
         </div>
 
-        <form className="space-y-6" onSubmit={handleSubmit}>
+        <form className="space-y-6" onSubmit={handleSubmit} noValidate>
           <main className={editorCardClassName}>
             {error ? (
               <div className="mb-6 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-800 dark:border-red-900 dark:bg-red-950 dark:text-red-200">
@@ -414,251 +735,349 @@ export function CompanyCourseEditorPage({ mode }: CompanyCourseEditorPageProps) 
             ) : null}
 
             <CoursePreviewHero
-              thumbnailImage={thumbnailImage}
-              thumbnailAltText={thumbnailAltText}
-              previewTitle={previewTitle}
-              previewDescription={previewDescription}
+              previewThumbnailImage={previewThumbnailImage}
+              previewTitle={previewTitle.trim() || 'Preview title'}
+              previewDescription={previewShortDescription.trim() || 'Add the learner-facing preview summary here.'}
               learnerCount={learnerCount}
-              estimatedHours={estimatedHours}
+              previewDuration={previewDurationValue}
+              previewAccessType={previewAccessType}
+              previewStatus={previewStatus}
               courseTags={courseTags}
               mode={mode}
               courseId={courseId}
+              lessonsHref={lessonsPath}
               saving={saving}
-              onBack={() => navigate('/company/courses')}
+              onBack={() => navigate(coursesPath)}
             />
 
             <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
               <div className="space-y-6">
                 <section className={editorCardClassName}>
                   <div className="mb-5 space-y-1">
-                    <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">Course story</h2>
+                    <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">Course basics</h2>
                     <p className="text-sm text-slate-500 dark:text-slate-400">
-                      Start from the same course-detail structure learners will experience in the catalog and preview flow.
+                      Save the core course identity and description that the catalog and editor rely on.
                     </p>
                   </div>
 
                   <div className="mb-5 space-y-5">
                     <ImageUploadPanel
-                      label="Thumbnail image"
+                      label="Course thumbnail"
                       image={thumbnailImage}
-                      alt={thumbnailAltText || 'Thumbnail preview'}
+                      alt={thumbnailAltText || 'Course thumbnail'}
                       isLoading={isReadingThumbnail}
-                      onChange={(event) => void handleImageChange(event, setThumbnailImage, setIsReadingThumbnail, { trackFile: true })}
-                      onRemove={() => setThumbnailImage('')}
+                      onChange={(event) =>
+                        void handleImageChange(event, {
+                          setImage: setThumbnailImage,
+                          setFile: setPendingThumbnailFile,
+                          setReadingState: setIsReadingThumbnail,
+                          clearFlag: setShouldClearThumbnailUpload,
+                          errorField: 'thumbnailAltText',
+                        })
+                      }
+                      onRemove={() => {
+                        setThumbnailImage('')
+                        setPendingThumbnailFile(null)
+                        setShouldClearThumbnailUpload(true)
+                        setError(null)
+                      }}
                     />
 
-                    <label className="block space-y-2">
-                      <span className="text-sm font-medium text-foreground">Alt text</span>
+                    <label className="block space-y-2" htmlFor="course-thumbnail-alt-text">
+                      <span className="text-sm font-medium text-foreground">Thumbnail alt text</span>
                       <input
-                        className={fieldClassName}
+                        id="course-thumbnail-alt-text"
+                        className={getInputClassName(Boolean(fieldErrors.thumbnailAltText))}
                         value={thumbnailAltText}
-                        onChange={(event) => setThumbnailAltText(event.target.value)}
+                        onChange={(event) => updateField('thumbnailAltText', setThumbnailAltText)(event.target.value)}
                         placeholder="Describe the course thumbnail for accessibility."
+                        aria-invalid={fieldErrors.thumbnailAltText ? 'true' : undefined}
+                        aria-describedby={fieldErrors.thumbnailAltText ? 'course-thumbnail-alt-text-error' : undefined}
                       />
+                      <FieldError id="course-thumbnail-alt-text-error" error={fieldErrors.thumbnailAltText} />
                     </label>
                   </div>
 
                   <div className="grid gap-5 md:grid-cols-2">
-                    <label className="space-y-2">
+                    <label className="space-y-2" htmlFor="course-title">
                       <span className="text-sm font-medium text-foreground">Course title</span>
-                      <input className={fieldClassName} value={title} onChange={(event) => setTitle(event.target.value)} required />
-                    </label>
-                    <label className="space-y-2">
-                      <span className="text-sm font-medium text-foreground">Slug</span>
                       <input
-                        className={fieldClassName}
-                        value={slug}
-                        onChange={(event) => {
-                          setSlugTouched(true)
-                          setSlug(event.target.value)
-                        }}
-                        placeholder="complete-frontend-engineering-master-course"
+                        id="course-title"
+                        className={getInputClassName(Boolean(fieldErrors.title))}
+                        value={title}
+                        onChange={(event) => updateField('title', setTitle)(event.target.value)}
+                        aria-invalid={fieldErrors.title ? 'true' : undefined}
+                        aria-describedby={fieldErrors.title ? 'course-title-error' : undefined}
                       />
+                      <FieldError id="course-title-error" error={fieldErrors.title} />
                     </label>
                   </div>
 
-                  <div className="mt-5 space-y-5">
-                    <label className="space-y-2">
-                      <span className="text-sm font-medium text-foreground">Short description</span>
-                      <textarea
-                        className={textAreaClassName}
-                        rows={3}
-                        value={shortDescription}
-                        onChange={(event) => setShortDescription(event.target.value)}
-                        placeholder="Short summary for course cards and previews."
-                      />
-                    </label>
-
-                    <label className="space-y-2">
-                      <span className="text-sm font-medium text-foreground">Full description</span>
-                      <textarea
-                        className={textAreaClassName}
-                        rows={6}
-                        value={fullDescription}
-                        onChange={(event) => setFullDescription(event.target.value)}
-                        placeholder="Detailed course overview, outcomes, and expectations."
-                      />
-                    </label>
-                  </div>
+                  <label className="mt-5 block space-y-2" htmlFor="course-description">
+                    <span className="text-sm font-medium text-foreground">Full description</span>
+                    <textarea
+                      id="course-description"
+                      className={getTextAreaClassName(Boolean(fieldErrors.fullDescription))}
+                      rows={6}
+                      value={fullDescription}
+                      onChange={(event) => updateField('fullDescription', setFullDescription)(event.target.value)}
+                      placeholder="Detailed course overview, outcomes, and expectations."
+                      aria-invalid={fieldErrors.fullDescription ? 'true' : undefined}
+                      aria-describedby={fieldErrors.fullDescription ? 'course-description-error' : undefined}
+                    />
+                    <FieldError id="course-description-error" error={fieldErrors.fullDescription} />
+                  </label>
                 </section>
 
                 <section className={editorCardClassName}>
                   <div className="mb-5 space-y-1">
                     <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">Catalog positioning</h2>
                     <p className="text-sm text-slate-500 dark:text-slate-400">
-                      Define the metadata that powers the course card, filters, and detail hero.
+                      Define the metadata that powers course listing, filtering, and publishing.
                     </p>
                   </div>
 
-                  <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-                    <label className="space-y-2">
+                  <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+                    <label className="space-y-2" htmlFor="course-category">
                       <span className="text-sm font-medium text-foreground">Course category</span>
-                      <input className={fieldClassName} value={category} onChange={(event) => setCategory(event.target.value)} required />
+                      <input
+                        id="course-category"
+                        className={getInputClassName(Boolean(fieldErrors.category))}
+                        value={category}
+                        onChange={(event) => updateField('category', setCategory)(event.target.value)}
+                        aria-invalid={fieldErrors.category ? 'true' : undefined}
+                        aria-describedby={fieldErrors.category ? 'course-category-error' : undefined}
+                      />
+                      <FieldError id="course-category-error" error={fieldErrors.category} />
                     </label>
-                    <label className="space-y-2">
+
+                    <label className="space-y-2" htmlFor="course-level">
                       <span className="text-sm font-medium text-foreground">Course level</span>
-                      <select className={fieldClassName} value={courseLevel} onChange={(event) => setCourseLevel(event.target.value)}>
-                        <option value="">Select level</option>
-                        <option value="beginner">Beginner</option>
-                        <option value="intermediate">Intermediate</option>
-                        <option value="advanced">Advanced</option>
-                        <option value="beginner to advanced">Beginner to Advanced</option>
+                      <select
+                        id="course-level"
+                        className={getInputClassName(Boolean(fieldErrors.courseLevel))}
+                        value={courseLevel}
+                        onChange={(event) => updateField('courseLevel', setCourseLevel)(event.target.value)}
+                        aria-invalid={fieldErrors.courseLevel ? 'true' : undefined}
+                        aria-describedby={fieldErrors.courseLevel ? 'course-level-error' : undefined}
+                      >
+                        {courseLevelOptions.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
                       </select>
+                      <FieldError id="course-level-error" error={fieldErrors.courseLevel} />
                     </label>
-                    <label className="space-y-2">
-                      <span className="text-sm font-medium text-foreground">Language</span>
-                      <input className={fieldClassName} value={language} onChange={(event) => setLanguage(event.target.value)} />
-                    </label>
-                    <label className="space-y-2">
-                      <span className="text-sm font-medium text-foreground">Course type</span>
-                      <select className={fieldClassName} value={courseType} onChange={(event) => setCourseType(event.target.value as 'free' | 'premium')}>
-                        <option value="free">Free</option>
-                        <option value="premium">Premium</option>
+
+                    <label className="space-y-2" htmlFor="course-status">
+                      <span className="text-sm font-medium text-foreground">Course status</span>
+                      <select
+                        id="course-status"
+                        className={getInputClassName(Boolean(fieldErrors.status))}
+                        value={status}
+                        onChange={(event) => updateField('status', setStatus)(event.target.value)}
+                        aria-invalid={fieldErrors.status ? 'true' : undefined}
+                        aria-describedby={fieldErrors.status ? 'course-status-error' : undefined}
+                      >
+                        {courseStatusOptions.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
                       </select>
+                      <FieldError id="course-status-error" error={fieldErrors.status} />
                     </label>
-                    <label className="space-y-2">
-                      <span className="text-sm font-medium text-foreground">Status</span>
-                      <select className={fieldClassName} value={status} onChange={(event) => setStatus(event.target.value)} required>
-                        <option value="" disabled>
-                          Select status
-                        </option>
-                        <option value="draft">Draft</option>
-                        <option value="active">Published</option>
-                        <option value="inactive">Inactive</option>
-                      </select>
-                    </label>
-                    <label className="space-y-2">
+
+                    <label className="space-y-2" htmlFor="course-duration">
                       <span className="text-sm font-medium text-foreground">Total duration (hours)</span>
                       <input
-                        className={fieldClassName}
+                        id="course-duration"
+                        className={getInputClassName(Boolean(fieldErrors.totalDuration))}
                         type="number"
                         min={0}
                         value={totalDuration}
-                        onChange={(event) => setTotalDuration(event.target.value)}
-                        placeholder="24"
+                        onChange={(event) => updateField('totalDuration', setTotalDuration)(event.target.value)}
+                        aria-invalid={fieldErrors.totalDuration ? 'true' : undefined}
+                        aria-describedby={fieldErrors.totalDuration ? 'course-duration-error' : undefined}
                       />
+                      <FieldError id="course-duration-error" error={fieldErrors.totalDuration} />
                     </label>
                   </div>
                 </section>
 
                 <section className={editorCardClassName}>
                   <div className="mb-5 space-y-1">
-                    <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">Pricing and learner value</h2>
+                    <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">Course preview</h2>
                     <p className="text-sm text-slate-500 dark:text-slate-400">
-                      Capture the commercial and learner-facing signals that strengthen the course offer.
+                      Configure the dedicated preview content that is saved with the course and loaded again in edit mode.
                     </p>
                   </div>
 
-                  <div className="grid gap-5 md:grid-cols-2">
-                    <label className="space-y-2">
-                      <span className="text-sm font-medium text-foreground">Price</span>
-                      <input
-                        className={fieldClassName}
-                        type="number"
-                        min={0}
-                        step="0.01"
-                        value={price}
-                        onChange={(event) => setPrice(event.target.value)}
-                        placeholder="0.00"
-                        disabled={isFreeCourse}
-                      />
-                    </label>
-                    <label className="space-y-2">
-                      <span className="text-sm font-medium text-foreground">Discount price</span>
-                      <input
-                        className={fieldClassName}
-                        type="number"
-                        min={0}
-                        step="0.01"
-                        value={discountPrice}
-                        onChange={(event) => setDiscountPrice(event.target.value)}
-                        placeholder="0.00"
-                        disabled={isFreeCourse}
-                      />
-                    </label>
-                  </div>
+                  <div className="space-y-5">
+                    <ImageUploadPanel
+                      label="Preview thumbnail / image"
+                      image={previewThumbnailImage}
+                      alt={previewTitle || 'Course preview image'}
+                      isLoading={isReadingPreviewThumbnail}
+                      onChange={(event) =>
+                        void handleImageChange(event, {
+                          setImage: setPreviewThumbnailImage,
+                          setFile: setPendingPreviewThumbnailFile,
+                          setReadingState: setIsReadingPreviewThumbnail,
+                          clearFlag: setShouldClearPreviewThumbnailUpload,
+                          errorField: 'previewThumbnailImage',
+                        })
+                      }
+                      onRemove={() => {
+                        setPreviewThumbnailImage('')
+                        setPendingPreviewThumbnailFile(null)
+                        setShouldClearPreviewThumbnailUpload(true)
+                        setError(null)
+                        setFieldErrors((current) => ({ ...current, previewThumbnailImage: undefined }))
+                      }}
+                    />
 
-                  <div className="mt-5 grid gap-3 md:grid-cols-2">
-                    <label className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm dark:border-slate-800 dark:bg-slate-900/50">
-                      <input type="checkbox" checked={isFreeCourse} onChange={(event) => setIsFreeCourse(event.target.checked)} />
-                      <span>Is free course</span>
-                    </label>
-                    <label className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm dark:border-slate-800 dark:bg-slate-900/50">
+                    <label className="block space-y-2" htmlFor="course-preview-image-url">
+                      <span className="text-sm font-medium text-foreground">Preview image URL</span>
                       <input
-                        type="checkbox"
-                        checked={subscriptionRequired}
-                        onChange={(event) => setSubscriptionRequired(event.target.checked)}
+                        id="course-preview-image-url"
+                        className={getInputClassName(Boolean(fieldErrors.previewThumbnailImage))}
+                        type="url"
+                        value={pendingPreviewThumbnailFile ? '' : previewThumbnailImage}
+                        onChange={(event) => {
+                          setPendingPreviewThumbnailFile(null)
+                          setShouldClearPreviewThumbnailUpload(false)
+                          updateField('previewThumbnailImage', setPreviewThumbnailImage)(event.target.value)
+                        }}
+                        placeholder="https://cdn.example.com/course-preview.webp"
+                        aria-invalid={fieldErrors.previewThumbnailImage ? 'true' : undefined}
+                        aria-describedby={fieldErrors.previewThumbnailImage ? 'course-preview-image-url-error' : undefined}
                       />
-                      <span>Subscription required</span>
+                      <FieldError id="course-preview-image-url-error" error={fieldErrors.previewThumbnailImage} />
                     </label>
-                    <label className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm dark:border-slate-800 dark:bg-slate-900/50">
-                      <input
-                        type="checkbox"
-                        checked={certificateAvailable}
-                        onChange={(event) => setCertificateAvailable(event.target.checked)}
-                      />
-                      <span>Certificate available</span>
-                    </label>
-                    <label className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm dark:border-slate-800 dark:bg-slate-900/50">
-                      <input
-                        type="checkbox"
-                        checked={interviewPrepIncluded}
-                        onChange={(event) => setInterviewPrepIncluded(event.target.checked)}
-                      />
-                      <span>Interview prep included</span>
-                    </label>
-                    <label className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm dark:border-slate-800 dark:bg-slate-900/50 md:col-span-2">
-                      <input
-                        type="checkbox"
-                        checked={capstoneProjectIncluded}
-                        onChange={(event) => setCapstoneProjectIncluded(event.target.checked)}
-                      />
-                      <span>Capstone project included</span>
-                    </label>
-                  </div>
 
-                  <div className="mt-5 space-y-3">
-                    <p className="text-sm font-medium text-foreground">Technologies covered</p>
-                    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-                      {supportedTechnologies.map((technology) => {
-                        const isSelected = selectedTechnologies.includes(technology)
+                    <div className="grid gap-5 md:grid-cols-2">
+                      <label className="space-y-2" htmlFor="course-preview-title">
+                        <span className="text-sm font-medium text-foreground">Preview title</span>
+                        <input
+                          id="course-preview-title"
+                          className={getInputClassName(Boolean(fieldErrors.previewTitle))}
+                          value={previewTitle}
+                          onChange={(event) => updateField('previewTitle', setPreviewTitle)(event.target.value)}
+                          aria-invalid={fieldErrors.previewTitle ? 'true' : undefined}
+                          aria-describedby={fieldErrors.previewTitle ? 'course-preview-title-error' : undefined}
+                        />
+                        <FieldError id="course-preview-title-error" error={fieldErrors.previewTitle} />
+                      </label>
 
-                        return (
-                          <button
-                            key={technology}
-                            type="button"
-                            onClick={() => toggleTechnology(technology)}
-                            className={cn(
-                              'rounded-xl border px-4 py-3 text-sm font-medium transition-colors',
-                              isSelected
-                                ? 'border-blue-600 bg-blue-600 text-white'
-                                : 'border-slate-200 bg-slate-50 text-slate-700 hover:border-blue-300 dark:border-slate-800 dark:bg-slate-900/50 dark:text-slate-200',
-                            )}
-                          >
-                            {technology}
-                          </button>
-                        )
-                      })}
+                      <label className="space-y-2" htmlFor="course-preview-video-url">
+                        <span className="text-sm font-medium text-foreground">Preview video URL</span>
+                        <input
+                          id="course-preview-video-url"
+                          className={getInputClassName(Boolean(fieldErrors.previewVideoUrl))}
+                          type="url"
+                          value={previewVideoUrl}
+                          onChange={(event) => updateField('previewVideoUrl', setPreviewVideoUrl)(event.target.value)}
+                          placeholder="https://example.com/videos/course-preview"
+                          aria-invalid={fieldErrors.previewVideoUrl ? 'true' : undefined}
+                          aria-describedby={fieldErrors.previewVideoUrl ? 'course-preview-video-url-error' : undefined}
+                        />
+                        <FieldError id="course-preview-video-url-error" error={fieldErrors.previewVideoUrl} />
+                      </label>
+                    </div>
+
+                    <label className="block space-y-2" htmlFor="course-preview-short-description">
+                      <span className="text-sm font-medium text-foreground">Preview short description</span>
+                      <textarea
+                        id="course-preview-short-description"
+                        className={getTextAreaClassName(Boolean(fieldErrors.previewShortDescription))}
+                        rows={4}
+                        value={previewShortDescription}
+                        onChange={(event) => updateField('previewShortDescription', setPreviewShortDescription)(event.target.value)}
+                        placeholder="Summarize the preview experience learners will see before they enroll."
+                        aria-invalid={fieldErrors.previewShortDescription ? 'true' : undefined}
+                        aria-describedby={
+                          fieldErrors.previewShortDescription ? 'course-preview-short-description-error' : undefined
+                        }
+                      />
+                      <FieldError id="course-preview-short-description-error" error={fieldErrors.previewShortDescription} />
+                    </label>
+
+                    <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+                      <label className="space-y-2" htmlFor="course-preview-duration">
+                        <span className="text-sm font-medium text-foreground">Preview duration (minutes)</span>
+                        <input
+                          id="course-preview-duration"
+                          className={getInputClassName(Boolean(fieldErrors.previewDuration))}
+                          type="number"
+                          min={1}
+                          value={previewDuration}
+                          onChange={(event) => updateField('previewDuration', setPreviewDuration)(event.target.value)}
+                          aria-invalid={fieldErrors.previewDuration ? 'true' : undefined}
+                          aria-describedby={fieldErrors.previewDuration ? 'course-preview-duration-error' : undefined}
+                        />
+                        <FieldError id="course-preview-duration-error" error={fieldErrors.previewDuration} />
+                      </label>
+
+                      <label className="space-y-2" htmlFor="course-preview-access-type">
+                        <span className="text-sm font-medium text-foreground">Preview access type</span>
+                        <select
+                          id="course-preview-access-type"
+                          className={getInputClassName(Boolean(fieldErrors.previewAccessType))}
+                          value={previewAccessType}
+                          onChange={(event) =>
+                            updateField('previewAccessType', (value) =>
+                              setPreviewAccessType(value as 'free_preview' | 'enrolled_only'),
+                            )(event.target.value)
+                          }
+                          aria-invalid={fieldErrors.previewAccessType ? 'true' : undefined}
+                          aria-describedby={fieldErrors.previewAccessType ? 'course-preview-access-type-error' : undefined}
+                        >
+                          {previewAccessTypeOptions.map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                        <FieldError id="course-preview-access-type-error" error={fieldErrors.previewAccessType} />
+                      </label>
+
+                      <label className="space-y-2" htmlFor="course-preview-order">
+                        <span className="text-sm font-medium text-foreground">Preview order</span>
+                        <input
+                          id="course-preview-order"
+                          className={getInputClassName(Boolean(fieldErrors.previewOrder))}
+                          type="number"
+                          min={1}
+                          value={previewOrder}
+                          onChange={(event) => updateField('previewOrder', setPreviewOrder)(event.target.value)}
+                          aria-invalid={fieldErrors.previewOrder ? 'true' : undefined}
+                          aria-describedby={fieldErrors.previewOrder ? 'course-preview-order-error' : undefined}
+                        />
+                        <FieldError id="course-preview-order-error" error={fieldErrors.previewOrder} />
+                      </label>
+
+                      <label className="space-y-2" htmlFor="course-preview-status">
+                        <span className="text-sm font-medium text-foreground">Preview status</span>
+                        <select
+                          id="course-preview-status"
+                          className={getInputClassName(Boolean(fieldErrors.previewStatus))}
+                          value={previewStatus}
+                          onChange={(event) =>
+                            updateField('previewStatus', (value) => setPreviewStatus(value as 'draft' | 'published'))(event.target.value)
+                          }
+                          aria-invalid={fieldErrors.previewStatus ? 'true' : undefined}
+                          aria-describedby={fieldErrors.previewStatus ? 'course-preview-status-error' : undefined}
+                        >
+                          {previewStatusOptions.map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                        <FieldError id="course-preview-status-error" error={fieldErrors.previewStatus} />
+                      </label>
                     </div>
                   </div>
                 </section>
@@ -668,12 +1087,12 @@ export function CompanyCourseEditorPage({ mode }: CompanyCourseEditorPageProps) 
                     <div className="space-y-1">
                       <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">Lesson studio handoff</h2>
                       <p className="text-sm text-slate-500 dark:text-slate-400">
-                        Keep this page focused on course story and preview setup. Add and manage lessons in the dedicated lesson studio.
+                        Keep course creation focused on real saved fields and continue lesson authoring in the dedicated studio.
                       </p>
                     </div>
                     {mode === 'edit' && courseId ? (
                       <Button type="button" variant="outline" asChild>
-                        <Link to={`/company/courses/${courseId}/lessons`}>
+                        <Link to={`${workspacePrefix}/courses/${courseId}/lessons`}>
                           Open lesson studio
                           <ArrowRight className="ml-2 h-4 w-4" />
                         </Link>
@@ -693,7 +1112,7 @@ export function CompanyCourseEditorPage({ mode }: CompanyCourseEditorPageProps) 
                       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Transcripts</p>
                       <p className="mt-2 text-2xl font-bold text-slate-900 dark:text-slate-100">{lessonsWithTranscriptCount}</p>
                       <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-                        Transcript coverage is tracked in the lesson studio and reflected in course preview stats here.
+                        Transcript coverage is tracked in the lesson studio and reflected here.
                       </p>
                     </div>
                     <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900/50">
@@ -703,74 +1122,26 @@ export function CompanyCourseEditorPage({ mode }: CompanyCourseEditorPageProps) 
                       </p>
                     </div>
                   </div>
-
-                  <div className="mt-5 rounded-2xl border border-dashed border-slate-300 px-5 py-4 text-sm text-slate-600 dark:border-slate-700 dark:text-slate-300">
-                    {mode === 'edit'
-                      ? 'Lesson titles still feed the learner preview on this page, but lesson content, transcripts, and ordering now live in the dedicated lesson studio only.'
-                      : 'After you create the course, you will be taken directly to the lesson studio to add lessons there.'}
-                  </div>
                 </section>
-
-                <section className={editorCardClassName}>
-                  <div className="mb-5 space-y-1">
-                    <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">Project / assignment</h2>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">
-                      Capture the final proof-of-skill experience that closes the course.
-                    </p>
-                  </div>
-
-                  <div className="grid gap-5 md:grid-cols-2">
-                    <label className="space-y-2">
-                      <span className="text-sm font-medium text-foreground">Project title</span>
-                      <input className={fieldClassName} value={projectTitle} onChange={(event) => setProjectTitle(event.target.value)} />
-                    </label>
-                    <label className="space-y-2">
-                      <span className="text-sm font-medium text-foreground">Starter code URL</span>
-                      <input className={fieldClassName} value={starterCodeUrl} onChange={(event) => setStarterCodeUrl(event.target.value)} />
-                    </label>
-                  </div>
-
-                  <label className="mt-5 block space-y-2">
-                    <span className="text-sm font-medium text-foreground">Project description</span>
-                    <textarea
-                      className={textAreaClassName}
-                      rows={5}
-                      value={projectDescription}
-                      onChange={(event) => setProjectDescription(event.target.value)}
-                    />
-                  </label>
-
-                  <label className="mt-5 flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm dark:border-slate-800 dark:bg-slate-900/50">
-                    <input
-                      type="checkbox"
-                      checked={submissionRequired}
-                      onChange={(event) => setSubmissionRequired(event.target.checked)}
-                    />
-                    <span>Submission required</span>
-                  </label>
-                </section>
-
-                <div className="rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-sm text-slate-600 dark:border-slate-800 dark:bg-slate-900/50 dark:text-slate-300">
-                  Transcript fields are now included in each lesson editor. Current save behavior still persists the existing course fields supported by the API.
-                </div>
               </div>
 
               <CoursePreviewSidebar
-                status={status}
-                estimatedHours={estimatedHours}
-                lessonsWithTranscriptCount={lessonsWithTranscriptCount}
+                courseStatus={status}
+                previewStatus={previewStatus}
+                previewDuration={previewDurationValue}
+                previewAccessType={previewAccessType}
+                previewVideoUrl={previewVideoUrl}
+                previewOrder={previewOrder}
                 populatedLessonCount={populatedLessonCount}
                 lessonsLength={lessons.length}
-                learningHighlights={learningHighlights}
-                title={title}
-                shortDescription={shortDescription}
-                fullDescription={fullDescription}
+                previewTitle={previewTitle}
+                previewDescription={previewShortDescription}
                 category={category}
                 courseLevel={courseLevel}
-                thumbnailImage={thumbnailImage}
+                previewThumbnailImage={previewThumbnailImage}
                 mode={mode}
                 saving={saving}
-                onBack={() => navigate('/company/courses')}
+                onBack={() => navigate(coursesPath)}
                 onRetire={() => void handleRetire()}
               />
             </div>

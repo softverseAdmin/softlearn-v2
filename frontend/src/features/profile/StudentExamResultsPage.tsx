@@ -4,6 +4,7 @@ import { AlertCircle, CheckCircle2, ChevronRight, ClipboardList, FileCheck2, Tro
 
 import { ApiError, apiRequest } from '../../lib/api'
 import type { ExamResultsSummary } from './types'
+import { LoadingState } from '@/components/LoadingIndicator'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 
@@ -67,12 +68,7 @@ export default function StudentExamResultsPage() {
     return (
       <div className="space-y-6 px-4 py-6 md:space-y-8 md:px-6 xl:px-8">
         <div className={cardClassName}>
-          <div className="flex items-center justify-center py-12">
-            <div className="text-center">
-              <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-muted border-t-primary" />
-              <p className="mt-4 text-sm text-muted-foreground">Loading exam results…</p>
-            </div>
-          </div>
+          <LoadingState title="Loading exam results" className="min-h-48 py-12" />
         </div>
       </div>
     )

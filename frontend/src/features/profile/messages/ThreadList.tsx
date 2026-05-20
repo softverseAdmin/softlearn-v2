@@ -1,5 +1,6 @@
-import { LoaderCircle, MessageSquareMore, Pin, Star } from 'lucide-react'
+import { MessageSquareMore, Pin, Star } from 'lucide-react'
 
+import { LoadingState } from '@/components/LoadingIndicator'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
@@ -17,9 +18,8 @@ type ThreadListProps = {
 export function ThreadList({ loading, threads, activeThreadId, onSelectThread }: ThreadListProps) {
   if (loading) {
     return (
-      <div className="flex min-h-[320px] flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-border/70 px-6 text-center">
-        <LoaderCircle className="h-8 w-8 animate-spin text-muted-foreground" />
-        <p className="text-sm text-muted-foreground">Loading conversations...</p>
+      <div className="rounded-xl border border-dashed border-border/70 px-6">
+        <LoadingState title="Loading conversations" className="min-h-[320px]" />
       </div>
     )
   }

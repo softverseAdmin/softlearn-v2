@@ -59,18 +59,18 @@ export function SignupPage() {
   }
 
   return (
-    <AuthShell
-      eyebrow="Create your account"
-      title="Choose your Softlearn path"
-      description="Start as a student building validated skills or as a company reviewing stronger candidates through the same product platform."
-      fullViewport
-      mode="signup"
-      viewportDensity="compact"
+      <AuthShell
+        eyebrow="Create your account"
+        title="Choose your Softlearn path"
+        description="Start as a student, company, or teacher in the same protected platform, with each workspace tailored to its role."
+        fullViewport
+        mode="signup"
+        viewportDensity="compact"
     >
       <form className="space-y-3" onSubmit={handleSubmit(onSubmit)} noValidate>
         <fieldset className="space-y-2">
           <legend className="text-sm font-medium text-[var(--sl-text)]">Choose your role first</legend>
-          <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
+          <div className="grid grid-cols-3 gap-2.5 sm:gap-3">
             <button
               className={`rounded-2xl border px-3 py-2 text-left transition sm:px-3.5 sm:py-2.5 ${
                 role === 'student'
@@ -114,6 +114,28 @@ export function SignupPage() {
                 <p className="text-[13px] font-semibold sm:text-sm">Company</p>
               </div>
               <p className="mt-1 text-[11px] leading-4 sm:text-xs sm:leading-4">Review candidates with clearer skill validation signals.</p>
+            </button>
+            <button
+              className={`rounded-2xl border px-3 py-2 text-left transition sm:px-3.5 sm:py-2.5 ${
+                role === 'teacher'
+                  ? 'border-[var(--sl-primary)] bg-[var(--sl-soft)] text-[var(--sl-text)]'
+                  : 'border-[var(--sl-border)] bg-white text-[var(--sl-muted)]'
+              }`}
+              type="button"
+              aria-pressed={role === 'teacher'}
+              onClick={() => {
+                setValue('role', 'teacher', { shouldDirty: true, shouldValidate: true })
+                clearErrors(['role', 'companyName'])
+                setError(null)
+              }}
+            >
+              <div className="flex items-center gap-2">
+                <svg aria-hidden="true" className="h-5 w-5" viewBox="0 0 20 20" fill="none">
+                  <path d="M4.5 15.25h11M6.5 15.25V7.75l3.5-2 3.5 2v7.5M8 10.5h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <p className="text-[13px] font-semibold sm:text-sm">Teacher</p>
+              </div>
+              <p className="mt-1 text-[11px] leading-4 sm:text-xs sm:leading-4">Guide learning progress and monitor teaching activity from one dashboard.</p>
             </button>
           </div>
           {errors.role ? (
@@ -259,7 +281,13 @@ export function SignupPage() {
           type="submit"
           disabled={submitting}
         >
-          {submitting ? 'Creating account…' : role === 'company' ? 'Create company account' : 'Create student account'}
+          {submitting
+            ? 'Creating account…'
+            : role === 'company'
+              ? 'Create company account'
+              : role === 'teacher'
+                ? 'Create teacher account'
+                : 'Create student account'}
         </button>
       </form>
 

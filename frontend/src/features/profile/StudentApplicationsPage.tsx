@@ -17,6 +17,7 @@ import { useAuth } from '../../auth/useAuth'
 import { ApiError, apiRequest } from '../../lib/api'
 import { containerVariants, itemVariants } from '../../lib/animations'
 import type { StudentApplicationRecord, StudentApplicationsResponse } from './types'
+import { LoadingState } from '@/components/LoadingIndicator'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -264,11 +265,8 @@ export function StudentApplicationsPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-16">
-        <div className="text-center">
-          <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-muted border-t-primary" />
-          <p className="mt-4 text-sm text-muted-foreground">Loading applications…</p>
-        </div>
+      <div className="py-16">
+        <LoadingState title="Loading applications" className="min-h-40" />
       </div>
     )
   }

@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import { useAuth } from '../../auth/useAuth'
 import { ApiError, apiRequest } from '../../lib/api'
 import type { AdminCourseRecord, AdminCoursesResponse } from './types'
+import { LoadingState } from '@/components/LoadingIndicator'
 
 const emptyCoursesResponse: AdminCoursesResponse = {
   courses: [],
@@ -145,7 +146,13 @@ export function AdminCoursesPage() {
   }
 
   if (loading) {
-    return <section className="page"><div className="card">Loading courses…</div></section>
+    return (
+      <section className="page">
+        <div className="card">
+          <LoadingState title="Loading courses" className="min-h-48 py-8" />
+        </div>
+      </section>
+    )
   }
 
   return (

@@ -27,12 +27,20 @@ const workspaceSearchRulesByRole: Record<UserRole, SearchRouteRule[]> = {
     { prefix: '/company/courses/retired', target: '/company/courses/retired' },
     { prefix: '/company/courses', target: '/company/courses' },
   ],
+  teacher: [
+    { prefix: '/teacher/notifications', target: '/teacher/notifications' },
+    { prefix: '/teacher/progress', target: '/teacher/progress' },
+    { prefix: '/teacher/students', target: '/teacher/students' },
+    { prefix: '/teacher/exams', target: '/teacher/exams' },
+    { prefix: '/teacher/courses', target: '/teacher/courses' },
+  ],
   admin: [],
 }
 
 const defaultWorkspaceSearchPathByRole: Record<UserRole, string> = {
   student: '/student/courses',
   company: '/company/candidates',
+  teacher: '/teacher/progress',
   admin: '/admin',
 }
 
