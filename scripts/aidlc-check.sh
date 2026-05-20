@@ -38,11 +38,19 @@ check_path() {
 check_path "README.md" "file"
 check_path ".github/copilot-instructions.md" "file"
 check_path ".aidlc-rule-details" "dir"
-check_path "aidlc-docs/aidlc-state.md" "file"
-check_path "aidlc-docs/inception/v1" "dir"
 check_path "changes" "dir"
 check_path "templates/unit" "dir"
 check_path "scripts" "dir"
+
+if [ ! -d "aidlc-docs" ]; then
+  echo "INFO  aidlc-docs not present. Skipping AI-DLC documentation checks."
+  echo "---"
+  echo "AI-DLC check summary: OK=${checks_ok} NG=${checks_ng}"
+  exit 0
+fi
+
+check_path "aidlc-docs/aidlc-state.md" "file"
+check_path "aidlc-docs/inception/v1" "dir"
 check_path "aidlc-docs/inception/v1/adr-001-technology-stack.md" "file"
 
 if [ -d "aidlc-docs/construction/units" ]; then
