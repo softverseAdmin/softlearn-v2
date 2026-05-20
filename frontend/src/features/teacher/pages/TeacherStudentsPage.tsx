@@ -47,7 +47,7 @@ function formatDateLabel(value: string) {
 export function TeacherStudentsPage() {
   const [searchQuery, setSearchQuery] = useWorkspaceSearchQuery()
   const [profileFilter, setProfileFilter] = useState('All Students')
-  const [sortBy, setSortBy] = useState('Recently Updated')
+  const [sortBy, setSortBy] = useState('Recently Joined')
 
   const studentsQuery = useQuery({
     queryKey: ['teacher-students'],
@@ -213,7 +213,7 @@ export function TeacherStudentsPage() {
                   onChange={(event) => setSortBy(event.target.value)}
                   className="h-11 w-full bg-transparent text-sm font-medium text-foreground outline-none"
                 >
-                  <option>Recently Updated</option>
+                  <option>Recently Joined</option>
                   <option>Student A-Z</option>
                   <option>Most Skills</option>
                   <option>Most Experience</option>
@@ -249,7 +249,7 @@ export function TeacherStudentsPage() {
           onChange={(event) => setSortBy(event.target.value)}
           className="h-11 rounded-lg border border-input bg-background px-4 text-sm text-foreground outline-none transition focus-visible:ring-2 focus-visible:ring-ring/50"
         >
-          <option>Recently Updated</option>
+          <option>Recently Joined</option>
           <option>Student A-Z</option>
           <option>Most Skills</option>
           <option>Most Experience</option>
