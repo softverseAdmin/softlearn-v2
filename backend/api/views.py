@@ -2946,7 +2946,7 @@ def get_admin_company_queryset():
     )
 
 
-def validate_admin_course_payload(payload: dict) -> dict:
+def validate_admin_course_payload(payload: dict, *, require_preview: bool = True) -> dict:
     title = str(payload.get("title", "")).strip()
     description = str(payload.get("description", "")).strip()
     category = str(payload.get("category", "")).strip()
@@ -2970,13 +2970,13 @@ def validate_admin_course_payload(payload: dict) -> dict:
         errors["title"] = ["This field is required."]
     if not category:
         errors["category"] = ["This field is required."]
-    if not preview_title:
+    if require_preview and not preview_title:
         errors["preview_title"] = ["This field is required."]
-    if not preview_short_description:
+    if require_preview and not preview_short_description:
         errors["preview_short_description"] = ["This field is required."]
-    if not preview_video_url:
+    if require_preview and not preview_video_url:
         errors["preview_video_url"] = ["This field is required."]
-    if not preview_thumbnail_image and not preview_thumbnail_upload_pending:
+    if require_preview and not preview_thumbnail_image and not preview_thumbnail_upload_pending:
         errors["preview_thumbnail_image"] = ["Provide a preview image URL or upload a preview image."]
     if thumbnail_image.startswith("data:"):
         errors["thumbnail_image"] = ["Upload thumbnails through the course thumbnail upload endpoint."]
@@ -2984,9 +2984,15 @@ def validate_admin_course_payload(payload: dict) -> dict:
         errors["preview_thumbnail_image"] = ["Upload preview images through the course preview image upload endpoint."]
     if status not in Course.Status.values:
         errors["status"] = [f"Status must be one of: {', '.join(Course.Status.values)}."]
-    if preview_access_type not in Course.PreviewAccessType.values:
+    if preview_access_type:
+        if preview_access_type not in Course.PreviewAccessType.values:
+            errors["preview_access_type"] = [f"Preview access type must be one of: {', '.join(Course.PreviewAccessType.values)}."]
+    elif require_preview:
         errors["preview_access_type"] = [f"Preview access type must be one of: {', '.join(Course.PreviewAccessType.values)}."]
-    if preview_status not in Course.PreviewStatus.values:
+    if preview_status:
+        if preview_status not in Course.PreviewStatus.values:
+            errors["preview_status"] = [f"Preview status must be one of: {', '.join(Course.PreviewStatus.values)}."]
+    elif require_preview:
         errors["preview_status"] = [f"Preview status must be one of: {', '.join(Course.PreviewStatus.values)}."]
     if len(preview_short_description) > 500:
         errors["preview_short_description"] = ["Preview short description must be 500 characters or fewer."]
@@ -3002,23 +3008,29 @@ def validate_admin_course_payload(payload: dict) -> dict:
         if estimated_hours < 0:
             errors["estimated_hours"] = ["Estimated hours must be zero or greater."]
 
-    try:
-        preview_duration = int(raw_preview_duration)
-    except (TypeError, ValueError):
-        preview_duration = 0
+    preview_duration = None
+    if raw_preview_duration not in (None, ""):
+        try:
+            preview_duration = int(raw_preview_duration)
+        except (TypeError, ValueError):
+            errors["preview_duration"] = ["Preview duration must be a valid integer."]
+        else:
+            if preview_duration <= 0:
+                errors["preview_duration"] = ["Preview duration must be greater than zero."]
+    elif require_preview:
         errors["preview_duration"] = ["Preview duration must be a valid integer."]
-    else:
-        if preview_duration <= 0:
-            errors["preview_duration"] = ["Preview duration must be greater than zero."]
 
-    try:
-        preview_order = int(raw_preview_order)
-    except (TypeError, ValueError):
-        preview_order = 0
+    preview_order = None
+    if raw_preview_order not in (None, ""):
+        try:
+            preview_order = int(raw_preview_order)
+        except (TypeError, ValueError):
+            errors["preview_order"] = ["Preview order must be a valid integer."]
+        else:
+            if preview_order <= 0:
+                errors["preview_order"] = ["Preview order must be greater than zero."]
+    elif require_preview:
         errors["preview_order"] = ["Preview order must be a valid integer."]
-    else:
-        if preview_order <= 0:
-            errors["preview_order"] = ["Preview order must be greater than zero."]
 
     preview_video_url_error = http_url_error(preview_video_url, field_label="Preview video URL")
     if preview_video_url_error:
@@ -8951,15 +8963,26 @@ def admin_courses_view(request):
         courses = list(Course.objects.order_by("-updated_at", "-id"))
         return success_response({"courses": [serialize_admin_course(course) for course in courses]})
 
-    payload = validate_admin_course_payload(parse_json_body(request))
+    payload = validate_admin_course_payload(parse_json_body(request), require_preview=False)
     course = Course(
         title=payload["title"],
         description=payload["description"],
         category=payload["category"],
         difficulty_level=payload["difficulty_level"],
         estimated_hours=payload["estimated_hours"],
+        thumbnail_image=payload["thumbnail_image"],
+        thumbnail_alt_text=payload["thumbnail_alt_text"],
+        preview_title=payload["preview_title"],
+        preview_short_description=payload["preview_short_description"],
+        preview_video_url=payload["preview_video_url"],
+        preview_thumbnail_image=payload["preview_thumbnail_image"],
+        preview_duration_minutes=payload["preview_duration"],
+        preview_access_type=payload["preview_access_type"],
+        preview_order=payload["preview_order"],
+        preview_status=payload["preview_status"],
         status=payload["status"],
     )
+    sync_course_media_fields(course, payload)
     course.full_clean()
     course.save()
     return success_response(serialize_admin_course(course), status=201)
@@ -8983,13 +9006,24 @@ def admin_course_detail_view(request, course_id: int):
         course.save(update_fields=["status", "updated_at"])
         return success_response(serialize_admin_course(course))
 
-    payload = validate_admin_course_payload(parse_json_body(request))
+    payload = validate_admin_course_payload(parse_json_body(request), require_preview=False)
     course.title = payload["title"]
     course.description = payload["description"]
     course.category = payload["category"]
     course.difficulty_level = payload["difficulty_level"]
     course.estimated_hours = payload["estimated_hours"]
+    course.thumbnail_image = payload["thumbnail_image"]
+    course.thumbnail_alt_text = payload["thumbnail_alt_text"]
+    course.preview_title = payload["preview_title"]
+    course.preview_short_description = payload["preview_short_description"]
+    course.preview_video_url = payload["preview_video_url"]
+    course.preview_thumbnail_image = payload["preview_thumbnail_image"]
+    course.preview_duration_minutes = payload["preview_duration"]
+    course.preview_access_type = payload["preview_access_type"]
+    course.preview_order = payload["preview_order"]
+    course.preview_status = payload["preview_status"]
     course.status = payload["status"]
+    sync_course_media_fields(course, payload)
     course.full_clean()
     course.save(
         update_fields=[
@@ -8998,6 +9032,18 @@ def admin_course_detail_view(request, course_id: int):
             "category",
             "difficulty_level",
             "estimated_hours",
+            "thumbnail_image",
+            "thumbnail_image_file",
+            "thumbnail_alt_text",
+            "preview_title",
+            "preview_short_description",
+            "preview_video_url",
+            "preview_thumbnail_image",
+            "preview_thumbnail_image_file",
+            "preview_duration_minutes",
+            "preview_access_type",
+            "preview_order",
+            "preview_status",
             "status",
             "updated_at",
         ]
@@ -10066,8 +10112,9 @@ def admin_security_view(request):
     return success_response({
         "security_metrics": metrics,
         "configuration": {
-            "login_attempts_limit": SecurityManager.LOGIN_LIMIT,
-            "login_attempts_window": "1 minute",
+            "login_attempts_limit": SecurityManager.LOGIN_ACCOUNT_LIMIT,
+            "login_attempts_window": f"{SecurityManager.LOGIN_WINDOW_SECONDS // 60} minutes per IP/email pair",
+            "login_ip_attempts_limit": SecurityManager.LOGIN_IP_LIMIT,
             "api_requests_limit": SecurityManager.API_LIMIT,
             "api_requests_window": "1 minute",
             "signup_limit": SecurityManager.SIGNUP_LIMIT,
@@ -10463,6 +10510,23 @@ def study_plan_view(request):
         "plan": serialize_study_plan(plan),
         "items": [serialize_study_plan_item(item) for item in items],
     })
+
+@api_endpoint(["PUT"], authentication_required=True, roles=[User.Role.STUDENT])
+def study_plan_item_complete_view(request, item_id):
+    item = (
+        StudyPlanItem.objects.select_related("study_plan__student__user")
+        .filter(id=item_id, study_plan__student__user=request.user)
+        .first()
+    )
+    if item is None:
+        return error_response(request, "not_found", "Study plan item not found.", status=404)
+
+    if not item.completed:
+        item.completed = True
+        item.completion_date = timezone.localdate()
+        item.save(update_fields=["completed", "completion_date"])
+
+    return success_response(serialize_study_plan_item(item))
 
 @api_endpoint(["GET"], authentication_required=True, roles=[User.Role.STUDENT])
 def student_performance_view(request):

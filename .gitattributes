@@ -1,0 +1,6 @@
+backend/logs export-ignore
+backend/logs/.gitkeep export-ignore
+backend/media export-ignore
+backend/media/.gitkeep export-ignore
+backend/staticfiles export-ignore
+backend/staticfiles/** export-ignore

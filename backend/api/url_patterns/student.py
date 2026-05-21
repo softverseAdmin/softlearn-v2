@@ -1,6 +1,6 @@
 from django.urls import path
 
-from api import views
+from api import student_views as views
 from api.jobs_views import student_courses_view, student_job_detail_view, student_jobs_view
 from api.matching_views import student_matches_view
 from api.media_views import student_profile_image_upload_view

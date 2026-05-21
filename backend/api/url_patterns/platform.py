@@ -1,6 +1,7 @@
 from django.urls import path
 
-from api import views
+from api import admin_views
+from api import platform_api_views as views
 from api.platform_views import (
     notification_feed_view,
     notification_detail_view,
@@ -24,13 +25,14 @@ urlpatterns = [
     path("access/me", views.access_me_view, name="api-access-me"),
     path("access/student", views.student_access_view, name="api-access-student"),
     path("access/company", views.company_access_view, name="api-access-company"),
-    path("access/admin", views.admin_access_view, name="api-access-admin"),
+    path("access/admin", admin_views.admin_access_view, name="api-access-admin"),
     path("exam-categories", views.exam_categories_view, name="api-exam-categories"),
     path("exam-categories/<int:category_id>", views.exam_category_detail_view, name="api-exam-category-detail"),
     path("exams/<int:exam_id>/practice-questions", views.practice_questions_list_view, name="api-practice-questions-list"),
     path("practice-questions/<int:question_id>", views.practice_question_detail_view, name="api-practice-question-detail"),
     path("exams/<int:exam_id>/mock-exams", views.mock_exams_list_view, name="api-mock-exams-list"),
     path("study-plan", views.study_plan_view, name="api-study-plan"),
+    path("study-plan-items/<int:item_id>/complete", views.study_plan_item_complete_view, name="api-study-plan-item-complete"),
     path("interviews/<int:interview_id>", views.interview_detail_view, name="api-interview-detail"),
     path("interviews/<int:interview_id>/availability", views.interview_availability_view, name="api-interview-availability"),
     path("interviews/<int:interview_id>/reschedule", views.interview_reschedule_view, name="api-interview-reschedule"),

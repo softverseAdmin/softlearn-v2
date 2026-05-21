@@ -1,6 +1,6 @@
 from django.urls import path
 
-from api import views
+from api import auth_views as views
 
 urlpatterns = [
     path("csrf", views.csrf_view, name="api-auth-csrf"),
