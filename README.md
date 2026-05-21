@@ -86,16 +86,17 @@ This repository is an **AI-DLC-first** workspace for a learning and job-matching
    cp .env.example .env
    ```
 4. Set a non-default secret key in `.env` before sharing the backend beyond local development.
-5. Run migrations:
+5. Never share or deploy a raw zip of the working tree. Stage the files you want to share, then use `./scripts/create-safe-archive.sh` or `git archive` so `.env`, virtualenvs, logs, media, SQLite, and build artifacts stay out.
+6. Run migrations:
    ```bash
    cd backend
    python manage.py migrate
    ```
-6. Start the backend:
+7. Start the backend:
    ```bash
    python manage.py runserver
    ```
-7. Run backend tests:
+8. Run backend tests:
    ```bash
    python manage.py test
    ```

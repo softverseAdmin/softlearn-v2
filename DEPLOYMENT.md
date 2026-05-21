@@ -2,18 +2,32 @@
 
 ## Table of Contents
 
-1. [Environment Setup](#environment-setup)
-2. [Local Development](#local-development)
-3. [Database Setup](#database-setup)
-4. [Configuration](#configuration)
-5. [Running the Application](#running-the-application)
-6. [Docker Deployment](#docker-deployment)
-7. [Database Migrations](#database-migrations)
-8. [Production Deployment](#production-deployment)
-9. [Hetzner VPS Deployment](#hetzner-vps-deployment)
-10. [Monitoring & Logging](#monitoring--logging)
-11. [Troubleshooting](#troubleshooting)
-12. [Rollback Procedure](#rollback-procedure)
+1. [Secret Handling and Safe Sharing](#secret-handling-and-safe-sharing)
+2. [Environment Setup](#environment-setup)
+3. [Local Development](#local-development)
+4. [Database Setup](#database-setup)
+5. [Configuration](#configuration)
+6. [Running the Application](#running-the-application)
+7. [Docker Deployment](#docker-deployment)
+8. [Database Migrations](#database-migrations)
+9. [Production Deployment](#production-deployment)
+10. [Hetzner VPS Deployment](#hetzner-vps-deployment)
+11. [Monitoring & Logging](#monitoring--logging)
+12. [Troubleshooting](#troubleshooting)
+13. [Rollback Procedure](#rollback-procedure)
+
+## Secret Handling and Safe Sharing
+
+- Do not commit or share `.env`, deployment tokens, database dumps, uploaded media, logs, virtual environments, or frontend build artifacts.
+- If any real secret was ever included in a shared zip or upload, rotate it before treating the environment as production-safe. That includes Django secret keys, database passwords, AI provider keys, mail credentials, and deployment tokens.
+- Docker builds now rely on the repository-root `.dockerignore`, which keeps `.env`, `.git`, virtualenvs, SQLite, logs, media, `node_modules`, and built frontend assets out of image build contexts.
+- When you need to hand off source code, prefer:
+
+```bash
+./scripts/create-safe-archive.sh
+```
+
+This exports the staged tracked snapshot and avoids leaking local-only files from the working tree.
 
 ## Environment Setup
 
