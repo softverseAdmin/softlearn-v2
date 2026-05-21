@@ -3,7 +3,7 @@ import { observeWebVitals, type WebVitals } from '../lib/performance'
 
 export function useServiceWorker() {
   useEffect(() => {
-    let updateInterval: ReturnType<typeof window.setInterval> | null = null
+    let updateInterval: number | null = null
 
     if ('serviceWorker' in navigator && import.meta.env.PROD) {
       navigator.serviceWorker
