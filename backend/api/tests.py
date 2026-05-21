@@ -18,6 +18,7 @@ from PIL import Image
 
 from config.settings import validate_production_configuration
 from common.models import ApplicationLogEntry, ErrorReport
+from services.security import SecurityManager
 from users.models import (
     Application,
     ApplicationStatusHistory,
@@ -3127,6 +3128,67 @@ class ApiFoundationTests(TestCase):
         self.assertEqual(exam.max_attempts, 4)
         self.assertEqual(exam.status, Exam.Status.INACTIVE)
 
+    def test_admin_can_access_security_configuration(self):
+        admin = User.objects.create_superuser(
+            email="admin@example.com",
+            password="SecurePass123!",
+            full_name="Admin User",
+        )
+        client = Client()
+        client.force_login(admin)
+
+        response = client.get("/api/v1/admin/security/")
+
+        self.assertEqual(response.status_code, 200)
+        body = response.json()["data"]
+        self.assertEqual(body["configuration"]["login_attempts_limit"], SecurityManager.LOGIN_ACCOUNT_LIMIT)
+        self.assertEqual(body["configuration"]["login_ip_attempts_limit"], SecurityManager.LOGIN_IP_LIMIT)
+        self.assertEqual(
+            body["configuration"]["login_attempts_window"],
+            f"{SecurityManager.LOGIN_WINDOW_SECONDS // 60} minutes per IP/email pair",
+        )
+
+    def test_student_can_mark_study_plan_item_complete(self):
+        student = User.objects.create_user(
+            email="student-study-plan@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        profile = StudentProfile.objects.create(user=student)
+        exam = Exam.objects.create(
+            title="Backend Validation",
+            description="Backend assessment.",
+            category="backend",
+            duration_minutes=45,
+            passing_score_percent=80,
+            question_count=20,
+            max_attempts=3,
+            status=Exam.Status.ACTIVE,
+        )
+        plan = StudyPlan.objects.create(student=profile, exam=exam)
+        item = StudyPlanItem.objects.create(
+            study_plan=plan,
+            item_type=StudyPlanItem.ItemTypeChoices.PRACTICE,
+            order=1,
+        )
+        client, csrf_token = self.csrf_client()
+        client.force_login(student)
+
+        response = client.put(
+            f"/api/v1/study-plan-items/{item.id}/complete",
+            data=json.dumps({}),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        item.refresh_from_db()
+        self.assertTrue(item.completed)
+        self.assertIsNotNone(item.completion_date)
+        self.assertEqual(response.json()["data"]["id"], item.id)
+        self.assertTrue(response.json()["data"]["completed"])
+
     def test_company_user_cannot_access_admin_exams(self):
         company = Company.objects.create(name="Softverse")
         company_user = User.objects.create_user(
@@ -5860,6 +5922,14 @@ class ApiFoundationTests(TestCase):
             category="backend",
             difficulty_level="beginner",
             estimated_hours=12,
+            preview_title="Backend foundations preview",
+            preview_short_description="See how the backend path is structured before you enroll.",
+            preview_video_url="https://example.com/previews/backend-foundations",
+            preview_thumbnail_image="https://example.com/previews/backend-foundations.webp",
+            preview_duration_minutes=14,
+            preview_access_type=Course.PreviewAccessType.FREE_PREVIEW,
+            preview_order=1,
+            preview_status=Course.PreviewStatus.PUBLISHED,
             status=Course.Status.ACTIVE,
             company=company,
             created_by=company_user,

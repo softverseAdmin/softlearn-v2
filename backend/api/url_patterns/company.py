@@ -1,6 +1,6 @@
 from django.urls import path
 
-from api import views
+from api import company_views as views
 from api.jobs_views import (
     company_course_bookmark_view,
     company_course_detail_view,

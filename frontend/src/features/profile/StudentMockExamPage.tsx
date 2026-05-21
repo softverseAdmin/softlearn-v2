@@ -1,7 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
+import { ArrowLeft, CircleAlert, CircleCheckBig, Clock3, FileQuestion, Target, Trophy } from 'lucide-react'
 
 import { LoadingState } from '@/components/LoadingIndicator'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useAuth } from '../../auth/useAuth'
 import { ApiError, apiRequest } from '../../lib/api'
 import type { StudentMockExamDetailResponse, StudentMockExamSubmitResponse } from './types'
@@ -31,6 +35,8 @@ export function StudentMockExamPage() {
   const [selectedAnswers, setSelectedAnswers] = useState<Record<number, number>>({})
 
   const answeredCount = useMemo(() => Object.keys(selectedAnswers).length, [selectedAnswers])
+  const progressPercent = data.question_count > 0 ? Math.round((answeredCount / data.question_count) * 100) : 0
+  const readyToSubmit = data.question_count > 0 && answeredCount === data.question_count
 
   useEffect(() => {
     let active = true
@@ -93,87 +99,207 @@ export function StudentMockExamPage() {
 
   if (loading) {
     return (
-      <section className="page">
-        <div className="card">
-          <LoadingState title="Loading mock exam" className="min-h-40" />
-        </div>
-      </section>
+      <div className="py-12">
+        <LoadingState title="Loading mock exam" className="min-h-40" />
+      </div>
     )
   }
 
   return (
-    <section className="page">
-      <div className="page-header">
-        <div>
-          <p className="eyebrow">Student preparation</p>
-          <h1>{data.title || 'Mock exam'}</h1>
-          <p className="lead">{data.description || 'Use this mock exam to measure readiness without changing your official exam history.'}</p>
+    <div className="space-y-6 md:space-y-8">
+      <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+        <div className="space-y-3">
+          <Badge variant="outline" className="rounded-full px-3 py-1 text-xs uppercase tracking-[0.18em]">
+            Student preparation
+          </Badge>
+          <div className="space-y-2">
+            <h1 className="text-3xl font-bold tracking-tight text-slate-900 md:text-4xl">{data.title || 'Mock exam'}</h1>
+            <p className="max-w-3xl text-base leading-7 text-slate-600">
+              {data.description || 'Use this mock exam to measure readiness without changing your official exam history.'}
+            </p>
+          </div>
         </div>
-        <div className="card compact-card">
-          <strong>Mock summary</strong>
-          <p className="muted">Attempt {data.next_attempt_number}</p>
-          <p className="muted">{answeredCount} / {data.question_count} answered</p>
-          {data.best_score !== null ? <p className="muted">Best score: {data.best_score}%</p> : null}
-        </div>
+        <Button asChild variant="outline" className="rounded-2xl">
+          <Link to="/student/preparation">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to preparation
+          </Link>
+        </Button>
       </div>
 
-      {error ? <div className="card form-error">{error}</div> : null}
+      {error ? (
+        <Card className="border-red-200 bg-red-50">
+          <CardContent className="flex items-start gap-3 pt-6 text-red-700">
+            <CircleAlert className="mt-0.5 h-5 w-5 shrink-0" />
+            <div>
+              <p className="font-semibold">Mock exam issue</p>
+              <p className="mt-1 text-sm">{error}</p>
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
 
-      <div className="card stack-card">
-        <h2>Mock details</h2>
-        <p className="muted">
-          {data.category} · {data.duration_minutes} minutes · previous attempts {data.attempt_count}
-          {data.last_score !== null ? ` · last score ${data.last_score}%` : ''}
-        </p>
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <Card className="border-blue-100 bg-gradient-to-br from-white to-blue-50/80">
+          <CardHeader className="pb-3">
+            <CardDescription>Questions</CardDescription>
+            <CardTitle className="flex items-center gap-2 text-3xl">
+              <FileQuestion className="h-7 w-7 text-primary" />
+              {data.question_count}
+            </CardTitle>
+          </CardHeader>
+        </Card>
+        <Card className="border-violet-100 bg-gradient-to-br from-white to-violet-50/80">
+          <CardHeader className="pb-3">
+            <CardDescription>Duration</CardDescription>
+            <CardTitle className="flex items-center gap-2 text-3xl">
+              <Clock3 className="h-7 w-7 text-violet-600" />
+              {data.duration_minutes}m
+            </CardTitle>
+          </CardHeader>
+        </Card>
+        <Card className="border-amber-100 bg-gradient-to-br from-white to-amber-50/80">
+          <CardHeader className="pb-3">
+            <CardDescription>Attempt number</CardDescription>
+            <CardTitle className="flex items-center gap-2 text-3xl">
+              <Target className="h-7 w-7 text-amber-600" />
+              {data.next_attempt_number}
+            </CardTitle>
+          </CardHeader>
+        </Card>
+        <Card className="border-emerald-100 bg-gradient-to-br from-white to-emerald-50/80">
+          <CardHeader className="pb-3">
+            <CardDescription>Best score</CardDescription>
+            <CardTitle className="flex items-center gap-2 text-3xl">
+              <Trophy className="h-7 w-7 text-emerald-600" />
+              {data.best_score === null ? '—' : `${data.best_score}%`}
+            </CardTitle>
+          </CardHeader>
+        </Card>
       </div>
 
-      <div className="card stack-card">
-        <h2>Questions</h2>
+      <Card className="border-slate-200/80 shadow-sm">
+        <CardHeader className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <CardTitle>Exam progress</CardTitle>
+            <CardDescription>
+              {data.category} · {answeredCount}/{data.question_count} answered
+              {data.last_score !== null ? ` · last score ${data.last_score}%` : ''}
+              {data.attempt_count > 0 ? ` · ${data.attempt_count} previous attempt${data.attempt_count === 1 ? '' : 's'}` : ''}
+            </CardDescription>
+          </div>
+          <Badge className="rounded-full bg-slate-100 text-slate-700 hover:bg-slate-100">
+            {progressPercent}% complete
+          </Badge>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="h-3 overflow-hidden rounded-full bg-slate-100">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-primary to-violet-500 transition-all"
+              style={{ width: `${progressPercent}%` }}
+            />
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {data.questions.map((question, index) => {
+              const answered = selectedAnswers[question.question_id] !== undefined
+              return (
+                <button
+                  key={question.question_id}
+                  type="button"
+                  onClick={() => document.getElementById(`mock-question-${question.question_id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                  className={`inline-flex h-10 w-10 items-center justify-center rounded-2xl border text-sm font-semibold transition ${
+                    answered
+                      ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                      : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+                  }`}
+                  aria-label={`Jump to question ${index + 1}`}
+                >
+                  {answered ? <CircleCheckBig className="h-4 w-4" /> : index + 1}
+                </button>
+              )
+            })}
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="space-y-4">
         {data.questions.map((question) => (
-          <article key={question.question_id} className="skill-card">
-            <div className="skill-card-header">
-              <div>
-                <h3>Question {question.sequence_number}</h3>
-                <p className="muted">{question.points} point{question.points === 1 ? '' : 's'}</p>
+          <Card key={question.question_id} id={`mock-question-${question.question_id}`} className="scroll-mt-24 border-slate-200/80 shadow-sm">
+            <CardHeader>
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                <div>
+                  <CardTitle className="text-xl">Question {question.sequence_number}</CardTitle>
+                  <CardDescription>
+                    {question.points} point{question.points === 1 ? '' : 's'}
+                  </CardDescription>
+                </div>
+                {selectedAnswers[question.question_id] !== undefined ? (
+                  <Badge className="w-fit rounded-full bg-emerald-100 text-emerald-700 hover:bg-emerald-100">
+                    Answer selected
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className="w-fit rounded-full">
+                    Waiting for answer
+                  </Badge>
+                )}
               </div>
-            </div>
-            <p>{question.prompt}</p>
-            {question.instructions ? <p className="muted">{question.instructions}</p> : null}
-            <div className="stack-list">
-              {question.options.map((option) => (
-                <label key={option.option_id} className="skill-card">
-                  <input
-                    type="radio"
-                    name={`mock-question-${question.question_id}`}
-                    checked={selectedAnswers[question.question_id] === option.option_id}
-                    onChange={() =>
-                      setSelectedAnswers((current) => ({
-                        ...current,
-                        [question.question_id]: option.option_id,
-                      }))
-                    }
-                  />
-                  <span>{option.option_text}</span>
-                </label>
-              ))}
-            </div>
-          </article>
+            </CardHeader>
+            <CardContent>
+              <p className="text-base leading-7 text-slate-800">{question.prompt}</p>
+              {question.instructions ? (
+                <p className="mt-2 text-sm leading-6 text-slate-500">{question.instructions}</p>
+              ) : null}
+
+              <div className="mt-5 grid gap-3">
+                {question.options.map((option) => {
+                  const selected = selectedAnswers[question.question_id] === option.option_id
+                  return (
+                    <label
+                      key={option.option_id}
+                      className={`flex cursor-pointer items-start gap-3 rounded-2xl border px-4 py-3 transition ${
+                        selected
+                          ? 'border-primary bg-primary/5'
+                          : 'border-slate-200 bg-slate-50/70 hover:border-slate-300 hover:bg-slate-50'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name={`mock-question-${question.question_id}`}
+                        checked={selected}
+                        onChange={() =>
+                          setSelectedAnswers((current) => ({
+                            ...current,
+                            [question.question_id]: option.option_id,
+                          }))
+                        }
+                        className="mt-1"
+                      />
+                      <span className="text-sm leading-6 text-slate-700">{option.option_text}</span>
+                    </label>
+                  )
+                })}
+              </div>
+            </CardContent>
+          </Card>
         ))}
       </div>
 
-      <div className="actions">
-        <Link className="secondary-button inline-button" to="/student/preparation">
-          Back to preparation
-        </Link>
-        <button
-          className="primary-button inline-button"
-          type="button"
-          onClick={() => void handleSubmit()}
-          disabled={saving || answeredCount !== data.question_count}
-        >
-          {saving ? 'Submitting…' : 'Submit mock exam'}
-        </button>
-      </div>
-    </section>
+      <Card className="border-slate-200/80 bg-slate-900 text-white shadow-sm">
+        <CardContent className="flex flex-col gap-4 p-6 md:flex-row md:items-center md:justify-between">
+          <div className="space-y-2">
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-white/60">Submission</p>
+            <h2 className="text-2xl font-semibold">
+              {readyToSubmit ? 'All questions answered. Ready to submit.' : 'Answer every question before submitting.'}
+            </h2>
+            <p className="text-sm leading-6 text-white/70">
+              Your mock attempt stays separate from official exam history while still using the same protected question set.
+            </p>
+          </div>
+          <Button type="button" variant="secondary" className="rounded-2xl" onClick={() => void handleSubmit()} disabled={saving || !readyToSubmit}>
+            {saving ? 'Submitting…' : 'Submit mock exam'}
+          </Button>
+        </CardContent>
+      </Card>
+    </div>
   )
 }

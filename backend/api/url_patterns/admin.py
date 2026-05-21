@@ -1,6 +1,6 @@
 from django.urls import path
 
-from api import views
+from api import admin_views as views
 
 urlpatterns = [
     path("dashboard", views.admin_dashboard_view, name="api-admin-dashboard"),

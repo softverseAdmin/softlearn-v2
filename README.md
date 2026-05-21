@@ -74,11 +74,13 @@ This repository is an **AI-DLC-first** workspace for a learning and job-matching
 
 1. Create and activate a virtual environment:
    ```bash
-   python3 -m venv .venv
+   python3.12 -m venv .venv
    . .venv/bin/activate
    ```
+   Use any **Python 3.11+** interpreter. On some macOS machines, `python` and `python3` still point to 3.9, which cannot install Django 5.
 2. Install backend dependencies:
    ```bash
+   python -m pip install --upgrade pip
    pip install -r requirements.txt
    ```
 3. Copy environment defaults:
@@ -86,7 +88,7 @@ This repository is an **AI-DLC-first** workspace for a learning and job-matching
    cp .env.example .env
    ```
 4. Set a non-default secret key in `.env` before sharing the backend beyond local development.
-5. Never share or deploy a raw zip of the working tree. Stage the files you want to share, then use `./scripts/create-safe-archive.sh` or `git archive` so `.env`, virtualenvs, logs, media, SQLite, and build artifacts stay out.
+5. Never share or deploy a raw zip of the working tree. Stage the files you want to share, then run `./scripts/verify-portability.sh` and `./scripts/create-safe-archive.sh` so `.env`, virtualenvs, `node_modules`, logs, media, SQLite, and build artifacts stay out.
 6. Run migrations:
    ```bash
    cd backend
@@ -101,6 +103,11 @@ This repository is an **AI-DLC-first** workspace for a learning and job-matching
    python manage.py test
    ```
 
+### Production readiness note
+
+- `python manage.py check --deploy` intentionally validates **production** configuration, so it will fail unless you set production env such as `ENVIRONMENT=production`, `DJANGO_ALLOWED_HOSTS`, `POSTGRES_DB`, `POSTGRES_HOST`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, and a real `DJANGO_EMAIL_BACKEND`.
+- The repository targets **Python 3.11+**. `.python-version` is set to `3.12` for local version managers, and `./scripts/verify-portability.sh` now auto-selects a supported interpreter instead of silently using an older `python3`.
+
 ### Backend foundation notes
 
 - Signup uses Django password validation rules, so weak passwords are rejected at account creation time.
@@ -113,7 +120,7 @@ This repository is an **AI-DLC-first** workspace for a learning and job-matching
 1. Install frontend dependencies:
    ```bash
    cd frontend
-   npm install
+   npm ci
    ```
 2. Copy optional frontend env defaults:
    ```bash
@@ -126,6 +133,11 @@ This repository is an **AI-DLC-first** workspace for a learning and job-matching
 4. Build the frontend:
    ```bash
    npm run build
+   ```
+
+5. Re-verify a portable handoff or deployment snapshot from the repository root:
+   ```bash
+   ./scripts/verify-portability.sh
    ```
 
 ### Frontend foundation notes

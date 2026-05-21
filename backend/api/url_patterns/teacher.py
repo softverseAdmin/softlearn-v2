@@ -1,6 +1,6 @@
 from django.urls import path
 
-from api import views
+from api import teacher_views as views
 from api.media_views import (
     teacher_course_preview_thumbnail_upload_view,
     teacher_course_thumbnail_upload_view,

@@ -1,4 +1,4 @@
-import { Route } from 'react-router-dom'
+import { Navigate, Route } from 'react-router-dom'
 
 import { loadable, loadableNamed } from '@/router/loadable'
 
@@ -37,16 +37,7 @@ const StudentPrivacySettingsPage = loadableNamed(
   () => import('@/features/profile/StudentPrivacySettingsPage'),
   'StudentPrivacySettingsPage',
 )
-const StudentWorkspacePlaceholderPage = loadableNamed(
-  () => import('@/features/profile/StudentWorkspacePlaceholderPage'),
-  'StudentWorkspacePlaceholderPage',
-)
 const StudentWorkHistoryPage = loadableNamed(() => import('@/features/profile/work-history/pages/StudentWorkHistoryPage'), 'StudentWorkHistoryPage')
-const ExamCategoryPage = loadableNamed(() => import('@/features/learning/ExamCategoryPage'), 'ExamCategoryPage')
-const PracticeQuestionPage = loadableNamed(() => import('@/features/learning/PracticeQuestionPage'), 'PracticeQuestionPage')
-const MockExamPage = loadableNamed(() => import('@/features/learning/MockExamPage'), 'MockExamPage')
-const StudyPlanPage = loadableNamed(() => import('@/features/learning/StudyPlanPage'), 'StudyPlanPage')
-const PerformancePage = loadableNamed(() => import('@/features/learning/PerformancePage'), 'PerformancePage')
 
 export function renderStudentRoutes() {
   return (
@@ -74,41 +65,17 @@ export function renderStudentRoutes() {
       <Route path="/student/interviews" element={<StudentInterviewsPage />} />
       <Route path="/student/interviews/:interviewId" element={<StudentInterviewDetailPage />} />
       <Route path="/student/privacy" element={<StudentPrivacySettingsPage />} />
-      <Route
-        path="/student/mock-interviews"
-        element={
-          <StudentWorkspacePlaceholderPage
-            title="Mock Interviews"
-            description="Mock interview scheduling and coaching will live here. The work history workspace is ready now and can be used to improve future interview context."
-          />
-        }
-      />
-      <Route
-        path="/student/community"
-        element={
-          <StudentWorkspacePlaceholderPage
-            title="Community"
-            description="Community discussions and peer collaboration will be added here without changing the protected student workspace shell."
-          />
-        }
-      />
+      <Route path="/student/mock-interviews" element={<Navigate to="/student/interviews" replace />} />
+      <Route path="/student/community" element={<Navigate to="/student/messages" replace />} />
       <Route path="/student/resume" element={<StudentWorkHistoryPage />} />
       <Route path="/student/work-history" element={<StudentWorkHistoryPage />} />
       <Route path="/student/documents" element={<StudentWorkHistoryPage />} />
-      <Route
-        path="/student/certificates"
-        element={
-          <StudentWorkspacePlaceholderPage
-            title="Certificates"
-            description="Certificate management will be added here later. Your current work history documents remain available in the document workspace."
-          />
-        }
-      />
-      <Route path="/learning/categories" element={<ExamCategoryPage />} />
-      <Route path="/learning/practice/:examId" element={<PracticeQuestionPage />} />
-      <Route path="/learning/mock-exams/:examId" element={<MockExamPage />} />
-      <Route path="/learning/study-plan" element={<StudyPlanPage />} />
-      <Route path="/learning/performance" element={<PerformancePage />} />
+      <Route path="/student/certificates" element={<Navigate to="/student/profile" replace />} />
+      <Route path="/learning/categories" element={<StudentPreparationPage />} />
+      <Route path="/learning/practice/:examId" element={<StudentPreparationPage />} />
+      <Route path="/learning/mock-exams/:examId" element={<StudentMockExamPage />} />
+      <Route path="/learning/study-plan" element={<StudentPreparationPage />} />
+      <Route path="/learning/performance" element={<StudentPreparationPage />} />
     </>
   )
 }

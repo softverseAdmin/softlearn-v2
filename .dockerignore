@@ -1,23 +1,36 @@
+# VCS and repository metadata
 .git
+.git/
 .github
+
+# Environment files
 .env
 .env.*
 !.env.example
+
+# Python virtual environments and caches
 .venv/
+backend/.venv/
 **/.venv/
 **/__pycache__/
 **/.pytest_cache/
 **/.mypy_cache/
 **/.ruff_cache/
 **/.cache/
-**/.DS_Store
+
+# Local backend runtime artifacts
 backend/db.sqlite3
 backend/logs/
 backend/media/
 backend/staticfiles/
+
+# Local frontend build artifacts
 frontend/node_modules/
 frontend/dist/
+
+# Misc local outputs
 coverage/
 htmlcov/
 tmp/
 *.log
+**/.DS_Store

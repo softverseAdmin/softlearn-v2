@@ -12,13 +12,14 @@ def archive_old_applications() -> str:
     """Archive applications older than 6 months."""
     try:
         six_months_ago = timezone.now() - timedelta(days=180)
-        
-        # Archive applications that are old and not in active states
+
+        archived_at = timezone.now()
         archived = Application.objects.filter(
             created_at__lt=six_months_ago,
-            status__in=[Application.Status.REJECTED, Application.Status.WITHDRAWN]
-        ).update(is_archived=True)
-        
+            status__in=[Application.Status.REJECTED, Application.Status.WITHDRAWN],
+            archived_at__isnull=True,
+        ).update(archived_at=archived_at)
+
         return f"Archived {archived} applications"
     except Exception as e:
         return f"Error: {str(e)}"

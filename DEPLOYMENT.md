@@ -21,13 +21,22 @@
 - Do not commit or share `.env`, deployment tokens, database dumps, uploaded media, logs, virtual environments, or frontend build artifacts.
 - If any real secret was ever included in a shared zip or upload, rotate it before treating the environment as production-safe. That includes Django secret keys, database passwords, AI provider keys, mail credentials, and deployment tokens.
 - Docker builds now rely on the repository-root `.dockerignore`, which keeps `.env`, `.git`, virtualenvs, SQLite, logs, media, `node_modules`, and built frontend assets out of image build contexts.
+- Before any source handoff, rebuild from a clean tracked snapshot with:
+
+```bash
+./scripts/verify-portability.sh
+```
+
+- The verification script exports tracked files only, runs `npm ci && npm run build`, then installs backend requirements in a fresh virtualenv and runs `python manage.py check` plus `python manage.py test`.
 - When you need to hand off source code, prefer:
 
 ```bash
 ./scripts/create-safe-archive.sh
 ```
 
-This exports the staged tracked snapshot and avoids leaking local-only files from the working tree.
+This verifies portability first, then exports the staged tracked snapshot and avoids leaking local-only files from the working tree.
+
+`./scripts/create-safe-archive.sh` now also refuses to run if you still have unstaged tracked changes or untracked non-ignored files, because those would be silently omitted from a staged-only archive.
 
 ## Environment Setup
 
@@ -43,10 +52,13 @@ This exports the staged tracked snapshot and avoids leaking local-only files fro
 
 ```bash
 cd backend
-python -m venv venv
+python3.12 -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
+python -m pip install --upgrade pip
 pip install -r ../requirements.txt
 ```
+
+Use any **Python 3.11+** interpreter. If `python` or `python3` resolves to 3.9 on your machine, Django 5 will not install.
 
 ### Frontend Setup
 
@@ -233,6 +245,8 @@ DJANGO_TRUSTED_PROXY_IPS=your-reverse-proxy-ip
 
 The backend now defaults to secure cross-site cookies only in production and trusts the proxy HTTPS headers Render sends, while local development keeps localhost-friendly defaults.
 
+`python manage.py check --deploy` is meant to run against a production-shaped environment. Before expecting it to pass, set production values for `ENVIRONMENT`, `DJANGO_ALLOWED_HOSTS`, `POSTGRES_DB`, `POSTGRES_HOST`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, and `DJANGO_EMAIL_BACKEND`.
+
 Production no longer silently falls back to `LocMemCache`. If `ENVIRONMENT=production` and Redis/shared cache is not configured, the backend now refuses to boot. That is deliberate: shared-state features should fail fast during deployment instead of degrading per process in live traffic.
 
 Match snapshot refreshes now have a real Celery path instead of staying purely synchronous inside request threads. That does not magically solve the whole matching architecture, but it does give you an honest async foundation for warming heavy match snapshots behind Redis-backed workers.
@@ -251,6 +265,17 @@ Database-backed request logs and error reports are now explicitly diagnostic and
 
 1. Build and publish backend/frontend images to GHCR.
 2. Trigger the Render backend deploy hook.
+
+## Release gate before production
+
+Before a real production launch:
+
+1. Rotate any secret that was ever shared from a local `.env` or uploaded working tree.
+2. Run `./scripts/verify-portability.sh`.
+3. Ensure GitHub Actions `Tests` passes on push/PR, including `python manage.py check --deploy`.
+4. Trigger a **staging** deployment first (`Deploy` workflow with `environment=staging`, or Hetzner workflow targeting staging).
+5. Run the smoke checklist on staging: signup, login, logout, student/company/teacher/admin dashboards, course creation, lesson view, exam/practice flow, job post flow, application flow, file upload, email behavior, CSRF behavior, and mobile layout.
+6. Promote to production only after staging passes.
 3. Trigger the Vercel frontend deploy hook.
 
 Configure these **GitHub environment secrets** for both `staging` and `production`:
@@ -671,9 +696,9 @@ ls -la backend/staticfiles/
 
 ```bash
 # Clear node_modules and reinstall
-rm -rf frontend/node_modules frontend/package-lock.json
+rm -rf frontend/node_modules frontend/dist
 cd frontend
-npm install
+npm ci
 npm run build
 ```
 

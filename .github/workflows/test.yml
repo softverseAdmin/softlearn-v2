@@ -1,6 +1,10 @@
 name: Tests
 
 on:
+  push:
+    branches: [ main, dev ]
+  pull_request:
+    branches: [ main, dev ]
   workflow_dispatch:
 
 jobs:
@@ -21,6 +25,15 @@ jobs:
           --health-retries 5
         ports:
           - 5432:5432
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
 
     steps:
     - uses: actions/checkout@v4
@@ -47,6 +60,24 @@ jobs:
         DJANGO_DEBUG: "False"
         DJANGO_SECRET_KEY: "test-secret-key"
       run: python manage.py migrate
+
+    - name: Run Django deploy check
+      working-directory: ./backend
+      env:
+        ENVIRONMENT: production
+        DJANGO_DEBUG: "False"
+        DJANGO_SECRET_KEY: "ci-production-secret-key-that-is-long-and-random-1234567890"
+        DJANGO_ALLOWED_HOSTS: ci.example.invalid
+        POSTGRES_DB: test_softlearn
+        POSTGRES_USER: test_user
+        POSTGRES_PASSWORD: test_pass
+        POSTGRES_HOST: localhost
+        POSTGRES_PORT: 5432
+        DJANGO_EMAIL_BACKEND: django.core.mail.backends.smtp.EmailBackend
+        DJANGO_ENABLE_REDIS_CACHE: "true"
+        REDIS_URL: redis://localhost:6379/1
+        DJANGO_SECURE_HSTS_PRELOAD: "true"
+      run: python manage.py check --deploy
     
     - name: Run Django system check
       working-directory: ./backend

@@ -9,11 +9,13 @@ from django.test import TestCase, Client
 from django.utils import timezone
 
 from users.models import (
+    Application,
     AuditLog,
     Company,
     Course,
     ScheduledTask,
     User,
+    Vacancy,
 )
 from services.bulk_operations import CSVExporter, CSVImporter
 from services.reports import ReportGenerator
@@ -207,6 +209,75 @@ class ScheduledTaskTests(TestCase):
         # Check task was updated
         self.task.refresh_from_db()
         self.assertIsNotNone(self.task.last_run)
+
+    def test_archive_old_applications_marks_terminal_records(self):
+        company = Company.objects.create(name="Softverse", description="Test company")
+        company_user = User.objects.create_user(
+            email="company@test.com",
+            password="testpass123",
+            full_name="Company User",
+            role=User.Role.COMPANY,
+            company=company,
+        )
+        student = User.objects.create_user(
+            email="student@test.com",
+            password="testpass123",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        vacancy = Vacancy.objects.create(
+            company=company,
+            created_by=company_user,
+            title="Backend Engineer",
+            description="Role",
+            employment_type="Full-time",
+            experience_level="Mid-level",
+            location="Tokyo",
+        )
+        old_rejected = Application.objects.create(
+            company=company,
+            vacancy=vacancy,
+            student=student,
+            status=Application.Status.REJECTED,
+        )
+        old_withdrawn = Application.objects.create(
+            company=company,
+            vacancy=vacancy,
+            student=User.objects.create_user(
+                email="other-student@test.com",
+                password="testpass123",
+                full_name="Other Student",
+                role=User.Role.STUDENT,
+            ),
+            status=Application.Status.WITHDRAWN,
+        )
+        recent_rejected = Application.objects.create(
+            company=company,
+            vacancy=vacancy,
+            student=User.objects.create_user(
+                email="recent-student@test.com",
+                password="testpass123",
+                full_name="Recent Student",
+                role=User.Role.STUDENT,
+            ),
+            status=Application.Status.REJECTED,
+        )
+
+        stale_time = timezone.now() - timedelta(days=181)
+        Application.objects.filter(pk__in=[old_rejected.pk, old_withdrawn.pk]).update(
+            created_at=stale_time,
+            updated_at=stale_time,
+        )
+
+        result = archive_old_applications()
+
+        old_rejected.refresh_from_db()
+        old_withdrawn.refresh_from_db()
+        recent_rejected.refresh_from_db()
+        self.assertEqual(result, "Archived 2 applications")
+        self.assertIsNotNone(old_rejected.archived_at)
+        self.assertIsNotNone(old_withdrawn.archived_at)
+        self.assertIsNone(recent_rejected.archived_at)
 
     def test_task_next_run_calculation(self):
         """Test next run calculation"""
