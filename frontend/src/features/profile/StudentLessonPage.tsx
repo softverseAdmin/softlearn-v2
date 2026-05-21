@@ -409,7 +409,11 @@ export function StudentLessonPage() {
       ? 'max-h-[24rem] space-y-2 overflow-y-auto pr-2 xl:max-h-[16rem]'
       : 'max-h-[24rem] space-y-2 overflow-y-auto pr-2 xl:max-h-[28rem]'
     : 'space-y-2'
-  const videoEmbedUrl = useMemo(() => getYouTubeEmbedUrl(data.video_url), [data.video_url])
+  const resolvedVideoUrl = useMemo(
+    () => data.video_url || courseDetail.preview_video_url || '',
+    [courseDetail.preview_video_url, data.video_url],
+  )
+  const videoEmbedUrl = useMemo(() => getYouTubeEmbedUrl(resolvedVideoUrl), [resolvedVideoUrl])
   const courseDescriptionPreview = useMemo(() => truncateText(courseDetail.description, 160), [courseDetail.description])
   const answeredAssessmentQuestions = useMemo(
     () => Object.values(assessmentSelections).filter((value) => value.length > 0).length,

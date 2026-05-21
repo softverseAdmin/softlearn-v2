@@ -70,10 +70,10 @@ export function Sidebar({ items, logo, bottomContent, collapsible = true, onNavi
       >
         {logo && (
           <div
-            className={cn(
-              'relative z-10 flex items-center gap-3 border-b border-slate-200/80 py-5',
-              isCollapsed ? 'md:px-4' : 'px-6'
-            )}
+              className={cn(
+                'relative z-10 flex items-center gap-3 border-b border-slate-200/80',
+                isCollapsed ? 'md:p-[13px]' : 'md:p-[17px]'
+              )}
           >
             <div
               className={cn(
