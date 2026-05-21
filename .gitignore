@@ -14,6 +14,7 @@ dist-ssr/
 build/
 tmp/
 log/
+/logs/
 vendor/bundle/
 __pycache__/
 .pytest_cache/
@@ -26,7 +27,10 @@ __pycache__/
 htmlcov/
 backend/db.sqlite3
 backend/staticfiles/
-backend/media/
+backend/logs/*
+!backend/logs/.gitkeep
+backend/media/*
+!backend/media/.gitkeep
 .DS_Store
 .idea/
 .vscode/*
