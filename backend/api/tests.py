@@ -610,6 +610,56 @@ class ApiFoundationTests(TestCase):
         self.assertEqual(response.json()["data"]["user_id"], admin.id)
         self.assertEqual(response.json()["data"]["role"], User.Role.ADMIN)
 
+    def test_login_with_remember_me_keeps_session_persistent(self):
+        User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        client, csrf_token = self.csrf_client()
+        response = client.post(
+            "/api/v1/auth/login",
+            data=json.dumps(
+                {
+                    "email": "student@example.com",
+                    "password": "SecurePass123!",
+                    "role": "student",
+                    "remember_me": True,
+                }
+            ),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(client.session.get_expire_at_browser_close())
+
+    def test_login_without_remember_me_expires_on_browser_close(self):
+        User.objects.create_user(
+            email="student@example.com",
+            password="SecurePass123!",
+            full_name="Student User",
+            role=User.Role.STUDENT,
+        )
+        client, csrf_token = self.csrf_client()
+        response = client.post(
+            "/api/v1/auth/login",
+            data=json.dumps(
+                {
+                    "email": "student@example.com",
+                    "password": "SecurePass123!",
+                    "role": "student",
+                    "remember_me": False,
+                }
+            ),
+            content_type="application/json",
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(client.session.get_expire_at_browser_close())
+
     def test_login_rate_limits_after_repeated_failures(self):
         User.objects.create_user(
             email="student@example.com",

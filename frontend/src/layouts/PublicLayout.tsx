@@ -12,12 +12,27 @@ const marketingLinks = [
 
 export function PublicLayout() {
   const location = useLocation()
-  const isAuthRoute = location.pathname === '/login' || location.pathname === '/signup'
+  const isRootRoute = location.pathname === '/'
+  const isAuthRoute =
+    location.pathname === '/login' ||
+    location.pathname === '/signup' ||
+    location.pathname === '/forgot-password' ||
+    location.pathname === '/reset-password'
 
   if (isAuthRoute) {
     return (
       <div className="min-h-[100dvh] overflow-x-hidden bg-[image:var(--sl-marketing-auth-bg)]">
         <main className="min-h-[100dvh] overflow-x-hidden overflow-y-auto">
+          <Outlet />
+        </main>
+      </div>
+    )
+  }
+
+  if (isRootRoute) {
+    return (
+      <div className="min-h-screen bg-white">
+        <main className="min-h-screen">
           <Outlet />
         </main>
       </div>

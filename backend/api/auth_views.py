@@ -116,6 +116,7 @@ def login_view(request):
     email = form.cleaned_data["email"]
     password = form.cleaned_data["password"]
     role = form.cleaned_data.get("role") or None
+    remember_me = form.cleaned_data["remember_me"]
     client_ip = client_ip_from_request(request)
 
     if SecurityManager.login_is_rate_limited(client_ip, email):
@@ -166,6 +167,7 @@ def login_view(request):
 
     SecurityManager.reset_login_rate_limit(client_ip, email)
     login(request, user)
+    request.session.set_expiry(settings.SESSION_COOKIE_AGE if remember_me else 0)
     return success_response({**serialize_user(user), "csrf_token": get_token(request)})
 
 

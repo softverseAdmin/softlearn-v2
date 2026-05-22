@@ -44,6 +44,7 @@ class LoginRequestForm(forms.Form):
     )
     email = forms.EmailField()
     password = forms.CharField()
+    remember_me = forms.BooleanField(required=False)
 
     def clean_email(self):
         return self.cleaned_data["email"].strip().lower()

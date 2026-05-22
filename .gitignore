@@ -1,5 +1,6 @@
 node_modules/
 .venv/
+.venv-py312/
 venv/
 env/
 **/.venv/
