@@ -1,6 +1,6 @@
 # Proposed development roadmap
 
-The next work should make existing learning and hiring flows easier to verify and maintain. These are proposed estimates of **32–45 hours**, not completed hours or an eligibility determination. Record actual time, commits, and results separately; application-preparation work is not counted in these estimates.
+The next work should make existing learning and hiring flows easier to verify and maintain. The proposed work is estimated at **32–45 hours**. Record actual time, commits, and validation results with each change.
 
 ## Existing baseline
 
@@ -18,6 +18,6 @@ The application already has Django tests, privacy-aware matching explanations, G
 
 Start with browser coverage, then use the protected flows and backend regressions to support modularization. Measure matching before selecting an optimization. Confirm the scope after inspecting existing coverage so work already completed is not counted again. Keep all fixtures and demonstrations fictional.
 
-## Conditions before program work
+## Development practice
 
-The owner confirms this is a solo personal project developed with fictional sample data and has selected MIT. Program eligibility for the planned personal-data functionality, sharing terms for generated and third-party material, credential-history cleanup, and release/publication status remain tracked in [submission readiness](submission/SUBMISSION_READINESS.md). This roadmap does not authorize deployment, publication, or submission.
+Use isolated fictional fixtures for the planned work and record actual effort and validation with each change.

@@ -23,11 +23,11 @@ These capabilities are represented in `backend/api/url_patterns/`, `backend/user
 - `frontend/`: browser application and build tooling.
 - `changes/`: recorded product and design decisions.
 
-## Application preparation
+## Development plans
 
-See [ROADMAP.md](ROADMAP.md) for proposed development, [application draft](submission/APPLICATION_DRAFT.md), [review](submission/REVIEW.md), and [licensing and release decisions](submission/LICENSING_AND_RELEASE.md). These are preparation documents, not a submitted application or a determination of BYOP eligibility.
+See [ROADMAP.md](ROADMAP.md) for planned browser tests, backend modularization, matching-performance work, and accessibility improvements.
 
-The owner confirms that development has used only deliberately fictional sample data, not real people's accounts, resumes, messages, or assessment results. Use an isolated synthetic database for demonstrations. The product supports personal-data workflows; BYOP's interpretation of that planned functionality still requires clarification. See [submission readiness](submission/SUBMISSION_READINESS.md).
+The owner confirms that development has used only deliberately fictional sample data, not real people's accounts, resumes, messages, or assessment results. Use an isolated synthetic database for demonstrations.
 
 ## Backend quick start
 
@@ -47,7 +47,7 @@ The owner confirms that development has used only deliberately fictional sample 
    cp .env.example .env
    ```
 4. Set a non-default secret key in `.env` before sharing the backend beyond local development.
-5. Before any future authorized handoff, review the files and use `./scripts/verify-portability.sh` and `./scripts/create-safe-archive.sh` to exclude local artifacts. These helpers do not establish that Git history is free of secrets; resolve the historical finding in `submission/REVIEW.md` before sharing history.
+5. Before a handoff, review the files and use `./scripts/verify-portability.sh` and `./scripts/create-safe-archive.sh` to exclude local artifacts. These helpers do not establish that Git history is free of secrets; review the security status below before sharing.
 6. Run migrations:
    ```bash
    cd backend
@@ -73,7 +73,7 @@ The owner confirms that development has used only deliberately fictional sample 
 - User-role invariants are enforced at the model level: company users must belong to a company, while student and admin users must not.
 - CI sets an explicit Django secret key for backend validation instead of relying on development defaults.
 - GitHub Actions runs CI on `main` and `dev`. The remaining deployment workflow is started manually.
-- Vercel Git deployments are disabled in the repository configuration during submission preparation. Gemini assessment generation remains available but is disabled in the local environment example until explicitly configured.
+- Vercel Git deployments are disabled in the repository configuration. Gemini assessment generation remains available but is disabled in the local environment example until explicitly configured.
 
 ## Frontend quick start
 
@@ -111,4 +111,8 @@ The owner confirms that development has used only deliberately fictional sample 
 
 Keep changes focused and document significant behavior changes. Run Django tests, the frontend build, and ESLint before proposing application changes. Review authorization, student privacy, and matching explanations when those areas are affected.
 
-This project is licensed under the [MIT License](LICENSE). Third-party dependencies and materials retain their respective licenses. Confirm ownership and third-party rights before public distribution. A historical credential was removed from branch history. Retained GitHub PR refs/caches still need follow-up before public release; see `submission/REVIEW.md`.
+This project is licensed under the [MIT License](LICENSE). Third-party dependencies and materials retain their respective licenses; retained notices are in [third_party/licenses](third_party/licenses/).
+
+## Security status
+
+A historical credential was removed from branch history. Retained GitHub PR refs/caches still need follow-up before public release.
