@@ -1,8 +1,8 @@
 ---
 name: Change Request
-about: Request a controlled change to the accepted AI-DLC baseline
+about: Propose a change to application behavior or design
 title: "[CHG] "
-labels: aidlc, change-request
+labels: change-request
 assignees: ""
 ---
 

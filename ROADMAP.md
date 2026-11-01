@@ -12,6 +12,6 @@ Purpose: improve the existing application through reviewable engineering work. T
 | Reproducible local demonstration | 3–5 | Safe synthetic seed workflow, documented reset boundaries, and a repeatable browser walkthrough without third-party credentials. |
 | **Total** | **32–45** | Linked changes and recorded validation. |
 
-Start each item by inspecting existing behavior and tests to avoid duplicating completed work. Follow repository unit/design rules, record requirement changes through CHG, and split work into reviewable commits. No deployment, public release, or history rewrite is authorized by this plan.
+Start each item by inspecting existing behavior and tests to avoid duplicating completed work. Document design decisions and requirement changes, and split work into reviewable commits. No deployment, public release, or history rewrite is authorized by this plan.
 
 Open decisions: confirm the specific BYOP program and current requirements, permitted AI assistance, actual user-data status, ownership and licensing, and which improvement to prioritize. Schedule only after those constraints are known.

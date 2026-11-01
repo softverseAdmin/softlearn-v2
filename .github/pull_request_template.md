@@ -1,41 +1,11 @@
-## Unit name
-
-<!-- e.g. U1-2-authentication-core -->
-
-## Stage completed
-
-<!-- e.g. Functional Design -->
-
 ## Summary
 
--
+Describe the problem and resulting behavior.
 
-## Files changed
+## Validation
 
--
+List the checks performed and any remaining limitations.
 
-## Tests/checks
+## Data and security
 
--
-
-## Privacy impact
-
--
-
-## Security impact
-
--
-
-## CHG linked
-
-<!-- e.g. CHG-001 or N/A -->
-
-## AI-DLC checklist
-
-- [ ] Single unit scoped
-- [ ] Unit state updated
-- [ ] Required stage document completed
-- [ ] No silent requirement changes
-- [ ] `./scripts/aidlc-check.sh` run
-- [ ] Privacy impact reviewed
-- [ ] Security impact reviewed
+Describe changes to permissions, personal data, migrations, or configuration, if applicable.

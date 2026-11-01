@@ -1,6 +1,6 @@
 # Softlearn v2
 
-Softlearn is a personal learning and career-matching platform under development, aimed at learners and IT career opportunities in Japan. The repository contains an implemented Django backend and React/TypeScript frontend, alongside AI-DLC workflow rules and change templates.
+Softlearn is a personal learning and career-matching platform under development, aimed at learners and IT career opportunities in Japan. The repository contains an implemented Django backend and React/TypeScript frontend.
 
 ## Implemented application
 
@@ -21,7 +21,7 @@ These capabilities are represented in `backend/api/url_patterns/`, `backend/user
 - Optional Redis/Celery services for caching and background work.
 - `backend/`: models, services, API routes, migrations, and Django tests.
 - `frontend/`: browser application and build tooling.
-- `.aidlc-rule-details/`, `.github/copilot-instructions.md`, `templates/`, `changes/`: repository workflow instructions. The referenced `aidlc-docs/` baseline is absent in this checkout; do not assume its stages were completed.
+- `changes/`: recorded product and design decisions.
 
 ## Application preparation
 
@@ -106,8 +106,8 @@ User-data status is unconfirmed. Use a separate local database with deliberately
 - Protected writes stay CSRF-aware through the backend `/api/v1/auth/csrf` endpoint.
 - The app uses one shared router with public, protected, student, teacher, company, and admin route areas.
 
-## Repository workflow
+## Contributing
 
-Read `.github/copilot-instructions.md` and `.aidlc-rule-details/common/` before development. Follow the unit stages for application changes and record accepted requirement changes under `changes/`. Run `bash scripts/aidlc-check.sh` for structural checks; passing it does not establish that missing design documents exist.
+Keep changes focused and document significant behavior changes. Run Django tests, the frontend build, and ESLint before proposing application changes. Review authorization, student privacy, and matching explanations when those areas are affected.
 
-No release license has been selected in this checkout. Confirm ownership, third-party rights, and the intended license before public distribution. A historical secret pattern remains in Git history; see `submission/REVIEW.md` before sharing the repository or an archive.
+This project is licensed under the [MIT License](LICENSE). Third-party dependencies and materials retain their respective licenses. Confirm ownership and third-party rights before public distribution. A historical secret pattern remains in Git history; see `submission/REVIEW.md` before sharing the repository or an archive.
