@@ -25,7 +25,7 @@ These capabilities are represented in `backend/api/url_patterns/`, `backend/user
 
 ## Application preparation
 
-See [ROADMAP.md](ROADMAP.md) for proposed development, [application draft](submission/APPLICATION_DRAFT.md), [review](submission/REVIEW.md), and [licensing and release decisions](submission/LICENSING_AND_RELEASE.md). These are local preparation documents, not a submitted application or a determination of BYOP eligibility.
+See [ROADMAP.md](ROADMAP.md) for proposed development, [application draft](submission/APPLICATION_DRAFT.md), [review](submission/REVIEW.md), and [licensing and release decisions](submission/LICENSING_AND_RELEASE.md). These are preparation documents, not a submitted application or a determination of BYOP eligibility.
 
 The owner confirms that development has used only deliberately fictional sample data, not real people's accounts, resumes, messages, or assessment results. Use an isolated synthetic database for demonstrations. The product supports personal-data workflows; BYOP's interpretation of that planned functionality still requires clarification. See [submission readiness](submission/SUBMISSION_READINESS.md).
 
@@ -111,4 +111,4 @@ The owner confirms that development has used only deliberately fictional sample 
 
 Keep changes focused and document significant behavior changes. Run Django tests, the frontend build, and ESLint before proposing application changes. Review authorization, student privacy, and matching explanations when those areas are affected.
 
-This project is licensed under the [MIT License](LICENSE). Third-party dependencies and materials retain their respective licenses. Confirm ownership and third-party rights before public distribution. A historical secret pattern remains in Git history; see `submission/REVIEW.md` before sharing the repository or an archive.
+This project is licensed under the [MIT License](LICENSE). Third-party dependencies and materials retain their respective licenses. Confirm ownership and third-party rights before public distribution. A historical credential was removed from branch history. Retained GitHub PR refs/caches still need follow-up before public release; see `submission/REVIEW.md`.

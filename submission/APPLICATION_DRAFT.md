@@ -24,7 +24,7 @@ I plan **32–45 hours** of browser integration testing, regression-protected ba
 
 ## Repository and review status
 
-The GitHub repository was verified as private on 2026-11-01. The owner reports deleting the Google credentials. The targeted cleanup is now applied to the local `main` lineage, with a private recovery copy preserving original Git data and pending edits. The coordinated remote update is pending at this snapshot. Publication and submission remain pending completion of cleanup and eligibility clarification. Current evidence and remaining actions are tracked in `SUBMISSION_READINESS.md`.
+The GitHub repository was verified as private on 2026-11-01. The owner reports deleting the Google credentials. The targeted cleanup is now applied to the local `main` lineage, with a private recovery copy preserving original Git data and pending edits. The three GitHub branches have now been updated to cleaned ancestry and verified. Eight retained PR refs/caches still require GitHub follow-up. Publication and submission remain pending completion of cleanup and eligibility clarification. Current evidence and remaining actions are tracked in `SUBMISSION_READINESS.md`.
 
 ## Evidence for the form
 

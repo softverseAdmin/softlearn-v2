@@ -25,7 +25,7 @@ Owner remediation before sharing history:
 3. Review other refs, tags, clones, CI artifacts, archives, and forks for copies. Deleting a current file or adding an ignore pattern cannot erase historical exposure.
 4. If history cleanup is chosen, coordinate with collaborators, preserve a controlled recovery copy, plan a reviewed sensitive-data removal across affected refs, and verify the result without displaying secrets. Remote copies and clones require separate coordination. History cleanup does not replace revocation.
 
-The isolated cleanup was verified and has now been applied to the local `main` lineage, with original Git data and pending edits preserved privately. See `CREDENTIAL_REMEDIATION.md`. The coordinated remote update is pending at this snapshot. Provider deletion was reported by the owner, not performed by this review. No publication or application submission has occurred.
+The isolated cleanup was verified and has now been applied to the local `main` lineage, with original Git data and pending edits preserved privately. See `CREDENTIAL_REMEDIATION.md`. The three remote branches have since been updated atomically and verified; eight retained GitHub PR refs still need separate follow-up. Provider deletion was reported by the owner, not performed by this review. No publication or application submission has occurred.
 
 ## Local validation
 
@@ -43,3 +43,9 @@ Validation did not exercise a live PostgreSQL/Redis environment, production sett
 After applying the local cleanup on 2026-11-01, Django's system check passed and all **293 SQLite tests passed in 37.922 seconds**, with the test database destroyed afterward. The frontend build and ESLint passed again. The same isolated environment overrides listed above were used; Gemini provider behavior remained mocked/disabled. The frontend build retained the Node `module.register()` deprecation warning.
 
 Five remaining workflow YAML files and two generic Compose files parsed successfully after removal of the retired hosting integration. Both root and frontend Vercel configuration disable automatic Git deployments for preparation. Private community links and copied navigation instructions were removed from files intended for GitHub. The upstream notices were checked against the installed packages byte-for-byte.
+
+## Applied cleanup outcome
+
+All three mutable GitHub branches were verified after the atomic update. The local repository's old flagged object was removed after private recovery data was saved, remote refs were confirmed, reflogs expired, and garbage collection completed. Candidate published ancestry contained 222 commits (219 mapped originals plus three maintenance commits), 4,406 reachable objects, and no Google-key-pattern matches. Gitleaks' two findings were confirmed documentation/time-expression examples. Remaining GitHub PR refs are recorded in `CREDENTIAL_REMEDIATION.md`; server-wide purging is not claimed.
+
+The repository remains private. No deliberate deployment, public release, or application submission occurred. Program eligibility remains pending receipt of the owner-reported decision.
