@@ -1,74 +1,33 @@
-# AI-DLC Learning & Career Matching Platform
+# Softlearn v2
 
-This repository is an **AI-DLC-first** workspace for a learning and job-matching platform aimed at foreign IT engineers, Japanese learners, companies, and platform administrators. The product is built **unit by unit**, and the current implementation baseline uses the accepted v1 stack: **Django + React + PostgreSQL** with **session-based auth** and **local-first development**.
+Softlearn is a personal learning and career-matching platform under development, aimed at learners and IT career opportunities in Japan. The repository contains an implemented Django backend and React/TypeScript frontend, alongside AI-DLC workflow rules and change templates.
 
-## What this repository contains
+## Implemented application
 
-- AI-DLC operating rules, review gates, and change-management standards
-- Inception documents for requirements, personas, feature decomposition, architecture, security, infrastructure, and technology selection
-- Construction unit templates and initial unit folders
-- Scripts for creating units, completing stages, opening change requests, syncing branches, and running repository checks
-- GitHub workflow and template scaffolding for disciplined delivery
+- Students: course enrollment, lesson progress, assessments, practice questions, profiles, job browsing, applications, matches, interviews, and messaging.
+- Teachers: course and lesson management, exam and student views, and course previews.
+- Companies: vacancies, applications, candidate review, interviews, messaging, and course previews.
+- Administrators: user, company, course, exam, and vacancy management, with reporting and operational endpoints.
+- Privacy-related endpoints: visibility settings, consent, access logs, export requests, and deletion requests. Their existence is not a claim of compliance or completed operational review.
+- Deterministic matching; optional Gemini-backed assessment generation is separate from matching and requires explicit service configuration.
 
-## Main users
+These capabilities are represented in `backend/api/url_patterns/`, `backend/users/`, and `frontend/src/router/routes/`. Implementation does not establish production readiness, user adoption, or the quality of every workflow.
 
-- **Students / learners**
-- **Companies**
-- **Admins**
+## Stack and layout
 
-## Main domains
+- Django 5, session authentication and CSRF protection; API prefix `/api/v1`.
+- React 18, TypeScript, Vite, and Tailwind CSS.
+- SQLite when `POSTGRES_DB` is unset; PostgreSQL configuration is available.
+- Optional Redis/Celery services for caching and background work.
+- `backend/`: models, services, API routes, migrations, and Django tests.
+- `frontend/`: browser application and build tooling.
+- `.aidlc-rule-details/`, `.github/copilot-instructions.md`, `templates/`, `changes/`: repository workflow instructions. The referenced `aidlc-docs/` baseline is absent in this checkout; do not assume its stages were completed.
 
-- Learning
-- Exams
-- Exam preparation
-- Company vacancies
-- Matching
-- Interviews
-- Privacy and permissions
-- Admin management
+## Application preparation
 
-## Working model
+See [ROADMAP.md](ROADMAP.md) for proposed development, [application draft](submission/APPLICATION_DRAFT.md), [review](submission/REVIEW.md), and [licensing and release decisions](submission/LICENSING_AND_RELEASE.md). These are local preparation documents, not a submitted application or a determination of BYOP eligibility.
 
-1. Complete inception and baseline documents.
-2. Select the technology stack through documented comparison and ADR approval.
-3. Implement construction units in small, reviewable branches and pull requests.
-4. Track requirement changes through CHG records instead of silent edits.
-
-## Selected stack
-
-- **Backend:** Django
-- **Frontend:** React + Vite
-- **Database:** PostgreSQL
-- **Auth:** Django-native session-based browser auth
-- **Deployment direction:** local-first now, AWS-compatible later
-- **Matching approach:** deterministic rule-based and weighted scoring
-
-## Quick start
-
-1. Run:
-   ```bash
-   chmod +x scripts/*.sh
-   ```
-2. Run:
-   ```bash
-   ./scripts/aidlc-check.sh
-   ```
-3. Start a unit:
-   ```bash
-   ./scripts/aidlc-new-unit.sh U1-2-authentication-core
-   ```
-4. Complete a stage:
-   ```bash
-   ./scripts/aidlc-stage-complete.sh U1-2-authentication-core "Functional Design"
-   ```
-5. Create a change request:
-   ```bash
-   ./scripts/aidlc-change.sh "Change summary here"
-   ```
-6. Create PR:
-   ```bash
-   ./scripts/creating-pr.sh U1-2-authentication-core
-   ```
+User-data status is unconfirmed. Use a separate local database with deliberately synthetic records for demonstrations; do not copy production data or expose real profiles, resumes, messages, or assessment results.
 
 ## Backend quick start
 
@@ -88,7 +47,7 @@ This repository is an **AI-DLC-first** workspace for a learning and job-matching
    cp .env.example .env
    ```
 4. Set a non-default secret key in `.env` before sharing the backend beyond local development.
-5. Never share or deploy a raw zip of the working tree. Stage the files you want to share, then run `./scripts/verify-portability.sh` and `./scripts/create-safe-archive.sh` so `.env`, virtualenvs, `node_modules`, logs, media, SQLite, and build artifacts stay out.
+5. Before any future authorized handoff, review the files and use `./scripts/verify-portability.sh` and `./scripts/create-safe-archive.sh` to exclude local artifacts. These helpers do not establish that Git history is free of secrets; resolve the historical finding in `submission/REVIEW.md` before sharing history.
 6. Run migrations:
    ```bash
    cd backend
@@ -145,8 +104,10 @@ This repository is an **AI-DLC-first** workspace for a learning and job-matching
 - The frontend lives in `frontend/` and uses **React + Vite + TypeScript**.
 - It restores the authenticated Django session on app load through `/api/v1/auth/session`.
 - Protected writes stay CSRF-aware through the backend `/api/v1/auth/csrf` endpoint.
-- The app uses one shared router with public, protected, student, company, and admin route areas.
+- The app uses one shared router with public, protected, student, teacher, company, and admin route areas.
 
-## Important guardrail
+## Repository workflow
 
-Keep implementation aligned with the accepted ADR-001 stack, the completed AI-DLC unit docs, session-based auth, `/api/v1/`, privacy-aware authorization, and deterministic matching rules.
+Read `.github/copilot-instructions.md` and `.aidlc-rule-details/common/` before development. Follow the unit stages for application changes and record accepted requirement changes under `changes/`. Run `bash scripts/aidlc-check.sh` for structural checks; passing it does not establish that missing design documents exist.
+
+No release license has been selected in this checkout. Confirm ownership, third-party rights, and the intended license before public distribution. A historical secret pattern remains in Git history; see `submission/REVIEW.md` before sharing the repository or an archive.

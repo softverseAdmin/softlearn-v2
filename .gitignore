@@ -36,3 +36,25 @@ backend/media/*
 .idea/
 .vscode/*
 !.vscode/settings.json
+
+# Local backups, database exports, logs, and distribution archives
+backups/
+backup/
+*.bak
+*.backup
+*.old
+*.orig
+*.sqlite3
+*.sqlite3-*
+*.db
+*.sql
+*.sql.gz
+*.dump
+*.log
+*.log.*
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.7z
+*.rar
