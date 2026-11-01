@@ -4,7 +4,9 @@ Review date: 2026-11-01. Application baseline: `a1739af`.
 
 ## Application preparation
 
-The README describes implemented workflows. `ROADMAP.md` proposes future work; `APPLICATION_DRAFT.md` leaves personal and eligibility answers for the owner. Ownership, third-party rights, and real-user data status remain unconfirmed. The owner subsequently selected MIT; the root `LICENSE` records that choice.
+The README describes implemented workflows. `ROADMAP.md` proposes future work. The owner selected MIT and confirmed on 2026-11-01 that Softlearn is a solo personal project developed only with deliberately fictional sample data. The owner reports generating the illustrations and lesson material using AI. Independent rights verification, generation-service terms, and BYOP's eligibility decision remain outstanding. See `SUBMISSION_READINESS.md` and `THIRD_PARTY_REVIEW.md`.
+
+Live authenticated GitHub checks on 2026-11-01 found `softverseAdmin/softlearn-v2` to be **private**, with default branch `main` at `c78e43e531ffed758905bc88bb9a67a1369a0e0e`. The remote LICENSE, README, ROADMAP, and application draft matched local Git blob IDs before this follow-up's edits. Three branch heads, no tags, and eleven pull-request head refs were found. Visibility has not been changed.
 
 ## Historical credential finding — unresolved
 
@@ -14,16 +16,16 @@ A local, read-only pattern check confirmed:
 - `.env.example` at `febad63` contains the pattern; at `5cb7b6d` and current HEAD it does not.
 - No currently tracked working-tree file matched that pattern.
 
-The value was neither printed nor tested. These checks do not establish whether the credential is valid, revoked, restricted, used elsewhere, or exposed in remote clones. They are a targeted pattern check, not a comprehensive secret audit.
+The value was neither printed nor tested. On 2026-11-01 the owner subsequently reported deleting the Google Cloud and AI Studio credentials. No provider verification was performed, and that statement does not establish which other copies or uses may exist. The initial checks were targeted, not a comprehensive secret audit.
 
 Owner remediation before sharing history:
 
-1. Identify the credential in the provider console and revoke or rotate it; update any legitimate dependent environment through its secret-management mechanism. Do not test the exposed value.
+1. Owner reports deletion complete. Retain the affected project's non-secret credential identifier and deletion confirmation privately, and update any legitimate dependent environment through its secret-management mechanism. Do not test the exposed value.
 2. Review provider usage, billing, and available audit records for unexpected activity; restrict any replacement to required APIs and appropriate applications.
 3. Review other refs, tags, clones, CI artifacts, archives, and forks for copies. Deleting a current file or adding an ignore pattern cannot erase historical exposure.
 4. If history cleanup is chosen, coordinate with collaborators, preserve a controlled recovery copy, plan a reviewed sensitive-data removal across affected refs, and verify the result without displaying secrets. Remote copies and clones require separate coordination. History cleanup does not replace revocation.
 
-No history rewrite or credential action was performed. The owner must explicitly authorize any future rewrite and coordinated remote update.
+The isolated cleanup was verified and has now been applied to the local `main` lineage, with original Git data and pending edits preserved privately. See `CREDENTIAL_REMEDIATION.md`. The coordinated remote update is pending at this snapshot. Provider deletion was reported by the owner, not performed by this review. No publication or application submission has occurred.
 
 ## Local validation
 
@@ -35,3 +37,9 @@ No history rewrite or credential action was performed. The owner must explicitly
 - `git diff --check`: passed. Ignore checks confirmed local env files, SQL/dump exports, logs, and ZIP archives are ignored while `frontend/.env.example` remains trackable.
 
 Validation did not exercise a live PostgreSQL/Redis environment, production settings, a browser walkthrough, real email delivery, or a live Gemini call. No dependency security audit or full secret audit is claimed. Application code and lockfiles were unchanged.
+
+## Fresh preparation checks
+
+After applying the local cleanup on 2026-11-01, Django's system check passed and all **293 SQLite tests passed in 37.922 seconds**, with the test database destroyed afterward. The frontend build and ESLint passed again. The same isolated environment overrides listed above were used; Gemini provider behavior remained mocked/disabled. The frontend build retained the Node `module.register()` deprecation warning.
+
+Five remaining workflow YAML files and two generic Compose files parsed successfully after removal of the retired hosting integration. Both root and frontend Vercel configuration disable automatic Git deployments for preparation. Private community links and copied navigation instructions were removed from files intended for GitHub. The upstream notices were checked against the installed packages byte-for-byte.

@@ -11,10 +11,9 @@
 7. [Docker Deployment](#docker-deployment)
 8. [Database Migrations](#database-migrations)
 9. [Production Deployment](#production-deployment)
-10. [Hetzner VPS Deployment](#hetzner-vps-deployment)
-11. [Monitoring & Logging](#monitoring--logging)
-12. [Troubleshooting](#troubleshooting)
-13. [Rollback Procedure](#rollback-procedure)
+10. [Monitoring & Logging](#monitoring--logging)
+11. [Troubleshooting](#troubleshooting)
+12. [Rollback Procedure](#rollback-procedure)
 
 ## Secret Handling and Safe Sharing
 
@@ -273,7 +272,7 @@ Before a real production launch:
 1. Rotate any secret that was ever shared from a local `.env` or uploaded working tree.
 2. Run `./scripts/verify-portability.sh`.
 3. Ensure GitHub Actions `Tests` passes on push/PR, including `python manage.py check --deploy`.
-4. Trigger a **staging** deployment first (`Deploy` workflow with `environment=staging`, or Hetzner workflow targeting staging).
+4. Trigger a **staging** deployment first (`Deploy` workflow with `environment=staging`).
 5. Run the smoke checklist on staging: signup, login, logout, student/company/teacher/admin dashboards, course creation, lesson view, exam/practice flow, job post flow, application flow, file upload, email behavior, CSRF behavior, and mobile layout.
 6. Promote to production only after staging passes.
 3. Trigger the Vercel frontend deploy hook.
@@ -286,166 +285,6 @@ VERCEL_DEPLOY_HOOK_URL
 ```
 
 The workflow remains `workflow_dispatch`-driven so production rollout stays explicit.
-
-### Hetzner VPS deployment
-
-The repo now includes a **Hetzner-specific image rollout path** that keeps the current production container topology:
-
-- `docker/docker-compose.hetzner.yml` - image-based runtime compose for the VPS
-- `docker/nginx/softlearn.hetzner.conf` - system nginx site template for the VPS
-- `.github/workflows/deploy-hetzner.yml` - GHCR publish + SSH deploy workflow
-
-This is the intended Hetzner shape:
-
-```text
-Internet
-  -> Cloudflare (optional but recommended)
-  -> Hetzner VPS system nginx
-  -> frontend container on 127.0.0.1:8080
-  -> backend container on internal Docker network
-  -> postgres + redis + worker on internal Docker network
-```
-
-#### What to create in the Hetzner dashboard
-
-Create these resources:
-
-1. **One Cloud server**
-   - Location: `Singapore`
-   - Image: `Ubuntu 24.04`
-   - Type: `CX22` minimum
-   - Public IPv4: enabled
-   - SSH key: add the Mac SSH public key you will use for deployment
-2. **One firewall**
-   - Inbound TCP `22` from your admin IPs only
-   - Inbound TCP `80` from `0.0.0.0/0` and `::/0`
-   - Inbound TCP `443` from `0.0.0.0/0` and `::/0`
-   - No public `5432`, `6379`, `8000`, or `8080`
-3. **Reverse DNS / hostname**
-   - Set a hostname such as `app.yourdomain.com`
-4. **Optional volume/backups**
-   - Recommended once the environment matters beyond testing
-
-You do **not** need a Hetzner load balancer for a single-VPS rollout.
-
-#### Initial server bootstrap
-
-```bash
-ssh root@YOUR_SERVER_IP
-apt update && apt upgrade -y
-apt install -y ca-certificates curl gnupg lsb-release git nginx certbot python3-certbot-nginx
-
-mkdir -p /etc/apt/keyrings
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" \
-  | tee /etc/apt/sources.list.d/docker.list > /dev/null
-apt update
-apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-
-mkdir -p /apps/softlearn/docker /apps/softlearn/media
-chown -R 1000:1000 /apps/softlearn/media
-chmod 755 /apps/softlearn/media
-```
-
-Copy the nginx template into place:
-
-```bash
-cp /apps/softlearn/docker/nginx/softlearn.hetzner.conf /etc/nginx/sites-available/softlearn
-ln -sf /etc/nginx/sites-available/softlearn /etc/nginx/sites-enabled/softlearn
-nginx -t
-systemctl reload nginx
-```
-
-If you are bootstrapping from this repository checkout instead of the workflow upload, the source template lives at `docker/nginx/softlearn.hetzner.conf`.
-
-#### VPS environment file
-
-Create `/apps/softlearn/.env` from `.env.example` and set production values. For Hetzner, the important differences are:
-
-```env
-ENVIRONMENT=production
-DJANGO_ALLOWED_HOSTS=yourdomain.com,www.yourdomain.com
-DJANGO_CORS_ALLOWED_ORIGINS=https://yourdomain.com,https://www.yourdomain.com
-DJANGO_CSRF_TRUSTED_ORIGINS=https://yourdomain.com,https://www.yourdomain.com
-DJANGO_SESSION_COOKIE_SECURE=true
-DJANGO_CSRF_COOKIE_SECURE=true
-DJANGO_SESSION_COOKIE_SAMESITE=Lax
-DJANGO_CSRF_COOKIE_SAMESITE=Lax
-DJANGO_ENABLE_REDIS_CACHE=true
-DJANGO_ENABLE_RATE_LIMITING=true
-DJANGO_TRUSTED_PROXY_IPS=127.0.0.1,172.16.0.0/12
-POSTGRES_DB=softlearn
-POSTGRES_USER=softlearn
-POSTGRES_PASSWORD=replace-this
-FRONTEND_URL=https://yourdomain.com
-DJANGO_EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
-REDIS_URL=redis://redis:6379/1
-CELERY_BROKER_URL=redis://redis:6379/2
-CELERY_RESULT_BACKEND=redis://redis:6379/2
-MATCHING_ASYNC_REFRESH_ENABLED=true
-```
-
-`DJANGO_TRUSTED_PROXY_IPS` now supports both exact IPs and CIDR ranges. That matters on Hetzner because backend traffic reaches Django through Docker/Nginx proxy layers, so trusting only one static IP is too brittle.
-
-#### GitHub configuration for automated Hetzner deploys
-
-Create these **GitHub environment secrets** on the target environment (`staging` or `production`) before using `.github/workflows/deploy-hetzner.yml`:
-
-```text
-HETZNER_HOST
-HETZNER_USER
-HETZNER_PORT
-HETZNER_SSH_PRIVATE_KEY
-```
-
-Recommended values:
-
-- `HETZNER_HOST`: VPS public IP or deploy hostname
-- `HETZNER_USER`: `root` or your deploy user
-- `HETZNER_PORT`: `22`
-- `HETZNER_SSH_PRIVATE_KEY`: private key matching the public key installed on the VPS
-
-The workflow now uses the job-scoped `GITHUB_TOKEN` for GHCR login on the VPS, so you do **not** need separate `GHCR_USERNAME` or `GHCR_READ_TOKEN` environment secrets. This avoids package-read PAT drift and keeps the pull credentials aligned with the exact workflow run that published the images.
-
-The workflow will:
-
-1. build and push backend/frontend images to GHCR
-2. upload `docker/docker-compose.hetzner.yml` to `/apps/softlearn/docker/`
-3. pull the new images on the VPS
-4. run the release container for migrations
-5. start backend, worker, and frontend containers with `/apps/softlearn/media` mounted at `/app/media`
-6. verify `http://127.0.0.1:8080/healthz` and `http://127.0.0.1:8080/api/v1/ready`
-
-The deploy workflow now passes `--env-file .env` to every Hetzner `docker compose` command so required values such as `POSTGRES_DB`, `POSTGRES_USER`, and `POSTGRES_PASSWORD` are loaded explicitly from `/apps/softlearn/.env` during compose interpolation.
-
-The media directory must stay writable by the container `appuser` (`uid=1000`, `gid=1000`). If `/apps/softlearn/media` is left owned by `root`, profile and cover uploads will fail with 500 errors even though reads and health checks still pass.
-
-Branch behavior is now:
-
-- `main`: runs CI and automatically deploys to the `production` GitHub environment on every push
-- `dev`: runs CI only, so it stays safe for localhost-focused development without touching the VPS
-- `workflow_dispatch`: still available when you want to run the Hetzner workflow manually for `staging` or rerun `production`
-
-#### First manual rollout on the VPS
-
-After the workflow secrets and `/apps/softlearn/.env` exist, you can either run the GitHub workflow or do the first rollout manually:
-
-```bash
-cd /apps/softlearn
-export BACKEND_IMAGE=ghcr.io/OWNER/REPO/hetzner/production-backend:YOUR_SHA
-export FRONTEND_IMAGE=ghcr.io/OWNER/REPO/hetzner/production-frontend:YOUR_SHA
-
-docker compose -f docker/docker-compose.hetzner.yml pull
-docker compose -f docker/docker-compose.hetzner.yml up -d postgres redis
-docker compose -f docker/docker-compose.hetzner.yml --profile release run --rm backend-release
-docker compose -f docker/docker-compose.hetzner.yml up -d backend worker frontend
-```
-
-Then enable TLS:
-
-```bash
-certbot --nginx -d yourdomain.com -d www.yourdomain.com
-```
 
 ### Security Configuration
 

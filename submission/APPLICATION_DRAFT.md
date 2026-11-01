@@ -1,33 +1,44 @@
-# BYOP application draft — owner review required
+# CC-CLI v2 / BYOP application draft — owner review required
 
-## Project description
+## Project
 
-Softlearn v2 is my personal learning and career-matching platform under development. It uses Django and React/TypeScript to connect learning progress, assessments, learner profiles, and job-search workflows. The intended context includes learners pursuing IT opportunities in Japan.
+- **Name:** Softlearn v2.
+- **Repository:** https://github.com/softverseAdmin/softlearn-v2.
+- **License:** MIT, recorded in the root `LICENSE` file.
 
-The code includes student, teacher, company, and administrator areas; courses and lessons; assessments; vacancies and applications; deterministic matching; interviews; messaging; and privacy-related controls. Optional Gemini integration supports assessment generation. These are code-backed capabilities, not claims of adoption, production quality, or regulatory compliance.
+## Short description
 
-## License
+Softlearn v2 is my personal learning and career-matching platform under development for learners pursuing IT opportunities in Japan. It uses Django and React/TypeScript for courses, assessments, learner profiles, and job applications, with student, teacher, company, and administrator workspaces. Matching uses deterministic scoring, while an optional Gemini integration generates assessment questions. Development has used only fictional sample data.
 
-MIT, as recorded in the root `LICENSE` file.
+## Relationship and data
 
-## Proposed work
+I created this as my solo personal project. I confirm it is not employer, client, university, company, or startup work, and have reported no co-owners or conflicting confidentiality/resource claims. These are my confirmations, not an independent ownership certification by a reviewer.
 
-I propose to improve browser integration coverage, authorization and privacy regressions, matching explanations, assessment-generation failure handling, accessible forms, and a reproducible synthetic demonstration. The proposed scope is estimated at 32–45 hours in `ROADMAP.md`; it has not yet been completed.
+I confirm that development has not processed real people's accounts, resumes, messages, or assessment results. The planned product supports those workflows in future. I have reported receiving a program response, but its eligibility decision has not yet been provided for this draft. It must be recorded before submission; no approval is inferred.
 
-## Evidence to attach after review
+I generated the hero illustrations and seeded lesson text/questions using AI and identified Gemini as the service. Asset-specific creation records, applicable terms, and any reference inputs still need to be retained. Other dependencies, fonts, icons, UI components, and linked video material retain their own terms; see `THIRD_PARTY_REVIEW.md`.
 
-- An owner-approved repository reference and baseline commit (local review baseline: `a1739af`).
-- A sanitized demonstration using a separate synthetic database.
-- Actual development commits, time records if required, and validation results.
-- A clear account of personal contributions, collaborators, reused material, and AI assistance, supplied by the owner.
+## Work I plan to do
 
-## Owner answers still required
+I plan **32–45 hours** of browser integration testing, regression-protected backend modularization, measured matching-performance improvements, and accessibility fixes for core forms. The scope and acceptance evidence are in [ROADMAP.md](../ROADMAP.md). Existing matching explanations, assessment fallbacks, and demo seeding are already implemented; I am not presenting them as new work. These are estimates for proposed work, not completed hours.
 
-- Exact BYOP program, application URL, deadline, and current eligibility questions.
-- Applicant identity, eligibility, availability, and any required declarations.
-- Project origin, ownership, collaborator/employer rights, and contribution history.
-- Existing users and data handling; whether any real personal data is stored.
-- Prior publication, revenue/funding, prior program participation, and any other requested disclosures.
-- Repository visibility and permission to share demonstration assets.
+## Repository and review status
 
-No eligibility answers, ownership certification, user counts, or completion claims have been inferred. This draft is not ready for submission until the owner supplies and verifies the missing facts against the actual program form.
+The GitHub repository was verified as private on 2026-11-01. The owner reports deleting the Google credentials. The targeted cleanup is now applied to the local `main` lineage, with a private recovery copy preserving original Git data and pending edits. The coordinated remote update is pending at this snapshot. Publication and submission remain pending completion of cleanup and eligibility clarification. Current evidence and remaining actions are tracked in `SUBMISSION_READINESS.md`.
+
+## Evidence for the form
+
+- The main repository link, with the finalized history and license visible to reviewers after authorized publication.
+- A demonstration using an isolated fictional database.
+- The roadmap, relevant development commits, and accurately dated validation results in `REVIEW.md`.
+- An accurate account of personal contributions, reused/generated material, collaborators if any, and AI assistance.
+
+## Answers still required from the owner or program
+
+- Applicant identity, availability, deadline, and any declarations required by the actual form.
+- Final ownership certification and sharing-rights evidence for generated and third-party material.
+- The program's response about planned personal-data functionality with fictional-data-only development.
+- Prior publication, revenue/funding, prior program participation, and any requested disclosures; none have been inferred.
+- Public repository visibility and permission to share demonstration assets.
+
+This draft claims no eligibility approval, user adoption, regulatory compliance, independent rights verification, or completed future development. Review it against the actual form before submission.

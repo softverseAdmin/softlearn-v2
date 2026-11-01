@@ -27,7 +27,7 @@ These capabilities are represented in `backend/api/url_patterns/`, `backend/user
 
 See [ROADMAP.md](ROADMAP.md) for proposed development, [application draft](submission/APPLICATION_DRAFT.md), [review](submission/REVIEW.md), and [licensing and release decisions](submission/LICENSING_AND_RELEASE.md). These are local preparation documents, not a submitted application or a determination of BYOP eligibility.
 
-User-data status is unconfirmed. Use a separate local database with deliberately synthetic records for demonstrations; do not copy production data or expose real profiles, resumes, messages, or assessment results.
+The owner confirms that development has used only deliberately fictional sample data, not real people's accounts, resumes, messages, or assessment results. Use an isolated synthetic database for demonstrations. The product supports personal-data workflows; BYOP's interpretation of that planned functionality still requires clarification. See [submission readiness](submission/SUBMISSION_READINESS.md).
 
 ## Backend quick start
 
@@ -72,7 +72,8 @@ User-data status is unconfirmed. Use a separate local database with deliberately
 - Signup uses Django password validation rules, so weak passwords are rejected at account creation time.
 - User-role invariants are enforced at the model level: company users must belong to a company, while student and admin users must not.
 - CI sets an explicit Django secret key for backend validation instead of relying on development defaults.
-- GitHub Actions runs CI on `main` and `dev`, while pushes to `main` also auto-deploy to the Hetzner production environment.
+- GitHub Actions runs CI on `main` and `dev`. The remaining deployment workflow is started manually.
+- Vercel Git deployments are disabled in the repository configuration during submission preparation. Gemini assessment generation remains available but is disabled in the local environment example until explicitly configured.
 
 ## Frontend quick start
 
